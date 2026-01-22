@@ -198,30 +198,72 @@ const SEC_PATTERNS = {
 //   -j, --json      Output as JSON instead of table
 //   -h, --help      Show this help
 // ─────────────────────────────────────────────────────────────────────────────
+// CLI Argument Parsing with util.parseArgs (Bun-compatible)
+// ─────────────────────────────────────────────────────────────────────────────
+import { parseArgs } from "util";
 
-const args = new Set(Bun.argv.slice(2));
-const getArg = (short: string, long: string) => args.has(short) || args.has(long);
-const getArgValue = (short: string, long: string, def: number) => {
-  const argv = Bun.argv;
-  for (let i = 2; i < argv.length; i++) {
-    if (argv[i] === short || argv[i] === long) {
-      return parseInt(argv[i + 1], 10) || def;
-    }
-  }
-  return def;
-};
-const getArgString = (short: string, long: string): string | null => {
-  const argv = Bun.argv;
-  for (let i = 2; i < argv.length; i++) {
-    if (argv[i] === short || argv[i] === long) {
-      return argv[i + 1] || null;
-    }
-  }
-  return null;
-};
+const { values: flags } = parseArgs({
+  args: Bun.argv.slice(2),
+  options: {
+    // Column sets
+    url: { type: "boolean", short: "u" },
+    cookie: { type: "boolean", short: "k" },
+    type: { type: "boolean", short: "t" },
+    metrics: { type: "boolean", short: "e" },
+    props: { type: "boolean", short: "p" },
+    "pattern-analysis": { type: "boolean", short: "A" },
+    "internal-structure": { type: "boolean", short: "I" },
+    "performance-deep": { type: "boolean", short: "D" },
+    "memory-layout": { type: "boolean", short: "M" },
+    "web-standards": { type: "boolean", short: "W" },
+    extras: { type: "boolean", short: "x" },
+    // v3.0 categories
+    "env-vars": { type: "boolean", short: "E" },
+    security: { type: "boolean", short: "S" },
+    encoding: { type: "boolean" },
+    international: { type: "boolean" },
+    cache: { type: "boolean", short: "C" },
+    errors: { type: "boolean" },
+    peek: { type: "boolean", short: "P" },
+    // Quick modes
+    audit: { type: "boolean" },
+    benchmark: { type: "boolean" },
+    "prod-ready": { type: "boolean" },
+    // Filters
+    all: { type: "boolean", short: "a" },
+    matched: { type: "boolean", short: "m" },
+    failed: { type: "boolean", short: "f" },
+    regex: { type: "boolean", short: "r" },
+    // Options with values
+    sort: { type: "string", short: "s" },
+    rows: { type: "string", short: "n" },
+    file: { type: "string" },
+    "test-url": { type: "string" },
+    threshold: { type: "string" },
+    baseline: { type: "string" },
+    output: { type: "string" },
+    editor: { type: "string" },
+    // Output options
+    "no-color": { type: "boolean", short: "c" },
+    json: { type: "boolean", short: "j" },
+    open: { type: "boolean" },
+    // CI/Fix modes
+    fix: { type: "boolean" },
+    ci: { type: "boolean" },
+    "save-baseline": { type: "boolean" },
+    // Help
+    help: { type: "boolean", short: "h" },
+  },
+  strict: false, // Allow unknown flags for -pa, -is, etc. shorthand
+  allowPositionals: true,
+});
+
+// Legacy shorthand support (parseArgs doesn't support multi-char shorts)
+const legacyArgs = new Set(Bun.argv.slice(2));
+const hasLegacy = (s: string) => legacyArgs.has(s);
 
 // Help
-if (getArg("-h", "--help")) {
+if (flags.help) {
   console.log(`
 50-col-matrix.ts - MATRIX v3.0 URLPattern Analysis Fortress (~247 columns)
 
@@ -302,61 +344,61 @@ Examples:
   process.exit(0);
 }
 
-// Options - Original Categories
-const showUrl = getArg("-u", "--url");
-const showCookie = getArg("-k", "--cookie");
-const showType = getArg("-t", "--type");
-const showMetrics = getArg("-e", "--metrics");
-const showProps = getArg("-p", "--props");
-const showPatternAnalysis = getArg("-pa", "--pattern-analysis");
-const showInternalStructure = getArg("-is", "--internal-structure");
-const showPerfDeep = getArg("-pd", "--performance-deep");
-const showMemoryLayout = getArg("-ml", "--memory-layout");
-const showWebStandards = getArg("-ws", "--web-standards");
-const showExtras = getArg("-x", "--extras");
+// Options - Original Categories (from parseArgs + legacy shorthand)
+const showUrl = flags.url || hasLegacy("-u");
+const showCookie = flags.cookie || hasLegacy("-k");
+const showType = flags.type || hasLegacy("-t");
+const showMetrics = flags.metrics || hasLegacy("-e");
+const showProps = flags.props || hasLegacy("-p");
+const showPatternAnalysis = flags["pattern-analysis"] || hasLegacy("-pa");
+const showInternalStructure = flags["internal-structure"] || hasLegacy("-is");
+const showPerfDeep = flags["performance-deep"] || hasLegacy("-pd");
+const showMemoryLayout = flags["memory-layout"] || hasLegacy("-ml");
+const showWebStandards = flags["web-standards"] || hasLegacy("-ws");
+const showExtras = flags.extras || hasLegacy("-x");
 
 // Options - NEW v3.0 Categories
-const showEnvVars = getArg("-ev", "--env-vars");
-const showSecurity = getArg("-sec", "--security");
-const showEncoding = getArg("-enc", "--encoding");
-const showI18n = getArg("-i18n", "--international");
-const showCache = getArg("-ca", "--cache");
-const showErrors = getArg("-err", "--errors");
-const showPeek = getArg("-pk", "--peek");
+const showEnvVars = flags["env-vars"] || hasLegacy("-ev");
+const showSecurity = flags.security || hasLegacy("-sec");
+const showEncoding = flags.encoding || hasLegacy("-enc");
+const showI18n = flags.international || hasLegacy("-i18n");
+const showCache = flags.cache || hasLegacy("-ca");
+const showErrors = flags.errors || hasLegacy("-err");
+const showPeek = flags.peek || hasLegacy("-pk");
 
 // Quick Modes
-const quickAudit = getArg("--audit", "--audit");
-const quickBenchmark = getArg("--benchmark", "--benchmark");
-const quickProdReady = getArg("--prod-ready", "--prod-ready");
-const quickInternational = getArg("--international", "--international");
+const quickAudit = flags.audit;
+const quickBenchmark = flags.benchmark;
+const quickProdReady = flags["prod-ready"];
+const quickInternational = flags.international;
 
 const anySelected = showUrl || showCookie || showType || showMetrics || showProps ||
   showPatternAnalysis || showInternalStructure || showPerfDeep || showMemoryLayout ||
   showWebStandards || showExtras || showEnvVars || showSecurity || showEncoding ||
   showI18n || showCache || showErrors || quickAudit || quickBenchmark ||
   quickProdReady || quickInternational;
-const showAll = getArg("-a", "--all") || !anySelected;
-const filterMatched = getArg("-m", "--matched");
-const filterFailed = getArg("-f", "--failed");
-const filterRegex = getArg("-r", "--regex");
-const sortArg = getArgString("-s", "--sort");
-const rowLimit = getArgValue("-n", "--rows", 15);
-const noColor = getArg("-c", "--no-color");
-const jsonOutput = getArg("-j", "--json");
-const openInEditor = getArg("--open", "--open");
-const editorOverride = getArgString("--editor", "--editor");
+const showAll = flags.all || !anySelected;
+const filterMatched = flags.matched;
+const filterFailed = flags.failed;
+const filterRegex = flags.regex;
+const sortArg = flags.sort || null;
+const rowLimit = parseInt(flags.rows || "15", 10);
+const noColor = flags["no-color"];
+const jsonOutput = flags.json;
+const openInEditor = flags.open;
+const editorOverride = flags.editor || null;
 
 // Input options
-const patternFile = getArgString("--file", "--file");
-const customTestUrl = getArgString("--test-url", "--test-url");
+const patternFile = flags.file || null;
+const customTestUrl = flags["test-url"] || null;
 
 // Remediation & CI options
-const fixMode = getArg("--fix", "--fix");
-const ciMode = getArg("--ci", "--ci");
-const thresholdArg = getArgString("--threshold", "--threshold") || "medium";
-const baselineFile = getArgString("--baseline", "--baseline");
-const saveBaseline = getArg("--save-baseline", "--save-baseline");
-const outputFile = getArgString("--output", "--output");
+const fixMode = flags.fix;
+const ciMode = flags.ci;
+const thresholdArg = flags.threshold || "medium";
+const baselineFile = flags.baseline || null;
+const saveBaseline = flags["save-baseline"];
+const outputFile = flags.output || null;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // File Loading with Bun.file() (zero-copy optimized)
