@@ -252,6 +252,14 @@ const { values: flags } = parseArgs({
     fix: { type: "boolean" },
     ci: { type: "boolean" },
     "save-baseline": { type: "boolean" },
+    // v3.1 Enhanced modes
+    watch: { type: "boolean", short: "w" },
+    csv: { type: "boolean" },
+    markdown: { type: "boolean" },
+    summary: { type: "boolean" },
+    diff: { type: "string" },
+    serve: { type: "boolean" },
+    port: { type: "string" },
     // Help
     help: { type: "boolean", short: "h" },
   },
@@ -331,6 +339,15 @@ Display:
   --editor <name> Editor override (vscode, subl, vim, etc.)
   -h, --help      Show this help
 
+Enhanced Modes (v3.1):
+  -w, --watch       Watch pattern file for changes (live reload)
+  --csv             Output as CSV format
+  --markdown        Output as Markdown table
+  --summary         Show aggregate statistics summary
+  --diff <file>     Compare patterns against another file
+  --serve           Start HTTP server for API access
+  --port <N>        Server port (default: 3000)
+
 Examples:
   bun 50-col-matrix.ts -sec -s riskScore     # Security audit, lowest risk first
   bun 50-col-matrix.ts --audit               # Full security/env/error audit
@@ -344,6 +361,14 @@ Examples:
   bun 50-col-matrix.ts --audit --ci --threshold medium  # CI gate mode
   cat routes.txt | bun 50-col-matrix.ts --stdin --audit  # Pipe patterns from stdin
   echo "/api/:id" | bun 50-col-matrix.ts --stdin -sec    # Single pattern via pipe
+
+Enhanced Mode Examples (v3.1):
+  bun 50-col-matrix.ts --file routes.txt --watch  # Live reload on file changes
+  bun 50-col-matrix.ts -sec --csv > report.csv    # Export security audit to CSV
+  bun 50-col-matrix.ts --audit --markdown         # Markdown table for docs
+  bun 50-col-matrix.ts --benchmark --summary      # Show aggregate perf stats
+  bun 50-col-matrix.ts --diff old.txt --file new.txt  # Compare pattern files
+  bun 50-col-matrix.ts --serve --port 8080        # Start API server on :8080
 `);
   process.exit(0);
 }
@@ -404,6 +429,15 @@ const thresholdArg = flags.threshold || "medium";
 const baselineFile = flags.baseline || null;
 const saveBaseline = flags["save-baseline"];
 const outputFile = flags.output || null;
+
+// v3.1 Enhanced mode options
+const watchMode = flags.watch;
+const csvOutput = flags.csv;
+const markdownOutput = flags.markdown;
+const showSummary = flags.summary;
+const diffFile = flags.diff || null;
+const serveMode = flags.serve;
+const serverPort = parseInt(flags.port || "3000", 10);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // File Loading with Bun.file() (zero-copy optimized)
@@ -1841,11 +1875,349 @@ if (ciMode) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// v3.1 Enhanced Mode: CSV Export
+// ─────────────────────────────────────────────────────────────────────────────
+function toCSV(data: Record<string, unknown>[], columns?: string[]): string {
+  if (data.length === 0) return "";
+  const cols = columns || Object.keys(data[0]);
+  const escapeCSV = (v: unknown): string => {
+    const s = String(v ?? "");
+    if (s.includes(",") || s.includes('"') || s.includes("\n")) {
+      return `"${s.replace(/"/g, '""')}"`;
+    }
+    return s;
+  };
+  const header = cols.join(",");
+  const rows = data.map(row => cols.map(c => escapeCSV(row[c])).join(","));
+  return [header, ...rows].join("\n");
+}
+
+if (csvOutput) {
+  console.log(toCSV(outputRows, selectedCols));
+  process.exit(0);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// v3.1 Enhanced Mode: Markdown Export
+// ─────────────────────────────────────────────────────────────────────────────
+function toMarkdown(data: Record<string, unknown>[], columns?: string[], titleStr?: string): string {
+  if (data.length === 0) return "_No data_";
+  const cols = columns || Object.keys(data[0]);
+  const lines: string[] = [];
+
+  if (titleStr) {
+    lines.push(`## ${titleStr}`, "");
+  }
+
+  // Header
+  lines.push("| " + cols.join(" | ") + " |");
+  lines.push("| " + cols.map(() => "---").join(" | ") + " |");
+
+  // Rows
+  for (const row of data) {
+    const cells = cols.map(c => {
+      const v = row[c];
+      const s = String(v ?? "").replace(/\|/g, "\\|").replace(/\n/g, " ");
+      return s.length > 50 ? s.slice(0, 47) + "..." : s;
+    });
+    lines.push("| " + cells.join(" | ") + " |");
+  }
+
+  lines.push("", `_Generated by MATRIX v3.1 at ${new Date().toISOString()}_`);
+  return lines.join("\n");
+}
+
+if (markdownOutput) {
+  console.log(toMarkdown(outputRows, selectedCols, `${title}${filterSuffix}`));
+  process.exit(0);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// v3.1 Enhanced Mode: Summary Statistics
+// ─────────────────────────────────────────────────────────────────────────────
+function generateSummary(data: RowData[]): void {
+  console.log("─".repeat(80));
+  console.log("📊 MATRIX v3.1 SUMMARY STATISTICS");
+  console.log("─".repeat(80));
+
+  // Basic counts
+  console.log(`\n📁 Patterns: ${data.length}`);
+  const matched = data.filter(r => r._matched).length;
+  const failed = data.length - matched;
+  console.log(`   ✅ Matched: ${matched}  |  ❌ Failed: ${failed}`);
+
+  // Security distribution
+  const secDist = { low: 0, medium: 0, high: 0 };
+  for (const r of data) {
+    const level = (r.secRiskLevel as string) || "low";
+    if (level in secDist) secDist[level as keyof typeof secDist]++;
+  }
+  console.log(`\n🔒 Security Risk Distribution:`);
+  console.log(`   🟢 Low: ${secDist.low}  |  🟡 Medium: ${secDist.medium}  |  🔴 High: ${secDist.high}`);
+
+  // Performance stats
+  const execTimes = data.map(r => Number(r.execNs) || 0).filter(n => n > 0);
+  if (execTimes.length > 0) {
+    const avgExec = execTimes.reduce((a, b) => a + b, 0) / execTimes.length;
+    const minExec = Math.min(...execTimes);
+    const maxExec = Math.max(...execTimes);
+    console.log(`\n⚡ Execution Time (ns):`);
+    console.log(`   Min: ${minExec.toLocaleString()}  |  Avg: ${avgExec.toLocaleString()}  |  Max: ${maxExec.toLocaleString()}`);
+  }
+
+  // Complexity stats
+  const complexities = data.map(r => Number(r.patternComplexity) || 0);
+  const avgComplexity = complexities.reduce((a, b) => a + b, 0) / complexities.length;
+  const regexCount = data.filter(r => r._hasRegex).length;
+  console.log(`\n🧮 Complexity:`);
+  console.log(`   Avg Complexity: ${avgComplexity.toFixed(1)}  |  RegExp Patterns: ${regexCount}/${data.length}`);
+
+  // Cache stats
+  const cs = getCacheStats();
+  console.log(`\n💾 Pattern Cache:`);
+  console.log(`   Size: ${cs.size}  |  Hit Rate: ${cs.hitRate}  |  Sync Hits: ${cs.syncHitRate}`);
+
+  console.log("\n" + "─".repeat(80));
+}
+
+if (showSummary) {
+  generateSummary(allRows);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// v3.1 Enhanced Mode: Diff Comparison
+// ─────────────────────────────────────────────────────────────────────────────
+if (diffFile) {
+  const basePatterns = await loadPatternsFromFile(diffFile);
+  const baseSet = new Set(basePatterns);
+  const currentSet = new Set(patterns);
+
+  const added = patterns.filter(p => !baseSet.has(p));
+  const removed = basePatterns.filter(p => !currentSet.has(p));
+  const unchanged = patterns.filter(p => baseSet.has(p));
+
+  console.log("─".repeat(80));
+  console.log("📊 PATTERN DIFF ANALYSIS");
+  console.log("─".repeat(80));
+  console.log(`📁 Base:    ${diffFile} (${basePatterns.length} patterns)`);
+  console.log(`📁 Current: ${patternFile || "default"} (${patterns.length} patterns)`);
+  console.log("");
+  console.log(`➕ Added:     ${added.length}`);
+  console.log(`➖ Removed:   ${removed.length}`);
+  console.log(`🔄 Unchanged: ${unchanged.length}`);
+
+  if (added.length > 0) {
+    console.log("\n➕ NEW PATTERNS:");
+    const addedTable = added.slice(0, 10).map((p, i) => ({
+      "#": i + 1,
+      pattern: p.slice(0, 60) + (p.length > 60 ? "..." : ""),
+    }));
+    console.log(Bun.inspect.table(addedTable, { colors: !noColor }));
+    if (added.length > 10) console.log(`   ... and ${added.length - 10} more`);
+  }
+
+  if (removed.length > 0) {
+    console.log("\n➖ REMOVED PATTERNS:");
+    const removedTable = removed.slice(0, 10).map((p, i) => ({
+      "#": i + 1,
+      pattern: p.slice(0, 60) + (p.length > 60 ? "..." : ""),
+    }));
+    console.log(Bun.inspect.table(removedTable, { colors: !noColor }));
+    if (removed.length > 10) console.log(`   ... and ${removed.length - 10} more`);
+  }
+
+  // Don't exit - continue to show normal output if requested
+  if (!jsonOutput && !showAll && !anySelected) {
+    process.exit(0);
+  }
+  console.log("");
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// v3.1 Enhanced Mode: HTTP Server
+// ─────────────────────────────────────────────────────────────────────────────
+if (serveMode) {
+  const routes = {
+    analyze: new URLPattern("/api/analyze", `http://localhost:${serverPort}`),
+    patterns: new URLPattern("/api/patterns", `http://localhost:${serverPort}`),
+    health: new URLPattern("/api/health", `http://localhost:${serverPort}`),
+    stats: new URLPattern("/api/stats", `http://localhost:${serverPort}`),
+  };
+
+  const server = Bun.serve({
+    port: serverPort,
+    fetch(req) {
+      const url = req.url;
+
+      // Health check
+      if (routes.health.test(url)) {
+        return Response.json({ status: "ok", version: "3.1", uptime: process.uptime() });
+      }
+
+      // Get cached patterns list
+      if (routes.patterns.test(url)) {
+        return Response.json({ patterns, count: patterns.length });
+      }
+
+      // Get analysis stats
+      if (routes.stats.test(url)) {
+        const secDist = { low: 0, medium: 0, high: 0 };
+        for (const r of allRows) {
+          const level = (r.secRiskLevel as string) || "low";
+          if (level in secDist) secDist[level as keyof typeof secDist]++;
+        }
+        return Response.json({
+          totalPatterns: patterns.length,
+          analyzedRows: allRows.length,
+          securityDistribution: secDist,
+          cache: getCacheStats(),
+        });
+      }
+
+      // Analyze patterns (POST with body)
+      if (routes.analyze.test(url) && req.method === "POST") {
+        return (async () => {
+          try {
+            const body = await req.json() as { patterns?: string[]; testUrl?: string };
+            const inputPatterns = body.patterns || [];
+            const testUrlStr = body.testUrl || testUrl;
+
+            // Quick analysis of provided patterns
+            const results = inputPatterns.map((p, i) => {
+              try {
+                const pat = new URLPattern(p, "https://example.com");
+                const matched = pat.test(testUrlStr);
+                return {
+                  idx: i,
+                  pattern: p,
+                  valid: true,
+                  matched,
+                  hasRegExpGroups: pat.hasRegExpGroups,
+                };
+              } catch (e: any) {
+                return {
+                  idx: i,
+                  pattern: p,
+                  valid: false,
+                  error: e.message,
+                };
+              }
+            });
+
+            return Response.json({ results, count: results.length });
+          } catch (e: any) {
+            return Response.json({ error: e.message }, { status: 400 });
+          }
+        })();
+      }
+
+      // Default: return API info
+      return Response.json({
+        name: "MATRIX v3.1 API",
+        endpoints: [
+          { method: "GET", path: "/api/health", description: "Health check" },
+          { method: "GET", path: "/api/patterns", description: "List loaded patterns" },
+          { method: "GET", path: "/api/stats", description: "Analysis statistics" },
+          { method: "POST", path: "/api/analyze", description: "Analyze patterns", body: "{ patterns: string[], testUrl?: string }" },
+        ],
+      });
+    },
+  });
+
+  console.log("─".repeat(80));
+  console.log("🚀 MATRIX v3.1 API SERVER");
+  console.log("─".repeat(80));
+  console.log(`📡 Listening: http://localhost:${server.port}`);
+  console.log(`📁 Patterns:  ${patterns.length} loaded`);
+  console.log("");
+  console.log("Endpoints:");
+  console.log("  GET  /api/health    - Health check");
+  console.log("  GET  /api/patterns  - List patterns");
+  console.log("  GET  /api/stats     - Analysis stats");
+  console.log("  POST /api/analyze   - Analyze patterns");
+  console.log("");
+  console.log("Press Ctrl+C to stop");
+
+  // Keep server running
+  await new Promise(() => {}); // Block forever
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// v3.1 Enhanced Mode: Watch Mode
+// ─────────────────────────────────────────────────────────────────────────────
+if (watchMode && patternFile) {
+  const runAnalysis = async () => {
+    console.clear();
+    const newPatterns = await loadPatternsFromFile(patternFile);
+    console.log(`📁 Loaded ${newPatterns.length} patterns from ${patternFile}`);
+    console.log(`⏰ Last update: ${new Date().toLocaleTimeString()}`);
+    console.log("─".repeat(80));
+
+    // Quick security summary
+    let low = 0, medium = 0, high = 0;
+    for (const p of newPatterns.slice(0, rowLimit)) {
+      try {
+        const pat = new URLPattern(p, "https://example.com");
+        // Simple risk heuristic
+        if (/:path\*|\/\*\*/.test(p)) high++;
+        else if (/\(\.\*\)|\+\)|\*\)/.test(p)) medium++;
+        else low++;
+      } catch {
+        high++; // Invalid patterns are high risk
+      }
+    }
+
+    console.log(`🔒 Quick Risk: 🟢 ${low} low | 🟡 ${medium} med | 🔴 ${high} high`);
+    console.log("");
+
+    // Show first few patterns
+    const previewTable = newPatterns.slice(0, 8).map((p, i) => ({
+      "#": i + 1,
+      pattern: p.slice(0, 50) + (p.length > 50 ? "..." : ""),
+      status: (() => {
+        try {
+          new URLPattern(p, "https://example.com");
+          return "✅";
+        } catch {
+          return "❌";
+        }
+      })(),
+    }));
+    console.log(Bun.inspect.table(previewTable, { colors: !noColor }));
+    if (newPatterns.length > 8) {
+      console.log(`   ... and ${newPatterns.length - 8} more patterns`);
+    }
+
+    console.log("\n👀 Watching for changes... (Ctrl+C to stop)");
+  };
+
+  // Initial run
+  await runAnalysis();
+
+  // Watch for changes using fs.watch (Bun-compatible)
+  const { watch } = await import("fs");
+  let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+
+  watch(patternFile, (eventType) => {
+    if (eventType === "change") {
+      // Debounce rapid changes
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(async () => {
+        await runAnalysis();
+      }, 150);
+    }
+  });
+
+  // Keep process alive
+  await new Promise(() => {});
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Standard Output
 // ─────────────────────────────────────────────────────────────────────────────
 if (jsonOutput) {
   console.log(JSON.stringify(outputRows, null, 2));
-} else {
+} else if (!csvOutput && !markdownOutput) {
   console.log(`${title}${filterSuffix}  (${colCount} columns, ${rows.length} rows)`.padEnd(120, "─"));
   if (selectedCols) {
     console.log(Bun.inspect.table(outputRows, selectedCols, { colors: !noColor }));
