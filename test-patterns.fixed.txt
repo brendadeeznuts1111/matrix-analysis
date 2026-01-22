@@ -1,0 +1,18 @@
+/api/v1/users/:id
+/api/v1/users/:id(\d+)
+/api/v2/projects/:projectId/tasks/:taskId
+/blog/:year(\d{4})/:month(\d{2})/:slug([a-z0-9-]+)
+/blog/:year(\d{4})/:month(\d{2})
+/products/:category/:id
+/cart/items/:itemId
+# [FIXED] Row 7: escaped unescaped pipe in group (command injection mitigation)
+/checkout/:step(shipping\|payment\|review)
+/files/*/:filename.:ext
+# [FIXED] Row 9: replaced /** with bounded segments (wildcard containment)
+/assets/:segment1/:segment2?/:segment3?
+# [FIXED] Row 10: replaced :path* wildcard with explicit union (SSRF mitigation)
+# REVIEW: admin route - verify RBAC enforcement
+/admin/:path(users|settings|dashboard)
+# REVIEW: internal route - add auth middleware
+/api/internal/:endpoint
+/:tenant/api/:resource

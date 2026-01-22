@@ -1,0 +1,75 @@
+{
+  "patterns": [
+    {
+      "pattern": "/api/v1/users/:id",
+      "riskLevel": "low",
+      "riskScore": 0
+    },
+    {
+      "pattern": "/api/v1/users/:id(\\d+)",
+      "riskLevel": "low",
+      "riskScore": 0
+    },
+    {
+      "pattern": "/api/v2/projects/:projectId/tasks/:taskId",
+      "riskLevel": "low",
+      "riskScore": 0
+    },
+    {
+      "pattern": "/blog/:year(\\d{4})/:month(\\d{2})/:slug([a-z0-9-]+)",
+      "riskLevel": "low",
+      "riskScore": 0
+    },
+    {
+      "pattern": "/blog/:year(\\d{4})/:month(\\d{2})",
+      "riskLevel": "low",
+      "riskScore": 0
+    },
+    {
+      "pattern": "/products/:category/:id",
+      "riskLevel": "low",
+      "riskScore": 0
+    },
+    {
+      "pattern": "/cart/items/:itemId",
+      "riskLevel": "low",
+      "riskScore": 0
+    },
+    {
+      "pattern": "/checkout/:step(shipping|payment|review)",
+      "riskLevel": "medium",
+      "riskScore": 3
+    },
+    {
+      "pattern": "/files/*/:filename.:ext",
+      "riskLevel": "low",
+      "riskScore": 0
+    },
+    {
+      "pattern": "/assets/**",
+      "riskLevel": "medium",
+      "riskScore": 3
+    },
+    {
+      "pattern": "/admin/:path*",
+      "riskLevel": "low",
+      "riskScore": 0
+    },
+    {
+      "pattern": "/api/internal/:endpoint",
+      "riskLevel": "medium",
+      "riskScore": 2
+    },
+    {
+      "pattern": "/:tenant/api/:resource",
+      "riskLevel": "low",
+      "riskScore": 0
+    }
+  ],
+  "summary": {
+    "low": 10,
+    "medium": 3,
+    "high": 0
+  },
+  "threshold": "high"
+}
