@@ -1,0 +1,78 @@
+{
+  "name": "matrix-analysis",
+  "version": "3.1.0",
+  "description": "URLPattern Analysis Matrix with 247 columns - Performance optimized",
+  "type": "module",
+  "scripts": {
+    "matrix": "bun 50-col-matrix.ts",
+    "matrix:audit": "bun 50-col-matrix.ts --audit",
+    "matrix:benchmark": "bun 50-col-matrix.ts --benchmark",
+    "matrix:fix": "bun 50-col-matrix.ts --fix",
+    "matrix:ci": "bun 50-col-matrix.ts --ci --threshold medium",
+    "bottleneck": "bun bottleneck-analysis.ts",
+    "bottleneck:all": "bun bottleneck-analysis.ts --all",
+    "bottleneck:bench": "bun bottleneck-analysis.ts --benchmark",
+    "test": "bun test",
+    "typecheck": "bun --bun tsc --noEmit"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "typescript": "^5.7.0",
+    "@types/bun": "latest"
+  },
+  "bottlenecks": {
+    "status": "completed",
+    "identified": 5,
+    "fixed": 5,
+    "fixedAt": "2026-01-22",
+    "issues": [
+      {
+        "id": "BN-001",
+        "name": "Recursive Fibonacci O(2^n)",
+        "severity": "critical",
+        "status": "fixed",
+        "location": "50-col-matrix.ts:75-83",
+        "speedup": "190x (measured)",
+        "fix": "Memoized iterative with fibCache Map"
+      },
+      {
+        "id": "BN-003",
+        "name": "Intl.Segmenter per row",
+        "severity": "high",
+        "status": "fixed",
+        "location": "50-col-matrix.ts:136",
+        "speedup": "11.4x (measured)",
+        "fix": "Singleton GRAPHEME_SEGMENTER at module scope"
+      },
+      {
+        "id": "BN-002",
+        "name": "Inline micro-benchmarks",
+        "severity": "high",
+        "status": "fixed",
+        "location": "50-col-matrix.ts:956-969",
+        "speedup": "10x (lazy eval)",
+        "fix": "Conditional execution only with --benchmark flag"
+      },
+      {
+        "id": "BN-004",
+        "name": "Helper functions redefined",
+        "severity": "medium",
+        "status": "fixed",
+        "location": "50-col-matrix.ts:85-133",
+        "speedup": "2-3x",
+        "fix": "Hoisted to module scope, Bun.hash.crc32 for hashing"
+      },
+      {
+        "id": "BN-005",
+        "name": "Security regex recompilation",
+        "severity": "medium",
+        "status": "fixed",
+        "location": "50-col-matrix.ts:139-151",
+        "speedup": "1.5x (measured)",
+        "fix": "Pre-compiled SEC_PATTERNS object"
+      }
+    ]
+  },
+  "author": "nolarose",
+  "license": "MIT"
+}
