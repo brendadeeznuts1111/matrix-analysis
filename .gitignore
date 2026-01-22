@@ -20,6 +20,7 @@
 .npm/
 .yarn/
 .bun/
+.bun-cache/
 .bun-create/
 .bunx/
 .cargo/
@@ -122,3 +123,14 @@ Quick\ Table\ Format\ Reference.ini
 
 # Node
 node_modules/
+
+# Test artifacts
+bun-write-test/
+*-metafile.json
+test-metafile.json
+
+# SQLite test databases
+*.db
+*.db-shm
+*.db-wal
+*.db-journal

@@ -238,6 +238,7 @@ const { values: flags } = parseArgs({
     sort: { type: "string", short: "s" },
     rows: { type: "string", short: "n" },
     file: { type: "string" },
+    stdin: { type: "boolean" },
     "test-url": { type: "string" },
     threshold: { type: "string" },
     baseline: { type: "string" },
@@ -311,6 +312,7 @@ Sorting:
 
 Input:
   --file <path>   Load patterns from file (one per line, # comments)
+  --stdin         Read patterns from stdin (pipe or interactive)
   --test-url <u>  Custom test URL (default: https://shop.example.com/items/42?color=red&ref=abc)
 
 Remediation & CI:
@@ -340,6 +342,8 @@ Examples:
   bun 50-col-matrix.ts --file routes.txt --audit  # Audit patterns from file
   bun 50-col-matrix.ts --file routes.txt --audit --fix  # Auto-fix security issues
   bun 50-col-matrix.ts --audit --ci --threshold medium  # CI gate mode
+  cat routes.txt | bun 50-col-matrix.ts --stdin --audit  # Pipe patterns from stdin
+  echo "/api/:id" | bun 50-col-matrix.ts --stdin -sec    # Single pattern via pipe
 `);
   process.exit(0);
 }
@@ -390,6 +394,7 @@ const editorOverride = flags.editor || null;
 
 // Input options
 const patternFile = flags.file || null;
+const stdinMode = flags.stdin;
 const customTestUrl = flags["test-url"] || null;
 
 // Remediation & CI options
@@ -405,6 +410,21 @@ const outputFile = flags.output || null;
 // ─────────────────────────────────────────────────────────────────────────────
 async function loadPatternsFromFile(path: string): Promise<string[]> {
   const content = await Bun.file(path).text();
+  return content
+    .split("\n")
+    .map(line => line.trim())
+    .filter(line => line && !line.startsWith("#") && !line.startsWith("//"));
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Stdin Loading with Bun.stdin (streaming chunks)
+// ─────────────────────────────────────────────────────────────────────────────
+async function loadPatternsFromStdin(): Promise<string[]> {
+  const chunks: Uint8Array[] = [];
+  for await (const chunk of Bun.stdin.stream()) {
+    chunks.push(chunk);
+  }
+  const content = Buffer.concat(chunks).toString("utf-8");
   return content
     .split("\n")
     .map(line => line.trim())
@@ -591,14 +611,18 @@ const defaultPatterns = [
   "/(items|products)/:id",
 ];
 
-// Load patterns from file or use defaults
+// Load patterns from file, stdin, or use defaults
 const patterns = patternFile
   ? await loadPatternsFromFile(patternFile)
-  : defaultPatterns;
+  : stdinMode
+    ? await loadPatternsFromStdin()
+    : defaultPatterns;
 
-// Show file info if loaded from file
+// Show source info if loaded from external source
 if (patternFile) {
   console.log(`Loaded ${patterns.length} patterns from ${patternFile}`);
+} else if (stdinMode) {
+  console.log(`Loaded ${patterns.length} patterns from stdin`);
 }
 
 type RowData = {
