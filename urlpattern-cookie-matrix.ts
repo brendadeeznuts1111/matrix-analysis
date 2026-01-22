@@ -1,3 +1,26 @@
+// ═══════════════════════════════════════════════════════════════════════════════
+// HOISTED HELPERS (Bun-native optimizations)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+// BN-001: Memoized Fibonacci O(n) instead of O(2^n)
+const fibCache = new Map<number, number>([[0, 0], [1, 1]]);
+const fib = (n: number): number => {
+  if (fibCache.has(n)) return fibCache.get(n)!;
+  let [a, b] = [0, 1];
+  for (let i = 2; i <= n; i++) [a, b] = [b, a + b];
+  fibCache.set(n, b);
+  return b;
+};
+
+// BN-004: Hoisted helpers
+const isPrime = (n: number): boolean => {
+  if (n < 2) return false;
+  for (let j = 2; j * j <= n; j++) if (n % j === 0) return false;
+  return true;
+};
+
+// ═══════════════════════════════════════════════════════════════════════════════
+
 const testUrl = "https://shop.example.com/items/42?color=red&ref=abc";
 const rows = Array.from({ length: 15 }, (_, i) => {
   const p = [
@@ -51,11 +74,6 @@ const rows = Array.from({ length: 15 }, (_, i) => {
   pat.exec(testUrl);
   const execTime = (performance.now() - start).toFixed(3) + "ms";
 
-  // Generate additional data
-  const now = Date.now();
-  const randomBytes = new Uint8Array(16);
-  crypto.getRandomValues(randomBytes);
-
   return {
     // URLPattern columns
     idx: i,
@@ -76,8 +94,8 @@ const rows = Array.from({ length: 15 }, (_, i) => {
     cookiePartitioned: cookieBase.partitioned ? "✅" : "❌",
     cookieIsExpired: cookie.isExpired() ? "✅" : "❌",
 
-    // Generated columns
-    generatedUUID: crypto.randomUUID().slice(0, 8),
+    // Generated columns (Bun-native)
+    generatedUUID: Bun.randomUUIDv7().slice(0, 8),
     generatedInt: Math.floor(Math.random() * 10000),
     generatedIP: `192.168.${i % 256}.${(i * 7) % 256}`,
 
@@ -85,16 +103,10 @@ const rows = Array.from({ length: 15 }, (_, i) => {
     bunVersion: Bun.version,
     memoryMB: (process.memoryUsage().heapUsed / 1024 / 1024).toFixed(1),
 
-    // Calculations
+    // Calculations (using hoisted helpers)
     calcSquare: i * i,
-    calcFib: (function fib(n: number): number {
-      return n <= 1 ? n : fib(n - 1) + fib(n - 2);
-    })(i),
-    calcPrime: (function isPrime(n: number) {
-      if (n < 2) return "❌";
-      for (let j = 2; j * j <= n; j++) if (n % j === 0) return "❌";
-      return "✅";
-    })(i),
+    calcFib: fib(i),
+    calcPrime: isPrime(i) ? "✅" : "❌",
     calcBinary: "0b" + i.toString(2).padStart(4, "0"),
     calcHex: "0x" + i.toString(16).toUpperCase(),
 

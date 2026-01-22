@@ -1,6 +1,5 @@
 // 50-col-matrix.ts → 247-col-matrix.ts (MATRIX v3.0 Observability Fortress)
 import type { Serve } from "bun";
-import { open } from "node:fs/promises";
 import { peek } from "bun";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -360,23 +359,14 @@ const saveBaseline = getArg("--save-baseline", "--save-baseline");
 const outputFile = getArgString("--output", "--output");
 
 // ─────────────────────────────────────────────────────────────────────────────
-// File Loading with FileHandle.readLines() (Bun 1.3.6+)
+// File Loading with Bun.file() (zero-copy optimized)
 // ─────────────────────────────────────────────────────────────────────────────
 async function loadPatternsFromFile(path: string): Promise<string[]> {
-  const patterns: string[] = [];
-  const file = await open(path);
-  try {
-    for await (const line of file.readLines({ encoding: "utf8" })) {
-      const trimmed = line.trim();
-      // Skip empty lines and comments
-      if (trimmed && !trimmed.startsWith("#") && !trimmed.startsWith("//")) {
-        patterns.push(trimmed);
-      }
-    }
-  } finally {
-    await file.close();
-  }
-  return patterns;
+  const content = await Bun.file(path).text();
+  return content
+    .split("\n")
+    .map(line => line.trim())
+    .filter(line => line && !line.startsWith("#") && !line.startsWith("//"));
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1008,9 +998,14 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
     canonicalPattern: p.replace(/\([^)]+\)/g, "(.*)").slice(0, 18) + "...",
     specVersion: "URLPattern-1.0",
 
-    // Extras (28) - using UUIDv7 for sortable IDs
-    uuidv7: Bun.randomUUIDv7().slice(0, 13),
-    uuidv7Timestamp: new Date(parseInt(Bun.randomUUIDv7().replace(/-/g, "").slice(0, 12), 16)).toISOString().slice(11, 23),
+    // Extras (28) - using UUIDv7 for sortable IDs (single generation)
+    ...(() => {
+      const uuid = Bun.randomUUIDv7();
+      return {
+        uuidv7: uuid.slice(0, 13),
+        uuidv7Timestamp: new Date(parseInt(uuid.replace(/-/g, "").slice(0, 12), 16)).toISOString().slice(11, 23),
+      };
+    })(),
     fib: fib(i),
     isPrime: isPrime(i) ? "✅" : "❌",
     memoryMB: (mem.heapUsed / 1024 / 1024).toFixed(2),
