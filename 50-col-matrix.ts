@@ -476,6 +476,10 @@ const I18N_SCRIPTS_ENTRIES = Object.entries(I18N_SCRIPTS);
 // QUICK WIN #61: Pre-compute URLPattern keys (all instances have identical keys)
 const URL_PATTERN_KEYS = Object.keys(new URLPattern("*", "http://x"));
 
+// QUICK WIN #70: Pre-compute binary/hex strings for indices 0-255 (avoids toString per row)
+const BINARY_LOOKUP = Array.from({ length: 256 }, (_, i) => "0b" + i.toString(2).padStart(4, "0"));
+const HEX_LOOKUP = Array.from({ length: 256 }, (_, i) => "0x" + i.toString(16).toUpperCase());
+
 const PATTERN_ANALYSIS_REGEX = {
   wildcards: /\*/g,
   namedGroups: /:[a-zA-Z_][a-zA-Z0-9_]*/g,
@@ -980,8 +984,9 @@ function getTimezoneInfo() {
   const offsetSign = offsetMinutes <= 0 ? "+" : "-";
   const utcOffset = `UTC${offsetSign}${String(offsetHours).padStart(2, "0")}:${String(offsetMins).padStart(2, "0")}`;
 
-  // Get timezone abbreviation using short format
-  const abbrev = now.toLocaleTimeString("en-US", { timeZoneName: "short" }).split(" ").pop() || "";
+  // QUICK WIN #69: lastIndexOf + slice vs split().pop() (avoids array allocation)
+  const tzStr = now.toLocaleTimeString("en-US", { timeZoneName: "short" });
+  const abbrev = tzStr.slice(tzStr.lastIndexOf(" ") + 1);
 
   // ISO timestamp
   const isoLocal = now.toISOString();
@@ -1824,8 +1829,9 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
         n = _floor(n / 10);
       }
       return {
-        calcBinary: "0b" + i.toString(2).padStart(4, "0"),
-        calcHex: "0x" + i.toString(16).toUpperCase(),
+        // QUICK WIN #70: Use pre-computed lookup tables (i < 256 uses table, else compute)
+        calcBinary: i < 256 ? BINARY_LOOKUP[i] : "0b" + i.toString(2).padStart(4, "0"),
+        calcHex: i < 256 ? HEX_LOOKUP[i] : "0x" + i.toString(16).toUpperCase(),
         calcSquare: i * i,
         calcCube: i * i * i,
         calcFactorial: factorial(i),
