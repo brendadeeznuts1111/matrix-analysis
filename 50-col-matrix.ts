@@ -1552,13 +1552,16 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
       const hasAdvanced = pat.hasRegExpGroups || p.includes("*");
       return hasAdvanced ? "Chrome,Bun" : "Chrome,Bun,Deno";
     })(),
-    regexFeaturesUsed: [
-      p.includes("\\d") ? "digit" : "",
-      p.includes("\\w") ? "word" : "",
-      p.includes("|") ? "alt" : "",
-      p.includes("?") ? "opt" : "",
-      p.includes("+") ? "plus" : "",
-    ].filter(Boolean).join(",") || "none",
+    // QUICK WIN #41: Direct string build vs array.filter().join()
+    regexFeaturesUsed: (() => {
+      let features = "";
+      if (p.includes("\\d")) features += "digit,";
+      if (p.includes("\\w")) features += "word,";
+      if (p.includes("|")) features += "alt,";
+      if (p.includes("?")) features += "opt,";
+      if (p.includes("+")) features += "plus,";
+      return features.slice(0, -1) || "none";
+    })(),
     canonicalPattern: p.replace(/\([^)]+\)/g, "(.*)").slice(0, 18) + "...",
     specVersion: "URLPattern-1.0",
 
@@ -1653,7 +1656,7 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
       const redosRisk = hasNestedQuantifiers || hasOverlappingAlternation;
       // QUICK WIN #3: Use cached wildcardCount from patternAnalysis
       const wildcardCount = patternAnalysis.wildcards;
-      const leadingWildcard = p.startsWith("*") || SEC_PATTERNS.openRedirect.test(p);
+      const leadingWildcard = p.startsWith("*") || hasOpenRedirect;  // QUICK WIN #42: reuse cached test
       const hasCredentialPattern = SEC_PATTERNS.credential.test(p);
       const hasBasicAuth = SEC_PATTERNS.basicAuth.test(p);
       const hasXssVector = SEC_PATTERNS.xss.test(p);
