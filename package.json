@@ -29,7 +29,7 @@
     "matrix:benchmark": "bun 50-col-matrix.ts --benchmark",
     "matrix:fix": "bun 50-col-matrix.ts --fix",
     "matrix:ci": "bun 50-col-matrix.ts --ci --threshold medium",
-    "test": "RUN_TESTS=1 bun test --seed 42 --cwd test",
+    "test": "RUN_TESTS=1 bun --bun --cwd test test --seed 42",
     "typecheck": "bun --bun tsc --noEmit"
   },
   "type": "module",
