@@ -1300,6 +1300,10 @@ const STATIC_IS_EXTENSIBLE = Object.isExtensible(_refPat) ? "✅" : "❌";
 const STATIC_IS_SEALED = Object.isSealed(_refPat) ? "✅" : "❌";
 const STATIC_IS_FROZEN = Object.isFrozen(_refPat) ? "✅" : "❌";
 const STATIC_PROTO_NAME = Object.getPrototypeOf(_refPat)?.constructor?.name || "null";
+// QUICK WIN #28: All URLPatterns have identical instanceof/constructor/typeTag
+const STATIC_INSTANCEOF_URLPATTERN = _refPat instanceof URLPattern ? "✅" : "❌";
+const STATIC_CONSTRUCTOR_NAME = _refPat.constructor?.name || "?";
+const STATIC_TYPE_TAG = _refPat[Symbol.toStringTag] || getTypeTag(_refPat);
 
 const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
   let pat: URLPattern;
@@ -1402,14 +1406,14 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
     // Type (10)
     typeofPattern: typeof pat,
     typeofResult: m ? typeof m : "null",
-    instanceOfURL: pat instanceof URLPattern ? "✅" : "❌",
-    constructorName: pat.constructor?.name || "?",
+    instanceOfURL: STATIC_INSTANCEOF_URLPATTERN,  // QUICK WIN #28: all URLPatterns same
+    constructorName: STATIC_CONSTRUCTOR_NAME,      // QUICK WIN #28: all URLPatterns same
     prototypeChain: STATIC_PROTO_CHAIN,  // QUICK WIN #22: all URLPatterns same
     isCallable: typeof (pat as any).exec === "function" ? "✅" : "❌",
     isIterable: typeof (pat as any)[Symbol.iterator] === "function" ? "✅" : "❌",
-    symbolToString: pat[Symbol.toStringTag] || getTypeTag(pat),
+    symbolToString: STATIC_TYPE_TAG,  // QUICK WIN #27: cache getTypeTag(pat)
     jsonStringify: "{}...",  // QUICK WIN #10: URLPattern always stringifies to {}
-    typeTag: getTypeTag(pat),
+    typeTag: STATIC_TYPE_TAG,  // QUICK WIN #27: cache getTypeTag(pat)
 
     // Metrics (12)
     execNs,
