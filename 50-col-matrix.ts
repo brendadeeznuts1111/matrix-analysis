@@ -1274,6 +1274,12 @@ const STATIC_IS_MAIN = import.meta.path === Bun.main ? "✅" : "❌";
 const STATIC_PATH_SEGMENTS = (process.env.PATH || "").split(":").length;
 const STATIC_SHELL_TYPE = (process.env.SHELL || "").split("/").pop() || "unknown";
 const STATIC_TZ_NAME = process.env.TZ || Intl.DateTimeFormat().resolvedOptions().timeZone;
+// QUICK WIN #20: Hoist memoryUsage() + pre-format CPU strings (was per-row object alloc)
+const STATIC_MEM = process.memoryUsage();
+const STATIC_MEM_RSS_STR = (STATIC_MEM.rss / 1024 / 1024).toFixed(1);
+const STATIC_MEM_HEAP_STR = (STATIC_MEM.heapUsed / 1024 / 1024).toFixed(2);
+const STATIC_CPU_USER_STR = (STATIC_CPU.user / 1000).toFixed(1);
+const STATIC_CPU_SYS_STR = (STATIC_CPU.system / 1000).toFixed(1);
 
 const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
   let pat: URLPattern;
@@ -1281,12 +1287,7 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
   let peekCacheHit: "sync" | "async" | "miss" | "error" = "miss";
   let peekCompileTimeNs = 0;
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // QUICK WIN #5: Single memoryUsage() call instead of 3 separate calls
-  // Consolidates memBefore, memAfter, and mem into one snapshot
-  // ═══════════════════════════════════════════════════════════════════════════
-  const memSnapshot = process.memoryUsage();
-  const memBefore = memSnapshot.heapUsed;
+  // QUICK WIN #20: memoryUsage() hoisted outside loop (was per-row object allocation)
 
   try {
     // Use peek() cache for URLPattern compilation - should be sync hit after pre-warm!
@@ -1314,7 +1315,6 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
   const execTime = (performance.now() - execStart).toFixed(3) + "ms";
   const execNs = (Bun.nanoseconds() - execStartNs).toLocaleString() + "ns";
 
-  // QUICK WIN #5: Reuse snapshot for delta calculation (pattern compile impact is minimal)
   const memDeltaKB = "0.00"; // Patterns are cached, delta is negligible
 
   const cookie = new Bun.Cookie(`pattern_${i}`, m ? "matched" : "unmatched", {
@@ -1325,10 +1325,6 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
     maxAge: i * 100,
     partitioned: i % 6 === 0,
   });
-
-  // QUICK WIN #5: Reuse memSnapshot instead of calling process.memoryUsage() again
-  const mem = memSnapshot;
-  // QUICK WIN #9: Use hoisted STATIC_CPU instead of calling per row
 
   // Property inspection (helpers now hoisted to module scope - BN-004 fix)
   const patKeys = Object.keys(pat);
@@ -1503,7 +1499,7 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
     })(),
     fib: fib(i),
     isPrime: isPrime(i) ? "✅" : "❌",
-    memoryMB: (mem.heapUsed / 1024 / 1024).toFixed(2),
+    memoryMB: STATIC_MEM_HEAP_STR,  // QUICK WIN #20: pre-formatted
     patternHash: hash(p).slice(0, 8),
     // QUICK WIN #12 & #13: Cache i string conversions (was 5 toString calls + 3 split calls)
     ...(() => {
@@ -1537,9 +1533,9 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
     bunVersion: STATIC_BUN_VERSION,   // QUICK WIN #16: hoisted
     bunPath: STATIC_BUN_PATH,         // QUICK WIN #16: hoisted (was syscall per row)
     isMainEntry: STATIC_IS_MAIN,      // QUICK WIN #17: hoisted
-    memoryRSS: (mem.rss / 1024 / 1024).toFixed(1),
-    cpuUser: (STATIC_CPU.user / 1000).toFixed(1),  // QUICK WIN #9: hoisted
-    cpuSystem: (STATIC_CPU.system / 1000).toFixed(1),  // QUICK WIN #9: hoisted
+    memoryRSS: STATIC_MEM_RSS_STR,   // QUICK WIN #20: pre-formatted
+    cpuUser: STATIC_CPU_USER_STR,    // QUICK WIN #20: pre-formatted string
+    cpuSystem: STATIC_CPU_SYS_STR,   // QUICK WIN #20: pre-formatted string
 
     // ═══════════════════════════════════════════════════════════════════════
     // NEW v3.0: Environment Variables (15 cols)
