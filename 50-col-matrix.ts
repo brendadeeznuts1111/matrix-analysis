@@ -94,6 +94,18 @@ const factorial = (n: number): number => n <= 1 ? 1 : n * factorial(n - 1);
 // Use Bun's hardware-accelerated CRC32 instead of manual hash
 const hash = (s: string): string => Bun.hash.crc32(s).toString(16).padStart(8, "0");
 
+// QUICK WIN #21: Fast comma formatter (avoids toLocaleString's Intl overhead)
+const fmtNum = (n: number): string => {
+  const s = String(n);
+  if (s.length <= 3) return s;
+  let result = "";
+  for (let i = 0; i < s.length; i++) {
+    if (i > 0 && (s.length - i) % 3 === 0) result += ",";
+    result += s[i];
+  }
+  return result;
+};
+
 const getTypeTag = (obj: unknown): string =>
   Object.prototype.toString.call(obj).slice(8, -1);
 
@@ -1313,7 +1325,7 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
   const execStartNs = Bun.nanoseconds();
   pat.exec(testUrl);
   const execTime = (performance.now() - execStart).toFixed(3) + "ms";
-  const execNs = (Bun.nanoseconds() - execStartNs).toLocaleString() + "ns";
+  const execNs = fmtNum(Bun.nanoseconds() - execStartNs) + "ns";  // QUICK WIN #21
 
   const memDeltaKB = "0.00"; // Patterns are cached, delta is negligible
 
@@ -1740,7 +1752,7 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
       const stats = getCacheStats();
       return {
         peekCacheHit: peekCacheHit === "sync" ? "SYNC" : peekCacheHit === "async" ? "ASYNC" : peekCacheHit === "error" ? "ERR" : "MISS",
-        peekCompileTimeNs: peekCompileTimeNs.toLocaleString() + "ns",
+        peekCompileTimeNs: fmtNum(peekCompileTimeNs) + "ns",  // QUICK WIN #21
         peekCacheSize: stats.size,
         peekSyncHitRate: stats.syncHitRate,
         peekCacheStatus: peek.status(getCompiledPattern(p).promise),
