@@ -1811,7 +1811,7 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
     fib: fib(i),
     isPrime: isPrime(i) ? "✅" : "❌",
     memoryMB: STATIC_MEM_HEAP_STR,  // QUICK WIN #20: pre-formatted
-    patternHash: hash(p).slice(0, 8),
+    patternHash: hash(p),  // QUICK WIN #55: hash() returns exactly 8 chars, slice redundant
     // QUICK WIN #12 & #13: Cache i string conversions (was 5 toString calls + 3 split calls)
     // QUICK WIN #34: Single loop for digit sum + product (avoids array allocation + 2 reduce iterations)
     ...(() => {
@@ -1978,10 +1978,11 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
     // ═══════════════════════════════════════════════════════════════════════
     ...(() => {
       const hasUnicode = ENCODING_PATTERNS.nonAscii.test(p);
-      const emojiCount = (p.match(PATTERN_ANALYSIS_REGEX.emoji) || []).length;
-      const zwjCount = (p.match(PATTERN_ANALYSIS_REGEX.zwj) || []).length;
-      const combiningMarks = (p.match(PATTERN_ANALYSIS_REGEX.combiningMarks) || []).length;
-      const rtlChars = (p.match(PATTERN_ANALYSIS_REGEX.rtlChars) || []).length;
+      // QUICK WIN #56: Skip i18n regex for ASCII-only (emoji/zwj/combining/rtl can't exist)
+      const emojiCount = hasUnicode ? (p.match(PATTERN_ANALYSIS_REGEX.emoji) || []).length : 0;
+      const zwjCount = hasUnicode ? (p.match(PATTERN_ANALYSIS_REGEX.zwj) || []).length : 0;
+      const combiningMarks = hasUnicode ? (p.match(PATTERN_ANALYSIS_REGEX.combiningMarks) || []).length : 0;
+      const rtlChars = hasUnicode ? (p.match(PATTERN_ANALYSIS_REGEX.rtlChars) || []).length : 0;
       // BN-003 fix: Use singleton GRAPHEME_SEGMENTER instead of creating per-row
       const graphemes = [...GRAPHEME_SEGMENTER.segment(p)];
       const displayWidth = Bun.stringWidth(p);
