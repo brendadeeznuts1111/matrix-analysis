@@ -1254,6 +1254,10 @@ if (dnsPrefetch) {
   }
 }
 
+// QUICK WIN #8 & #9: Hoist static values outside loop (timezone + CPU don't change per row)
+const STATIC_TZ = getTimezoneInfo();
+const STATIC_CPU = process.cpuUsage();
+
 const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
   let pat: URLPattern;
   let m: URLPatternResult | null = null;
@@ -1307,7 +1311,7 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
 
   // QUICK WIN #5: Reuse memSnapshot instead of calling process.memoryUsage() again
   const mem = memSnapshot;
-  const cpu = process.cpuUsage();
+  // QUICK WIN #9: Use hoisted STATIC_CPU instead of calling per row
 
   // Property inspection (helpers now hoisted to module scope - BN-004 fix)
   const patKeys = Object.keys(pat);
@@ -1505,8 +1509,8 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
     bunPath: Bun.which("bun")?.split("/").slice(-2).join("/") || "?",
     isMainEntry: import.meta.path === Bun.main ? "✅" : "❌",
     memoryRSS: (mem.rss / 1024 / 1024).toFixed(1),
-    cpuUser: (cpu.user / 1000).toFixed(1),
-    cpuSystem: (cpu.system / 1000).toFixed(1),
+    cpuUser: (STATIC_CPU.user / 1000).toFixed(1),  // QUICK WIN #9: hoisted
+    cpuSystem: (STATIC_CPU.system / 1000).toFixed(1),  // QUICK WIN #9: hoisted
 
     // ═══════════════════════════════════════════════════════════════════════
     // NEW v3.0: Environment Variables (15 cols)
@@ -1797,21 +1801,16 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
       };
     })(),
 
-    // Timezone (9 cols)
-    ...(() => {
-      const tz = getTimezoneInfo();
-      return {
-        tzTimezone: tz.timezone,
-        tzAbbrev: tz.abbrev,
-        tzUtcOffset: tz.utcOffset,
-        tzOffsetMinutes: tz.offsetMinutes,
-        tzIsDST: tz.isDST ? "yes" : "no",
-        tzHasDST: tz.hasDST ? "yes" : "no",
-        tzLocalTime: tz.localString,
-        tzIsoTime: tz.isoLocal,
-        tzEpochMs: tz.epochMs,
-      };
-    })(),
+    // Timezone (9 cols) - QUICK WIN #8: Use hoisted STATIC_TZ
+    tzTimezone: STATIC_TZ.timezone,
+    tzAbbrev: STATIC_TZ.abbrev,
+    tzUtcOffset: STATIC_TZ.utcOffset,
+    tzOffsetMinutes: STATIC_TZ.offsetMinutes,
+    tzIsDST: STATIC_TZ.isDST ? "yes" : "no",
+    tzHasDST: STATIC_TZ.hasDST ? "yes" : "no",
+    tzLocalTime: STATIC_TZ.localString,
+    tzIsoTime: STATIC_TZ.isoLocal,
+    tzEpochMs: STATIC_TZ.epochMs,
 
     // Internal filter flags
     _matched: !!m,
