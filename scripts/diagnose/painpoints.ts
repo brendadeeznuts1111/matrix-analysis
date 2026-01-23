@@ -219,6 +219,19 @@ export class PainpointDetector {
           });
         }
 
+        // Check for legacy binary lockfile (bun.lockb without bun.lock)
+        if (await bunLockBinary.exists() && !await bunLockText.exists()) {
+          painpoints.push({
+            id: "deps-legacy-lockfile",
+            title: "Using legacy binary lockfile",
+            description: "bun.lockb detected without bun.lock — binary format is deprecated in Bun v1.2+",
+            severity: "low",
+            category: "deps",
+            score: 20,
+            suggestion: "Migrate to text lockfile: bun install --save-text-lockfile",
+          });
+        }
+
         // Check for missing engines
         if (!pkg.engines) {
           painpoints.push({
