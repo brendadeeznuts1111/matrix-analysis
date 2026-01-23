@@ -245,6 +245,10 @@ const reverseNum = (n: number): number => {
 // Use Bun's hardware-accelerated CRC32 instead of manual hash
 const hash = (s: string): string => Bun.hash.crc32(s).toString(16).padStart(8, "0");
 
+// QUICK WIN #51: Pre-computed hex byte lookup table (0x00-0xFF)
+// Avoids 3× .toString(16).padStart(2, "0") per RGB color conversion
+const HEX_BYTE: string[] = Array.from({ length: 256 }, (_, i) => i.toString(16).padStart(2, "0"));
+
 // QUICK WIN #21: Fast comma formatter (avoids toLocaleString's Intl overhead)
 const fmtNum = (n: number): string => {
   const s = String(n);
@@ -415,7 +419,8 @@ function generatePatternColor(
 
   // Use Bun.color() for conversion - pass format to get RGBA object
   const color = Bun.color(hslStr, "{rgba}");
-  const hex = color ? `#${color.r.toString(16).padStart(2, "0")}${color.g.toString(16).padStart(2, "0")}${color.b.toString(16).padStart(2, "0")}` : "#888888";
+  // QUICK WIN #51: Use HEX_BYTE lookup vs 3× .toString(16).padStart(2, "0")
+  const hex = color ? `#${HEX_BYTE[color.r]}${HEX_BYTE[color.g]}${HEX_BYTE[color.b]}` : "#888888";
   const rgb = color ? `rgb(${color.r}, ${color.g}, ${color.b})` : "rgb(136, 136, 136)";
 
   // Generate CSS variable name
@@ -1951,7 +1956,8 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
         encHasControlChars: hasControlChars ? "⚠️" : "✅",
         encDoubleEncoded: doubleEncoded ? "⚠️" : "✅",
         encMixedEncoding: mixedEncoding ? "⚠️" : "✅",
-        encNormalizationForm: p === p.normalize("NFC") ? "NFC" : "needs-norm",
+        // QUICK WIN #52: Skip normalize() for ASCII-only (most patterns)
+        encNormalizationForm: !hasNonAscii || p === p.normalize("NFC") ? "NFC" : "needs-norm",
         encByteLength: byteLength,
         encCharLength: charLength,
         encEncodingRatio: (byteLength / charLength).toFixed(2),
