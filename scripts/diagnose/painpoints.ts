@@ -202,15 +202,16 @@ export class PainpointDetector {
         }
 
         // Check for missing lockfile
-        const bunLock = Bun.file(`${projectPath}/bun.lockb`);
+        const bunLockBinary = Bun.file(`${projectPath}/bun.lockb`);
+        const bunLockText = Bun.file(`${projectPath}/bun.lock`);
         const npmLock = Bun.file(`${projectPath}/package-lock.json`);
         const yarnLock = Bun.file(`${projectPath}/yarn.lock`);
 
-        if (!await bunLock.exists() && !await npmLock.exists() && !await yarnLock.exists()) {
+        if (!await bunLockBinary.exists() && !await bunLockText.exists() && !await npmLock.exists() && !await yarnLock.exists()) {
           painpoints.push({
             id: "deps-no-lockfile",
             title: "Missing lockfile",
-            description: "No bun.lockb, package-lock.json, or yarn.lock found",
+            description: "No bun.lock, bun.lockb, package-lock.json, or yarn.lock found",
             severity: "high",
             category: "deps",
             score: 80,
