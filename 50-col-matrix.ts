@@ -1772,20 +1772,14 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
     transitionChainLength: 1, // Single prototype
     memoryAlignment: "8B", // 64-bit aligned
     gcPressure: segments > 3 || pat.hasRegExpGroups ? "med" : "low",
-    retainedSize: (() => {
-      const base = 64 + p.length * 2;
-      const children = groupCount * 32;
-      return (base + children) + "B";
-    })(),
+    // QUICK WIN #65: Inline expression vs IIFE (base + UTF-16 + children)
+    retainedSize: (64 + p.length * 2 + groupCount * 32) + "B",
 
     // Web Standards Compliance (6)
     specCompliance: "100%", // Bun follows URLPattern spec
     wptTestsEstimate: pat.hasRegExpGroups ? "95%" : "100%",
-    browserCompatibility: (() => {
-      // Check for features that may vary across implementations
-      const hasAdvanced = pat.hasRegExpGroups || p.includes("*");
-      return hasAdvanced ? "Chrome,Bun" : "Chrome,Bun,Deno";
-    })(),
+    // QUICK WIN #66: Inline ternary vs IIFE
+    browserCompatibility: (pat.hasRegExpGroups || p.includes("*")) ? "Chrome,Bun" : "Chrome,Bun,Deno",
     // QUICK WIN #41: Direct string build vs array.filter().join()
     regexFeaturesUsed: (() => {
       let features = "";
