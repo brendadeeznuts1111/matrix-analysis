@@ -659,40 +659,13 @@ Enhanced Mode Examples (v3.1):
   process.exit(0);
 }
 
-// Options - Original Categories (from parseArgs + legacy shorthand)
-const showUrl = flags.url || hasLegacy("-u");
-const showCookie = flags.cookie || hasLegacy("-k");
-const showType = flags.type || hasLegacy("-t");
-const showMetrics = flags.metrics || hasLegacy("-e");
-const showProps = flags.props || hasLegacy("-p");
-const showPatternAnalysis = flags["pattern-analysis"] || hasLegacy("-pa");
-const showInternalStructure = flags["internal-structure"] || hasLegacy("-is");
-const showPerfDeep = flags["performance-deep"] || hasLegacy("-pd");
-const showMemoryLayout = flags["memory-layout"] || hasLegacy("-ml");
-const showWebStandards = flags["web-standards"] || hasLegacy("-ws");
-const showExtras = flags.extras || hasLegacy("-x");
-
-// Options - NEW v3.0 Categories
-const showEnvVars = flags["env-vars"] || hasLegacy("-ev");
-const showSecurity = flags.security || hasLegacy("-sec");
-const showEncoding = flags.encoding || hasLegacy("-enc");
-const showI18n = flags.international || hasLegacy("-i18n");
-const showCache = flags.cache || hasLegacy("-ca");
-const showErrors = flags.errors || hasLegacy("-err");
-const showPeek = flags.peek || hasLegacy("-pk");
-const showColor = flags.color || hasLegacy("-col");
-
-// Quick Modes
-const quickAudit = flags.audit;
-const quickBenchmark = flags.benchmark;
-const quickProdReady = flags["prod-ready"];
-const quickInternational = flags.international;
-
-const anySelected = showUrl || showCookie || showType || showMetrics || showProps ||
-  showPatternAnalysis || showInternalStructure || showPerfDeep || showMemoryLayout ||
-  showWebStandards || showExtras || showEnvVars || showSecurity || showEncoding ||
-  showI18n || showCache || showErrors || showColor || quickAudit || quickBenchmark ||
-  quickProdReady || quickInternational;
+// COMPACTED: Flag resolution via mapping (was 19 individual const statements)
+const flag = (key: string, legacy?: string) => !!(flags[key as keyof typeof flags] || (legacy && hasLegacy(legacy)));
+const [showUrl, showCookie, showType, showMetrics, showProps] = [flag("url", "-u"), flag("cookie", "-k"), flag("type", "-t"), flag("metrics", "-e"), flag("props", "-p")];
+const [showPatternAnalysis, showInternalStructure, showPerfDeep, showMemoryLayout, showWebStandards, showExtras] = [flag("pattern-analysis", "-pa"), flag("internal-structure", "-is"), flag("performance-deep", "-pd"), flag("memory-layout", "-ml"), flag("web-standards", "-ws"), flag("extras", "-x")];
+const [showEnvVars, showSecurity, showEncoding, showI18n, showCache, showErrors, showPeek, showColor] = [flag("env-vars", "-ev"), flag("security", "-sec"), flag("encoding", "-enc"), flag("international", "-i18n"), flag("cache", "-ca"), flag("errors", "-err"), flag("peek", "-pk"), flag("color", "-col")];
+const [quickAudit, quickBenchmark, quickProdReady, quickInternational] = [flag("audit"), flag("benchmark"), flag("prod-ready"), flag("international")];
+const anySelected = [showUrl, showCookie, showType, showMetrics, showProps, showPatternAnalysis, showInternalStructure, showPerfDeep, showMemoryLayout, showWebStandards, showExtras, showEnvVars, showSecurity, showEncoding, showI18n, showCache, showErrors, showColor, quickAudit, quickBenchmark, quickProdReady, quickInternational].some(Boolean);
 const showAll = flags.all || !anySelected;
 const filterMatched = flags.matched;
 const filterFailed = flags.failed;
@@ -1881,160 +1854,63 @@ if (sortArg) {
   });
 }
 
-// Column sets
-const urlCols = [
-  "idx", "pattern", "matches", "groups", "hasRegExpGroups",
-  "protocol", "hostname", "port", "pathname", "search", "hash",
-  "testResult", "execTime"
-];
-const cookieCols = [
-  "idx", "cookieName", "cookieValue", "cookieHttpOnly", "cookieSecure",
-  "cookieSameSite", "cookieMaxAge", "cookieSerialized"
-];
-const typeCols = [
-  "idx", "typeofPattern", "typeofResult", "instanceOfURL", "constructorName",
-  "prototypeChain", "isCallable", "isIterable", "symbolToString", "jsonStringify", "typeTag"
-];
-const metricsCols = [
-  "idx", "execTime", "execNs", "memDeltaKB", "gcCount", "patternComplexity",
-  "groupCount", "segmentCount", "charCount", "specialChars", "nestingDepth",
-  "avgSegmentLen", "entropyScore", "matchScore"
-];
-const propsCols = [
-  "idx", "propCount", "ownKeys", "isExtensible", "isSealed", "isFrozen",
-  "protoName", "descriptorTypes", "enumerableCount"
-];
-const patternAnalysisCols = [
-  "idx", "patternComponents", "paHasRegExpGroups", "wildcardCount", "namedGroupCount",
-  "optionalGroupCount", "patternComplexityScore", "canonicalForm"
-];
-const internalStructureCols = [
-  "idx", "hiddenClass", "internalSlots", "compiledRegexCount", "patternStringLength",
-  "encodingOverhead", "structureFingerprint"
-];
-const perfDeepCols = [
-  "idx", "testOpsPerSec", "execOpsPerSec", "cacheHitRate", "deoptimizationRisk",
-  "inlineCacheStatus", "jitTier"
-];
-const memoryLayoutCols = [
-  "idx", "objectSize", "propertyStorageSize", "transitionChainLength", "memoryAlignment",
-  "gcPressure", "retainedSize"
-];
-const webStandardsCols = [
-  "idx", "specCompliance", "wptTestsEstimate", "browserCompatibility", "regexFeaturesUsed",
-  "canonicalPattern", "specVersion"
-];
-const extraCols = [
-  "idx", "uuidv7", "uuidv7Timestamp", "fib", "isPrime", "memoryMB", "patternHash",
-  "calcBinary", "calcHex", "calcSquare", "calcCube", "calcFactorial",
-  "calcReverse", "calcDigitSum", "calcDigitProduct", "timestamp",
-  "randomInt", "randomFloat", "randomBool", "generatedIP", "generatedEmail",
-  "generatedPhone", "processId", "processUptime", "bunVersion", "bunPath", "isMainEntry", "memoryRSS",
-  "cpuUser", "cpuSystem"
+// COMPACTED: Column sets as single object (was 17 separate arrays)
+const COLS = {
+  url: ["idx", "pattern", "matches", "groups", "hasRegExpGroups", "protocol", "hostname", "port", "pathname", "search", "hash", "testResult", "execTime"],
+  cookie: ["idx", "cookieName", "cookieValue", "cookieHttpOnly", "cookieSecure", "cookieSameSite", "cookieMaxAge", "cookieSerialized"],
+  type: ["idx", "typeofPattern", "typeofResult", "instanceOfURL", "constructorName", "prototypeChain", "isCallable", "isIterable", "symbolToString", "jsonStringify", "typeTag"],
+  metrics: ["idx", "execTime", "execNs", "memDeltaKB", "gcCount", "patternComplexity", "groupCount", "segmentCount", "charCount", "specialChars", "nestingDepth", "avgSegmentLen", "entropyScore", "matchScore"],
+  props: ["idx", "propCount", "ownKeys", "isExtensible", "isSealed", "isFrozen", "protoName", "descriptorTypes", "enumerableCount"],
+  patternAnalysis: ["idx", "patternComponents", "paHasRegExpGroups", "wildcardCount", "namedGroupCount", "optionalGroupCount", "patternComplexityScore", "canonicalForm"],
+  internal: ["idx", "hiddenClass", "internalSlots", "compiledRegexCount", "patternStringLength", "encodingOverhead", "structureFingerprint"],
+  perfDeep: ["idx", "testOpsPerSec", "execOpsPerSec", "cacheHitRate", "deoptimizationRisk", "inlineCacheStatus", "jitTier"],
+  memory: ["idx", "objectSize", "propertyStorageSize", "transitionChainLength", "memoryAlignment", "gcPressure", "retainedSize"],
+  webStd: ["idx", "specCompliance", "wptTestsEstimate", "browserCompatibility", "regexFeaturesUsed", "canonicalPattern", "specVersion"],
+  extras: ["idx", "uuidv7", "uuidv7Timestamp", "fib", "isPrime", "memoryMB", "patternHash", "calcBinary", "calcHex", "calcSquare", "calcCube", "calcFactorial", "calcReverse", "calcDigitSum", "calcDigitProduct", "timestamp", "randomInt", "randomFloat", "randomBool", "generatedIP", "generatedEmail", "generatedPhone", "processId", "processUptime", "bunVersion", "bunPath", "isMainEntry", "memoryRSS", "cpuUser", "cpuSystem"],
+  envVars: ["idx", "envNodeEnv", "envBunEnv", "envHasDebug", "envHasVerbose", "envPathSegments", "envHomeSet", "envShellType", "envTermType", "envLocale", "envTZ", "envCI", "envPlatform", "envArch", "envVarCount", "envVarRisk"],
+  security: ["idx", "secInjectionRisk", "secPathTraversal", "secOpenRedirect", "secSsrfPotential", "secRegexDoS", "secWildcardDanger", "secCredentialExposure", "secBasicAuthInUrl", "secPrivateDataLeak", "secRiskScore", "secRiskLevel", "secSanitizationNeeded", "secCspCompatible", "secCorsImplication", "secXssVector", "secSqlInjection", "secCommandInjection", "secInputValidation"],
+  encoding: ["idx", "encPercentEncoded", "encInvalidPercent", "encNonAscii", "encNeedsPunycode", "encUtf8Safe", "encHasNullBytes", "encHasControlChars", "encDoubleEncoded", "encMixedEncoding", "encNormalizationForm", "encByteLength", "encCharLength", "encEncodingRatio", "encRecommendedEncoding"],
+  i18n: ["idx", "i18nHasUnicode", "i18nScriptTypes", "i18nRtlChars", "i18nEmojiCount", "i18nZwjSequences", "i18nCombiningMarks", "i18nGraphemeCount", "i18nDisplayWidth", "i18nBidiLevel", "i18nLocaleHint", "i18nNormalized", "i18nComplexity"],
+  cache: ["idx", "cacheability", "cacheSuggestedTTL", "cacheKeyComplexity", "cacheVaryFactors", "cacheInvalidationRisk", "cachePatternStability", "cacheHitProbability", "cacheMissImpact", "cacheWarmupPriority", "cacheEvictionRisk", "cacheScore", "cacheStrategy"],
+  peek: ["idx", "pattern", "peekCacheHit", "peekCompileTimeNs", "peekCacheSize", "peekSyncHitRate", "peekCacheStatus"],
+  errors: ["idx", "errParseError", "errRuntimeError", "errEdgeCases", "errNullHandling", "errBoundaryConditions", "errRecoverable", "errFailureMode", "errLoggingLevel", "errMonitoringHint", "errPotential"],
+  color: ["idx", "pattern", "colorSwatch", "colorTier", "colorHsl", "colorHex", "colorRgb", "colorCssVar"],
+  dns: ["idx", "pattern", "dnsHostname", "dnsAddress", "dnsFamily", "dnsLatencyMs", "dnsCached", "dnsPrefetchStatus", "dnsCacheHits", "dnsCacheMisses"],
+  tz: ["idx", "pattern", "tzTimezone", "tzAbbrev", "tzUtcOffset", "tzOffsetMinutes", "tzIsDST", "tzHasDST", "tzLocalTime", "tzIsoTime", "tzEpochMs"],
+} as const;
+
+// COMPACTED: Column selection via data-driven mapping (was 22 if statements)
+type ColKey = keyof typeof COLS;
+const COL_CONFIG: { key: ColKey; name: string; show: () => boolean }[] = [
+  { key: "url", name: "URL", show: () => showUrl || showAll },
+  { key: "cookie", name: "Cookie", show: () => showCookie || showAll },
+  { key: "type", name: "Type", show: () => showType || showAll },
+  { key: "metrics", name: "Metrics", show: () => showMetrics || showAll || quickBenchmark },
+  { key: "props", name: "Props", show: () => showProps || showAll },
+  { key: "patternAnalysis", name: "PatternAnalysis", show: () => showPatternAnalysis || showAll },
+  { key: "internal", name: "Internal", show: () => showInternalStructure || showAll },
+  { key: "perfDeep", name: "PerfDeep", show: () => showPerfDeep || showAll || quickBenchmark },
+  { key: "memory", name: "Memory", show: () => showMemoryLayout || showAll || quickBenchmark },
+  { key: "webStd", name: "WebStd", show: () => showWebStandards || showAll || quickProdReady },
+  { key: "extras", name: "Extras", show: () => showExtras || showAll },
+  { key: "envVars", name: "EnvVars", show: () => showEnvVars || showAll || quickAudit },
+  { key: "security", name: "Security", show: () => showSecurity || showAll || quickAudit || quickProdReady },
+  { key: "encoding", name: "Encoding", show: () => showEncoding || showAll || quickInternational },
+  { key: "i18n", name: "I18n", show: () => showI18n || showAll || quickInternational },
+  { key: "cache", name: "Cache", show: () => showCache || showAll || quickProdReady },
+  { key: "peek", name: "Peek", show: () => showPeek || showAll || quickBenchmark },
+  { key: "errors", name: "Errors", show: () => showErrors || showAll || quickAudit },
+  { key: "color", name: "Color", show: () => showColor || showAll },
+  { key: "dns", name: "DNS", show: () => showDnsStats || dnsPrefetch || showAll },
+  { key: "tz", name: "Timezone", show: () => showTzInfo || !!tzFlag || showAll },
 ];
 
-// NEW v3.0: Column Sets
-const envVarsCols = [
-  "idx", "envNodeEnv", "envBunEnv", "envHasDebug", "envHasVerbose",
-  "envPathSegments", "envHomeSet", "envShellType", "envTermType", "envLocale",
-  "envTZ", "envCI", "envPlatform", "envArch", "envVarCount", "envVarRisk"
-];
-const securityCols = [
-  "idx", "secInjectionRisk", "secPathTraversal", "secOpenRedirect", "secSsrfPotential",
-  "secRegexDoS", "secWildcardDanger", "secCredentialExposure", "secBasicAuthInUrl",
-  "secPrivateDataLeak", "secRiskScore", "secRiskLevel", "secSanitizationNeeded",
-  "secCspCompatible", "secCorsImplication", "secXssVector", "secSqlInjection",
-  "secCommandInjection", "secInputValidation"
-];
-const encodingCols = [
-  "idx", "encPercentEncoded", "encInvalidPercent", "encNonAscii", "encNeedsPunycode",
-  "encUtf8Safe", "encHasNullBytes", "encHasControlChars", "encDoubleEncoded",
-  "encMixedEncoding", "encNormalizationForm", "encByteLength", "encCharLength",
-  "encEncodingRatio", "encRecommendedEncoding"
-];
-const i18nCols = [
-  "idx", "i18nHasUnicode", "i18nScriptTypes", "i18nRtlChars", "i18nEmojiCount",
-  "i18nZwjSequences", "i18nCombiningMarks", "i18nGraphemeCount", "i18nDisplayWidth",
-  "i18nBidiLevel", "i18nLocaleHint", "i18nNormalized", "i18nComplexity"
-];
-const cacheCols = [
-  "idx", "cacheability", "cacheSuggestedTTL", "cacheKeyComplexity", "cacheVaryFactors",
-  "cacheInvalidationRisk", "cachePatternStability", "cacheHitProbability",
-  "cacheMissImpact", "cacheWarmupPriority", "cacheEvictionRisk", "cacheScore", "cacheStrategy"
-];
-const peekCols = [
-  "idx", "pattern", "peekCacheHit", "peekCompileTimeNs", "peekCacheSize", "peekSyncHitRate", "peekCacheStatus"
-];
-const errorsCols = [
-  "idx", "errParseError", "errRuntimeError", "errEdgeCases", "errNullHandling",
-  "errBoundaryConditions", "errRecoverable", "errFailureMode", "errLoggingLevel",
-  "errMonitoringHint", "errPotential"
-];
-const colorCols = [
-  "idx", "pattern", "colorSwatch", "colorTier", "colorHsl", "colorHex", "colorRgb", "colorCssVar"
-];
-const dnsCols = [
-  "idx", "pattern", "dnsHostname", "dnsAddress", "dnsFamily", "dnsLatencyMs",
-  "dnsCached", "dnsPrefetchStatus", "dnsCacheHits", "dnsCacheMisses"
-];
-const tzCols = [
-  "idx", "pattern", "tzTimezone", "tzAbbrev", "tzUtcOffset", "tzOffsetMinutes",
-  "tzIsDST", "tzHasDST", "tzLocalTime", "tzIsoTime", "tzEpochMs"
-];
-
-// Build selected columns dynamically
-const selectedSets: { cols: string[]; name: string }[] = [];
-
-// Original categories
-if (showUrl || showAll) selectedSets.push({ cols: urlCols, name: "URL" });
-if (showCookie || showAll) selectedSets.push({ cols: cookieCols, name: "Cookie" });
-if (showType || showAll) selectedSets.push({ cols: typeCols, name: "Type" });
-if (showMetrics || showAll || quickBenchmark) selectedSets.push({ cols: metricsCols, name: "Metrics" });
-if (showProps || showAll) selectedSets.push({ cols: propsCols, name: "Props" });
-if (showPatternAnalysis || showAll) selectedSets.push({ cols: patternAnalysisCols, name: "PatternAnalysis" });
-if (showInternalStructure || showAll) selectedSets.push({ cols: internalStructureCols, name: "Internal" });
-if (showPerfDeep || showAll || quickBenchmark) selectedSets.push({ cols: perfDeepCols, name: "PerfDeep" });
-if (showMemoryLayout || showAll || quickBenchmark) selectedSets.push({ cols: memoryLayoutCols, name: "Memory" });
-if (showWebStandards || showAll || quickProdReady) selectedSets.push({ cols: webStandardsCols, name: "WebStd" });
-if (showExtras || showAll) selectedSets.push({ cols: extraCols, name: "Extras" });
-
-// NEW v3.0 categories
-if (showEnvVars || showAll || quickAudit) selectedSets.push({ cols: envVarsCols, name: "EnvVars" });
-if (showSecurity || showAll || quickAudit || quickProdReady) selectedSets.push({ cols: securityCols, name: "Security" });
-if (showEncoding || showAll || quickInternational) selectedSets.push({ cols: encodingCols, name: "Encoding" });
-if (showI18n || showAll || quickInternational) selectedSets.push({ cols: i18nCols, name: "I18n" });
-if (showCache || showAll || quickProdReady) selectedSets.push({ cols: cacheCols, name: "Cache" });
-if (showPeek || showAll || quickBenchmark) selectedSets.push({ cols: peekCols, name: "Peek" });
-if (showErrors || showAll || quickAudit) selectedSets.push({ cols: errorsCols, name: "Errors" });
-if (showColor || showAll) selectedSets.push({ cols: colorCols, name: "Color" });
-if (showDnsStats || dnsPrefetch || showAll) selectedSets.push({ cols: dnsCols, name: "DNS" });
-if (showTzInfo || tzFlag || showAll) selectedSets.push({ cols: tzCols, name: "Timezone" });
-
-// Merge columns (avoid duplicate idx)
-let selectedCols: string[] | undefined;
-let title = "";
-let colCount = 0;
-
-if (selectedSets.length > 0 && !showAll) {
-  const merged = new Set<string>();
-  for (const set of selectedSets) {
-    for (const col of set.cols) merged.add(col);
-  }
-  selectedCols = Array.from(merged);
-  title = selectedSets.map(s => s.name).join(" + ");
-  colCount = selectedCols.length;
-} else {
-  title = "Full Analysis v3.0";
-  // Count all unique columns across all sets
-  const allCols = new Set([
-    ...urlCols, ...cookieCols, ...typeCols, ...metricsCols, ...propsCols,
-    ...patternAnalysisCols, ...internalStructureCols, ...perfDeepCols,
-    ...memoryLayoutCols, ...webStandardsCols, ...extraCols,
-    ...envVarsCols, ...securityCols, ...encodingCols, ...i18nCols,
-    ...cacheCols, ...errorsCols, ...colorCols
-  ]);
-  colCount = allCols.size;
-}
+// Build selected columns via filter+reduce (replaces manual push loops)
+const selectedSets = COL_CONFIG.filter(c => c.show()).map(c => ({ cols: COLS[c.key], name: c.name }));
+const merged = new Set(selectedSets.flatMap(s => [...s.cols]));
+const selectedCols = selectedSets.length > 0 && !showAll ? Array.from(merged) : undefined;
+const title = selectedSets.length > 0 && !showAll ? selectedSets.map(s => s.name).join(" + ") : "Full Analysis v3.0";
+const colCount = selectedCols?.length ?? new Set(Object.values(COLS).flat()).size;
 
 // Build filter suffix
 const filters: string[] = [];
