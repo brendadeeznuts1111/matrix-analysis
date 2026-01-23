@@ -145,8 +145,15 @@ const getProtoChain = (obj: object): string => {
 const countSpecialChars = (s: string): number =>
   (s.match(/[:\\/*?()[\]{}|^$+.]/g) || []).length;
 
-const countSegments = (s: string): number =>
-  s.split("/").filter(Boolean).length;
+// QUICK WIN #48: Count segments without split+filter (avoids 2 array allocations)
+const countSegments = (s: string): number => {
+  let count = 0, inSegment = false;
+  for (let i = 0; i < s.length; i++) {
+    if (s[i] === "/") { inSegment = false; }
+    else if (!inSegment) { count++; inSegment = true; }
+  }
+  return count;
+};
 
 const calcNestingDepth = (s: string): number => {
   let max = 0, cur = 0;
@@ -753,8 +760,8 @@ function getTimezoneInfo() {
 
   // Get UTC offset in minutes
   const offsetMinutes = now.getTimezoneOffset();
-  const offsetHours = Math.abs(Math.floor(offsetMinutes / 60));
-  const offsetMins = Math.abs(offsetMinutes % 60);
+  const offsetHours = _abs(_floor(offsetMinutes / 60));  // QUICK WIN #47: use cached Math
+  const offsetMins = _abs(offsetMinutes % 60);  // QUICK WIN #47
   const offsetSign = offsetMinutes <= 0 ? "+" : "-";
   const utcOffset = `UTC${offsetSign}${String(offsetHours).padStart(2, "0")}:${String(offsetMins).padStart(2, "0")}`;
 
@@ -777,7 +784,7 @@ function getTimezoneInfo() {
   // DST detection
   const jan = new Date(now.getFullYear(), 0, 1).getTimezoneOffset();
   const jul = new Date(now.getFullYear(), 6, 1).getTimezoneOffset();
-  const isDST = now.getTimezoneOffset() < Math.max(jan, jul);
+  const isDST = now.getTimezoneOffset() < _max(jan, jul);  // QUICK WIN #47
   const hasDST = jan !== jul;
 
   return {
