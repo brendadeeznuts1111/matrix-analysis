@@ -1270,6 +1270,10 @@ const STATIC_PID = process.pid;
 const STATIC_BUN_VERSION = Bun.version;
 const STATIC_BUN_PATH = Bun.which("bun")?.split("/").slice(-2).join("/") || "?";
 const STATIC_IS_MAIN = import.meta.path === Bun.main ? "✅" : "❌";
+// QUICK WIN #18 & #19: Hoist static env derivations (split/Intl calls per row)
+const STATIC_PATH_SEGMENTS = (process.env.PATH || "").split(":").length;
+const STATIC_SHELL_TYPE = (process.env.SHELL || "").split("/").pop() || "unknown";
+const STATIC_TZ_NAME = process.env.TZ || Intl.DateTimeFormat().resolvedOptions().timeZone;
 
 const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
   let pat: URLPattern;
@@ -1544,12 +1548,12 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
     envBunEnv: process.env.BUN_ENV || "undefined",
     envHasDebug: process.env.DEBUG ? "✅" : "❌",
     envHasVerbose: process.env.VERBOSE ? "✅" : "❌",
-    envPathSegments: (process.env.PATH || "").split(":").length,
+    envPathSegments: STATIC_PATH_SEGMENTS,  // QUICK WIN #18: hoisted
     envHomeSet: process.env.HOME ? "✅" : "❌",
-    envShellType: (process.env.SHELL || "").split("/").pop() || "unknown",
+    envShellType: STATIC_SHELL_TYPE,        // QUICK WIN #19: hoisted
     envTermType: process.env.TERM || "unknown",
     envLocale: process.env.LANG || process.env.LC_ALL || "unknown",
-    envTZ: process.env.TZ || Intl.DateTimeFormat().resolvedOptions().timeZone,
+    envTZ: STATIC_TZ_NAME,                  // QUICK WIN #19: hoisted (Intl call)
     envCI: process.env.CI ? "✅" : "❌",
     envPlatform: process.platform,
     envArch: process.arch,
