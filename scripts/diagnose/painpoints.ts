@@ -201,34 +201,45 @@ export class PainpointDetector {
           });
         }
 
-        // Check for missing lockfile
-        const bunLockBinary = Bun.file(`${projectPath}/bun.lockb`);
-        const bunLockText = Bun.file(`${projectPath}/bun.lock`);
-        const npmLock = Bun.file(`${projectPath}/package-lock.json`);
-        const yarnLock = Bun.file(`${projectPath}/yarn.lock`);
+        // === Enhanced Bun Lockfile Diagnostics ===
+        const [lockTextExists, lockBinaryExists, npmLockExists, yarnLockExists] = await Promise.all([
+          Bun.file(`${projectPath}/bun.lock`).exists(),
+          Bun.file(`${projectPath}/bun.lockb`).exists(),
+          Bun.file(`${projectPath}/package-lock.json`).exists(),
+          Bun.file(`${projectPath}/yarn.lock`).exists(),
+        ]);
 
-        if (!await bunLockBinary.exists() && !await bunLockText.exists() && !await npmLock.exists() && !await yarnLock.exists()) {
+        const hasAnyLockfile = lockTextExists || lockBinaryExists || npmLockExists || yarnLockExists;
+
+        if (!hasAnyLockfile) {
           painpoints.push({
             id: "deps-no-lockfile",
-            title: "Missing lockfile",
-            description: "No bun.lock, bun.lockb, package-lock.json, or yarn.lock found",
+            title: "Missing lockfile entirely",
+            description: "No bun.lock, bun.lockb, package-lock.json, or yarn.lock found — reproducibility at risk",
             severity: "high",
             category: "deps",
             score: 80,
-            suggestion: "Run bun install to generate lockfile for reproducible builds",
+            suggestion: "Run `bun install` to generate lockfile",
           });
-        }
-
-        // Check for legacy binary lockfile (bun.lockb without bun.lock)
-        if (await bunLockBinary.exists() && !await bunLockText.exists()) {
+        } else if (lockBinaryExists && !lockTextExists) {
           painpoints.push({
             id: "deps-legacy-lockfile",
-            title: "Using legacy binary lockfile",
-            description: "bun.lockb detected without bun.lock — binary format is deprecated in Bun v1.2+",
+            title: "Using deprecated binary lockfile only",
+            description: "bun.lockb exists without bun.lock — binary format deprecated in Bun v1.2+",
+            severity: "medium",
+            category: "deps",
+            score: 40,
+            suggestion: "Migrate: `bun install --save-text-lockfile`",
+          });
+        } else if (lockTextExists && lockBinaryExists) {
+          painpoints.push({
+            id: "deps-dual-lockfiles",
+            title: "Mixed lockfile formats detected",
+            description: "Both bun.lock (text) and bun.lockb (binary) present — cleanup recommended",
             severity: "low",
             category: "deps",
-            score: 20,
-            suggestion: "Migrate to text lockfile: bun install --save-text-lockfile",
+            score: 15,
+            suggestion: "`rm bun.lockb && bun install` to clean up",
           });
         }
 
