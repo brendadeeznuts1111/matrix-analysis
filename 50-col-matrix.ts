@@ -898,13 +898,13 @@ function evaluateCIGate(
   const levelMap: Record<string, number> = { low: 1, medium: 2, high: 3 };
   const thresholdValue = thresholdMap[threshold];
 
-  const violations = rows.filter(r => levelMap[r.secRiskLevel] >= thresholdValue);
-
-  const summary = {
-    low: rows.filter(r => r.secRiskLevel === "low").length,
-    medium: rows.filter(r => r.secRiskLevel === "medium").length,
-    high: rows.filter(r => r.secRiskLevel === "high").length,
-  };
+  // QUICK WIN #11: Single pass instead of 4 separate filter calls
+  const violations: typeof rows = [];
+  const summary = { low: 0, medium: 0, high: 0 };
+  for (const r of rows) {
+    summary[r.secRiskLevel as keyof typeof summary]++;
+    if (levelMap[r.secRiskLevel] >= thresholdValue) violations.push(r);
+  }
 
   return {
     passed: violations.length === 0,
@@ -1368,7 +1368,7 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
     isCallable: typeof (pat as any).exec === "function" ? "✅" : "❌",
     isIterable: typeof (pat as any)[Symbol.iterator] === "function" ? "✅" : "❌",
     symbolToString: pat[Symbol.toStringTag] || getTypeTag(pat),
-    jsonStringify: JSON.stringify(pat).slice(0, 12) + "...",
+    jsonStringify: "{}...",  // QUICK WIN #10: URLPattern always stringifies to {}
     typeTag: getTypeTag(pat),
 
     // Metrics (12)
