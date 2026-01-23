@@ -1,24 +1,12 @@
 {
   "name": "matrix-analysis",
   "version": "3.1.0",
-  "description": "URLPattern Analysis Matrix with 247 columns - Performance optimized",
-  "type": "module",
-  "scripts": {
-    "matrix": "bun 50-col-matrix.ts",
-    "matrix:audit": "bun 50-col-matrix.ts --audit",
-    "matrix:benchmark": "bun 50-col-matrix.ts --benchmark",
-    "matrix:fix": "bun 50-col-matrix.ts --fix",
-    "matrix:ci": "bun 50-col-matrix.ts --ci --threshold medium",
-    "bottleneck": "bun bottleneck-analysis.ts",
-    "bottleneck:all": "bun bottleneck-analysis.ts --all",
-    "bottleneck:bench": "bun bottleneck-analysis.ts --benchmark",
-    "test": "bun test",
-    "typecheck": "bun --bun tsc --noEmit"
-  },
-  "dependencies": {},
+  "author": "nolarose",
   "devDependencies": {
-    "typescript": "^5.7.0",
-    "@types/bun": "latest"
+    "typescript": "^5.7.0"
+  },
+  "peerDependencies": {
+    "@types/bun": "^1.3.6"
   },
   "bottlenecks": {
     "status": "completed",
@@ -73,6 +61,29 @@
       }
     ]
   },
-  "author": "nolarose",
-  "license": "MIT"
+  "description": "URLPattern Analysis Matrix with 247 columns - Performance optimized",
+  "license": "MIT",
+  "peerDependenciesMeta": {
+    "@types/bun": {
+      "optional": true
+    }
+  },
+  "scripts": {
+    "matrix": "bun 50-col-matrix.ts",
+    "matrix:audit": "bun 50-col-matrix.ts --audit",
+    "matrix:benchmark": "bun 50-col-matrix.ts --benchmark",
+    "matrix:fix": "bun 50-col-matrix.ts --fix",
+    "matrix:ci": "bun 50-col-matrix.ts --ci --threshold medium",
+    "bottleneck": "bun bottleneck-analysis.ts",
+    "bottleneck:all": "bun bottleneck-analysis.ts --all",
+    "bottleneck:bench": "bun bottleneck-analysis.ts --benchmark",
+    "test": "bun test",
+    "typecheck": "bun --bun tsc --noEmit"
+  },
+  "type": "module",
+  "trustedDependencies": ["node-sass"],
+  "dependencies": {
+    "lodash": "^4.17.21",
+    "zod": "npm:zod"
+  }
 }
