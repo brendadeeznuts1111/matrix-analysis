@@ -22,12 +22,19 @@ const formatted = items.map(x => ({
 console.log(Bun.inspect.table(formatted, undefined, { colors: true }));
 ```
 
+**Gotchas:** Nested objects >1 level deep truncate to `[Object ...]`. Bun-only; guard with `typeof Bun !== "undefined"` for cross-runtime code.
+
 ## Conventions
 
-- **Commits:** `<type>(<scope>): <description>` with `Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>`
-- **Semicolons:** Required
-- **Quotes:** Double quotes for strings
-- **Tests:** Use `bun:test` with `it()` not `test()`
+**Style:**
+- Semicolons required, double quotes for strings
+- Variables/functions: `camelCase`, Constants: `UPPER_SNAKE_CASE`, Types: `PascalCase`
+
+**Commits:** `<type>(<scope>): <description>` with `Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>`
+
+**Tests:** Use `bun:test` with `it()` not `test()`
+
+**Errors:** Return `null`/default from helpers, don't throw. Use `.catch(() => null)` for non-critical async. Log with context for user-facing failures.
 
 ---
 
@@ -42,22 +49,27 @@ const server = Bun.serve({
   port: 0,  // Auto-select available port
   fetch(req) {
     const url = new URL(req.url);
+    const page = url.searchParams.get("page");       // Query params
+    const body = await req.json();                   // Request body (.text(), .formData())
 
-    // Query params
-    const page = url.searchParams.get("page");
-
-    // Request body
-    const body = await req.json();      // JSON
-    const text = await req.text();      // Text
-    const form = await req.formData();  // Form
-
-    // Responses - ALWAYS use Response.json() for JSON
+    // ALWAYS use Response.json() for JSON (auto Content-Type)
     return Response.json({ data: result });
     return Response.json({ error: "Not found" }, { status: 404 });
-    return Response.json({ error: "Unauthorized" }, { status: 401 });
   },
 });
 // server.port, server.url, server.stop(), server.stop(true) for force
+```
+
+### URLPattern
+
+```typescript
+// REQUIRES baseURL for relative patterns (throws without it!)
+const BASE = "http://localhost";
+const route = new URLPattern("/users/:id(\\d+)", BASE);  // RegExp validation
+
+route.test(`${BASE}/users/123`);   // true (fast boolean check)
+route.test(`${BASE}/users/abc`);   // false (regex rejected)
+route.exec(`${BASE}/users/123`);   // { pathname: { groups: { id: "123" } } }
 ```
 
 ### File I/O
@@ -72,14 +84,20 @@ await Bun.write("./out.txt", content);
 await Bun.write("./copy.txt", Bun.file("./source.txt"));
 ```
 
-### Shell
+### Shell & Spawn
 
 ```typescript
+// Bun.$ - simple commands, shell features (pipes, globs)
 import { $ } from "bun";
-await $`ls -la`;
+await $`ls -la | grep .ts`;
 const output = await $`echo hello`.text();
-await $`cmd`.quiet();                      // No output
+await $`cmd`.quiet();                         // No output
 const { exitCode } = await $`cmd`.nothrow();  // Don't throw on error
+
+// Bun.spawn - streaming, long-running, fine control
+const proc = Bun.spawn(["node", "server.js"], { stdout: "pipe" });
+const out = await new Response(proc.stdout).text();
+await proc.exited;
 ```
 
 ### SQLite
@@ -124,8 +142,21 @@ Bun.password.hash("pwd")                   // Argon2id hash
 Bun.password.verify("pwd", hash)           // Verify
 Bun.peek(promise)                          // Sync check if resolved
 Bun.fileURLToPath(new URL(".", import.meta.url))  // Get directory path
+```
 
-// DNS optimization
+### Fetch & DNS Optimization
+
+```typescript
 import { dns } from "bun";
-dns.prefetch("api.example.com", 443);      // Warm cache before fetch
+
+// Warm-up (call early, before actual fetch)
+dns.prefetch("api.example.com", 443);              // DNS only
+await fetch.preconnect("https://api.example.com"); // DNS + TCP + TLS
+
+// Zero-copy file I/O (upload requires file >=32KB)
+await fetch(url, { body: Bun.file("large.bin") }); // Upload
+await Bun.write("out.zip", await fetch(url));      // Download
+
+// Debug headers: fetch(url, { verbose: true })
+// Pool size: BUN_CONFIG_MAX_HTTP_REQUESTS=512 (default: 256)
 ```
