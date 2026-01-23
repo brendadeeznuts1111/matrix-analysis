@@ -1506,7 +1506,9 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
       const hasBasicAuth = SEC_PATTERNS.basicAuth.test(p);
       const hasXssVector = SEC_PATTERNS.xss.test(p);
       const hasSqlPattern = SEC_PATTERNS.sql.test(p);
-      const hasCmdInjection = SEC_PATTERNS.cmdInjection.test(p);
+      // Check cmdInjection but exclude | inside URLPattern alternation groups (a|b)
+      const withoutAlternation = p.replace(/\([^)]*\)/g, "");  // Strip (items|products) etc
+      const hasCmdInjection = SEC_PATTERNS.cmdInjection.test(withoutAlternation);
 
       const riskFactors = [
         hasUserInput ? 3 : 0,
