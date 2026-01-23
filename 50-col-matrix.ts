@@ -1265,6 +1265,11 @@ const STATIC_ENV_RISK = (() => {
   const found = STATIC_ENV_KEYS.filter(k => sensitive.some(s => k.toUpperCase().includes(s))).length;
   return found > 3 ? "high" : found > 0 ? "medium" : "low";
 })();
+// QUICK WIN #16 & #17: Hoist static process/Bun values (was per-row lookups)
+const STATIC_PID = process.pid;
+const STATIC_BUN_VERSION = Bun.version;
+const STATIC_BUN_PATH = Bun.which("bun")?.split("/").slice(-2).join("/") || "?";
+const STATIC_IS_MAIN = import.meta.path === Bun.main ? "✅" : "❌";
 
 const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
   let pat: URLPattern;
@@ -1523,11 +1528,11 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
     generatedIP: `192.168.${i}.${(i * 7) % 256}`,
     generatedEmail: `user${i}@ex.com`,
     generatedPhone: `+1-${100 + i}-555-${1000 + i}`,
-    processId: process.pid,
+    processId: STATIC_PID,           // QUICK WIN #16: hoisted
     processUptime: process.uptime().toFixed(2),
-    bunVersion: Bun.version,
-    bunPath: Bun.which("bun")?.split("/").slice(-2).join("/") || "?",
-    isMainEntry: import.meta.path === Bun.main ? "✅" : "❌",
+    bunVersion: STATIC_BUN_VERSION,   // QUICK WIN #16: hoisted
+    bunPath: STATIC_BUN_PATH,         // QUICK WIN #16: hoisted (was syscall per row)
+    isMainEntry: STATIC_IS_MAIN,      // QUICK WIN #17: hoisted
     memoryRSS: (mem.rss / 1024 / 1024).toFixed(1),
     cpuUser: (STATIC_CPU.user / 1000).toFixed(1),  // QUICK WIN #9: hoisted
     cpuSystem: (STATIC_CPU.system / 1000).toFixed(1),  // QUICK WIN #9: hoisted
