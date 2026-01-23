@@ -1360,6 +1360,10 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
   const segments = countSegments(p);
   const groupCount = m ? Object.keys(m.pathname?.groups || {}).length : 0;
 
+  // QUICK WIN #26: Cache function results called 3-4× per row
+  const specialChars = countSpecialChars(p);
+  const nestingDepth = calcNestingDepth(p);
+
   // ═══════════════════════════════════════════════════════════════════════════
   // QUICK WIN #3: Cache Pattern Analysis - single-pass regex results
   // ═══════════════════════════════════════════════════════════════════════════
@@ -1383,7 +1387,7 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
     pathname: (patPath || "").slice(0, 18),
     search: patSearch || "*",
     hash: patHash || "*",
-    testResult: pat.test(testUrl) ? "✅" : "❌",
+    testResult: m ? "✅" : "❌",  // QUICK WIN #25: reuse exec result (test is redundant)
     execTime,
 
     // Cookie (8)
@@ -1411,12 +1415,12 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
     execNs,
     memDeltaKB: memDeltaKB + "KB",
     gcCount: (globalThis as any).gc ? 1 : 0,
-    patternComplexity: countSpecialChars(p) + calcNestingDepth(p) * 2,
+    patternComplexity: specialChars + nestingDepth * 2,
     groupCount,
     segmentCount: segments,
     charCount: p.length,
-    specialChars: countSpecialChars(p),
-    nestingDepth: calcNestingDepth(p),
+    specialChars: specialChars,
+    nestingDepth: nestingDepth,
     avgSegmentLen: segments > 0 ? (p.length / segments).toFixed(1) : "0",
     entropyScore: calcEntropy(p).toFixed(2),
     matchScore: m ? (groupCount * 10 + (pat.hasRegExpGroups ? 5 : 0)) : 0,
@@ -1446,8 +1450,8 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
     namedGroupCount: patternAnalysis.namedGroups,
     optionalGroupCount: patternAnalysis.optionalGroups,
     patternComplexityScore: Math.min(100, Math.round(
-      (countSpecialChars(p) * 3) +
-      (calcNestingDepth(p) * 10) +
+      (specialChars * 3) +
+      (nestingDepth * 10) +
       (patternAnalysis.wildcards * 5) +
       (patternAnalysis.namedGroupStarts * 2) +
       (p.length / 5)
@@ -1461,7 +1465,7 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
       .filter(c => c && c !== "*").length,
     patternStringLength: p.length + (patProto?.length || 0) + (patHost?.length || 0) + (patPath?.length || 0),
     encodingOverhead: ((p.length * 2) / 1024).toFixed(2) + "KB",
-    structureFingerprint: `S${segments}G${groupCount}D${calcNestingDepth(p)}`,
+    structureFingerprint: `S${segments}G${groupCount}D${nestingDepth}`,
 
     // Performance Deep-Dive (6) - QUICK WIN #4: Use extracted benchmarkPattern()
     ...(() => {
