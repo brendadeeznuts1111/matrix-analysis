@@ -473,6 +473,9 @@ const I18N_SCRIPTS = {
 // QUICK WIN #57: Pre-compute Object.entries to avoid per-row allocation
 const I18N_SCRIPTS_ENTRIES = Object.entries(I18N_SCRIPTS);
 
+// QUICK WIN #61: Pre-compute URLPattern keys (all instances have identical keys)
+const URL_PATTERN_KEYS = Object.keys(new URLPattern("*", "http://x"));
+
 const PATTERN_ANALYSIS_REGEX = {
   wildcards: /\*/g,
   namedGroups: /:[a-zA-Z_][a-zA-Z0-9_]*/g,
@@ -1613,7 +1616,8 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
   });
 
   // Property inspection (helpers now hoisted to module scope - BN-004 fix)
-  const patKeys = Object.keys(pat);
+  // QUICK WIN #61: Use pre-computed URLPattern keys (all instances identical)
+  const patKeys = URL_PATTERN_KEYS;
   const patOwnKeys = Reflect.ownKeys(pat);
   const descriptors = Object.getOwnPropertyDescriptors(pat);
   // QUICK WIN #46: Direct string build vs Object.values().map().join()
@@ -1988,7 +1992,8 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
       const rtlChars = hasUnicode ? (p.match(PATTERN_ANALYSIS_REGEX.rtlChars) || []).length : 0;
       // QUICK WIN #59: For ASCII, graphemeCount = p.length (skip segmenter + array spread)
       const graphemeCount = hasUnicode ? [...GRAPHEME_SEGMENTER.segment(p)].length : p.length;
-      const displayWidth = Bun.stringWidth(p);
+      // QUICK WIN #62: For ASCII, displayWidth = p.length (all chars width 1)
+      const displayWidth = hasUnicode ? Bun.stringWidth(p) : p.length;
 
       // QUICK WIN #57: Pre-computed entries, #58: short-circuit ASCII (only Latin possible)
       let scripts: string[];
