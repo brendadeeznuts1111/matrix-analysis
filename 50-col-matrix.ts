@@ -1399,6 +1399,16 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
   const specialChars = countSpecialChars(p);
   const nestingDepth = calcNestingDepth(p);
 
+  // QUICK WIN #40: Build patternComponents string without array.filter().join()
+  let patternComponentsStr = "";
+  if (patProto !== "*") patternComponentsStr += "proto+";
+  if (patHost !== "*") patternComponentsStr += "host+";
+  if (patPort !== "*") patternComponentsStr += "port+";
+  if (patPath !== "*") patternComponentsStr += "path+";
+  if (patSearch !== "*") patternComponentsStr += "search+";
+  if (patHash !== "*") patternComponentsStr += "hash+";
+  patternComponentsStr = patternComponentsStr.slice(0, -1) || "none";  // trim trailing +
+
   // ═══════════════════════════════════════════════════════════════════════════
   // QUICK WIN #3: Cache Pattern Analysis - single-pass regex results
   // ═══════════════════════════════════════════════════════════════════════════
@@ -1471,14 +1481,7 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
     enumerableCount: patKeys.length,  // QUICK WIN #22: reuse cached keys
 
     // Pattern Analysis (7)
-    patternComponents: [
-      patProto !== "*" ? "proto" : "",
-      patHost !== "*" ? "host" : "",
-      patPort !== "*" ? "port" : "",
-      patPath !== "*" ? "path" : "",
-      patSearch !== "*" ? "search" : "",
-      patHash !== "*" ? "hash" : "",
-    ].filter(Boolean).join("+") || "none",
+    patternComponents: patternComponentsStr,  // QUICK WIN #40
     paHasRegExpGroups: pat.hasRegExpGroups ? "✅" : "❌",
     // QUICK WIN #3: Use cached pattern analysis (avoids 5 duplicate regex matches)
     wildcardCount: patternAnalysis.wildcards,
@@ -1496,8 +1499,16 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
     // Internal Structure (6)
     hiddenClass: `HC${(hash(pat.constructor.name + patPath) as string).slice(0, 4)}`,
     internalSlots: 8, // URLPattern has 8 internal slots per spec
-    compiledRegexCount: [patProto, patHost, patPort, patPath, patSearch, patHash, pat.username, pat.password]
-      .filter(c => c && c !== "*").length,
+    // QUICK WIN #39: Direct count vs array.filter().length (avoids 8-element array + filter)
+    compiledRegexCount:
+      (patProto && patProto !== "*" ? 1 : 0) +
+      (patHost && patHost !== "*" ? 1 : 0) +
+      (patPort && patPort !== "*" ? 1 : 0) +
+      (patPath && patPath !== "*" ? 1 : 0) +
+      (patSearch && patSearch !== "*" ? 1 : 0) +
+      (patHash && patHash !== "*" ? 1 : 0) +
+      (pat.username && pat.username !== "*" ? 1 : 0) +
+      (pat.password && pat.password !== "*" ? 1 : 0),
     patternStringLength: p.length + (patProto?.length || 0) + (patHost?.length || 0) + (patPath?.length || 0),
     encodingOverhead: ((p.length * 2) / 1024).toFixed(2) + "KB",
     structureFingerprint: `S${segments}G${groupCount}D${nestingDepth}`,
