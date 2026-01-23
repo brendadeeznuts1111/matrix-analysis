@@ -91,6 +91,17 @@ const isPrime = (n: number): boolean => {
 // QUICK WIN #6: Hoisted factorial - avoids creating new closure per row
 const factorial = (n: number): number => n <= 1 ? 1 : n * factorial(n - 1);
 
+// QUICK WIN #31: Numeric reverse without array allocation
+// Avoids: digits.slice().reverse().join("") → array copy + reverse + join + parseInt
+const reverseNum = (n: number): number => {
+  let rev = 0;
+  while (n > 0) {
+    rev = rev * 10 + (n % 10);
+    n = _floor(n / 10);
+  }
+  return rev;
+};
+
 // Use Bun's hardware-accelerated CRC32 instead of manual hash
 const hash = (s: string): string => Bun.hash.crc32(s).toString(16).padStart(8, "0");
 
@@ -1313,6 +1324,11 @@ const STATIC_PROTO_NAME = Object.getPrototypeOf(_refPat)?.constructor?.name || "
 const STATIC_INSTANCEOF_URLPATTERN = _refPat instanceof URLPattern ? "✅" : "❌";
 const STATIC_CONSTRUCTOR_NAME = _refPat.constructor?.name || "?";
 const STATIC_TYPE_TAG = _refPat[Symbol.toStringTag] || getTypeTag(_refPat);
+// QUICK WIN #32: Hoist type checks + uptime syscall
+const STATIC_TYPEOF_PAT = typeof _refPat;  // always "object"
+const STATIC_IS_CALLABLE = typeof (_refPat as any).exec === "function" ? "✅" : "❌";
+const STATIC_IS_ITERABLE = typeof (_refPat as any)[Symbol.iterator] === "function" ? "✅" : "❌";
+const STATIC_UPTIME_STR = process.uptime().toFixed(2);
 
 const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
   let pat: URLPattern;
@@ -1413,13 +1429,13 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
     cookieSerialized: cookie.serialize().slice(0, 35) + "...",
 
     // Type (10)
-    typeofPattern: typeof pat,
+    typeofPattern: STATIC_TYPEOF_PAT,  // QUICK WIN #32: all URLPatterns same
     typeofResult: m ? typeof m : "null",
     instanceOfURL: STATIC_INSTANCEOF_URLPATTERN,  // QUICK WIN #28: all URLPatterns same
     constructorName: STATIC_CONSTRUCTOR_NAME,      // QUICK WIN #28: all URLPatterns same
     prototypeChain: STATIC_PROTO_CHAIN,  // QUICK WIN #22: all URLPatterns same
-    isCallable: typeof (pat as any).exec === "function" ? "✅" : "❌",
-    isIterable: typeof (pat as any)[Symbol.iterator] === "function" ? "✅" : "❌",
+    isCallable: STATIC_IS_CALLABLE,    // QUICK WIN #32: all URLPatterns same
+    isIterable: STATIC_IS_ITERABLE,    // QUICK WIN #32: all URLPatterns same
     symbolToString: STATIC_TYPE_TAG,  // QUICK WIN #27: cache getTypeTag(pat)
     jsonStringify: "{}...",  // QUICK WIN #10: URLPattern always stringifies to {}
     typeTag: STATIC_TYPE_TAG,  // QUICK WIN #27: cache getTypeTag(pat)
@@ -1550,7 +1566,7 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
         calcSquare: i * i,
         calcCube: i * i * i,
         calcFactorial: factorial(i),
-        calcReverse: parseInt(digits.slice().reverse().join("") || "0"),
+        calcReverse: reverseNum(i),  // QUICK WIN #31: no array allocation
         calcDigitSum: digits.reduce((a, c) => a + +c, 0),
         calcDigitProduct: digits.reduce((a, c) => a * +c, 1),
       };
@@ -1569,7 +1585,7 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
     generatedEmail: `user${i}@ex.com`,
     generatedPhone: `+1-${100 + i}-555-${1000 + i}`,
     processId: STATIC_PID,           // QUICK WIN #16: hoisted
-    processUptime: process.uptime().toFixed(2),
+    processUptime: STATIC_UPTIME_STR,  // QUICK WIN #32: hoisted syscall
     bunVersion: STATIC_BUN_VERSION,   // QUICK WIN #16: hoisted
     bunPath: STATIC_BUN_PATH,         // QUICK WIN #16: hoisted (was syscall per row)
     isMainEntry: STATIC_IS_MAIN,      // QUICK WIN #17: hoisted
