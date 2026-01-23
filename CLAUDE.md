@@ -36,6 +36,11 @@ console.log(Bun.inspect.table(formatted, undefined, { colors: true }));
 
 **Errors:** Return `null`/default from helpers, don't throw. Use `.catch(() => null)` for non-critical async. Log with context for user-facing failures.
 
+**Browser:** Always use Chrome when opening URLs:
+```bash
+open -a "Google Chrome" <url>
+```
+
 ---
 
 ## Bun Quick Reference
