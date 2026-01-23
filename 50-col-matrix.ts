@@ -1649,6 +1649,8 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
   // QUICK WIN #26: Cache function results called 3-4× per row
   const specialChars = countSpecialChars(p);
   const nestingDepth = calcNestingDepth(p);
+  // QUICK WIN #76: Cache p.includes("|") - used in regexFeaturesUsed + error handling
+  const hasAlternation = p.includes("|");
 
   // QUICK WIN #40: Build patternComponents string without array.filter().join()
   let patternComponentsStr = "";
@@ -1798,7 +1800,7 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
       let features = "";
       if (p.includes("\\d")) features += "digit,";
       if (p.includes("\\w")) features += "word,";
-      if (p.includes("|")) features += "alt,";
+      if (hasAlternation) features += "alt,";  // QUICK WIN #76: reuse cached
       if (p.includes("?")) features += "opt,";
       if (p.includes("+")) features += "plus,";
       return features.slice(0, -1) || "none";
@@ -2107,23 +2109,24 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
     ...(() => {
       const hasComplexRegex = pat.hasRegExpGroups;
       const hasOptional = p.includes("?") || /\{[^}]*\}\?/.test(p);
-      const hasAlternation = p.includes("|");
+      // QUICK WIN #75: Cache nestingDepth > 2 comparison (used 3×)
+      const isDeepNesting = nestingDepth > 2;
       // QUICK WIN #49: Reuse cached nestingDepth (was duplicate inline IIFE)
 
       const edgeCases: string[] = [];
       if (patternAnalysis.wildcards > 0) edgeCases.push("empty-match");  // QUICK WIN #74
       if (hasOptional) edgeCases.push("missing-segment");
       if (hasAlternation) edgeCases.push("branch-mismatch");
-      if (nestingDepth > 2) edgeCases.push("deep-nesting");
+      if (isDeepNesting) edgeCases.push("deep-nesting");  // QUICK WIN #75
 
-      const errorPotential = edgeCases.length + (hasComplexRegex ? 2 : 0) + (nestingDepth > 2 ? 2 : 0);
+      const errorPotential = edgeCases.length + (hasComplexRegex ? 2 : 0) + (isDeepNesting ? 2 : 0);  // QUICK WIN #75
 
       return {
         errParseError: !m && !p.includes("fallback") ? "possible" : "none",
         errRuntimeError: hasComplexRegex ? "possible" : "unlikely",
         errEdgeCases: edgeCases.slice(0, 2).join(",") || "none",
         errNullHandling: hasOptional ? "required" : "optional",
-        errBoundaryConditions: nestingDepth > 2 ? "review" : "ok",
+        errBoundaryConditions: isDeepNesting ? "review" : "ok",  // QUICK WIN #75
         errRecoverable: hasComplexRegex ? "partial" : "full",
         errFailureMode: patternAnalysis.wildcards > 0 ? "soft-fail" : "hard-fail",  // QUICK WIN #74
         errLoggingLevel: errorPotential > 3 ? "warn" : "info",
