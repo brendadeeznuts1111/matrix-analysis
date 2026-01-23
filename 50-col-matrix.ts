@@ -1570,6 +1570,11 @@ const STATIC_IS_ITERABLE = typeof (_refPat as any)[Symbol.iterator] === "functio
 const STATIC_UPTIME_STR = process.uptime().toFixed(2);
 const STATIC_MEM_DELTA_KB = "0.00KB";  // QUICK WIN #36: patterns cached, delta negligible
 
+// QUICK WIN #67: Hoist getCacheStats() outside row loop (same for all rows)
+const STATIC_CACHE_STATS = getCacheStats();
+// QUICK WIN #68: Hoist getDnsCacheStats() outside row loop (same for all rows)
+const STATIC_DNS_STATS = getDnsCacheStats();
+
 const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
   let pat: URLPattern;
   let m: URLPatternResult | null = null;
@@ -2061,12 +2066,12 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
     // NEW v3.1: Peek Cache (5 cols) - Bun.peek() sync cache access
     // ═══════════════════════════════════════════════════════════════════════
     ...(() => {
-      const stats = getCacheStats();
+      // QUICK WIN #67: Use hoisted STATIC_CACHE_STATS
       return {
         peekCacheHit: peekCacheHit === "sync" ? "SYNC" : peekCacheHit === "async" ? "ASYNC" : peekCacheHit === "error" ? "ERR" : "MISS",
         peekCompileTimeNs: fmtNum(peekCompileTimeNs) + "ns",  // QUICK WIN #21
-        peekCacheSize: stats.size,
-        peekSyncHitRate: stats.syncHitRate,
+        peekCacheSize: STATIC_CACHE_STATS.size,
+        peekSyncHitRate: STATIC_CACHE_STATS.syncHitRate,
         peekCacheStatus: peek.status(getCompiledPattern(p).promise),
       };
     })(),
@@ -2122,7 +2127,7 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
     ...(() => {
       const patternHostname = extractHostnameFromPattern(p);
       const dnsResult = patternHostname ? dnsResults.get(patternHostname) : null;
-      const dnsStats = getDnsCacheStats();
+      // QUICK WIN #68: Use hoisted STATIC_DNS_STATS
 
       return {
         dnsHostname: patternHostname || "N/A",
@@ -2131,8 +2136,8 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
         dnsLatencyMs: dnsResult ? `${dnsResult.latencyMs.toFixed(2)}ms` : "N/A",
         dnsCached: dnsResult?.cached ? "hit" : dnsResult ? "miss" : "N/A",
         dnsPrefetchStatus: dnsResult?.error ? "failed" : dnsResult ? "ready" : "skipped",
-        dnsCacheHits: dnsStats.cacheHits,
-        dnsCacheMisses: dnsStats.cacheMisses,
+        dnsCacheHits: STATIC_DNS_STATS.cacheHits,
+        dnsCacheMisses: STATIC_DNS_STATS.cacheMisses,
       };
     })(),
 
