@@ -1257,6 +1257,14 @@ if (dnsPrefetch) {
 // QUICK WIN #8 & #9: Hoist static values outside loop (timezone + CPU don't change per row)
 const STATIC_TZ = getTimezoneInfo();
 const STATIC_CPU = process.cpuUsage();
+// QUICK WIN #15: Hoist env keys (called 2× per row, never changes)
+const STATIC_ENV_KEYS = Object.keys(process.env);
+const STATIC_ENV_COUNT = STATIC_ENV_KEYS.length;
+const STATIC_ENV_RISK = (() => {
+  const sensitive = ["API_KEY", "SECRET", "TOKEN", "PASSWORD", "CREDENTIAL"];
+  const found = STATIC_ENV_KEYS.filter(k => sensitive.some(s => k.toUpperCase().includes(s))).length;
+  return found > 3 ? "high" : found > 0 ? "medium" : "low";
+})();
 
 const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
   let pat: URLPattern;
@@ -1503,9 +1511,15 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
       };
     })(),
     timestamp: Date.now(),
-    randomInt: Math.floor(Math.random() * 1_000_000),
-    randomFloat: Math.random().toFixed(4),
-    randomBool: Math.random() > 0.5 ? "✅" : "❌",
+    // QUICK WIN #14: Cache random (was 3× Math.random() per row)
+    ...(() => {
+      const r = Math.random();
+      return {
+        randomInt: Math.floor(r * 1_000_000),
+        randomFloat: r.toFixed(4),
+        randomBool: r > 0.5 ? "✅" : "❌",
+      };
+    })(),
     generatedIP: `192.168.${i}.${(i * 7) % 256}`,
     generatedEmail: `user${i}@ex.com`,
     generatedPhone: `+1-${100 + i}-555-${1000 + i}`,
@@ -1534,14 +1548,8 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
     envCI: process.env.CI ? "✅" : "❌",
     envPlatform: process.platform,
     envArch: process.arch,
-    envVarCount: Object.keys(process.env).length,
-    envVarRisk: (() => {
-      const sensitive = ["API_KEY", "SECRET", "TOKEN", "PASSWORD", "CREDENTIAL"];
-      const found = Object.keys(process.env).filter(k =>
-        sensitive.some(s => k.toUpperCase().includes(s))
-      ).length;
-      return found > 3 ? "high" : found > 0 ? "medium" : "low";
-    })(),
+    envVarCount: STATIC_ENV_COUNT,  // QUICK WIN #15: hoisted
+    envVarRisk: STATIC_ENV_RISK,    // QUICK WIN #15: hoisted
 
     // ═══════════════════════════════════════════════════════════════════════
     // NEW v3.0: Security Analysis (18 cols)
