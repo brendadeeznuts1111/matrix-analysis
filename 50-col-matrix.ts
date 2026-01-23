@@ -1309,6 +1309,13 @@ const STATIC_IS_MAIN = import.meta.path === Bun.main ? "✅" : "❌";
 const STATIC_PATH_SEGMENTS = (process.env.PATH || "").split(":").length;
 const STATIC_SHELL_TYPE = (process.env.SHELL || "").split("/").pop() || "unknown";
 const STATIC_TZ_NAME = process.env.TZ || Intl.DateTimeFormat().resolvedOptions().timeZone;
+// QUICK WIN #43: Hoist process.platform/arch (static per process)
+const STATIC_PLATFORM = process.platform;
+const STATIC_ARCH = process.arch;
+// QUICK WIN #44: Hoist process.env lookups (static per process)
+const STATIC_TERM = process.env.TERM || "unknown";
+const STATIC_LOCALE = process.env.LANG || process.env.LC_ALL || "unknown";
+const STATIC_CI = process.env.CI ? "✅" : "❌";
 // QUICK WIN #20: Hoist memoryUsage() + pre-format CPU strings (was per-row object alloc)
 const STATIC_MEM = process.memoryUsage();
 const STATIC_MEM_RSS_STR = (STATIC_MEM.rss / 1024 / 1024).toFixed(1);
@@ -1633,12 +1640,12 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
     envPathSegments: STATIC_PATH_SEGMENTS,  // QUICK WIN #18: hoisted
     envHomeSet: process.env.HOME ? "✅" : "❌",
     envShellType: STATIC_SHELL_TYPE,        // QUICK WIN #19: hoisted
-    envTermType: process.env.TERM || "unknown",
-    envLocale: process.env.LANG || process.env.LC_ALL || "unknown",
+    envTermType: STATIC_TERM,               // QUICK WIN #44: hoisted
+    envLocale: STATIC_LOCALE,               // QUICK WIN #44: hoisted
     envTZ: STATIC_TZ_NAME,                  // QUICK WIN #19: hoisted (Intl call)
-    envCI: process.env.CI ? "✅" : "❌",
-    envPlatform: process.platform,
-    envArch: process.arch,
+    envCI: STATIC_CI,                       // QUICK WIN #44: hoisted
+    envPlatform: STATIC_PLATFORM,           // QUICK WIN #43: hoisted
+    envArch: STATIC_ARCH,                   // QUICK WIN #43: hoisted
     envVarCount: STATIC_ENV_COUNT,  // QUICK WIN #15: hoisted
     envVarRisk: STATIC_ENV_RISK,    // QUICK WIN #15: hoisted
 
