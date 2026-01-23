@@ -126,6 +126,9 @@ const _random = Math.random;
 const _log2 = Math.log2;
 const _abs = Math.abs;
 
+// QUICK WIN #37: Hoist cookie sameSite options (was inline array per row)
+const SAME_SITE_OPTIONS = ["strict", "lax", "none"] as const;
+
 const getTypeTag = (obj: unknown): string =>
   Object.prototype.toString.call(obj).slice(8, -1);
 
@@ -1371,7 +1374,7 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
     path: "/",
     httpOnly: i % 2 === 0,
     secure: i % 3 === 0,
-    sameSite: (["strict", "lax", "none"] as const)[i % 3],
+    sameSite: SAME_SITE_OPTIONS[i % 3],  // QUICK WIN #37
     maxAge: i * 100,
     partitioned: i % 6 === 0,
   });
@@ -1488,7 +1491,7 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
       (patternAnalysis.namedGroupStarts * 2) +
       (p.length / 5)
     )),
-    canonicalForm: [patProto, "://", patHost, patPort ? ":" + patPort : "", patPath].join("").slice(0, 20) + "...",
+    canonicalForm: `${patProto}://${patHost}${patPort ? ":" + patPort : ""}${patPath}`.slice(0, 20) + "...",  // QUICK WIN #38: template vs array.join
 
     // Internal Structure (6)
     hiddenClass: `HC${(hash(pat.constructor.name + patPath) as string).slice(0, 4)}`,
