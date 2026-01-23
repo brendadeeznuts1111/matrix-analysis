@@ -1574,6 +1574,8 @@ const STATIC_IS_CALLABLE = typeof (_refPat as any).exec === "function" ? "✅" :
 const STATIC_IS_ITERABLE = typeof (_refPat as any)[Symbol.iterator] === "function" ? "✅" : "❌";
 const STATIC_UPTIME_STR = process.uptime().toFixed(2);
 const STATIC_MEM_DELTA_KB = "0.00KB";  // QUICK WIN #36: patterns cached, delta negligible
+// QUICK WIN #73: Hoist gc availability check (runtime constant)
+const STATIC_GC_COUNT = (globalThis as any).gc ? 1 : 0;
 
 // QUICK WIN #67: Hoist getCacheStats() outside row loop (same for all rows)
 const STATIC_CACHE_STATS = getCacheStats();
@@ -1708,7 +1710,7 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
     // Metrics (12)
     execNs,
     memDeltaKB: STATIC_MEM_DELTA_KB,  // QUICK WIN #36
-    gcCount: (globalThis as any).gc ? 1 : 0,
+    gcCount: STATIC_GC_COUNT,  // QUICK WIN #73: hoisted
     patternComplexity: specialChars + nestingDepth * 2,
     groupCount,
     segmentCount: segments,
@@ -1789,7 +1791,8 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
     specCompliance: "100%", // Bun follows URLPattern spec
     wptTestsEstimate: pat.hasRegExpGroups ? "95%" : "100%",
     // QUICK WIN #66: Inline ternary vs IIFE
-    browserCompatibility: (pat.hasRegExpGroups || p.includes("*")) ? "Chrome,Bun" : "Chrome,Bun,Deno",
+    // QUICK WIN #74: Reuse patternAnalysis.wildcards vs p.includes("*")
+    browserCompatibility: (pat.hasRegExpGroups || patternAnalysis.wildcards > 0) ? "Chrome,Bun" : "Chrome,Bun,Deno",
     // QUICK WIN #41: Direct string build vs array.filter().join()
     regexFeaturesUsed: (() => {
       let features = "";
@@ -2108,7 +2111,7 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
       // QUICK WIN #49: Reuse cached nestingDepth (was duplicate inline IIFE)
 
       const edgeCases: string[] = [];
-      if (p.includes("*")) edgeCases.push("empty-match");
+      if (patternAnalysis.wildcards > 0) edgeCases.push("empty-match");  // QUICK WIN #74
       if (hasOptional) edgeCases.push("missing-segment");
       if (hasAlternation) edgeCases.push("branch-mismatch");
       if (nestingDepth > 2) edgeCases.push("deep-nesting");
@@ -2122,7 +2125,7 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
         errNullHandling: hasOptional ? "required" : "optional",
         errBoundaryConditions: nestingDepth > 2 ? "review" : "ok",
         errRecoverable: hasComplexRegex ? "partial" : "full",
-        errFailureMode: p.includes("*") ? "soft-fail" : "hard-fail",
+        errFailureMode: patternAnalysis.wildcards > 0 ? "soft-fail" : "hard-fail",  // QUICK WIN #74
         errLoggingLevel: errorPotential > 3 ? "warn" : "info",
         errMonitoringHint: errorPotential > 2 ? "alert" : "metric",
         errPotential: errorPotential,
