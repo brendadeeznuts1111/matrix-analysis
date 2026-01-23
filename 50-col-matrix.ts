@@ -470,6 +470,9 @@ const I18N_SCRIPTS = {
   Latin: /[A-Za-z]/,
 } as const;
 
+// QUICK WIN #57: Pre-compute Object.entries to avoid per-row allocation
+const I18N_SCRIPTS_ENTRIES = Object.entries(I18N_SCRIPTS);
+
 const PATTERN_ANALYSIS_REGEX = {
   wildcards: /\*/g,
   namedGroups: /:[a-zA-Z_][a-zA-Z0-9_]*/g,
@@ -1987,10 +1990,15 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
       const graphemes = [...GRAPHEME_SEGMENTER.segment(p)];
       const displayWidth = Bun.stringWidth(p);
 
-      // QUICK WIN #2: Use pre-compiled I18N_SCRIPTS patterns
-      const scripts: string[] = [];
-      for (const [name, regex] of Object.entries(I18N_SCRIPTS)) {
-        if (regex.test(p)) scripts.push(name);
+      // QUICK WIN #57: Pre-computed entries, #58: short-circuit ASCII (only Latin possible)
+      let scripts: string[];
+      if (hasUnicode) {
+        scripts = [];
+        for (const [name, regex] of I18N_SCRIPTS_ENTRIES) {
+          if (regex.test(p)) scripts.push(name);
+        }
+      } else {
+        scripts = I18N_SCRIPTS.Latin.test(p) ? ["Latin"] : [];
       }
 
       const complexity = emojiCount * 3 + zwjCount * 5 + combiningMarks * 2 + rtlChars * 2 + scripts.length;
