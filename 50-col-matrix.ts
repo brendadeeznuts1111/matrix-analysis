@@ -1721,7 +1721,7 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
 
     // Props (8)
     propCount: patKeys.length,
-    ownKeys: patOwnKeys.length.toString(),
+    ownKeys: "" + patOwnKeys.length,  // QUICK WIN #72: coercion vs .toString() method call
     isExtensible: STATIC_IS_EXTENSIBLE,  // QUICK WIN #23: all URLPatterns same
     isSealed: STATIC_IS_SEALED,          // QUICK WIN #23: all URLPatterns same
     isFrozen: STATIC_IS_FROZEN,          // QUICK WIN #23: all URLPatterns same
@@ -2035,11 +2035,11 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
       const hasDynamicSegment = patternAnalysis.namedGroups > 0;  // Reuse cached value
       const keyComplexity = segments + (hasWildcard ? 2 : 0) + (hasDynamicSegment ? 1 : 0);  // Reuse segments
 
-      // Determine cacheability
-      const varyFactors: string[] = [];
-      if (hasDynamicSegment) varyFactors.push("params");
-      if (p.includes("?")) varyFactors.push("query");
-      if (pat.hasRegExpGroups) varyFactors.push("regex");
+      // QUICK WIN #71: Direct string build vs array.push().join()
+      let varyFactors = "";
+      if (hasDynamicSegment) varyFactors += "params,";
+      if (p.includes("?")) varyFactors += "query,";
+      if (pat.hasRegExpGroups) varyFactors += "regex,";
 
       const stability = hasWildcard ? "volatile" : hasDynamicSegment ? "variable" : "stable";
       const hitProb = stability === "stable" ? "high" : stability === "variable" ? "medium" : "low";
@@ -2056,7 +2056,7 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
         cacheability: hasWildcard ? "no-cache" : hasDynamicSegment ? "private" : "public",
         cacheSuggestedTTL: suggestedTTL,
         cacheKeyComplexity: keyComplexity <= 3 ? "simple" : keyComplexity <= 6 ? "medium" : "complex",
-        cacheVaryFactors: varyFactors.join(",") || "none",
+        cacheVaryFactors: varyFactors.slice(0, -1) || "none",  // QUICK WIN #71
         cacheInvalidationRisk: hasWildcard ? "high" : hasDynamicSegment ? "medium" : "low",
         cachePatternStability: stability,
         cacheHitProbability: hitProb,
