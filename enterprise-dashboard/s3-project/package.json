@@ -1,0 +1,11 @@
+{
+  "name": "@enterprise/s3-project",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "project-manager.ts",
+  "exports": {
+    ".": "./project-manager.ts",
+    "./storage": "./project-storage.ts",
+    "./types": "./types.ts"
+  }
+}

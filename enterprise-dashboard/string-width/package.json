@@ -1,0 +1,9 @@
+{
+  "name": "@enterprise/string-width",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "index.ts",
+  "exports": {
+    ".": "./index.ts"
+  }
+}

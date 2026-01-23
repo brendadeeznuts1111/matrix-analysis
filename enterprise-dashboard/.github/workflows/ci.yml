@@ -1,0 +1,33 @@
+name: CI
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+
+      # External PRs: block all lifecycle scripts for security
+      - name: Install (external PR)
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == true
+        run: bun install --ignore-scripts
+
+      # Internal PRs and pushes: use trustedDependencies
+      - name: Install (trusted)
+        if: github.event_name == 'push' || github.event.pull_request.head.repo.fork == false
+        run: bun install
+
+      - name: Audit trusted dependencies
+        run: bun scripts/verify-trusted-deps.ts
+
+      - name: Type check
+        run: bun run typecheck
+
+      - name: Test
+        run: bun test

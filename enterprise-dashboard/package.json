@@ -1,0 +1,39 @@
+{
+  "name": "enterprise-dashboard",
+  "version": "1.0.0",
+  "type": "module",
+  "workspaces": [
+    "dataview",
+    "s3-project",
+    "string-width"
+  ],
+  "scripts": {
+    "pm": "bun scripts/pm.ts",
+    "dashboard": "bun src/dashboard/index.ts",
+    "dashboard:keychain": "bun src/dashboard/KeychainViewer.ts",
+    "dashboard:registry": "bun src/dashboard/RegistryViewer.ts",
+    "secrets": "bun scripts/setup-secrets.ts",
+    "secrets:list": "bun scripts/setup-secrets.ts list",
+    "audit": "bun scripts/verify-trusted-deps.ts",
+    "test": "bun test",
+    "typecheck": "bun --bun tsc --noEmit"
+  },
+  "trustedDependencies": [
+    "node-sass",
+    "sharp",
+    "esbuild",
+    "@swc/core",
+    "prisma"
+  ],
+  "devDependencies": {
+    "mitata": "^1.0.34"
+  },
+  "dependencies": {
+    "@types/bun": "^1.3.6",
+    "express": "^5.2.1",
+    "react": "^19.2.3"
+  },
+  "engines": {
+    "bun": ">=1.0.0"
+  }
+}

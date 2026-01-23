@@ -1,0 +1,167 @@
+# Enterprise Dashboard Configuration
+# Copy to project root as config.toml
+
+[dashboard]
+title = "Enterprise Dashboard"
+theme = "dark"                    # "dark" | "light" | "system"
+refresh_interval = 30             # seconds, 0 to disable auto-refresh
+timezone = "UTC"                  # IANA timezone for timestamps
+
+[dashboard.panels]
+keychain = true
+registry = true
+analytics = true
+network = true
+
+[projects]
+root = "."                        # Project scan root
+max_depth = 3                     # Directory scan depth
+ignore = [".git", "node_modules", "dist", ".cache"]
+watch = true                      # Enable file watching
+
+[projects.git]
+fetch_on_load = false             # Auto-fetch remotes on dashboard load
+show_stale_branches = true        # Show branches >30 days old
+stale_days = 30
+
+[analytics]
+enabled = true
+retention_days = 90               # How long to keep metrics
+sample_rate = 1.0                 # 0.0-1.0, percentage of events to track
+
+[analytics.metrics]
+build_times = true
+test_coverage = true
+bundle_size = true
+dependency_updates = true
+
+[network]
+timeout = 30000                   # Request timeout in ms
+max_retries = 3
+retry_delay = 1000                # ms between retries
+
+[network.proxy]
+enabled = false
+# url = "http://proxy.example.com:8080"
+# no_proxy = ["localhost", "127.0.0.1"]
+
+[network.dns]
+prefetch = true                   # DNS prefetch for known hosts
+cache_ttl = 300                   # DNS cache TTL in seconds
+
+[registry]
+url = "https://registry.npmjs.org"
+timeout = 10000
+cache = true
+cache_ttl = 3600                  # Package metadata cache TTL
+
+[registry.scopes]
+# Scoped registry overrides
+# "@myorg" = "https://npm.pkg.github.com"
+# "@company" = "https://pkgs.dev.azure.com/company/_packaging/feed/npm/registry"
+
+[pty]
+shell = "/bin/zsh"                # Default shell
+rows = 24
+cols = 80
+scrollback = 1000
+cursor_blink = true
+
+[pty.env]
+# Additional environment variables for PTY sessions
+TERM = "xterm-256color"
+COLORTERM = "truecolor"
+
+[urlpattern]
+base_url = "http://localhost:3000"
+strict_mode = true                # Require explicit patterns
+
+[urlpattern.routes]
+# Named route patterns
+api = "/api/:version/:resource/:id?"
+dashboard = "/dashboard/:section?"
+health = "/health"
+
+[diagnose]
+enabled = true
+log_level = "info"                # "debug" | "info" | "warn" | "error"
+log_file = "logs/dashboard.log"
+max_log_size = "10MB"
+max_log_files = 5
+
+[diagnose.checks]
+memory = true
+disk = true
+network = true
+dependencies = true
+
+[resources]
+max_memory = "512MB"              # Memory limit warning threshold
+max_cpu = 80                      # CPU percentage warning threshold
+
+[resources.limits]
+max_concurrent_requests = 100
+max_websocket_connections = 50
+request_body_limit = "10MB"
+
+[topology]
+enabled = true
+refresh_interval = 60             # seconds
+show_external = true              # Show external dependencies
+
+[topology.display]
+layout = "hierarchical"           # "hierarchical" | "radial" | "force"
+show_labels = true
+animate = true
+
+[kyc]
+enabled = false                   # Enable KYC verification
+provider = "manual"               # "manual" | "stripe" | "jumio"
+required_level = "basic"          # "basic" | "enhanced" | "full"
+
+[kyc.fields]
+require_email = true
+require_phone = false
+require_address = false
+require_document = false
+
+[clitools]
+history_size = 1000
+autocomplete = true
+syntax_highlighting = true
+
+[clitools.aliases]
+# Custom command aliases
+ll = "ls -la"
+gst = "git status"
+gco = "git checkout"
+
+[clitools.shortcuts]
+# Keyboard shortcuts - use unique keys to avoid conflicts
+# Format: action = "modifier+key" where modifier is ctrl, meta, alt, or shift
+# Common conflicts to avoid: meta+k (browser search), meta+shift+r (hard refresh)
+
+# Search functionality (meta+k conflict: use ctrl+/ instead)
+open-search = "ctrl+/"
+
+# KYC actions (moved from meta+k and meta+shift+r)
+kyc-validate = "ctrl+shift+k"
+kyc-review-queue = "ctrl+shift+q"
+
+# Network actions (meta+shift+r conflict: use ctrl+shift+n instead)
+refresh-network = "ctrl+shift+n"
+
+# Dashboard navigation
+tab-next = "ctrl+]"
+tab-prev = "ctrl+["
+toggle-sidebar = "ctrl+b"
+
+# Quick actions
+quick-save = "ctrl+s"
+quick-export = "ctrl+e"
+
+[settings]
+auto_save = true
+save_interval = 60                # seconds
+backup_enabled = true
+backup_count = 5
