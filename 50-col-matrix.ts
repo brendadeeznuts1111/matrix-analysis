@@ -1390,9 +1390,11 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
   const patKeys = Object.keys(pat);
   const patOwnKeys = Reflect.ownKeys(pat);
   const descriptors = Object.getOwnPropertyDescriptors(pat);
-  const descriptorTypes = Object.values(descriptors)
-    .map(d => ("value" in d ? "v" : "g"))
-    .join("");
+  // QUICK WIN #46: Direct string build vs Object.values().map().join()
+  let descriptorTypes = "";
+  for (const key in descriptors) {
+    descriptorTypes += "value" in descriptors[key] ? "v" : "g";
+  }
 
   // QUICK WIN #24: Cache pat properties (accessed 3-6× each throughout return object)
   const { protocol: patProto, hostname: patHost, port: patPort, pathname: patPath, search: patSearch, hash: patHash } = pat;
@@ -1672,20 +1674,20 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
       const withoutAlternation = p.replace(/\([^)]*\)/g, "");  // Strip (items|products) etc
       const hasCmdInjection = SEC_PATTERNS.cmdInjection.test(withoutAlternation);
 
-      const riskFactors = [
-        hasUserInput ? 3 : 0,
-        hasPathTraversal ? 3 : 0,
-        hasOpenRedirect ? 2 : 0,
-        hasSsrfPattern ? 2 : 0,
-        redosRisk ? 3 : 0,
-        wildcardCount > 2 ? 1 : 0,
-        leadingWildcard ? 1 : 0,
-        hasCredentialPattern ? 2 : 0,
-        hasBasicAuth ? 2 : 0,
-        hasXssVector ? 2 : 0,
-        hasSqlPattern ? 2 : 0,
-        hasCmdInjection ? 3 : 0,
-      ].reduce((a, b) => a + b, 0);
+      // QUICK WIN #45: Direct sum vs 12-element array + reduce
+      const riskFactors =
+        (hasUserInput ? 3 : 0) +
+        (hasPathTraversal ? 3 : 0) +
+        (hasOpenRedirect ? 2 : 0) +
+        (hasSsrfPattern ? 2 : 0) +
+        (redosRisk ? 3 : 0) +
+        (wildcardCount > 2 ? 1 : 0) +
+        (leadingWildcard ? 1 : 0) +
+        (hasCredentialPattern ? 2 : 0) +
+        (hasBasicAuth ? 2 : 0) +
+        (hasXssVector ? 2 : 0) +
+        (hasSqlPattern ? 2 : 0) +
+        (hasCmdInjection ? 3 : 0);
 
       const riskLevel = riskFactors >= 5 ? "high" : riskFactors >= 2 ? "medium" : "low";
 
