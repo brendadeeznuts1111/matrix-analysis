@@ -20,6 +20,45 @@ bun run matrix:benchmark # Performance benchmarks
 bun run matrix:ci        # CI mode with threshold
 ```
 
+## Default Patterns (15)
+
+These patterns are analyzed when no custom input is provided:
+
+| # | Pattern | Type | Params | RegExp | Host | Protocol | Segments | Wildcard | Alternation | Complexity | Use Case |
+|---|---------|------|--------|--------|------|----------|----------|----------|-------------|------------|----------|
+| 0 | `https://shop.example.com/items/:id` | named | `:id` | ❌ | `shop.example.com` | `https` | 3 | ❌ | ❌ | low | Product detail |
+| 1 | `https://shop.example.com/items/(\\d+)` | regex | `0` | ✅ | `shop.example.com` | `https` | 3 | ❌ | ❌ | medium | Numeric ID |
+| 2 | `https://shop.example.com/items/:id(\\d+)` | hybrid | `:id` | ✅ | `shop.example.com` | `https` | 3 | ❌ | ❌ | medium | Validated ID |
+| 3 | `https://:subdomain.example.com/:path*` | wildcard | `:subdomain,:path` | ❌ | `:subdomain.example.com` | `https` | 1 | ✅ | ❌ | high | Multi-tenant |
+| 4 | `/items/:id` | named | `:id` | ❌ | — | — | 2 | ❌ | ❌ | low | Simple route |
+| 5 | `/items/:id/details` | named | `:id` | ❌ | — | — | 3 | ❌ | ❌ | low | Nested route |
+| 6 | `https://shop.example.com/items/:id?*` | query | `:id` | ❌ | `shop.example.com` | `https` | 3 | ✅ | ❌ | medium | Query wildcard |
+| 7 | `/api/v1/users/(\\w+)` | regex | `0` | ✅ | — | — | 4 | ❌ | ❌ | medium | Word chars |
+| 8 | `/api/v1/users/:id` | named | `:id` | ❌ | — | — | 4 | ❌ | ❌ | low | API endpoint |
+| 9 | `/files/*/:name.:ext` | multi | `:name,:ext` | ❌ | — | — | 3 | ✅ | ❌ | high | File path |
+| 10 | `/blog/:year(\\d{4})/:month(\\d{2})` | regex | `:year,:month` | ✅ | — | — | 3 | ❌ | ❌ | medium | Date route |
+| 11 | `/items/(\\d+)` | regex | `0` | ✅ | — | — | 2 | ❌ | ❌ | medium | Numeric only |
+| 12 | `/:category/:id` | named | `:category,:id` | ❌ | — | — | 2 | ❌ | ❌ | low | Dynamic |
+| 13 | `/:category/:id/:slug` | named | `:category,:id,:slug` | ❌ | — | — | 3 | ❌ | ❌ | low | SEO friendly |
+| 14 | `/(items\|products)/:id` | alternation | `:id` | ✅ | — | — | 2 | ❌ | ✅ | medium | Multi-path |
+
+### Pattern Features Coverage
+
+| Feature | Count | Patterns | Complexity Impact | Security Impact | Cache Impact |
+|---------|-------|----------|-------------------|-----------------|--------------|
+| Named params (`:id`) | 12 | 0,2,3,4,5,6,8,9,10,12,13,14 | low | low | high |
+| RegExp groups `(\\d+)` | 6 | 1,2,7,10,11,14 | medium | medium | medium |
+| Wildcard `*` | 3 | 3,6,9 | high | high | low |
+| Full URL | 4 | 0,1,2,3,6 | low | low | high |
+| Pathname only | 11 | 4,5,7,8,9,10,11,12,13,14 | low | low | high |
+| Alternation `(a\|b)` | 1 | 14 | medium | low | medium |
+| Multi-segment | 6 | 3,5,8,10,13,14 | medium | low | medium |
+| Query matching | 1 | 6 | medium | medium | low |
+
+### Test URL
+
+Default test URL: `https://shop.example.com/items/42?color=red&ref=abc`
+
 ## Analysis Columns (197 Total)
 
 ### URL Pattern Analysis (13 columns)
