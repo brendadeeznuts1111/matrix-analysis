@@ -1310,7 +1310,14 @@ const STATIC_ENV_RISK = (() => {
 // QUICK WIN #16 & #17: Hoist static process/Bun values (was per-row lookups)
 const STATIC_PID = process.pid;
 const STATIC_BUN_VERSION = Bun.version;
-const STATIC_BUN_PATH = Bun.which("bun")?.split("/").slice(-2).join("/") || "?";
+// QUICK WIN #50: Direct substring vs split/slice/join for last 2 path segments
+const STATIC_BUN_PATH = (() => {
+  const full = Bun.which("bun") || "";
+  if (!full) return "?";
+  const last = full.lastIndexOf("/");
+  const prev = last > 0 ? full.lastIndexOf("/", last - 1) : -1;
+  return prev >= 0 ? full.slice(prev + 1) : full.slice(last + 1);
+})();
 const STATIC_IS_MAIN = import.meta.path === Bun.main ? "✅" : "❌";
 // QUICK WIN #18 & #19: Hoist static env derivations (split/Intl calls per row)
 const STATIC_PATH_SEGMENTS = (process.env.PATH || "").split(":").length;
@@ -1872,15 +1879,7 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
       const hasComplexRegex = pat.hasRegExpGroups;
       const hasOptional = p.includes("?") || /\{[^}]*\}\?/.test(p);
       const hasAlternation = p.includes("|");
-      const nestingDepth = (() => {
-        let max = 0, cur = 0;
-        for (const c of p) {
-          if (c === "(" || c === "[" || c === "{") cur++;
-          else if (c === ")" || c === "]" || c === "}") cur--;
-          max = Math.max(max, cur);
-        }
-        return max;
-      })();
+      // QUICK WIN #49: Reuse cached nestingDepth (was duplicate inline IIFE)
 
       const edgeCases: string[] = [];
       if (p.includes("*")) edgeCases.push("empty-match");
