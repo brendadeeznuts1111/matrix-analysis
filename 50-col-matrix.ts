@@ -1986,8 +1986,8 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
       const zwjCount = hasUnicode ? (p.match(PATTERN_ANALYSIS_REGEX.zwj) || []).length : 0;
       const combiningMarks = hasUnicode ? (p.match(PATTERN_ANALYSIS_REGEX.combiningMarks) || []).length : 0;
       const rtlChars = hasUnicode ? (p.match(PATTERN_ANALYSIS_REGEX.rtlChars) || []).length : 0;
-      // BN-003 fix: Use singleton GRAPHEME_SEGMENTER instead of creating per-row
-      const graphemes = [...GRAPHEME_SEGMENTER.segment(p)];
+      // QUICK WIN #59: For ASCII, graphemeCount = p.length (skip segmenter + array spread)
+      const graphemeCount = hasUnicode ? [...GRAPHEME_SEGMENTER.segment(p)].length : p.length;
       const displayWidth = Bun.stringWidth(p);
 
       // QUICK WIN #57: Pre-computed entries, #58: short-circuit ASCII (only Latin possible)
@@ -2010,10 +2010,11 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
         i18nEmojiCount: emojiCount,
         i18nZwjSequences: zwjCount,
         i18nCombiningMarks: combiningMarks,
-        i18nGraphemeCount: graphemes.length,
+        i18nGraphemeCount: graphemeCount,  // QUICK WIN #59
         i18nDisplayWidth: displayWidth,
         i18nBidiLevel: rtlChars > 0 ? "mixed" : "ltr",
-        i18nLocaleHint: scripts.includes("CJK") ? "zh/ja" : scripts.includes("Cyrillic") ? "ru" : "en",
+        // QUICK WIN #60: For ASCII (scripts=["Latin"]), always "en" - skip includes checks
+        i18nLocaleHint: hasUnicode ? (scripts.includes("CJK") ? "zh/ja" : scripts.includes("Cyrillic") ? "ru" : "en") : "en",
         // QUICK WIN #54: Short-circuit normalize for ASCII-only (like #52)
         i18nNormalized: !hasUnicode || p === p.normalize("NFC") ? "✅" : "❌",
         i18nComplexity: complexity,
