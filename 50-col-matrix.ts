@@ -106,6 +106,15 @@ const fmtNum = (n: number): string => {
   return result;
 };
 
+// QUICK WIN #29: Cache Math methods (avoids property lookup per call)
+const _floor = Math.floor;
+const _round = Math.round;
+const _min = Math.min;
+const _max = Math.max;
+const _random = Math.random;
+const _log2 = Math.log2;
+const _abs = Math.abs;
+
 const getTypeTag = (obj: unknown): string =>
   Object.prototype.toString.call(obj).slice(8, -1);
 
@@ -130,7 +139,7 @@ const calcNestingDepth = (s: string): number => {
   for (const c of s) {
     if (c === "(" || c === "[" || c === "{") cur++;
     else if (c === ")" || c === "]" || c === "}") cur--;
-    max = Math.max(max, cur);
+    max = _max(max, cur);  // QUICK WIN #30
   }
   return max;
 };
@@ -141,7 +150,7 @@ const calcEntropy = (s: string): number => {
   let entropy = 0;
   for (const c in freq) {
     const p = freq[c] / s.length;
-    entropy -= p * Math.log2(p);
+    entropy -= p * _log2(p);  // QUICK WIN #30
   }
   return entropy;
 };
@@ -1453,7 +1462,7 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
     wildcardCount: patternAnalysis.wildcards,
     namedGroupCount: patternAnalysis.namedGroups,
     optionalGroupCount: patternAnalysis.optionalGroups,
-    patternComplexityScore: Math.min(100, Math.round(
+    patternComplexityScore: _min(100, _round(  // QUICK WIN #29
       (specialChars * 3) +
       (nestingDepth * 10) +
       (patternAnalysis.wildcards * 5) +
@@ -1549,9 +1558,9 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
     timestamp: Date.now(),
     // QUICK WIN #14: Cache random (was 3× Math.random() per row)
     ...(() => {
-      const r = Math.random();
+      const r = _random();  // QUICK WIN #29
       return {
-        randomInt: Math.floor(r * 1_000_000),
+        randomInt: _floor(r * 1_000_000),  // QUICK WIN #29
         randomFloat: r.toFixed(4),
         randomBool: r > 0.5 ? "✅" : "❌",
       };
@@ -1741,7 +1750,7 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
       const hitProb = stability === "stable" ? "high" : stability === "variable" ? "medium" : "low";
 
       // Calculate cache score (0-100) - uses segments from outer scope
-      const cacheScore = Math.max(0, Math.min(100,
+      const cacheScore = _max(0, _min(100,  // QUICK WIN #29
         100 - (hasWildcard ? 30 : 0) - (hasDynamicSegment ? 15 : 0) - (segments * 2) - (pat.hasRegExpGroups ? 10 : 0)
       ));
 
