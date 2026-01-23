@@ -286,8 +286,15 @@ const getProtoChain = (obj: object): string => {
   return chain.join("→") || "null";
 };
 
-const countSpecialChars = (s: string): number =>
-  (s.match(/[:\\/*?()[\]{}|^$+.]/g) || []).length;
+// QUICK WIN #53: Loop + Set lookup vs .match() array allocation
+const SPECIAL_CHAR_SET = new Set([...":\\/*?()[]{}|^$+."]);
+const countSpecialChars = (s: string): number => {
+  let count = 0;
+  for (let i = 0; i < s.length; i++) {
+    if (SPECIAL_CHAR_SET.has(s[i])) count++;
+  }
+  return count;
+};
 
 // QUICK WIN #48: Count segments without split+filter (avoids 2 array allocations)
 const countSegments = (s: string): number => {
@@ -1998,7 +2005,8 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
         i18nDisplayWidth: displayWidth,
         i18nBidiLevel: rtlChars > 0 ? "mixed" : "ltr",
         i18nLocaleHint: scripts.includes("CJK") ? "zh/ja" : scripts.includes("Cyrillic") ? "ru" : "en",
-        i18nNormalized: p === p.normalize("NFC") ? "✅" : "❌",
+        // QUICK WIN #54: Short-circuit normalize for ASCII-only (like #52)
+        i18nNormalized: !hasUnicode || p === p.normalize("NFC") ? "✅" : "❌",
         i18nComplexity: complexity,
       };
     })(),
