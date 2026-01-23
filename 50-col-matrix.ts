@@ -1,6 +1,6 @@
 // 50-col-matrix.ts → 247-col-matrix.ts (MATRIX v3.0 Observability Fortress)
 import type { Serve } from "bun";
-import { peek } from "bun";
+import { peek, dns } from "bun";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // URLPattern Compilation Cache with Bun.peek() for sync access
@@ -131,6 +131,97 @@ const calcEntropy = (s: string): number => {
   return entropy;
 };
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Pattern Color Palette Generator using Bun.color()
+// Assigns unique HSL colors based on pattern characteristics and performance tier
+// ─────────────────────────────────────────────────────────────────────────────
+type PatternColorInfo = {
+  hsl: string;
+  hex: string;
+  rgb: string;
+  tier: "elite" | "strong" | "medium" | "caution";
+  cssVar: string;
+  swatch: string;
+};
+
+const PATTERN_COLOR_PALETTE: Record<string, { h: number; s: number; l: number; tier: PatternColorInfo["tier"] }> = {
+  // Elite tier (>900K ops/s) - Green spectrum
+  "elite-0": { h: 160, s: 85, l: 52, tier: "elite" },    // Emerald
+  "elite-1": { h: 170, s: 80, l: 50, tier: "elite" },    // Jade
+  "elite-2": { h: 150, s: 82, l: 48, tier: "elite" },    // Forest
+  // Strong tier (700-900K ops/s) - Teal/Cyan spectrum
+  "strong-0": { h: 180, s: 75, l: 45, tier: "strong" },  // Teal
+  "strong-1": { h: 190, s: 78, l: 48, tier: "strong" },  // Cyan
+  "strong-2": { h: 200, s: 72, l: 52, tier: "strong" },  // Sky
+  // Medium tier (500-700K ops/s) - Amber/Orange spectrum (RegExp caution)
+  "medium-0": { h: 45, s: 90, l: 55, tier: "medium" },   // Amber
+  "medium-1": { h: 35, s: 92, l: 58, tier: "medium" },   // Orange
+  "medium-2": { h: 25, s: 85, l: 55, tier: "medium" },   // Burnt
+  // Caution tier (<500K ops/s) - Purple/Indigo spectrum (slowest)
+  "caution-0": { h: 260, s: 70, l: 50, tier: "caution" }, // Indigo
+  "caution-1": { h: 280, s: 65, l: 55, tier: "caution" }, // Purple
+  "caution-2": { h: 300, s: 60, l: 52, tier: "caution" }, // Magenta
+};
+
+function generatePatternColor(
+  idx: number,
+  hasRegExp: boolean,
+  hasWildcard: boolean,
+  isMatched: boolean,
+  opsPerSec?: number
+): PatternColorInfo {
+  // Determine tier based on pattern characteristics and performance
+  let tier: PatternColorInfo["tier"];
+  let tierIdx: number;
+
+  if (opsPerSec !== undefined) {
+    if (opsPerSec >= 900000) {
+      tier = "elite";
+    } else if (opsPerSec >= 700000) {
+      tier = "strong";
+    } else if (opsPerSec >= 500000) {
+      tier = "medium";
+    } else {
+      tier = "caution";
+    }
+  } else {
+    // Fallback: determine by pattern characteristics
+    if (hasWildcard) {
+      tier = "caution";  // Wildcards tend to be slower
+    } else if (hasRegExp) {
+      tier = "medium";   // RegExp has deopt risk
+    } else if (!isMatched) {
+      tier = "strong";   // Failed matches exit early (fast)
+    } else {
+      tier = "elite";    // Simple matched patterns
+    }
+  }
+
+  // Cycle through tier variants based on index
+  tierIdx = idx % 3;
+  const paletteKey = `${tier}-${tierIdx}` as keyof typeof PATTERN_COLOR_PALETTE;
+  const { h, s, l } = PATTERN_COLOR_PALETTE[paletteKey];
+
+  // Generate slightly varied hue for uniqueness (±5 degrees based on idx)
+  const hueVariance = ((idx * 7) % 11) - 5;
+  const finalH = (h + hueVariance + 360) % 360;
+
+  const hslStr = `hsl(${finalH}, ${s}%, ${l}%)`;
+
+  // Use Bun.color() for conversion - pass format to get RGBA object
+  const color = Bun.color(hslStr, "{rgba}");
+  const hex = color ? `#${color.r.toString(16).padStart(2, "0")}${color.g.toString(16).padStart(2, "0")}${color.b.toString(16).padStart(2, "0")}` : "#888888";
+  const rgb = color ? `rgb(${color.r}, ${color.g}, ${color.b})` : "rgb(136, 136, 136)";
+
+  // Generate CSS variable name
+  const cssVar = `--route-${tier}-${idx}`;
+
+  // Generate Unicode swatch (colored block using ANSI if terminal supports)
+  const swatch = `■`;  // Will be colored by terminal ANSI codes when displayed
+
+  return { hsl: hslStr, hex, rgb, tier, cssVar, swatch };
+}
+
 // BN-003: Singleton Intl.Segmenter - created once, reused for all rows
 const GRAPHEME_SEGMENTER = new Intl.Segmenter(undefined, { granularity: "grapheme" });
 
@@ -148,6 +239,121 @@ const SEC_PATTERNS = {
   sql: /(\bor\b|\band\b|--|;|'|"|\bunion\b)/i,
   cmdInjection: /(\||;|`|\$\(|&&)/,
 } as const;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// DNS Prefetch & Warm-up using Bun.dns
+// Hardware-accelerated DNS with 150× faster cached lookups
+// ─────────────────────────────────────────────────────────────────────────────
+type DnsLookupResult = {
+  hostname: string;
+  address: string | null;
+  family: number | null;
+  latencyMs: number;
+  cached: boolean;
+  error?: string;
+};
+
+const dnsLookupCache = new Map<string, DnsLookupResult>();
+
+async function prefetchHostname(hostname: string, port: number = 443): Promise<DnsLookupResult> {
+  const cacheKey = `${hostname}:${port}`;
+  const cached = dnsLookupCache.get(cacheKey);
+  if (cached) {
+    return { ...cached, cached: true };
+  }
+
+  const start = performance.now();
+  try {
+    // Prefetch warms both DNS cache and port-specific record for fetch
+    dns.prefetch(hostname, port);
+
+    // Resolve to confirm and get address
+    const result = await dns.lookup(hostname);
+    const latencyMs = performance.now() - start;
+
+    const lookupResult: DnsLookupResult = {
+      hostname,
+      address: result?.address || null,
+      family: result?.family || null,
+      latencyMs,
+      cached: false,
+    };
+
+    dnsLookupCache.set(cacheKey, lookupResult);
+    return lookupResult;
+  } catch (e: any) {
+    const latencyMs = performance.now() - start;
+    return {
+      hostname,
+      address: null,
+      family: null,
+      latencyMs,
+      cached: false,
+      error: e.message,
+    };
+  }
+}
+
+async function prefetchHostnames(hostnames: string[]): Promise<Map<string, DnsLookupResult>> {
+  const results = new Map<string, DnsLookupResult>();
+  const unique = [...new Set(hostnames.filter(h => h && h !== "localhost"))];
+
+  // Parallel prefetch all unique hostnames
+  const lookups = await Promise.all(unique.map(h => prefetchHostname(h)));
+  for (const result of lookups) {
+    results.set(result.hostname, result);
+  }
+
+  return results;
+}
+
+function extractHostnameFromPattern(pattern: string): string | null {
+  // Try to extract hostname from pattern
+  // Examples: "https://api.example.com/*" -> "api.example.com"
+  //           "/api/users/:id" -> null (relative)
+  try {
+    if (pattern.startsWith("http://") || pattern.startsWith("https://")) {
+      const url = new URL(pattern.replace(/:[a-zA-Z]+/g, "x").replace(/\*/g, "x"));
+      return url.hostname;
+    }
+    // Check if pattern has hostname component
+    const match = pattern.match(/^([a-zA-Z0-9.-]+)\//);
+    if (match && match[1].includes(".")) {
+      return match[1];
+    }
+  } catch {
+    // Ignore parse errors
+  }
+  return null;
+}
+
+function getDnsCacheStats(): {
+  size: number;
+  cacheHits: number;
+  cacheMisses: number;
+  avgLatencyMs: number;
+  totalPrefetched: number;
+} {
+  const bunStats = dns.getCacheStats();
+  const localStats = {
+    size: bunStats.size || 0,
+    cacheHits: bunStats.cacheHits || 0,
+    cacheMisses: bunStats.cacheMisses || 0,
+    avgLatencyMs: 0,
+    totalPrefetched: dnsLookupCache.size,
+  };
+
+  // Calculate average latency from our cache
+  if (dnsLookupCache.size > 0) {
+    let totalLatency = 0;
+    for (const result of dnsLookupCache.values()) {
+      totalLatency += result.latencyMs;
+    }
+    localStats.avgLatencyMs = totalLatency / dnsLookupCache.size;
+  }
+
+  return localStats;
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // CLI Shortcuts - MATRIX v3.0 (247 Columns, 17 Categories)
@@ -225,6 +431,7 @@ const { values: flags } = parseArgs({
     cache: { type: "boolean", short: "C" },
     errors: { type: "boolean" },
     peek: { type: "boolean", short: "P" },
+    color: { type: "boolean" },
     // Quick modes
     audit: { type: "boolean" },
     benchmark: { type: "boolean" },
@@ -260,6 +467,12 @@ const { values: flags } = parseArgs({
     diff: { type: "string" },
     serve: { type: "boolean" },
     port: { type: "string" },
+    ws: { type: "boolean" },
+    "dns-prefetch": { type: "boolean" },
+    "dns-stats": { type: "boolean" },
+    // Timezone
+    tz: { type: "string" },
+    "tz-info": { type: "boolean" },
     // Help
     help: { type: "boolean", short: "h" },
   },
@@ -297,6 +510,11 @@ NEW v3.0 Categories:
   -ca,   --cache               Caching behavior analysis (12 cols)
   -pk,   --peek                Bun.peek() cache stats (5 cols)
   -err,  --errors              Error handling analysis (10 cols)
+  -col,  --color               Pattern color palette (6 cols)
+  --dns-prefetch               DNS prefetch + warm-up (8 cols)
+  --dns-stats                  Show DNS cache statistics
+  --tz <zone>                  Set timezone (e.g., America/New_York, UTC)
+  --tz-info, -tz               Show timezone columns (9 cols)
 
 Quick Modes (combine categories):
   --audit          Security + Env + Errors (43 cols)
@@ -347,6 +565,7 @@ Enhanced Modes (v3.1):
   --diff <file>     Compare patterns against another file
   --serve           Start HTTP server for API access
   --port <N>        Server port (default: 3000)
+  --ws              Enable WebSocket for live updates (use with --serve)
 
 Examples:
   bun 50-col-matrix.ts -sec -s riskScore     # Security audit, lowest risk first
@@ -369,6 +588,11 @@ Enhanced Mode Examples (v3.1):
   bun 50-col-matrix.ts --benchmark --summary      # Show aggregate perf stats
   bun 50-col-matrix.ts --diff old.txt --file new.txt  # Compare pattern files
   bun 50-col-matrix.ts --serve --port 8080        # Start API server on :8080
+  bun 50-col-matrix.ts --serve --ws               # API server with live WebSocket updates
+  bun 50-col-matrix.ts --dns-prefetch             # Warm DNS cache for pattern hostnames
+  bun 50-col-matrix.ts --dns-prefetch --benchmark # DNS warm-up + performance benchmarks
+  bun 50-col-matrix.ts --tz America/New_York      # Run with Eastern timezone
+  bun 50-col-matrix.ts --tz UTC --tz-info         # Show timezone columns in UTC
 `);
   process.exit(0);
 }
@@ -394,6 +618,7 @@ const showI18n = flags.international || hasLegacy("-i18n");
 const showCache = flags.cache || hasLegacy("-ca");
 const showErrors = flags.errors || hasLegacy("-err");
 const showPeek = flags.peek || hasLegacy("-pk");
+const showColor = flags.color || hasLegacy("-col");
 
 // Quick Modes
 const quickAudit = flags.audit;
@@ -404,7 +629,7 @@ const quickInternational = flags.international;
 const anySelected = showUrl || showCookie || showType || showMetrics || showProps ||
   showPatternAnalysis || showInternalStructure || showPerfDeep || showMemoryLayout ||
   showWebStandards || showExtras || showEnvVars || showSecurity || showEncoding ||
-  showI18n || showCache || showErrors || quickAudit || quickBenchmark ||
+  showI18n || showCache || showErrors || showColor || quickAudit || quickBenchmark ||
   quickProdReady || quickInternational;
 const showAll = flags.all || !anySelected;
 const filterMatched = flags.matched;
@@ -438,6 +663,65 @@ const showSummary = flags.summary;
 const diffFile = flags.diff || null;
 const serveMode = flags.serve;
 const serverPort = parseInt(flags.port || "3000", 10);
+const wsMode = flags.ws || hasLegacy("--websocket");
+const dnsPrefetch = flags["dns-prefetch"] || hasLegacy("--dns");
+const showDnsStats = flags["dns-stats"];
+
+// Timezone support
+const tzFlag = flags.tz || null;
+const showTzInfo = flags["tz-info"] || hasLegacy("-tz");
+
+// Set timezone early (before any Date operations)
+if (tzFlag) {
+  process.env.TZ = tzFlag;
+}
+
+// Timezone helpers
+function getTimezoneInfo() {
+  const now = new Date();
+  const tzString = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+  // Get UTC offset in minutes
+  const offsetMinutes = now.getTimezoneOffset();
+  const offsetHours = Math.abs(Math.floor(offsetMinutes / 60));
+  const offsetMins = Math.abs(offsetMinutes % 60);
+  const offsetSign = offsetMinutes <= 0 ? "+" : "-";
+  const utcOffset = `UTC${offsetSign}${String(offsetHours).padStart(2, "0")}:${String(offsetMins).padStart(2, "0")}`;
+
+  // Get timezone abbreviation using short format
+  const abbrev = now.toLocaleTimeString("en-US", { timeZoneName: "short" }).split(" ").pop() || "";
+
+  // ISO timestamp
+  const isoLocal = now.toISOString();
+  const localString = now.toLocaleString("en-US", {
+    timeZone: tzString,
+    hour12: false,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit"
+  });
+
+  // DST detection
+  const jan = new Date(now.getFullYear(), 0, 1).getTimezoneOffset();
+  const jul = new Date(now.getFullYear(), 6, 1).getTimezoneOffset();
+  const isDST = now.getTimezoneOffset() < Math.max(jan, jul);
+  const hasDST = jan !== jul;
+
+  return {
+    timezone: tzString,
+    abbrev,
+    utcOffset,
+    offsetMinutes,
+    isDST,
+    hasDST,
+    isoLocal,
+    localString,
+    epochMs: now.getTime(),
+  };
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // File Loading with Bun.file() (zero-copy optimized)
@@ -870,6 +1154,14 @@ type RowData = {
   peekSyncHitRate: string;
   peekCacheStatus: string;
 
+  // NEW v3.1: Pattern Colors (6 cols) - Bun.color() dedicated palette
+  colorHsl: string;
+  colorHex: string;
+  colorRgb: string;
+  colorTier: string;
+  colorCssVar: string;
+  colorSwatch: string;
+
   // Error Handling (10 cols)
   errParseError: string;
   errRuntimeError: string;
@@ -882,6 +1174,27 @@ type RowData = {
   errMonitoringHint: string;
   errPotential: number;
 
+  // NEW v3.1: DNS Prefetch (8 cols) - Bun.dns warm-up
+  dnsHostname: string;
+  dnsAddress: string;
+  dnsFamily: string;
+  dnsLatencyMs: string;
+  dnsCached: string;
+  dnsPrefetchStatus: string;
+  dnsCacheHits: number;
+  dnsCacheMisses: number;
+
+  // NEW v3.1: Timezone (9 cols) - process.env.TZ support
+  tzTimezone: string;
+  tzAbbrev: string;
+  tzUtcOffset: string;
+  tzOffsetMinutes: number;
+  tzIsDST: string;
+  tzHasDST: string;
+  tzLocalTime: string;
+  tzIsoTime: string;
+  tzEpochMs: number;
+
   // Internal
   _matched: boolean;
   _hasRegex: boolean;
@@ -889,6 +1202,22 @@ type RowData = {
 
 // Pre-warm pattern cache (first pass populates, subsequent passes get sync hits via peek())
 await Promise.all(patterns.slice(0, rowLimit).map(p => getCompiledPattern(p).promise.catch(() => null)));
+
+// DNS prefetch for pattern hostnames (when enabled)
+const dnsResults = new Map<string, DnsLookupResult>();
+if (dnsPrefetch) {
+  const hostnames = patterns.slice(0, rowLimit)
+    .map(extractHostnameFromPattern)
+    .filter((h): h is string => h !== null);
+
+  if (hostnames.length > 0) {
+    const results = await prefetchHostnames(hostnames);
+    for (const [host, result] of results) {
+      dnsResults.set(host, result);
+    }
+    console.log(`DNS prefetch: ${dnsResults.size} hostnames warmed (avg ${getDnsCacheStats().avgLatencyMs.toFixed(2)}ms)`);
+  }
+}
 
 const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
   let pat: URLPattern;
@@ -1350,6 +1679,22 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
     })(),
 
     // ═══════════════════════════════════════════════════════════════════════
+    // NEW v3.1: Pattern Colors (6 cols) - Bun.color() dedicated palette
+    // ═══════════════════════════════════════════════════════════════════════
+    ...(() => {
+      const hasWildcard = p.includes("*");
+      const colorInfo = generatePatternColor(i, pat.hasRegExpGroups, hasWildcard, !!m);
+      return {
+        colorHsl: colorInfo.hsl,
+        colorHex: colorInfo.hex,
+        colorRgb: colorInfo.rgb,
+        colorTier: colorInfo.tier,
+        colorCssVar: colorInfo.cssVar,
+        colorSwatch: colorInfo.swatch,
+      };
+    })(),
+
+    // ═══════════════════════════════════════════════════════════════════════
     // Error Handling (10 cols)
     // ═══════════════════════════════════════════════════════════════════════
     ...(() => {
@@ -1385,6 +1730,40 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
         errLoggingLevel: errorPotential > 3 ? "warn" : "info",
         errMonitoringHint: errorPotential > 2 ? "alert" : "metric",
         errPotential: errorPotential,
+      };
+    })(),
+
+    // DNS Prefetch (8 cols)
+    ...(() => {
+      const patternHostname = extractHostnameFromPattern(p);
+      const dnsResult = patternHostname ? dnsResults.get(patternHostname) : null;
+      const dnsStats = getDnsCacheStats();
+
+      return {
+        dnsHostname: patternHostname || "N/A",
+        dnsAddress: dnsResult?.address || "N/A",
+        dnsFamily: dnsResult?.family === 4 ? "IPv4" : dnsResult?.family === 6 ? "IPv6" : "N/A",
+        dnsLatencyMs: dnsResult ? `${dnsResult.latencyMs.toFixed(2)}ms` : "N/A",
+        dnsCached: dnsResult?.cached ? "hit" : dnsResult ? "miss" : "N/A",
+        dnsPrefetchStatus: dnsResult?.error ? "failed" : dnsResult ? "ready" : "skipped",
+        dnsCacheHits: dnsStats.cacheHits,
+        dnsCacheMisses: dnsStats.cacheMisses,
+      };
+    })(),
+
+    // Timezone (9 cols)
+    ...(() => {
+      const tz = getTimezoneInfo();
+      return {
+        tzTimezone: tz.timezone,
+        tzAbbrev: tz.abbrev,
+        tzUtcOffset: tz.utcOffset,
+        tzOffsetMinutes: tz.offsetMinutes,
+        tzIsDST: tz.isDST ? "yes" : "no",
+        tzHasDST: tz.hasDST ? "yes" : "no",
+        tzLocalTime: tz.localString,
+        tzIsoTime: tz.isoLocal,
+        tzEpochMs: tz.epochMs,
       };
     })(),
 
@@ -1518,6 +1897,17 @@ const errorsCols = [
   "errBoundaryConditions", "errRecoverable", "errFailureMode", "errLoggingLevel",
   "errMonitoringHint", "errPotential"
 ];
+const colorCols = [
+  "idx", "pattern", "colorSwatch", "colorTier", "colorHsl", "colorHex", "colorRgb", "colorCssVar"
+];
+const dnsCols = [
+  "idx", "pattern", "dnsHostname", "dnsAddress", "dnsFamily", "dnsLatencyMs",
+  "dnsCached", "dnsPrefetchStatus", "dnsCacheHits", "dnsCacheMisses"
+];
+const tzCols = [
+  "idx", "pattern", "tzTimezone", "tzAbbrev", "tzUtcOffset", "tzOffsetMinutes",
+  "tzIsDST", "tzHasDST", "tzLocalTime", "tzIsoTime", "tzEpochMs"
+];
 
 // Build selected columns dynamically
 const selectedSets: { cols: string[]; name: string }[] = [];
@@ -1543,6 +1933,9 @@ if (showI18n || showAll || quickInternational) selectedSets.push({ cols: i18nCol
 if (showCache || showAll || quickProdReady) selectedSets.push({ cols: cacheCols, name: "Cache" });
 if (showPeek || showAll || quickBenchmark) selectedSets.push({ cols: peekCols, name: "Peek" });
 if (showErrors || showAll || quickAudit) selectedSets.push({ cols: errorsCols, name: "Errors" });
+if (showColor || showAll) selectedSets.push({ cols: colorCols, name: "Color" });
+if (showDnsStats || dnsPrefetch || showAll) selectedSets.push({ cols: dnsCols, name: "DNS" });
+if (showTzInfo || tzFlag || showAll) selectedSets.push({ cols: tzCols, name: "Timezone" });
 
 // Merge columns (avoid duplicate idx)
 let selectedCols: string[] | undefined;
@@ -1565,7 +1958,7 @@ if (selectedSets.length > 0 && !showAll) {
     ...patternAnalysisCols, ...internalStructureCols, ...perfDeepCols,
     ...memoryLayoutCols, ...webStandardsCols, ...extraCols,
     ...envVarsCols, ...securityCols, ...encodingCols, ...i18nCols,
-    ...cacheCols, ...errorsCols
+    ...cacheCols, ...errorsCols, ...colorCols
   ]);
   colCount = allCols.size;
 }
@@ -2034,7 +2427,7 @@ if (diffFile) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// v3.1 Enhanced Mode: HTTP Server
+// v3.1 Enhanced Mode: HTTP Server with WebSocket Support
 // ─────────────────────────────────────────────────────────────────────────────
 if (serveMode) {
   const routes = {
@@ -2042,6 +2435,83 @@ if (serveMode) {
     patterns: new URLPattern("/api/patterns", `http://localhost:${serverPort}`),
     health: new URLPattern("/api/health", `http://localhost:${serverPort}`),
     stats: new URLPattern("/api/stats", `http://localhost:${serverPort}`),
+    ws: new URLPattern("/ws", `http://localhost:${serverPort}`),
+  };
+
+  // WebSocket client tracking
+  type WSClient = {
+    ws: any;
+    subscriptions: Set<string>;
+    connectedAt: number;
+  };
+  const wsClients = new Map<string, WSClient>();
+  let wsClientId = 0;
+
+  // Broadcast to all connected WebSocket clients
+  const broadcast = (type: string, data: unknown) => {
+    const message = JSON.stringify({ type, data, timestamp: Date.now() });
+    for (const [id, client] of wsClients) {
+      if (client.subscriptions.has("*") || client.subscriptions.has(type)) {
+        try {
+          client.ws.send(message);
+        } catch {
+          wsClients.delete(id);
+        }
+      }
+    }
+  };
+
+  // Build current matrix snapshot for WebSocket updates
+  const getMatrixSnapshot = () => ({
+    patterns: patterns.length,
+    rows: allRows.slice(0, 15).map(r => ({
+      idx: r.idx,
+      pattern: r.pattern,
+      matches: r.matches,
+      colorTier: r.colorTier,
+      colorHex: r.colorHex,
+      secRiskLevel: r.secRiskLevel,
+      secRiskScore: r.secRiskScore,
+      testOpsPerSec: r.testOpsPerSec,
+      execOpsPerSec: r.execOpsPerSec,
+      dnsHostname: r.dnsHostname,
+      dnsLatencyMs: r.dnsLatencyMs,
+      dnsPrefetchStatus: r.dnsPrefetchStatus,
+      tzTimezone: r.tzTimezone,
+      tzUtcOffset: r.tzUtcOffset,
+    })),
+    cache: getCacheStats(),
+    dns: getDnsCacheStats(),
+    timezone: getTimezoneInfo(),
+    uptime: process.uptime(),
+  });
+
+  // Build security summary
+  const getSecuritySummary = () => {
+    const dist = { low: 0, medium: 0, high: 0 };
+    for (const r of allRows) {
+      const level = (r.secRiskLevel as string) || "low";
+      if (level in dist) dist[level as keyof typeof dist]++;
+    }
+    return {
+      distribution: dist,
+      totalPatterns: patterns.length,
+      analyzedRows: allRows.length,
+    };
+  };
+
+  // Build performance summary
+  const getPerformanceSummary = () => {
+    const ops = allRows.map(r => typeof r.testOpsPerSec === "number" ? r.testOpsPerSec : 0);
+    const avgOps = ops.length > 0 ? ops.reduce((a, b) => a + b, 0) / ops.length : 0;
+    const maxOps = Math.max(...ops, 0);
+    const minOps = Math.min(...ops.filter(n => n > 0), Infinity);
+    return {
+      avgOpsPerSec: Math.round(avgOps),
+      maxOpsPerSec: Math.round(maxOps),
+      minOpsPerSec: minOps === Infinity ? 0 : Math.round(minOps),
+      patternCount: patterns.length,
+    };
   };
 
   const server = Bun.serve({
@@ -2049,9 +2519,25 @@ if (serveMode) {
     fetch(req) {
       const url = req.url;
 
+      // WebSocket upgrade
+      if (wsMode && routes.ws.test(url)) {
+        const clientId = `ws-${++wsClientId}`;
+        const upgraded = server.upgrade(req, { data: { clientId } });
+        if (upgraded) {
+          return undefined as unknown as Response;
+        }
+        return Response.json({ error: "WebSocket upgrade failed" }, { status: 400 });
+      }
+
       // Health check
       if (routes.health.test(url)) {
-        return Response.json({ status: "ok", version: "3.1", uptime: process.uptime() });
+        return Response.json({
+          status: "ok",
+          version: "3.1",
+          uptime: process.uptime(),
+          wsEnabled: wsMode,
+          wsClients: wsClients.size,
+        });
       }
 
       // Get cached patterns list
@@ -2061,16 +2547,12 @@ if (serveMode) {
 
       // Get analysis stats
       if (routes.stats.test(url)) {
-        const secDist = { low: 0, medium: 0, high: 0 };
-        for (const r of allRows) {
-          const level = (r.secRiskLevel as string) || "low";
-          if (level in secDist) secDist[level as keyof typeof secDist]++;
-        }
         return Response.json({
-          totalPatterns: patterns.length,
-          analyzedRows: allRows.length,
-          securityDistribution: secDist,
+          ...getSecuritySummary(),
+          performance: getPerformanceSummary(),
           cache: getCacheStats(),
+          dns: getDnsCacheStats(),
+          timezone: getTimezoneInfo(),
         });
       }
 
@@ -2082,7 +2564,6 @@ if (serveMode) {
             const inputPatterns = body.patterns || [];
             const testUrlStr = body.testUrl || testUrl;
 
-            // Quick analysis of provided patterns
             const results = inputPatterns.map((p, i) => {
               try {
                 const pat = new URLPattern(p, "https://example.com");
@@ -2104,6 +2585,11 @@ if (serveMode) {
               }
             });
 
+            // Broadcast analysis results to WebSocket clients
+            if (wsMode && wsClients.size > 0) {
+              broadcast("analysis", { results, count: results.length });
+            }
+
             return Response.json({ results, count: results.length });
           } catch (e: any) {
             return Response.json({ error: e.message }, { status: 400 });
@@ -2112,22 +2598,130 @@ if (serveMode) {
       }
 
       // Default: return API info
-      return Response.json({
-        name: "MATRIX v3.1 API",
-        endpoints: [
-          { method: "GET", path: "/api/health", description: "Health check" },
-          { method: "GET", path: "/api/patterns", description: "List loaded patterns" },
-          { method: "GET", path: "/api/stats", description: "Analysis statistics" },
-          { method: "POST", path: "/api/analyze", description: "Analyze patterns", body: "{ patterns: string[], testUrl?: string }" },
-        ],
-      });
+      const endpoints = [
+        { method: "GET", path: "/api/health", description: "Health check" },
+        { method: "GET", path: "/api/patterns", description: "List loaded patterns" },
+        { method: "GET", path: "/api/stats", description: "Analysis statistics" },
+        { method: "POST", path: "/api/analyze", description: "Analyze patterns", body: "{ patterns: string[], testUrl?: string }" },
+      ];
+      if (wsMode) {
+        endpoints.push({ method: "WS", path: "/ws", description: "WebSocket for live updates" });
+      }
+      return Response.json({ name: "MATRIX v3.1 API", wsEnabled: wsMode, endpoints });
     },
+
+    // WebSocket handlers (only active when wsMode is true)
+    websocket: wsMode ? {
+      open(ws) {
+        const clientId = (ws.data as { clientId: string }).clientId;
+        wsClients.set(clientId, {
+          ws,
+          subscriptions: new Set(["*"]), // Subscribe to all by default
+          connectedAt: Date.now(),
+        });
+        console.log(`[WS] Client connected: ${clientId} (total: ${wsClients.size})`);
+
+        // Send initial snapshot
+        ws.send(JSON.stringify({
+          type: "connected",
+          data: {
+            clientId,
+            message: "Connected to MATRIX v3.1 WebSocket",
+            subscriptions: ["*"],
+          },
+          timestamp: Date.now(),
+        }));
+
+        // Send initial matrix state
+        ws.send(JSON.stringify({
+          type: "matrix",
+          data: getMatrixSnapshot(),
+          timestamp: Date.now(),
+        }));
+      },
+
+      message(ws, message) {
+        const clientId = (ws.data as { clientId: string }).clientId;
+        const client = wsClients.get(clientId);
+        if (!client) return;
+
+        try {
+          const msg = JSON.parse(message.toString()) as {
+            action?: string;
+            subscribe?: string[];
+            unsubscribe?: string[];
+          };
+
+          // Handle subscription changes
+          if (msg.subscribe) {
+            for (const sub of msg.subscribe) {
+              client.subscriptions.add(sub);
+            }
+          }
+          if (msg.unsubscribe) {
+            for (const sub of msg.unsubscribe) {
+              client.subscriptions.delete(sub);
+            }
+          }
+
+          // Handle action requests
+          if (msg.action === "snapshot") {
+            ws.send(JSON.stringify({
+              type: "matrix",
+              data: getMatrixSnapshot(),
+              timestamp: Date.now(),
+            }));
+          } else if (msg.action === "security") {
+            ws.send(JSON.stringify({
+              type: "security",
+              data: getSecuritySummary(),
+              timestamp: Date.now(),
+            }));
+          } else if (msg.action === "performance") {
+            ws.send(JSON.stringify({
+              type: "performance",
+              data: getPerformanceSummary(),
+              timestamp: Date.now(),
+            }));
+          } else if (msg.action === "ping") {
+            ws.send(JSON.stringify({
+              type: "pong",
+              data: { uptime: process.uptime(), clients: wsClients.size },
+              timestamp: Date.now(),
+            }));
+          } else if (msg.action === "dns") {
+            ws.send(JSON.stringify({
+              type: "dns",
+              data: getDnsCacheStats(),
+              timestamp: Date.now(),
+            }));
+          } else if (msg.action === "timezone") {
+            ws.send(JSON.stringify({
+              type: "timezone",
+              data: getTimezoneInfo(),
+              timestamp: Date.now(),
+            }));
+          }
+        } catch {
+          // Invalid JSON, ignore
+        }
+      },
+
+      close(ws) {
+        const clientId = (ws.data as { clientId: string }).clientId;
+        wsClients.delete(clientId);
+        console.log(`[WS] Client disconnected: ${clientId} (total: ${wsClients.size})`);
+      },
+    } : undefined,
   });
 
   console.log("─".repeat(80));
-  console.log("🚀 MATRIX v3.1 API SERVER");
+  console.log(`🚀 MATRIX v3.1 API SERVER${wsMode ? " + WebSocket" : ""}`);
   console.log("─".repeat(80));
-  console.log(`📡 Listening: http://localhost:${server.port}`);
+  console.log(`📡 HTTP:      http://localhost:${server.port}`);
+  if (wsMode) {
+    console.log(`🔌 WebSocket: ws://localhost:${server.port}/ws`);
+  }
   console.log(`📁 Patterns:  ${patterns.length} loaded`);
   console.log("");
   console.log("Endpoints:");
@@ -2135,8 +2729,40 @@ if (serveMode) {
   console.log("  GET  /api/patterns  - List patterns");
   console.log("  GET  /api/stats     - Analysis stats");
   console.log("  POST /api/analyze   - Analyze patterns");
+  if (wsMode) {
+    console.log("  WS   /ws            - Live WebSocket updates");
+    console.log("");
+    console.log("WebSocket Messages:");
+    console.log('  → { "action": "snapshot" }     Request matrix snapshot');
+    console.log('  → { "action": "security" }     Request security summary');
+    console.log('  → { "action": "performance" }  Request performance summary');
+    console.log('  → { "action": "dns" }          Request DNS cache stats');
+    console.log('  → { "action": "timezone" }     Request timezone info');
+    console.log('  → { "action": "ping" }         Ping/pong heartbeat');
+    console.log('  → { "subscribe": ["matrix"] }  Subscribe to specific events');
+  }
   console.log("");
   console.log("Press Ctrl+C to stop");
+
+  // Live broadcast interval (when WebSocket enabled)
+  if (wsMode) {
+    setInterval(() => {
+      if (wsClients.size > 0) {
+        broadcast("heartbeat", {
+          uptime: process.uptime(),
+          clients: wsClients.size,
+          patterns: patterns.length,
+        });
+      }
+    }, 5000); // Heartbeat every 5 seconds
+
+    // Matrix snapshot broadcast every 10 seconds
+    setInterval(() => {
+      if (wsClients.size > 0) {
+        broadcast("matrix", getMatrixSnapshot());
+      }
+    }, 10000);
+  }
 
   // Keep server running
   await new Promise(() => {}); // Block forever
@@ -2218,10 +2844,21 @@ if (watchMode && patternFile) {
 if (jsonOutput) {
   console.log(JSON.stringify(outputRows, null, 2));
 } else if (!csvOutput && !markdownOutput) {
-  console.log(`${title}${filterSuffix}  (${colCount} columns, ${rows.length} rows)`.padEnd(120, "─"));
+  // Header with timezone info
+  const tz = getTimezoneInfo();
+  const tzHeader = `${tz.abbrev} (${tz.utcOffset})`;
+  console.log("─".repeat(120));
+  console.log(`${title}${filterSuffix}  (${colCount} columns, ${rows.length} rows)`.padEnd(80) + `🕐 ${tzHeader}`.padStart(40));
+  console.log("─".repeat(120));
+
   if (selectedCols) {
     console.log(Bun.inspect.table(outputRows, selectedCols, { colors: !noColor }));
   } else {
     console.log(Bun.inspect.table(outputRows, { colors: !noColor }));
   }
+
+  // Footer with detailed timezone info
+  console.log("─".repeat(120));
+  console.log(`📅 ${tz.localString}  │  🌍 ${tz.timezone}  │  ⏱️  ${tz.isoLocal}${tz.isDST ? "  │  ☀️  DST active" : ""}`);
+  console.log("─".repeat(120));
 }
