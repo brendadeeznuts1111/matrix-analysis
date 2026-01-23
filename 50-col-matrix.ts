@@ -1292,6 +1292,8 @@ const STATIC_MEM_RSS_STR = (STATIC_MEM.rss / 1024 / 1024).toFixed(1);
 const STATIC_MEM_HEAP_STR = (STATIC_MEM.heapUsed / 1024 / 1024).toFixed(2);
 const STATIC_CPU_USER_STR = (STATIC_CPU.user / 1000).toFixed(1);
 const STATIC_CPU_SYS_STR = (STATIC_CPU.system / 1000).toFixed(1);
+// QUICK WIN #22: All URLPatterns have identical prototype chain - compute once
+const STATIC_PROTO_CHAIN = getProtoChain(new URLPattern("*", "http://x"));
 
 const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
   let pat: URLPattern;
@@ -1389,7 +1391,7 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
     typeofResult: m ? typeof m : "null",
     instanceOfURL: pat instanceof URLPattern ? "✅" : "❌",
     constructorName: pat.constructor?.name || "?",
-    prototypeChain: getProtoChain(pat),
+    prototypeChain: STATIC_PROTO_CHAIN,  // QUICK WIN #22: all URLPatterns same
     isCallable: typeof (pat as any).exec === "function" ? "✅" : "❌",
     isIterable: typeof (pat as any)[Symbol.iterator] === "function" ? "✅" : "❌",
     symbolToString: pat[Symbol.toStringTag] || getTypeTag(pat),
@@ -1418,7 +1420,7 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
     isFrozen: Object.isFrozen(pat) ? "✅" : "❌",
     protoName: Object.getPrototypeOf(pat)?.constructor?.name || "null",
     descriptorTypes: descriptorTypes.slice(0, 8) || "-",
-    enumerableCount: Object.keys(pat).length,
+    enumerableCount: patKeys.length,  // QUICK WIN #22: reuse cached keys
 
     // Pattern Analysis (7)
     patternComponents: [
