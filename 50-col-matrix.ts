@@ -1766,13 +1766,8 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
     jitTier: "opt", // Optimized tier
 
     // Memory Layout (6)
-    objectSize: (() => {
-      // Estimate: base object + pattern strings + compiled regex
-      const base = 64; // Base object overhead
-      const strings = p.length * 2; // UTF-16 strings
-      const regex = pat.hasRegExpGroups ? 256 : 128; // Compiled regex estimate
-      return (base + strings + regex) + "B";
-    })(),
+    // QUICK WIN #64: Inline expression vs IIFE (base 64 + UTF-16 strings + regex estimate)
+    objectSize: (64 + p.length * 2 + (pat.hasRegExpGroups ? 256 : 128)) + "B",
     propertyStorageSize: "0B", // Getters, no property storage
     transitionChainLength: 1, // Single prototype
     memoryAlignment: "8B", // 64-bit aligned
@@ -2270,8 +2265,12 @@ if (sortArg) {
 }
 const filterSuffix = filters.length ? ` [${filters.join(" ")}]` : "";
 
-// Clean output rows (remove internal flags)
-const outputRows = rows.map(({ _matched, _hasRegex, ...rest }) => rest);
+// QUICK WIN #63: Mutate + delete vs destructure spread (avoids 217-prop copy per row)
+for (const row of rows) {
+  delete (row as any)._matched;
+  delete (row as any)._hasRegex;
+}
+const outputRows = rows as PublicRowData[];
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Fix Mode: Auto-remediate patterns and save to file
