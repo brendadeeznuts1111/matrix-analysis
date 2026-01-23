@@ -1651,6 +1651,10 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
   const nestingDepth = calcNestingDepth(p);
   // QUICK WIN #76: Cache p.includes("|") - used in regexFeaturesUsed + error handling
   const hasAlternation = p.includes("|");
+  // QUICK WIN #77: Cache p.includes("?") - used 3× (regexFeaturesUsed, cacheVaryFactors, errorEdgeCases)
+  const hasQuestion = p.includes("?");
+  // QUICK WIN #78: Cache pat.hasRegExpGroups - used 16× throughout row mapping
+  const hasRegex = pat.hasRegExpGroups;
 
   // QUICK WIN #40: Build patternComponents string without array.filter().join()
   let patternComponentsStr = "";
@@ -1678,7 +1682,7 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
     pattern: p.length > 28 ? p.slice(0, 25) + "..." : p,
     matches: m ? "✅" : "❌",
     groups: groupKeys.join(","),  // QUICK WIN #33: reuse cached keys
-    hasRegExpGroups: pat.hasRegExpGroups ? "✅" : "❌",
+    hasRegExpGroups: hasRegex ? "✅" : "❌",  // QUICK WIN #78: reuse cached
     protocol: patProto,
     hostname: (patHost || "").slice(0, 12),
     port: patPort || "",
@@ -1721,7 +1725,7 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
     nestingDepth: nestingDepth,
     avgSegmentLen: segments > 0 ? (p.length / segments).toFixed(1) : "0",
     entropyScore: calcEntropy(p).toFixed(2),
-    matchScore: m ? (groupCount * 10 + (pat.hasRegExpGroups ? 5 : 0)) : 0,
+    matchScore: m ? (groupCount * 10 + (hasRegex ? 5 : 0)) : 0,  // QUICK WIN #78: reuse cached
 
     // Props (8)
     propCount: patKeys.length,
@@ -1735,7 +1739,7 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
 
     // Pattern Analysis (7)
     patternComponents: patternComponentsStr,  // QUICK WIN #40
-    paHasRegExpGroups: pat.hasRegExpGroups ? "✅" : "❌",
+    paHasRegExpGroups: hasRegex ? "✅" : "❌",  // QUICK WIN #78: reuse cached
     // QUICK WIN #3: Use cached pattern analysis (avoids 5 duplicate regex matches)
     wildcardCount: patternAnalysis.wildcards,
     namedGroupCount: patternAnalysis.namedGroups,
@@ -1775,33 +1779,33 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
       return { testOpsPerSec: "-", execOpsPerSec: "-" };
     })(),
     cacheHitRate: "100%", // Bun caches compiled patterns
-    deoptimizationRisk: pat.hasRegExpGroups ? "medium" : "low",
+    deoptimizationRisk: hasRegex ? "medium" : "low",  // QUICK WIN #78: reuse cached
     inlineCacheStatus: "mono", // Monomorphic - single type
     jitTier: "opt", // Optimized tier
 
     // Memory Layout (6)
     // QUICK WIN #64: Inline expression vs IIFE (base 64 + UTF-16 strings + regex estimate)
-    objectSize: (64 + p.length * 2 + (pat.hasRegExpGroups ? 256 : 128)) + "B",
+    objectSize: (64 + p.length * 2 + (hasRegex ? 256 : 128)) + "B",  // QUICK WIN #78: reuse cached
     propertyStorageSize: "0B", // Getters, no property storage
     transitionChainLength: 1, // Single prototype
     memoryAlignment: "8B", // 64-bit aligned
-    gcPressure: segments > 3 || pat.hasRegExpGroups ? "med" : "low",
+    gcPressure: segments > 3 || hasRegex ? "med" : "low",  // QUICK WIN #78: reuse cached
     // QUICK WIN #65: Inline expression vs IIFE (base + UTF-16 + children)
     retainedSize: (64 + p.length * 2 + groupCount * 32) + "B",
 
     // Web Standards Compliance (6)
     specCompliance: "100%", // Bun follows URLPattern spec
-    wptTestsEstimate: pat.hasRegExpGroups ? "95%" : "100%",
+    wptTestsEstimate: hasRegex ? "95%" : "100%",  // QUICK WIN #78: reuse cached
     // QUICK WIN #66: Inline ternary vs IIFE
     // QUICK WIN #74: Reuse patternAnalysis.wildcards vs p.includes("*")
-    browserCompatibility: (pat.hasRegExpGroups || patternAnalysis.wildcards > 0) ? "Chrome,Bun" : "Chrome,Bun,Deno",
+    browserCompatibility: (hasRegex || patternAnalysis.wildcards > 0) ? "Chrome,Bun" : "Chrome,Bun,Deno",  // QUICK WIN #78: reuse cached
     // QUICK WIN #41: Direct string build vs array.filter().join()
     regexFeaturesUsed: (() => {
       let features = "";
       if (p.includes("\\d")) features += "digit,";
       if (p.includes("\\w")) features += "word,";
       if (hasAlternation) features += "alt,";  // QUICK WIN #76: reuse cached
-      if (p.includes("?")) features += "opt,";
+      if (hasQuestion) features += "opt,";  // QUICK WIN #77: reuse cached
       if (p.includes("+")) features += "plus,";
       return features.slice(0, -1) || "none";
     })(),
@@ -1944,7 +1948,7 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
         secXssVector: hasXssVector ? "⚠️" : "✅",
         secSqlInjection: hasSqlPattern ? "⚠️" : "✅",
         secCommandInjection: hasCmdInjection ? "⚠️" : "✅",
-        secInputValidation: pat.hasRegExpGroups ? "strict" : "loose",
+        secInputValidation: hasRegex ? "strict" : "loose",  // QUICK WIN #78: reuse cached
       };
     })(),
 
@@ -2043,15 +2047,15 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
       // QUICK WIN #71: Direct string build vs array.push().join()
       let varyFactors = "";
       if (hasDynamicSegment) varyFactors += "params,";
-      if (p.includes("?")) varyFactors += "query,";
-      if (pat.hasRegExpGroups) varyFactors += "regex,";
+      if (hasQuestion) varyFactors += "query,";  // QUICK WIN #77: reuse cached
+      if (hasRegex) varyFactors += "regex,";  // QUICK WIN #78: reuse cached
 
       const stability = hasWildcard ? "volatile" : hasDynamicSegment ? "variable" : "stable";
       const hitProb = stability === "stable" ? "high" : stability === "variable" ? "medium" : "low";
 
       // Calculate cache score (0-100) - uses segments from outer scope
       const cacheScore = _max(0, _min(100,  // QUICK WIN #29
-        100 - (hasWildcard ? 30 : 0) - (hasDynamicSegment ? 15 : 0) - (segments * 2) - (pat.hasRegExpGroups ? 10 : 0)
+        100 - (hasWildcard ? 30 : 0) - (hasDynamicSegment ? 15 : 0) - (segments * 2) - (hasRegex ? 10 : 0)  // QUICK WIN #78: reuse cached
       ));
 
       // Suggested TTL in seconds
@@ -2065,7 +2069,7 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
         cacheInvalidationRisk: hasWildcard ? "high" : hasDynamicSegment ? "medium" : "low",
         cachePatternStability: stability,
         cacheHitProbability: hitProb,
-        cacheMissImpact: pat.hasRegExpGroups ? "high" : "low",
+        cacheMissImpact: hasRegex ? "high" : "low",  // QUICK WIN #78: reuse cached
         cacheWarmupPriority: stability === "stable" ? "high" : "low",
         cacheEvictionRisk: keyComplexity > 5 ? "high" : "low",
         cacheScore,
@@ -2092,7 +2096,7 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
     // QUICK WIN #7: Reuse patternAnalysis.wildcards
     // ═══════════════════════════════════════════════════════════════════════
     ...(() => {
-      const colorInfo = generatePatternColor(i, pat.hasRegExpGroups, patternAnalysis.wildcards > 0, !!m);
+      const colorInfo = generatePatternColor(i, hasRegex, patternAnalysis.wildcards > 0, !!m);  // QUICK WIN #78: reuse cached
       return {
         colorHsl: colorInfo.hsl,
         colorHex: colorInfo.hex,
@@ -2107,8 +2111,8 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
     // Error Handling (10 cols)
     // ═══════════════════════════════════════════════════════════════════════
     ...(() => {
-      const hasComplexRegex = pat.hasRegExpGroups;
-      const hasOptional = p.includes("?") || /\{[^}]*\}\?/.test(p);
+      const hasComplexRegex = hasRegex;  // QUICK WIN #78: reuse cached
+      const hasOptional = hasQuestion || /\{[^}]*\}\?/.test(p);  // QUICK WIN #77: reuse cached
       // QUICK WIN #75: Cache nestingDepth > 2 comparison (used 3×)
       const isDeepNesting = nestingDepth > 2;
       // QUICK WIN #49: Reuse cached nestingDepth (was duplicate inline IIFE)
@@ -2166,7 +2170,7 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
 
     // Internal filter flags
     _matched: !!m,
-    _hasRegex: pat.hasRegExpGroups,
+    _hasRegex: hasRegex,  // QUICK WIN #78: reuse cached
   };
 });
 
