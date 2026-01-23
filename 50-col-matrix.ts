@@ -14,13 +14,23 @@ type CachedPattern = {
 const patternCache = new Map<string, Promise<CachedPattern>>();
 const cacheStats = { hits: 0, misses: 0, syncHits: 0, errors: 0 };
 
+// Flag to disable persistent cache (set via --no-persist)
+let persistentCacheEnabled = true;
+
 async function compilePattern(p: string, baseUrl: string): Promise<CachedPattern> {
   const start = Bun.nanoseconds();
   const pattern = new URLPattern(p, baseUrl);
+  const compileTimeNs = Bun.nanoseconds() - start;
+
+  // Save to persistent cache (fire-and-forget, don't block)
+  if (persistentCacheEnabled) {
+    addToPersistentCache(p, baseUrl, compileTimeNs).catch(() => {});
+  }
+
   return {
     pattern,
     compiledAt: Date.now(),
-    compileTimeNs: Bun.nanoseconds() - start,
+    compileTimeNs,
   };
 }
 
@@ -64,6 +74,136 @@ function getCacheStats() {
       ? ((cacheStats.syncHits / cacheStats.hits) * 100).toFixed(1) + "%"
       : "0%",
   };
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Persistent Global Cache (like Bun's ~/.bun/install/cache)
+// Stores pattern metadata to disk for cross-session persistence
+// ═══════════════════════════════════════════════════════════════════════════════
+type PersistentCacheEntry = {
+  pattern: string;
+  baseUrl: string;
+  compiledAt: number;
+  compileTimeNs: number;
+  hash: string;
+};
+
+type PersistentCacheManifest = {
+  version: string;
+  created: number;
+  updated: number;
+  entries: Record<string, PersistentCacheEntry>;
+};
+
+const CACHE_DIR = process.env.MATRIX_CACHE_DIR || `${process.env.HOME}/.cache/matrix-analysis`;
+const CACHE_MANIFEST = `${CACHE_DIR}/manifest.json`;
+const CACHE_VERSION = "1.0.0";
+const MAX_CACHE_ENTRIES = 10_000;
+
+let persistentManifest: PersistentCacheManifest | null = null;
+
+async function ensureCacheDir(): Promise<void> {
+  try {
+    await Bun.write(`${CACHE_DIR}/.keep`, "");
+  } catch {
+    // Directory creation failed - cache disabled
+  }
+}
+
+async function loadPersistentCache(): Promise<PersistentCacheManifest> {
+  if (persistentManifest) return persistentManifest;
+
+  try {
+    const file = Bun.file(CACHE_MANIFEST);
+    if (await file.exists()) {
+      const data = await file.json() as PersistentCacheManifest;
+      if (data.version === CACHE_VERSION) {
+        persistentManifest = data;
+        return data;
+      }
+    }
+  } catch {
+    // Cache corrupted or missing - create fresh
+  }
+
+  persistentManifest = {
+    version: CACHE_VERSION,
+    created: Date.now(),
+    updated: Date.now(),
+    entries: {},
+  };
+  return persistentManifest;
+}
+
+async function savePersistentCache(): Promise<void> {
+  if (!persistentManifest) return;
+
+  // Evict oldest entries if over limit (LRU-style)
+  const entries = Object.entries(persistentManifest.entries);
+  if (entries.length > MAX_CACHE_ENTRIES) {
+    entries.sort((a, b) => a[1].compiledAt - b[1].compiledAt);
+    const toRemove = entries.slice(0, entries.length - MAX_CACHE_ENTRIES);
+    for (const [key] of toRemove) {
+      delete persistentManifest.entries[key];
+    }
+  }
+
+  persistentManifest.updated = Date.now();
+  await ensureCacheDir();
+  await Bun.write(CACHE_MANIFEST, JSON.stringify(persistentManifest, null, 2));
+}
+
+function getPersistentCacheKey(pattern: string, baseUrl: string): string {
+  return Bun.hash(`${baseUrl}::${pattern}`).toString(16);
+}
+
+async function addToPersistentCache(pattern: string, baseUrl: string, compileTimeNs: number): Promise<void> {
+  const manifest = await loadPersistentCache();
+  const key = getPersistentCacheKey(pattern, baseUrl);
+
+  manifest.entries[key] = {
+    pattern,
+    baseUrl,
+    compiledAt: Date.now(),
+    compileTimeNs,
+    hash: key,
+  };
+
+  // Debounced save - don't write on every add
+  if (Object.keys(manifest.entries).length % 100 === 0) {
+    await savePersistentCache();
+  }
+}
+
+function getPersistentCacheStats(): { entries: number; sizeKB: string; oldestMs: number; newestMs: number } {
+  if (!persistentManifest || Object.keys(persistentManifest.entries).length === 0) {
+    return { entries: 0, sizeKB: "0", oldestMs: 0, newestMs: 0 };
+  }
+
+  const times = Object.values(persistentManifest.entries).map(e => e.compiledAt);
+  const now = Date.now();
+
+  return {
+    entries: Object.keys(persistentManifest.entries).length,
+    sizeKB: (JSON.stringify(persistentManifest).length / 1024).toFixed(2),
+    oldestMs: now - Math.min(...times),
+    newestMs: now - Math.max(...times),
+  };
+}
+
+async function clearPersistentCache(): Promise<{ cleared: number }> {
+  const manifest = await loadPersistentCache();
+  const cleared = Object.keys(manifest.entries).length;
+
+  persistentManifest = {
+    version: CACHE_VERSION,
+    created: Date.now(),
+    updated: Date.now(),
+    entries: {},
+  };
+
+  await savePersistentCache();
+  return { cleared };
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -577,6 +717,11 @@ const { values: flags } = parseArgs({
     // Timezone
     tz: { type: "string" },
     "tz-info": { type: "boolean" },
+    // Global cache management
+    "cache-clear": { type: "boolean" },
+    "cache-stats": { type: "boolean" },
+    "cache-dir": { type: "string" },
+    "no-persist": { type: "boolean" },
     // Help
     help: { type: "boolean", short: "h" },
   },
@@ -697,7 +842,49 @@ Enhanced Mode Examples (v3.1):
   bun 50-col-matrix.ts --dns-prefetch --benchmark # DNS warm-up + performance benchmarks
   bun 50-col-matrix.ts --tz America/New_York      # Run with Eastern timezone
   bun 50-col-matrix.ts --tz UTC --tz-info         # Show timezone columns in UTC
+
+Global Cache (v3.2):
+  --cache-stats         Show persistent cache statistics
+  --cache-clear         Clear all cached pattern metadata
+  --cache-dir <path>    Custom cache directory (default: ~/.cache/matrix-analysis)
+  --no-persist          Disable persistent cache for this run
+
+  # Cache location: $MATRIX_CACHE_DIR or ~/.cache/matrix-analysis
+  bun 50-col-matrix.ts --cache-stats             # Show cache hit rates + size
+  bun 50-col-matrix.ts --cache-clear             # Clear persistent cache
+  MATRIX_CACHE_DIR=/tmp/mc bun 50-col-matrix.ts  # Custom cache dir via env
 `);
+  process.exit(0);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Global Cache Commands (early exit)
+// ─────────────────────────────────────────────────────────────────────────────
+if (flags["cache-stats"]) {
+  await loadPersistentCache();
+  const stats = getPersistentCacheStats();
+  const memStats = getCacheStats();
+  console.log("📦 Matrix Global Cache Statistics\n");
+  console.log(Bun.inspect.table([
+    { metric: "Cache Directory", value: CACHE_DIR },
+    { metric: "Manifest Version", value: CACHE_VERSION },
+    { metric: "Persistent Entries", value: stats.entries.toString() },
+    { metric: "Manifest Size", value: `${stats.sizeKB} KB` },
+    { metric: "Oldest Entry", value: stats.oldestMs > 0 ? `${(stats.oldestMs / 1000 / 60).toFixed(1)} min ago` : "n/a" },
+    { metric: "Newest Entry", value: stats.newestMs > 0 ? `${(stats.newestMs / 1000).toFixed(1)} sec ago` : "n/a" },
+    { metric: "Max Entries", value: MAX_CACHE_ENTRIES.toString() },
+    { metric: "───────────────", value: "───────────────" },
+    { metric: "In-Memory Hits", value: memStats.hits.toString() },
+    { metric: "In-Memory Misses", value: memStats.misses.toString() },
+    { metric: "Sync Hits (peek)", value: memStats.syncHits.toString() },
+    { metric: "Hit Rate", value: memStats.hitRate },
+  ]));
+  process.exit(0);
+}
+
+if (flags["cache-clear"]) {
+  const { cleared } = await clearPersistentCache();
+  console.log(`🗑️  Cleared ${cleared} entries from ${CACHE_DIR}`);
   process.exit(0);
 }
 
@@ -747,6 +934,16 @@ const showDnsStats = flags["dns-stats"];
 // Timezone support
 const tzFlag = flags.tz || null;
 const showTzInfo = flags["tz-info"] || hasLegacy("-tz");
+
+// Global cache options
+if (flags["no-persist"]) {
+  persistentCacheEnabled = false;
+}
+
+// Load persistent cache on startup (for pre-warming stats)
+if (persistentCacheEnabled) {
+  await loadPersistentCache();
+}
 
 // Set timezone early (before any Date operations)
 if (tzFlag) {
@@ -2929,4 +3126,11 @@ if (jsonOutput) {
   console.log("─".repeat(120));
   console.log(`📅 ${tz.localString}  │  🌍 ${tz.timezone}  │  ⏱️  ${tz.isoLocal}${tz.isDST ? "  │  ☀️  DST active" : ""}`);
   console.log("─".repeat(120));
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Save Persistent Cache on Exit
+// ─────────────────────────────────────────────────────────────────────────────
+if (persistentCacheEnabled) {
+  await savePersistentCache();
 }

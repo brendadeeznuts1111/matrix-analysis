@@ -1,5 +1,5 @@
 /**
- * matrix-analysis v3.1 - Type Definitions
+ * matrix-analysis v3.2 - Type Definitions
  * URLPattern Analysis Matrix with 219+ columns
  *
  * @example
@@ -12,7 +12,7 @@
 // Cache Types
 // ═══════════════════════════════════════════════════════════════════════════════
 
-/** Cached compiled URLPattern with timing metadata */
+/** Cached compiled URLPattern with timing metadata (in-memory) */
 export type CachedPattern = {
   pattern: URLPattern;
   compiledAt: number;
@@ -25,6 +25,23 @@ export type CacheStats = {
   misses: number;
   syncHits: number;
   errors: number;
+};
+
+/** Persistent cache entry (stored on disk) */
+export type PersistentCacheEntry = {
+  pattern: string;
+  baseUrl: string;
+  compiledAt: number;
+  compileTimeNs: number;
+  hash: string;
+};
+
+/** Persistent cache manifest (stored at ~/.cache/matrix-analysis/manifest.json) */
+export type PersistentCacheManifest = {
+  version: string;
+  created: number;
+  updated: number;
+  entries: Record<string, PersistentCacheEntry>;
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
