@@ -1488,14 +1488,20 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
     isPrime: isPrime(i) ? "✅" : "❌",
     memoryMB: (mem.heapUsed / 1024 / 1024).toFixed(2),
     patternHash: hash(p).slice(0, 8),
-    calcBinary: "0b" + i.toString(2).padStart(4, "0"),
-    calcHex: "0x" + i.toString(16).toUpperCase(),
-    calcSquare: i * i,
-    calcCube: i * i * i,
-    calcFactorial: factorial(i),  // QUICK WIN #6: Use hoisted factorial
-    calcReverse: parseInt(i.toString().split("").reverse().join("") || "0"),
-    calcDigitSum: i.toString().split("").reduce((a, c) => a + +c, 0),
-    calcDigitProduct: i.toString().split("").reduce((a, c) => a * +c, 1),
+    // QUICK WIN #12 & #13: Cache i string conversions (was 5 toString calls + 3 split calls)
+    ...(() => {
+      const digits = String(i).split("");
+      return {
+        calcBinary: "0b" + i.toString(2).padStart(4, "0"),
+        calcHex: "0x" + i.toString(16).toUpperCase(),
+        calcSquare: i * i,
+        calcCube: i * i * i,
+        calcFactorial: factorial(i),
+        calcReverse: parseInt(digits.slice().reverse().join("") || "0"),
+        calcDigitSum: digits.reduce((a, c) => a + +c, 0),
+        calcDigitProduct: digits.reduce((a, c) => a * +c, 1),
+      };
+    })(),
     timestamp: Date.now(),
     randomInt: Math.floor(Math.random() * 1_000_000),
     randomFloat: Math.random().toFixed(4),
