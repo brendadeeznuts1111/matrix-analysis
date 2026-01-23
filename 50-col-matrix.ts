@@ -1387,7 +1387,9 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
   const { protocol: patProto, hostname: patHost, port: patPort, pathname: patPath, search: patSearch, hash: patHash } = pat;
 
   const segments = countSegments(p);
-  const groupCount = m ? Object.keys(m.pathname?.groups || {}).length : 0;
+  // QUICK WIN #33: Cache group keys (used for both count and display)
+  const groupKeys = m ? Object.keys(m.pathname?.groups || {}) : [];
+  const groupCount = groupKeys.length;
 
   // QUICK WIN #26: Cache function results called 3-4× per row
   const specialChars = countSpecialChars(p);
@@ -1408,7 +1410,7 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
     idx: i,
     pattern: p.length > 28 ? p.slice(0, 25) + "..." : p,
     matches: m ? "✅" : "❌",
-    groups: m ? Object.keys(m.pathname?.groups || {}).join(",") : "",
+    groups: groupKeys.join(","),  // QUICK WIN #33: reuse cached keys
     hasRegExpGroups: pat.hasRegExpGroups ? "✅" : "❌",
     protocol: patProto,
     hostname: (patHost || "").slice(0, 12),
@@ -1558,8 +1560,15 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
     memoryMB: STATIC_MEM_HEAP_STR,  // QUICK WIN #20: pre-formatted
     patternHash: hash(p).slice(0, 8),
     // QUICK WIN #12 & #13: Cache i string conversions (was 5 toString calls + 3 split calls)
+    // QUICK WIN #34: Single loop for digit sum + product (avoids array allocation + 2 reduce iterations)
     ...(() => {
-      const digits = String(i).split("");
+      let digitSum = 0, digitProd = 1, n = i;
+      while (n > 0) {
+        const d = n % 10;
+        digitSum += d;
+        digitProd *= d;
+        n = _floor(n / 10);
+      }
       return {
         calcBinary: "0b" + i.toString(2).padStart(4, "0"),
         calcHex: "0x" + i.toString(16).toUpperCase(),
@@ -1567,8 +1576,8 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
         calcCube: i * i * i,
         calcFactorial: factorial(i),
         calcReverse: reverseNum(i),  // QUICK WIN #31: no array allocation
-        calcDigitSum: digits.reduce((a, c) => a + +c, 0),
-        calcDigitProduct: digits.reduce((a, c) => a * +c, 1),
+        calcDigitSum: digitSum || 0,  // QUICK WIN #34
+        calcDigitProduct: digitProd,  // QUICK WIN #34
       };
     })(),
     timestamp: Date.now(),
