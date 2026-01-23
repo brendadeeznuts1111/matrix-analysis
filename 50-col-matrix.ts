@@ -88,6 +88,9 @@ const isPrime = (n: number): boolean => {
   return true;
 };
 
+// QUICK WIN #6: Hoisted factorial - avoids creating new closure per row
+const factorial = (n: number): number => n <= 1 ? 1 : n * factorial(n - 1);
+
 // Use Bun's hardware-accelerated CRC32 instead of manual hash
 const hash = (s: string): string => Bun.hash.crc32(s).toString(16).padStart(8, "0");
 
@@ -1512,7 +1515,7 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
     calcHex: "0x" + i.toString(16).toUpperCase(),
     calcSquare: i * i,
     calcCube: i * i * i,
-    calcFactorial: (function f(n): number { return n <= 1 ? 1 : n * f(n - 1); })(i),
+    calcFactorial: factorial(i),  // QUICK WIN #6: Use hoisted factorial
     calcReverse: parseInt(i.toString().split("").reverse().join("") || "0"),
     calcDigitSum: i.toString().split("").reduce((a, c) => a + +c, 0),
     calcDigitProduct: i.toString().split("").reduce((a, c) => a * +c, 1),
@@ -1694,12 +1697,12 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
 
     // ═══════════════════════════════════════════════════════════════════════
     // NEW v3.0: Cache Analysis (12 cols)
+    // QUICK WIN #7: Reuse segments & patternAnalysis.wildcards
     // ═══════════════════════════════════════════════════════════════════════
     ...(() => {
-      const hasWildcard = p.includes("*");
-      const hasDynamicSegment = /:[a-zA-Z]/.test(p);
-      const segmentCount = p.split("/").filter(Boolean).length;
-      const keyComplexity = segmentCount + (hasWildcard ? 2 : 0) + (hasDynamicSegment ? 1 : 0);
+      const hasWildcard = patternAnalysis.wildcards > 0;  // Reuse cached value
+      const hasDynamicSegment = patternAnalysis.namedGroups > 0;  // Reuse cached value
+      const keyComplexity = segments + (hasWildcard ? 2 : 0) + (hasDynamicSegment ? 1 : 0);  // Reuse segments
 
       // Determine cacheability
       const varyFactors: string[] = [];
@@ -1710,9 +1713,9 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
       const stability = hasWildcard ? "volatile" : hasDynamicSegment ? "variable" : "stable";
       const hitProb = stability === "stable" ? "high" : stability === "variable" ? "medium" : "low";
 
-      // Calculate cache score (0-100)
+      // Calculate cache score (0-100) - uses segments from outer scope
       const cacheScore = Math.max(0, Math.min(100,
-        100 - (hasWildcard ? 30 : 0) - (hasDynamicSegment ? 15 : 0) - (segmentCount * 2) - (pat.hasRegExpGroups ? 10 : 0)
+        100 - (hasWildcard ? 30 : 0) - (hasDynamicSegment ? 15 : 0) - (segments * 2) - (pat.hasRegExpGroups ? 10 : 0)
       ));
 
       // Suggested TTL in seconds
@@ -1750,10 +1753,10 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
 
     // ═══════════════════════════════════════════════════════════════════════
     // NEW v3.1: Pattern Colors (6 cols) - Bun.color() dedicated palette
+    // QUICK WIN #7: Reuse patternAnalysis.wildcards
     // ═══════════════════════════════════════════════════════════════════════
     ...(() => {
-      const hasWildcard = p.includes("*");
-      const colorInfo = generatePatternColor(i, pat.hasRegExpGroups, hasWildcard, !!m);
+      const colorInfo = generatePatternColor(i, pat.hasRegExpGroups, patternAnalysis.wildcards > 0, !!m);
       return {
         colorHsl: colorInfo.hsl,
         colorHex: colorInfo.hex,
