@@ -1329,6 +1329,7 @@ const STATIC_TYPEOF_PAT = typeof _refPat;  // always "object"
 const STATIC_IS_CALLABLE = typeof (_refPat as any).exec === "function" ? "✅" : "❌";
 const STATIC_IS_ITERABLE = typeof (_refPat as any)[Symbol.iterator] === "function" ? "✅" : "❌";
 const STATIC_UPTIME_STR = process.uptime().toFixed(2);
+const STATIC_MEM_DELTA_KB = "0.00KB";  // QUICK WIN #36: patterns cached, delta negligible
 
 const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
   let pat: URLPattern;
@@ -1364,7 +1365,7 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
   const execTime = (performance.now() - execStart).toFixed(3) + "ms";
   const execNs = fmtNum(Bun.nanoseconds() - execStartNs) + "ns";  // QUICK WIN #21
 
-  const memDeltaKB = "0.00"; // Patterns are cached, delta is negligible
+  // QUICK WIN #36: memDeltaKB is always "0.00KB" - use hoisted constant below
 
   const cookie = new Bun.Cookie(`pattern_${i}`, m ? "matched" : "unmatched", {
     path: "/",
@@ -1444,7 +1445,7 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
 
     // Metrics (12)
     execNs,
-    memDeltaKB: memDeltaKB + "KB",
+    memDeltaKB: STATIC_MEM_DELTA_KB,  // QUICK WIN #36
     gcCount: (globalThis as any).gc ? 1 : 0,
     patternComplexity: specialChars + nestingDepth * 2,
     groupCount,
@@ -1548,11 +1549,14 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
     specVersion: "URLPattern-1.0",
 
     // Extras (28) - using UUIDv7 for sortable IDs (single generation)
+    // QUICK WIN #35: Direct UUID hex extraction (avoids regex replace + intermediate string)
+    // UUID format: xxxxxxxx-xxxx-... → first 12 hex = positions 0-7 + 9-12
     ...(() => {
       const uuid = Bun.randomUUIDv7();
+      const hex12 = uuid.slice(0, 8) + uuid.slice(9, 13);  // QUICK WIN #35
       return {
         uuidv7: uuid.slice(0, 13),
-        uuidv7Timestamp: new Date(parseInt(uuid.replace(/-/g, "").slice(0, 12), 16)).toISOString().slice(11, 23),
+        uuidv7Timestamp: new Date(parseInt(hex12, 16)).toISOString().slice(11, 23),
       };
     })(),
     fib: fib(i),
