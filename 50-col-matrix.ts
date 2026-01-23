@@ -1294,6 +1294,12 @@ const STATIC_CPU_USER_STR = (STATIC_CPU.user / 1000).toFixed(1);
 const STATIC_CPU_SYS_STR = (STATIC_CPU.system / 1000).toFixed(1);
 // QUICK WIN #22: All URLPatterns have identical prototype chain - compute once
 const STATIC_PROTO_CHAIN = getProtoChain(new URLPattern("*", "http://x"));
+// QUICK WIN #23: All URLPatterns have identical object state - compute once
+const _refPat = new URLPattern("*", "http://x");
+const STATIC_IS_EXTENSIBLE = Object.isExtensible(_refPat) ? "✅" : "❌";
+const STATIC_IS_SEALED = Object.isSealed(_refPat) ? "✅" : "❌";
+const STATIC_IS_FROZEN = Object.isFrozen(_refPat) ? "✅" : "❌";
+const STATIC_PROTO_NAME = Object.getPrototypeOf(_refPat)?.constructor?.name || "null";
 
 const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
   let pat: URLPattern;
@@ -1348,6 +1354,9 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
     .map(d => ("value" in d ? "v" : "g"))
     .join("");
 
+  // QUICK WIN #24: Cache pat properties (accessed 3-6× each throughout return object)
+  const { protocol: patProto, hostname: patHost, port: patPort, pathname: patPath, search: patSearch, hash: patHash } = pat;
+
   const segments = countSegments(p);
   const groupCount = m ? Object.keys(m.pathname?.groups || {}).length : 0;
 
@@ -1368,12 +1377,12 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
     matches: m ? "✅" : "❌",
     groups: m ? Object.keys(m.pathname?.groups || {}).join(",") : "",
     hasRegExpGroups: pat.hasRegExpGroups ? "✅" : "❌",
-    protocol: pat.protocol,
-    hostname: (pat.hostname || "").slice(0, 12),
-    port: pat.port || "",
-    pathname: (pat.pathname || "").slice(0, 18),
-    search: pat.search || "*",
-    hash: pat.hash || "*",
+    protocol: patProto,
+    hostname: (patHost || "").slice(0, 12),
+    port: patPort || "",
+    pathname: (patPath || "").slice(0, 18),
+    search: patSearch || "*",
+    hash: patHash || "*",
     testResult: pat.test(testUrl) ? "✅" : "❌",
     execTime,
 
@@ -1415,21 +1424,21 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
     // Props (8)
     propCount: patKeys.length,
     ownKeys: patOwnKeys.length.toString(),
-    isExtensible: Object.isExtensible(pat) ? "✅" : "❌",
-    isSealed: Object.isSealed(pat) ? "✅" : "❌",
-    isFrozen: Object.isFrozen(pat) ? "✅" : "❌",
-    protoName: Object.getPrototypeOf(pat)?.constructor?.name || "null",
+    isExtensible: STATIC_IS_EXTENSIBLE,  // QUICK WIN #23: all URLPatterns same
+    isSealed: STATIC_IS_SEALED,          // QUICK WIN #23: all URLPatterns same
+    isFrozen: STATIC_IS_FROZEN,          // QUICK WIN #23: all URLPatterns same
+    protoName: STATIC_PROTO_NAME,        // QUICK WIN #23: all URLPatterns same
     descriptorTypes: descriptorTypes.slice(0, 8) || "-",
     enumerableCount: patKeys.length,  // QUICK WIN #22: reuse cached keys
 
     // Pattern Analysis (7)
     patternComponents: [
-      pat.protocol !== "*" ? "proto" : "",
-      pat.hostname !== "*" ? "host" : "",
-      pat.port !== "*" ? "port" : "",
-      pat.pathname !== "*" ? "path" : "",
-      pat.search !== "*" ? "search" : "",
-      pat.hash !== "*" ? "hash" : "",
+      patProto !== "*" ? "proto" : "",
+      patHost !== "*" ? "host" : "",
+      patPort !== "*" ? "port" : "",
+      patPath !== "*" ? "path" : "",
+      patSearch !== "*" ? "search" : "",
+      patHash !== "*" ? "hash" : "",
     ].filter(Boolean).join("+") || "none",
     paHasRegExpGroups: pat.hasRegExpGroups ? "✅" : "❌",
     // QUICK WIN #3: Use cached pattern analysis (avoids 5 duplicate regex matches)
@@ -1443,14 +1452,14 @@ const allRows: RowData[] = patterns.slice(0, rowLimit).map((p, i) => {
       (patternAnalysis.namedGroupStarts * 2) +
       (p.length / 5)
     )),
-    canonicalForm: [pat.protocol, "://", pat.hostname, pat.port ? ":" + pat.port : "", pat.pathname].join("").slice(0, 20) + "...",
+    canonicalForm: [patProto, "://", patHost, patPort ? ":" + patPort : "", patPath].join("").slice(0, 20) + "...",
 
     // Internal Structure (6)
-    hiddenClass: `HC${(hash(pat.constructor.name + pat.pathname) as string).slice(0, 4)}`,
+    hiddenClass: `HC${(hash(pat.constructor.name + patPath) as string).slice(0, 4)}`,
     internalSlots: 8, // URLPattern has 8 internal slots per spec
-    compiledRegexCount: [pat.protocol, pat.hostname, pat.port, pat.pathname, pat.search, pat.hash, pat.username, pat.password]
+    compiledRegexCount: [patProto, patHost, patPort, patPath, patSearch, patHash, pat.username, pat.password]
       .filter(c => c && c !== "*").length,
-    patternStringLength: p.length + (pat.protocol?.length || 0) + (pat.hostname?.length || 0) + (pat.pathname?.length || 0),
+    patternStringLength: p.length + (patProto?.length || 0) + (patHost?.length || 0) + (patPath?.length || 0),
     encodingOverhead: ((p.length * 2) / 1024).toFixed(2) + "KB",
     structureFingerprint: `S${segments}G${groupCount}D${calcNestingDepth(p)}`,
 
