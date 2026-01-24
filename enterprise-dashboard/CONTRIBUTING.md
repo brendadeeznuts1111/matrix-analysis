@@ -89,6 +89,31 @@ docs(readme): update installation steps
 - Constants: `UPPER_SNAKE_CASE`
 - Types/Classes: `PascalCase`
 
+### CLI & Terminal Output
+
+All CLI tools must handle internationalized text correctly. **Do not use `.length` for terminal layouts.**
+
+```typescript
+// ❌ WRONG: .length counts UTF-16 code units, not visual columns
+cell.padEnd(20);                    // Broken for emoji/CJK/ANSI
+const width = str.length;           // "🇺🇸" = 4, but displays as 2 columns
+
+// ✅ CORRECT: Bun.stringWidth counts terminal columns
+const visibleWidth = Bun.stringWidth(str);
+const padding = " ".repeat(Math.max(0, targetWidth - visibleWidth));
+```
+
+| String | `.length` | `Bun.stringWidth` | Why |
+|--------|-----------|-------------------|-----|
+| `🇺🇸` | 4 | 2 | Flag = 2 regional indicators |
+| `👨‍👩‍👧` | 8 | 2 | Family = ZWJ sequence |
+| `\x1b[32mText\x1b[0m` | 13 | 4 | ANSI codes are invisible |
+| `日本語` | 3 | 6 | CJK = 2 columns each |
+
+See [docs/terminal-ui-guidelines.md](./docs/terminal-ui-guidelines.md) for implementation patterns.
+
+**Verification:** Run `bun run tools/verify-ui.ts --demo` before merging UI changes.
+
 ### Testing
 
 ```bash
