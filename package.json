@@ -11,18 +11,11 @@
     "./types": "./types.ts"
   },
   "devDependencies": {
+    "@types/bun": "^1.3.6",
     "typescript": "^5.9.3"
-  },
-  "peerDependencies": {
-    "@types/bun": "^1.3.6"
   },
   "description": "URLPattern Analysis Matrix with 219 columns - Performance optimized",
   "license": "MIT",
-  "peerDependenciesMeta": {
-    "@types/bun": {
-      "optional": true
-    }
-  },
   "scripts": {
     "matrix": "bun 50-col-matrix.ts",
     "matrix:audit": "bun 50-col-matrix.ts --audit",
