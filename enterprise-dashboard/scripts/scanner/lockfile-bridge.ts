@@ -174,7 +174,8 @@ async function scanPackageSource(
   packagePath: string
 ): Promise<ScanResult> {
   const annotations: string[] = [];
-  let maxSeverity: "error" | "warning" | "info" = "info";
+  type Severity = "error" | "warning" | "info";
+  let maxSeverity: Severity = "info";
 
   try {
     // Read package.json
@@ -186,7 +187,7 @@ async function scanPackageSource(
     for (const [scriptName, scriptCmd] of Object.entries(scripts)) {
       if (/^(pre|post)?(install|uninstall)$/.test(scriptName)) {
         annotations.push(`[LIFECYCLE][${scriptName.toUpperCase()}]`);
-        if (maxSeverity !== "error") maxSeverity = "warning";
+        if ((maxSeverity as Severity) !== "error") maxSeverity = "warning";
       }
     }
 
@@ -213,7 +214,7 @@ async function scanPackageSource(
         if (rule.pattern.test(mainContent)) {
           annotations.push(rule.tag);
           if (rule.severity === "error") maxSeverity = "error";
-          else if (rule.severity === "warning" && maxSeverity !== "error") {
+          else if (rule.severity === "warn" && maxSeverity !== "error") {
             maxSeverity = "warning";
           }
         }

@@ -228,7 +228,7 @@ export class SecureS3Exporter {
       const signature = await crypto.subtle.sign(
         "RSASSA-PKCS1-v1_5",
         this.privateKey,
-        data
+        data.buffer as ArrayBuffer
       );
       metadata["x-amz-meta-signature"] = btoa(
         String.fromCharCode(...new Uint8Array(signature))
@@ -528,11 +528,15 @@ async function exportStreamingSARIF(
 ): Promise<void> {
   const sarifStream = createSARIFStream(issues, metadata);
   const compressedStream = sarifStream.pipeThrough(
-    new CompressionStream("gzip")
+    new CompressionStream("gzip") as unknown as TransformStream<Uint8Array, Uint8Array>
   );
 
+  // Collect stream to buffer for S3 upload
+  const response = new Response(compressedStream);
+  const buffer = await response.arrayBuffer();
+
   const s3Path = `s3://${bucket}/${key}`;
-  await s3.write(s3Path, compressedStream);
+  await s3.write(s3Path, new Uint8Array(buffer));
 }
 
 // ============================================================================
