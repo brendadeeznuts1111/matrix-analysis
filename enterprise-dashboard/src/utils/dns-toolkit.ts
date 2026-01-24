@@ -10,6 +10,13 @@
 import { dns } from "bun";
 
 // ============================================================================
+// Version
+// ============================================================================
+
+/** DNS Toolkit version */
+export const DNS_TOOLKIT_VERSION = "1.1.0";
+
+// ============================================================================
 // Types
 // ============================================================================
 
@@ -425,12 +432,14 @@ export function isFullPreconnectAvailable(): boolean {
  * Get DNS toolkit capabilities for the current Bun version.
  */
 export function getCapabilities(): {
+  version: string;
   dnsPrefetch: boolean;
   fetchPreconnect: boolean;
   dnsTtlSeconds: number;
   bunVersion: string;
 } {
   return {
+    version: DNS_TOOLKIT_VERSION,
     dnsPrefetch: true, // Always available
     fetchPreconnect: isPreconnectAvailable(),
     dnsTtlSeconds: getDnsTtl(),
