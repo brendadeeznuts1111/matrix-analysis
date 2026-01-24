@@ -574,8 +574,8 @@ async function handleAdd(packages: string[], opts: PmOptions) {
             process.exit(1);
           }
 
-          console.log(`\n⚠️  FORCED INSTALL: Escalation token ${opts.escalationToken}`);
-          console.log("   This action will be logged to the audit trail.");
+          console.log(`\n⚠️  FORCED INSTALL: Escalation token [REDACTED]`);
+          console.log("   This action will be logged to the audit trail (token hashed).");
 
           // Log the forced install (hash token for security - never log plaintext)
           const tokenHash = new Bun.CryptoHasher("sha256")
@@ -654,8 +654,8 @@ async function handleAdd(packages: string[], opts: PmOptions) {
             process.exit(1);
           }
 
-          console.log(`\n⚠️  FORCED (LICENSE): Escalation token ${opts.escalationToken}`);
-          console.log("   Legal review required - logged to audit trail");
+          console.log(`\n⚠️  FORCED (LICENSE): Escalation token [REDACTED]`);
+          console.log("   Legal review required - logged to audit trail (token hashed)");
 
           await logAudit({
             timestamp: new Date().toISOString(),
