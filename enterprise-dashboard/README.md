@@ -515,13 +515,17 @@ const versions = await viewer.getVersions("zod", 10);
 
 ### DNS Optimization
 
+Equivalent to `<link rel="dns-prefetch">` in browsers. Prefetch when you know you'll connect to a host soon:
+
 ```typescript
 import { dns } from "bun";
 
-// Prefetch DNS before making requests (reduces latency)
-dns.prefetch("registry.npmjs.org", 443);
+// Prefetch at startup for known hosts
+dns.prefetch("registry.npmjs.org", 443);   // HTTPS
+dns.prefetch("my.database-host.com", 5432); // PostgreSQL
+dns.prefetch("redis.example.com", 6379);    // Redis
 
-// ... later, fetch benefits from cached DNS
+// ... later, connections benefit from cached DNS
 await fetch("https://registry.npmjs.org/zod");
 
 // Monitor DNS cache performance
