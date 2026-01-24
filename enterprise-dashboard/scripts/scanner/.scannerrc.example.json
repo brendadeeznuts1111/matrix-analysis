@@ -16,5 +16,28 @@
   "concurrency": 4,
   "cache": true,
   "respectGitignore": true,
-  "extends": "./shared-rules.json"
+  "extends": "./shared-rules.json",
+
+  // Bundle size budgets (enforced via cloud-bridge.ts budget)
+  "bundleBudgets": {
+    "dist/index.js": "500KB",
+    "dist/vendors*.js": "200KB",
+    "dist/*.css": "50KB",
+    "enterprise-scanner": "100KB"
+  },
+
+  // S3 export configuration
+  "s3": {
+    "bucket": "${SCANNER_S3_BUCKET}",
+    "prefix": "scans/",
+    "sign": true,
+    "requesterPays": false
+  },
+
+  // Baseline enforcement
+  "enforcement": {
+    "mode": "warn",
+    "baselineFile": ".scanner-baseline.json",
+    "failOnNewErrors": true
+  }
 }

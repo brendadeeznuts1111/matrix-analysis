@@ -7,3 +7,8 @@ dist/
 .scanner-baseline.json
 .bun-scanner-metadata.json
 .preinstall-cache.json
+
+# Signing keys (NEVER commit)
+*.pem
+*.pub
+signing-key*
