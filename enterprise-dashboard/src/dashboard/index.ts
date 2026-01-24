@@ -1,6 +1,8 @@
 // src/dashboard/index.ts
 // Enterprise Dashboard - Security & Registry Management
 
+import { feature } from "bun:bundle";
+
 export { KeychainViewer } from "./KeychainViewer.ts";
 export { RegistryViewer } from "./RegistryViewer.ts";
 export { SecurityAudit } from "./SecurityAudit.ts";
@@ -9,6 +11,37 @@ export { SecureRegistryClient } from "../client/RegistryClient.ts";
 import { KeychainViewer } from "./KeychainViewer.ts";
 import { RegistryViewer } from "./RegistryViewer.ts";
 import { SecurityAudit } from "./SecurityAudit.ts";
+
+// ============================================================================
+// Tier-Gated Features (Compile-Time Dead Code Elimination)
+// ============================================================================
+
+console.log("🚀 Starting Enterprise Dashboard...");
+
+// 1. FREE TIER: Standard Monitoring (always included)
+console.log("\x1b[36m[FREE]\x1b[0m System Monitor: Active");
+
+// 2. PRO TIER: Advanced Metrics (removed from Free bundle)
+if (feature("TIER_PRO") || feature("TIER_ENTERPRISE")) {
+  const { startAdvancedMetrics } = await import("./modules/metrics");
+  startAdvancedMetrics();
+}
+
+// 3. ENTERPRISE TIER: PTY Shell & Debug (removed from Free/Pro bundles)
+if (feature("TIER_ENTERPRISE")) {
+  const { enableShellAccess } = await import("./modules/terminal");
+  enableShellAccess();
+}
+
+// 4. DEBUG LOGGING (removed from production bundles)
+if (feature("DEBUG_LOGGING")) {
+  console.log("\x1b[90m[DEBUG] Internal state initialized\x1b[0m");
+  console.log("\x1b[90m[DEBUG] Build includes DEBUG_LOGGING feature\x1b[0m");
+}
+
+console.log("");
+
+// ============================================================================
 
 // Default packages to display
 const DEFAULT_PACKAGES = [

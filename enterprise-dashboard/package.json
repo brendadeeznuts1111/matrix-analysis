@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "type": "module",
   "workspaces": [
+    "bun-apis-slides",
     "dataview",
     "s3-project",
     "string-width"
@@ -12,6 +13,12 @@
     "dashboard": "bun src/dashboard/index.ts",
     "dashboard:keychain": "bun src/dashboard/KeychainViewer.ts",
     "dashboard:registry": "bun src/dashboard/RegistryViewer.ts",
+    "dashboard:debug": "bun run --feature=DEBUG_LOGGING --feature=DEBUG_TERMINAL src/dashboard/index.ts",
+    "dashboard:beta": "bun run --feature=AB_TEST_NEW_UI --feature=DEBUG_TERMINAL src/dashboard/index.ts",
+    "build:tiers": "bun scripts/build.ts",
+    "build:free": "bun scripts/build.ts free",
+    "build:pro": "bun scripts/build.ts pro",
+    "build:enterprise": "bun scripts/build.ts enterprise",
     "secrets": "bun scripts/setup-secrets.ts",
     "secrets:list": "bun scripts/setup-secrets.ts list",
     "audit": "bun scripts/verify-trusted-deps.ts",
