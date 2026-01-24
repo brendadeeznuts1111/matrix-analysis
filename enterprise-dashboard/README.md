@@ -513,6 +513,31 @@ const info = await viewer.getPackageInfo("zod");
 const versions = await viewer.getVersions("zod", 10);
 ```
 
+### DNS Optimization
+
+```typescript
+import { dns } from "bun";
+
+// Prefetch DNS before making requests (reduces latency)
+dns.prefetch("registry.npmjs.org", 443);
+
+// ... later, fetch benefits from cached DNS
+await fetch("https://registry.npmjs.org/zod");
+
+// Monitor DNS cache performance
+const stats = dns.getCacheStats();
+// {
+//   cacheHitsCompleted: number;  // Cache hits completed
+//   cacheHitsInflight: number;   // Cache hits in flight
+//   cacheMisses: number;         // Cache misses
+//   size: number;                // Number of items in the DNS cache
+//   errors: number;              // Number of times a connection failed
+//   totalCount: number;          // Number of times a connection was requested
+// }
+```
+
+> **Tip:** Set DNS TTL via `BUN_CONFIG_DNS_TIME_TO_LIVE_SECONDS=300 bun run script.ts`
+
 ---
 
 ## Environment Variables
