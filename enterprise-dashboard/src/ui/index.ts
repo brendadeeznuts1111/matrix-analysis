@@ -18,7 +18,7 @@ export {
   type TableColumn,
 } from "./table";
 
-// Bookmark Resource Monitor
+// Chrome-Spec Bookmark Manager
 export {
   BookmarkManager,
   CHROME_FOLDERS,
@@ -26,6 +26,8 @@ export {
   type Bookmark,
   type BookmarkFolder,
   type SearchResult,
+  type UrlType,
+  type ResolvedUrl,
 } from "./bookmarks";
 
 // Google Chromium element parser
