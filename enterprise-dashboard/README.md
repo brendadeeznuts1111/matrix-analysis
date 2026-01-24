@@ -191,7 +191,7 @@ cache_ttl = 300
 url = "https://registry.npmjs.org"
 timeout = 10000
 cache = true
-cache_ttl = 3600
+cache_ttl = 300                   # 5 minutes
 
 [registry.scopes]
 "@myorg" = "https://npm.pkg.github.com"
