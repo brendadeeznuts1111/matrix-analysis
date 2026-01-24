@@ -89,6 +89,29 @@ await Bun.write("./out.txt", content);
 await Bun.write("./copy.txt", Bun.file("./source.txt"));
 ```
 
+### S3 with Content-Disposition (Bun 1.3.6+)
+
+Control browser download behavior:
+
+```typescript
+import { s3 } from "bun";
+
+// Force download with custom filename
+await s3.write("report.pdf", pdfData, {
+  contentDisposition: 'attachment; filename="Q3-Report-2025.pdf"',
+});
+
+// Display inline in browser (images, PDFs)
+await s3.write("preview.png", imageData, {
+  contentDisposition: "inline",
+});
+
+// Set on file object
+const file = s3.file("contract.docx", {
+  contentDisposition: 'attachment; filename="signed-contract.docx"',
+});
+```
+
 ### Shell & Spawn
 
 ```typescript
@@ -104,6 +127,46 @@ const proc = Bun.spawn(["node", "server.js"], { stdout: "pipe" });
 const out = await new Response(proc.stdout).text();
 await proc.exited;
 ```
+
+### Terminal/PTY (Bun 1.3.6+)
+
+Run interactive programs (vim, htop, python REPL, psql) with full TTY support:
+
+```typescript
+// Basic interactive terminal
+const proc = Bun.spawn(["vim", "file.txt"], {
+  terminal: {
+    cols: 80,
+    rows: 24,
+    data(term, data) {
+      process.stdout.write(data);  // Colors, cursor movements preserved
+    },
+  },
+});
+
+// Forward keyboard input
+process.stdin.setRawMode(true);
+process.stdin.pipe(proc.terminal);
+await proc.exited;
+```
+
+**Custom terminal wrapper:**
+```typescript
+const terminal = new Bun.Terminal({
+  cols: 120,
+  rows: 40,
+  data(term, data) {
+    process.stdout.write(data);
+  }
+});
+
+// Run any interactive command
+Bun.spawn(["python3", "-i"], { terminal });
+Bun.spawn(["psql", "-U", "user", "db"], { terminal });
+Bun.spawn(["htop"], { terminal });
+```
+
+**Use cases:** Interactive shells, text editors, system monitors, REPLs, database clients.
 
 ### SQLite
 
@@ -147,6 +210,12 @@ Bun.password.hash("pwd")                   // Argon2id hash
 Bun.password.verify("pwd", hash)           // Verify
 Bun.peek(promise)                          // Sync check if resolved
 Bun.fileURLToPath(new URL(".", import.meta.url))  // Get directory path
+
+// Open file in editor (respects $EDITOR / $VISUAL)
+Bun.openInEditor("./src/app.ts");                  // Open file
+Bun.openInEditor("./src/app.ts", { line: 42 });    // Jump to line
+Bun.openInEditor("./src/app.ts", { line: 42, column: 10 });  // Line + column
+Bun.resolveSync("./src/auth.ts", import.meta.dir); // Resolve relative path
 ```
 
 ### Fetch & DNS Optimization
@@ -316,3 +385,72 @@ bun --cpu-prof --cpu-prof-dir ./profiles      # Custom directory
 | `generateHeapSnapshot()` | Memory leak debugging | Safari DevTools |
 | `MIMALLOC_SHOW_STATS=1` | Native memory | Exit summary |
 | `--cpu-prof` | Performance bottlenecks | Chrome DevTools |
+
+### Compile-Time Feature Flags (Bun 1.3.6+)
+
+Dead-code elimination at build time - code for disabled features is removed from bundle:
+
+```typescript
+// env.d.ts - Type-safe feature definitions
+declare module "bun:bundle" {
+  interface Registry {
+    features: "DEBUG" | "PREMIUM" | "ADMIN" | "TIER_FREE" | "TIER_PRO";
+  }
+}
+
+// app.ts
+import { feature } from "bun:bundle";
+
+if (feature("DEBUG")) {
+  console.log("Debug mode");  // Removed unless --feature=DEBUG
+}
+
+if (feature("TIER_PRO")) {
+  initPremiumFeatures();  // Only in pro tier bundle
+}
+```
+
+**Build commands:**
+```bash
+bun build --feature=DEBUG --minify src/app.ts      # Dev build
+bun build --feature=TIER_FREE --minify src/app.ts  # Free tier
+bun build --feature=TIER_PRO --minify src/app.ts   # Pro tier
+bun run --feature=DEBUG src/app.ts                 # Runtime
+```
+
+**package.json scripts:**
+```json
+{
+  "scripts": {
+    "build:free": "bun build --feature=TIER_FREE --minify src/app.ts",
+    "build:pro": "bun build --feature=TIER_PRO --minify src/app.ts",
+    "build:enterprise": "bun build --feature=TIER_ENTERPRISE --minify src/app.ts"
+  }
+}
+```
+
+**Result:** Up to 60% bundle size reduction by eliminating unused feature code.
+
+### .npmrc Environment Variables (Bun 1.3.6+)
+
+All variable formats now work correctly:
+
+```bash
+# .npmrc - all these work now
+//registry.npmjs.org/:_authToken=${NPM_TOKEN}
+//registry.npmjs.org/:_authToken="${NPM_TOKEN}"
+//registry.npmjs.org/:_authToken='${NPM_TOKEN}'
+
+# Optional modifier (undefined → empty string instead of error)
+//registry.npmjs.org/:_authToken=${NPM_TOKEN?}
+email="${NPM_EMAIL?}"
+```
+
+**CI/CD usage:**
+```yaml
+# GitHub Actions
+env:
+  NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+steps:
+  - run: bun install  # .npmrc ${NPM_TOKEN} works correctly
+```
