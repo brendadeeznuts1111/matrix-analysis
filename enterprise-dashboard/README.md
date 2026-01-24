@@ -525,6 +525,7 @@ const versions = await viewer.getVersions("zod", 10);
 | `NODE_ENV` | Environment mode | `development` |
 | `LOG_LEVEL` | Logging verbosity | `info` |
 | `DASHBOARD_PORT` | Dashboard server port | `3000` |
+| `BUN_CONFIG_DNS_TIME_TO_LIVE_SECONDS` | DNS cache TTL in seconds | `300` |
 
 ---
 

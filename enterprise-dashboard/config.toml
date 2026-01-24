@@ -48,6 +48,7 @@ enabled = false
 [network.dns]
 prefetch = true                   # DNS prefetch for known hosts
 cache_ttl = 300                   # DNS cache TTL in seconds
+# Override via: BUN_CONFIG_DNS_TIME_TO_LIVE_SECONDS=5 bun run script.ts
 
 [registry]
 url = "https://registry.npmjs.org"
