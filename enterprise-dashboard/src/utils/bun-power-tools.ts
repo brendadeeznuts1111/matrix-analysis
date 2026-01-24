@@ -130,6 +130,50 @@ export class BunToolkit {
   }
 
   /**
+   * DEEP COMPARE WITH OPTIONS (Bun.deepEquals)
+   * Extended comparison with ignoreUndefined support.
+   */
+  static deepCompare(
+    a: unknown,
+    b: unknown,
+    options: { strict?: boolean; ignoreUndefined?: boolean } = {}
+  ): boolean {
+    const { strict = false, ignoreUndefined = false } = options;
+
+    // Fast path for strict mode
+    if (strict) {
+      return Bun.deepEquals(a, b, true);
+    }
+
+    // Custom handling for undefined values
+    if (ignoreUndefined) {
+      const filteredA = this.filterUndefined(a);
+      const filteredB = this.filterUndefined(b);
+      return Bun.deepEquals(filteredA, filteredB, false);
+    }
+
+    return Bun.deepEquals(a, b, false);
+  }
+
+  private static filterUndefined(obj: unknown): unknown {
+    if (Array.isArray(obj)) {
+      return obj.filter((item) => item !== undefined).map((item) => this.filterUndefined(item));
+    }
+
+    if (obj && typeof obj === "object") {
+      const result: Record<string, unknown> = {};
+      for (const [key, value] of Object.entries(obj)) {
+        if (value !== undefined) {
+          result[key] = this.filterUndefined(value);
+        }
+      }
+      return result;
+    }
+
+    return obj;
+  }
+
+  /**
    * PROMISE STATUS MONITOR (Bun.peek.status)
    * Returns current status of promises without awaiting.
    */
@@ -186,5 +230,15 @@ export class BunToolkit {
 }
 
 // Re-export for convenience
-export const { fastAll, renderResponsiveTable, debugTask, safeHTML, diffState, openAt, time, timeAsync } =
-  BunToolkit;
+export const {
+  fastAll,
+  renderResponsiveTable,
+  debugTask,
+  safeHTML,
+  diffState,
+  deepCompare,
+  getPromiseStatuses,
+  openAt,
+  time,
+  timeAsync,
+} = BunToolkit;
