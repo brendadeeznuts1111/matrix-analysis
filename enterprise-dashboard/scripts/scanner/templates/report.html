@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bun Enterprise Scanner Report</title>
+  <style>
+    :root {
+      --md-primary: #1a73e8;
+      --md-error: #d93025;
+      --md-warning: #f9ab00;
+      --md-success: #1e8e3e;
+      --md-info: #1967d2;
+      --md-surface: #ffffff;
+      --md-background: #f8f9fa;
+      --md-on-surface: #202124;
+      --md-outline: #dadce0;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Google Sans', 'Roboto', -apple-system, sans-serif;
+      background: var(--md-background);
+      color: var(--md-on-surface);
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    header {
+      background: var(--md-surface);
+      border-bottom: 1px solid var(--md-outline);
+      padding: 16px 24px;
+      margin-bottom: 24px;
+      border-radius: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    header h1 {
+      font-size: 24px;
+      font-weight: 500;
+      color: var(--md-primary);
+    }
+
+    .score-badge {
+      font-size: 32px;
+      font-weight: 700;
+      padding: 8px 24px;
+      border-radius: 24px;
+    }
+
+    .score-badge.excellent { background: #e6f4ea; color: var(--md-success); }
+    .score-badge.good { background: #fef7e0; color: var(--md-warning); }
+    .score-badge.poor { background: #fce8e6; color: var(--md-error); }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .summary-card {
+      background: var(--md-surface);
+      border: 1px solid var(--md-outline);
+      border-radius: 8px;
+      padding: 16px;
+      text-align: center;
+    }
+
+    .summary-card .value {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--md-primary);
+    }
+
+    .summary-card .label {
+      font-size: 14px;
+      color: #5f6368;
+      margin-top: 4px;
+    }
+
+    .issues-table {
+      background: var(--md-surface);
+      border: 1px solid var(--md-outline);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .issues-table table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .issues-table th {
+      background: #f1f3f4;
+      padding: 12px 16px;
+      text-align: left;
+      font-weight: 500;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #5f6368;
+    }
+
+    .issues-table td {
+      padding: 12px 16px;
+      border-top: 1px solid var(--md-outline);
+    }
+
+    .severity {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .severity.error { background: #fce8e6; color: var(--md-error); }
+    .severity.warning { background: #fef7e0; color: #b06000; }
+    .severity.info { background: #e8f0fe; color: var(--md-info); }
+
+    .fix-suggestion {
+      font-family: 'Roboto Mono', monospace;
+      font-size: 12px;
+      background: #f1f3f4;
+      padding: 4px 8px;
+      border-radius: 4px;
+      color: #5f6368;
+    }
+
+    .no-issues {
+      text-align: center;
+      padding: 48px;
+      color: var(--md-success);
+    }
+
+    .no-issues svg {
+      width: 64px;
+      height: 64px;
+      margin-bottom: 16px;
+    }
+
+    footer {
+      text-align: center;
+      padding: 24px;
+      color: #5f6368;
+      font-size: 12px;
+    }
+
+    .trace-id {
+      font-family: 'Roboto Mono', monospace;
+      font-size: 11px;
+      color: #9aa0a6;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Bun Enterprise Scanner</h1>
+      <div class="score-badge {{SCORE_CLASS}}">{{SCORE}}/100</div>
+    </header>
+
+    <div class="summary-grid">
+      <div class="summary-card">
+        <div class="value">{{FILES_SCANNED}}</div>
+        <div class="label">Files Scanned</div>
+      </div>
+      <div class="summary-card">
+        <div class="value">{{TOTAL_LINES}}</div>
+        <div class="label">Lines Analyzed</div>
+      </div>
+      <div class="summary-card">
+        <div class="value">{{ISSUES_FOUND}}</div>
+        <div class="label">Issues Found</div>
+      </div>
+      <div class="summary-card">
+        <div class="value">{{DURATION_MS}}ms</div>
+        <div class="label">Scan Duration</div>
+      </div>
+    </div>
+
+    <div class="issues-table">
+      {{#IF_ISSUES}}
+      <table>
+        <thead>
+          <tr>
+            <th>File</th>
+            <th>Line</th>
+            <th>Severity</th>
+            <th>Category</th>
+            <th>Issue</th>
+            <th>Suggested Fix</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{ISSUES_ROWS}}
+        </tbody>
+      </table>
+      {{/IF_ISSUES}}
+      {{#IF_NO_ISSUES}}
+      <div class="no-issues">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+        </svg>
+        <h2>No Issues Found</h2>
+        <p>Your codebase passes all checks.</p>
+      </div>
+      {{/IF_NO_ISSUES}}
+    </div>
+
+    <footer>
+      <p>Generated by Bun Enterprise Scanner v3.0</p>
+      <p class="trace-id">Trace ID: {{TRACE_ID}} | {{TIMESTAMP}}</p>
+    </footer>
+  </div>
+
+  <script>
+    // Embedded scan results for interactive filtering
+    const scanResults = {{RESULTS_JSON}};
+    console.log('Scan results loaded:', scanResults.length, 'files');
+  </script>
+</body>
+</html>

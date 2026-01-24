@@ -1,0 +1,85 @@
+{
+  "version": "1.0.0",
+  "rules": [
+    {
+      "id": "node-fs",
+      "category": "DEPS",
+      "scope": "IMPORT",
+      "pattern": "import.*from\\s+[\"'](?:node:)?fs[\"']",
+      "message": "Node.js fs import - consider Bun.file()",
+      "fix": "Bun.file().text() / .json() / .bytes()",
+      "severity": "warning",
+      "enabled": true
+    },
+    {
+      "id": "node-child-process",
+      "category": "DEPS",
+      "scope": "IMPORT",
+      "pattern": "import.*from\\s+[\"'](?:node:)?child_process[\"']",
+      "message": "Node.js child_process - use Bun.spawn() or Bun.$",
+      "fix": "Bun.spawn() or $`command`",
+      "severity": "warning",
+      "enabled": true
+    },
+    {
+      "id": "node-fetch",
+      "category": "DEPS",
+      "scope": "IMPORT",
+      "pattern": "import.*from\\s+[\"']node-fetch[\"']",
+      "message": "node-fetch package - native fetch() available",
+      "fix": "Use global fetch()",
+      "severity": "warning",
+      "enabled": true
+    },
+    {
+      "id": "express",
+      "category": "DEPS",
+      "scope": "IMPORT",
+      "pattern": "import.*from\\s+[\"']express[\"']",
+      "message": "Express.js - consider Bun.serve() for better performance",
+      "fix": "Bun.serve({ fetch(req) { ... } })",
+      "severity": "info",
+      "enabled": true
+    },
+    {
+      "id": "json-parse-fs",
+      "category": "PERF",
+      "scope": "GLOBAL",
+      "pattern": "JSON\\.parse\\(\\s*(?:fs\\.readFileSync|await\\s+fs\\.promises\\.readFile)",
+      "message": "JSON.parse(fs.read...) - use Bun.file().json()",
+      "fix": "await Bun.file(path).json()",
+      "severity": "warning",
+      "enabled": true
+    },
+    {
+      "id": "sync-file-read",
+      "category": "PERF",
+      "scope": "GLOBAL",
+      "pattern": "fs\\.readFileSync\\(",
+      "message": "Synchronous file read - prefer async Bun.file()",
+      "fix": "await Bun.file(path).text()",
+      "severity": "warning",
+      "enabled": true
+    },
+    {
+      "id": "eval-usage",
+      "category": "SECURITY",
+      "scope": "GLOBAL",
+      "pattern": "(?:^|[^\"'`])(?<!\\w)eval\\s*\\(",
+      "message": "eval() usage detected - security risk",
+      "fix": "Use Function constructor or safer alternatives",
+      "severity": "error",
+      "enabled": true
+    },
+    {
+      "id": "hardcoded-secret",
+      "category": "SECURITY",
+      "scope": "GLOBAL",
+      "pattern": "(?:password|secret|api_?key|token)\\s*[:=]\\s*[\"'][^\"']{8,}[\"']",
+      "message": "Potential hardcoded secret detected",
+      "fix": "Use environment variables: Bun.env.SECRET_NAME",
+      "severity": "error",
+      "enabled": true
+    }
+  ]
+}
