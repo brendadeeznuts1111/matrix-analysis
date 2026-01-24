@@ -385,15 +385,49 @@ bun install [packages...] [flags]
 | `--concurrent-scripts` | 5 | Max parallel lifecycle scripts |
 | `--network-concurrency` | 48 | Max parallel network requests |
 | `--backend` | clonefile | `hardlink\|symlink\|copyfile` |
+| `--linker` | hoisted | `isolated` (pnpm-style) prevents phantom deps |
+
+**Network & Registry:**
+| Flag | Effect |
+|------|--------|
+| `--registry <url>` | Override npm registry |
+| `--ca <cert>` | CA signing certificate |
+| `--cafile <path>` | Path to CA certificate file |
+| `--cache-dir <path>` | Custom cache directory |
+| `--no-cache` | Ignore manifest cache |
+| `--no-verify` | Skip integrity verification |
+
+**Cross-Platform:**
+| Flag | Values |
+|------|--------|
+| `--cpu` | `arm64`, `x64`, `ia32`, `ppc64`, `s390x` |
+| `--os` | `linux`, `darwin`, `win32`, `freebsd`, `openbsd` |
+
+**Security:**
+| Flag | Effect |
+|------|--------|
+| `--minimum-release-age <sec>` | Only install packages older than N seconds |
+| `--ignore-scripts` | Skip project lifecycle scripts |
+
+**Environment Variables:**
+| Variable | Effect |
+|----------|--------|
+| `BUN_CONFIG_REGISTRY` | Default registry URL |
+| `BUN_CONFIG_YARN_LOCKFILE` | Save yarn.lock v1 |
+| `BUN_CONFIG_SKIP_SAVE_LOCKFILE` | Don't save lockfile |
+| `BUN_CONFIG_SKIP_LOAD_LOCKFILE` | Don't load lockfile |
 
 **Common Combos:**
 ```bash
-bun install --frozen-lockfile              # CI builds
+bun install --frozen-lockfile              # CI builds (or `bun ci`)
 bun install --production                   # Deploy (no devDeps)
 bun install --filter "@scope/*"            # Workspace subset
 bun add lodash --exact                     # Pin exact version
 bun add -d vitest                          # Add dev dependency
 bun install --save-text-lockfile           # Migrate to text lockfile
+bun install --cpu=x64 --os=linux           # Cross-platform install
+bun install --minimum-release-age 259200   # 3-day supply chain protection
+bun install --linker isolated              # pnpm-style isolation
 ```
 
 **pnpm Migration:** Requires pnpm lockfile v7+. After `bun install`, remove `pnpm-lock.yaml` and `pnpm-workspace.yaml`.
