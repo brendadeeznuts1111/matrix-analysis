@@ -66,6 +66,14 @@ export const sections: Section[] = [
     slides: ["shell-intro", "shell-patterns", "shell-streaming"],
   },
   {
+    id: "connect",
+    title: "Bun.connect()",
+    icon: "🔌",
+    api: "Bun.connect",
+    category: "networking",
+    slides: ["connect-intro", "connect-errors", "connect-patterns"],
+  },
+  {
     id: "integration",
     title: "Integration",
     icon: "🔧",
@@ -413,10 +421,74 @@ const pty = Bun.spawn(["vim", "file.txt"], {
     tags: ["spawn", "streaming", "pty"],
   },
 
-  // Section 9: Integration
+  // Section 9: Bun.connect() - Networking
+  {
+    id: "connect-intro",
+    number: 26,
+    type: "section",
+    sectionId: "connect",
+    title: "Bun.connect()",
+    subtitle: "Low-Level Networking",
+    content: "TCP/TLS connections with async handlers for high-performance networking",
+    icon: "🔌",
+    tags: ["networking", "tcp", "tls"],
+  },
+  {
+    id: "connect-errors",
+    number: 27,
+    type: "content",
+    sectionId: "connect",
+    title: "Error Handling",
+    subtitle: "Graceful Connection Failures",
+    content: "Handle connection errors gracefully with try-catch patterns. Log context for debugging and implement retry logic for resilient applications.",
+    code: `// Graceful error handling
+try {
+  await Bun.connect({
+    hostname: "api.example.com",
+    port: 443,
+    tls: true,
+    socket: {
+      data(socket, data) { /* handle response */ },
+      error(socket, err) { console.error("Socket error:", err); },
+      close() { console.log("Connection closed"); },
+    },
+  });
+} catch (e) {
+  await ErrorHandler.handle(e, { endpoint: "/api" });
+}`,
+    tags: ["errors", "try-catch", "resilience"],
+  },
+  {
+    id: "connect-patterns",
+    number: 28,
+    type: "demo",
+    sectionId: "connect",
+    title: "Connection Patterns",
+    subtitle: "TCP Client & Health Checks",
+    content: "Build TCP clients, implement health checks, and create connection pools. Use Bun.connect() for Redis, database, and custom protocol clients.",
+    code: `// Health check with timeout
+async function healthCheck(host: string, port: number) {
+  try {
+    const socket = await Bun.connect({
+      hostname: host,
+      port,
+      socket: {
+        open(socket) { socket.end(); },
+        error() { /* handled below */ },
+      },
+    });
+    return { status: "up", latency: Date.now() - start };
+  } catch {
+    return { status: "down", error: "Connection refused" };
+  }
+}`,
+    tags: ["health-check", "tcp-client", "patterns"],
+  },
+
+  // Section 10: Integration
   {
     id: "int-dashboard",
-    number: 26,
+    number: 29,
     type: "section",
     sectionId: "integration",
     title: "Integration",
@@ -427,7 +499,7 @@ const pty = Bun.spawn(["vim", "file.txt"], {
   },
   {
     id: "int-demo",
-    number: 27,
+    number: 30,
     type: "demo",
     sectionId: "integration",
     title: "DevDashboard",
@@ -437,7 +509,7 @@ const pty = Bun.spawn(["vim", "file.txt"], {
   },
   {
     id: "int-guide",
-    number: 28,
+    number: 31,
     type: "summary",
     sectionId: "integration",
     title: "API Selection Guide",
@@ -449,7 +521,7 @@ const pty = Bun.spawn(["vim", "file.txt"], {
   // Final
   {
     id: "final",
-    number: 29,
+    number: 32,
     type: "final",
     title: "Master Bun's APIs",
     subtitle: "Start Building Today",
