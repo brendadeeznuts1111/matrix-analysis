@@ -7,6 +7,73 @@ import { existsSync } from "node:fs";
 // mkdirSync replaced with Bun.spawnSync below
 import * as path from "path";
 import * as os from "os";
+import { bookmarkLog } from "../utils/logger.ts";
+
+// ============================================================================
+// Path Traversal Protection
+// ============================================================================
+
+/**
+ * Validate that a resolved path stays within an allowed base directory.
+ * Prevents path traversal attacks using sequences like "../".
+ */
+function isPathWithinBase(resolvedPath: string, baseDir: string): boolean {
+  const normalizedPath = path.normalize(resolvedPath);
+  const normalizedBase = path.normalize(baseDir);
+  return normalizedPath.startsWith(normalizedBase + path.sep) || normalizedPath === normalizedBase;
+}
+
+/**
+ * Get allowed base directories for bookmark operations.
+ * Restricts file access to Chrome data directories and explicit user paths.
+ */
+function getAllowedBaseDirs(): string[] {
+  const home = os.homedir();
+  const dirs = [
+    // macOS Chrome paths
+    path.join(home, "Library/Application Support/Google/Chrome"),
+    path.join(home, "Library/Application Support/Google/Chrome Beta"),
+    path.join(home, "Library/Application Support/Google/Chrome Canary"),
+    // Windows Chrome paths
+    path.join(home, "AppData/Local/Google/Chrome/User Data"),
+    // Linux Chrome paths
+    path.join(home, ".config/google-chrome"),
+    path.join(home, ".config/chromium"),
+    // Allow current working directory for explicit exports
+    process.cwd(),
+  ];
+  return dirs.filter(d => existsSync(d) || d === process.cwd());
+}
+
+/**
+ * Sanitize and validate a path, ensuring no directory traversal.
+ * Returns null if path is unsafe.
+ */
+function sanitizePath(inputPath: string, allowedBases?: string[]): string | null {
+  // Reject obviously malicious patterns before resolution
+  if (inputPath.includes("\0") || inputPath.includes("..")) {
+    return null;
+  }
+
+  // Expand ~ to home directory
+  let resolved: string;
+  if (inputPath.startsWith("~")) {
+    resolved = path.join(os.homedir(), inputPath.slice(1));
+  } else if (path.isAbsolute(inputPath)) {
+    resolved = inputPath;
+  } else {
+    resolved = path.resolve(process.cwd(), inputPath);
+  }
+
+  // Normalize to resolve any remaining traversal
+  resolved = path.normalize(resolved);
+
+  // Check against allowed base directories
+  const bases = allowedBases ?? getAllowedBaseDirs();
+  const isAllowed = bases.some(base => isPathWithinBase(resolved, base));
+
+  return isAllowed ? resolved : null;
+}
 
 /**
  * 🔖 Chrome-Spec Bookmark Manager
@@ -48,6 +115,50 @@ interface BookmarkFolder {
   expanded: boolean;
   order: number;
   created: Date;
+}
+
+// Chrome Local State structure for profile management
+interface ChromeLocalState {
+  profile?: {
+    info_cache?: Record<string, ChromeProfileInfo>;
+  };
+}
+
+interface ChromeProfileInfo {
+  name?: string;
+  shortcut_name?: string;
+  gaia_name?: string;
+  user_name?: string;
+  is_using_default_name?: boolean;
+  is_using_default_avatar?: boolean;
+  is_omitted?: boolean;
+  is_ephemeral?: boolean;
+  is_signed_in?: boolean;
+  active_time?: number;
+}
+
+// Chrome Bookmark Data root structure
+interface ChromeBookmarkData {
+  roots?: {
+    bookmark_bar?: ChromeBookmarkNode;
+    other?: ChromeBookmarkNode;
+    synced?: ChromeBookmarkNode;
+  };
+  checksum?: string;
+  version?: number;
+}
+
+// Scanner interface for cross-reference integration
+interface BookmarkScanner {
+  scanUrl(url: string, traceId?: string): Promise<{ issues: number }>;
+}
+
+// Reference result for cross-referencing
+interface BookmarkReference {
+  visits: number;
+  lastVisit?: Date;
+  folderPath: string[];
+  scanner?: { issues: number; traceId?: string };
 }
 
 // Drag-and-drop operation
@@ -94,6 +205,96 @@ interface BookmarkManagerConfig {
     cacheSize?: number;
     debounceSearch?: number;
   };
+}
+
+// ============================================================================
+// Config Validation
+// ============================================================================
+
+/** Valid config keys for schema validation */
+const VALID_CONFIG_KEYS = new Set([
+  "workspaceProfileName",
+  "chromeBookmarksPath",
+  "chromeProfileName",
+  "chromeProfileDirectory",
+  "autoDetectChromePath",
+  "fallbackToDefaultProfile",
+  "dnsCacheTTL",
+  "maxSearchResults",
+  "autoSync",
+  "syncInterval",
+  "defaultFolder",
+  "faviconEmoji",
+  "errorPages",
+  "database",
+  "performance",
+]);
+
+/**
+ * Validate and sanitize config data loaded from files.
+ * Rejects unknown keys and validates types for known keys.
+ */
+function validateConfigData(data: unknown): Partial<BookmarkManagerConfig> | null {
+  if (typeof data !== "object" || data === null || Array.isArray(data)) {
+    bookmarkLog.warn("[Config] Invalid config: expected object");
+    return null;
+  }
+
+  const config = data as Record<string, unknown>;
+  const validated: Partial<BookmarkManagerConfig> = {};
+  const unknownKeys: string[] = [];
+
+  for (const [key, value] of Object.entries(config)) {
+    if (!VALID_CONFIG_KEYS.has(key)) {
+      unknownKeys.push(key);
+      continue;
+    }
+
+    // Type validation for known keys
+    switch (key) {
+      case "workspaceProfileName":
+      case "chromeBookmarksPath":
+      case "chromeProfileName":
+      case "chromeProfileDirectory":
+      case "defaultFolder":
+        if (typeof value === "string") {
+          (validated as Record<string, unknown>)[key] = value;
+        }
+        break;
+      case "autoDetectChromePath":
+      case "fallbackToDefaultProfile":
+      case "autoSync":
+        if (typeof value === "boolean") {
+          (validated as Record<string, unknown>)[key] = value;
+        }
+        break;
+      case "dnsCacheTTL":
+      case "maxSearchResults":
+      case "syncInterval":
+        if (typeof value === "number" && value >= 0) {
+          (validated as Record<string, unknown>)[key] = value;
+        }
+        break;
+      case "faviconEmoji":
+        if (typeof value === "object" && value !== null && !Array.isArray(value)) {
+          validated.faviconEmoji = value as Record<string, string>;
+        }
+        break;
+      case "errorPages":
+      case "database":
+      case "performance":
+        if (typeof value === "object" && value !== null && !Array.isArray(value)) {
+          (validated as Record<string, unknown>)[key] = value;
+        }
+        break;
+    }
+  }
+
+  if (unknownKeys.length > 0) {
+    bookmarkLog.warn(`[Config] Ignoring unknown config keys: ${unknownKeys.join(", ")}`);
+  }
+
+  return validated;
 }
 
 export class ChromeSpecBookmarkManager {
@@ -206,7 +407,7 @@ export class ChromeSpecBookmarkManager {
     try {
       // Get Chrome Local State path
       const localStatePath = this.getChromeLocalStatePath();
-      if (!localStatePath || !existsSync(localStatePath)) {
+      if (!localStatePath || !(await Bun.file(localStatePath).exists())) {
         await this.showErrorPage({
           title: "Chrome Not Found",
           message: "Could not locate Chrome installation or Local State file.",
@@ -226,14 +427,14 @@ export class ChromeSpecBookmarkManager {
         if (info?.name === this.workspaceProfileName) {
           this.workspaceProfileDir = dir;
           profileFound = true;
-          console.log(`\x1b[32m✅ Found workspace profile: ${this.workspaceProfileName}\x1b[0m`);
+          bookmarkLog.info(`\x1b[32m✅ Found workspace profile: ${this.workspaceProfileName}\x1b[0m`);
           break;
         }
       }
 
       // Create workspace profile if it doesn't exist
       if (!profileFound) {
-        console.log(`\x1b[33m⚠️  Workspace profile not found, creating...\x1b[0m`);
+        bookmarkLog.warn(`\x1b[33m⚠️  Workspace profile not found, creating...\x1b[0m`);
         const created = await this.createWorkspaceProfile(localStatePath, localState);
         if (!created) {
           await this.showErrorPage({
@@ -287,10 +488,10 @@ export class ChromeSpecBookmarkManager {
   /**
    * Create workspace profile in Chrome
    */
-  private async createWorkspaceProfile(localStatePath: string, localState: any): Promise<boolean> {
+  private async createWorkspaceProfile(localStatePath: string, localState: ChromeLocalState): Promise<boolean> {
     try {
       // Generate a unique profile directory name
-      const profileDir = `Profile ${Date.now()}`;
+      const profileDir = `Profile_${Bun.randomUUIDv7().slice(0, 8)}`;
       
       // Update Local State with new profile
       if (!localState.profile) {
@@ -314,10 +515,10 @@ export class ChromeSpecBookmarkManager {
       await write(localStatePath, JSON.stringify(localState, null, 2));
       
       this.workspaceProfileDir = profileDir;
-      console.log(`\x1b[32m✅ Created workspace profile: ${profileDir}\x1b[0m`);
+      bookmarkLog.info(`\x1b[32m✅ Created workspace profile: ${profileDir}\x1b[0m`);
       return true;
     } catch (error: any) {
-      console.log(`\x1b[31m❌ Failed to create profile: ${error.message}\x1b[0m`);
+      bookmarkLog.error(`\x1b[31m❌ Failed to create profile: ${error.message}\x1b[0m`);
       return false;
     }
   }
@@ -327,7 +528,7 @@ export class ChromeSpecBookmarkManager {
    */
   async listChromeProfiles(): Promise<Array<{ name: string; directory: string }>> {
     const localStatePath = this.getChromeLocalStatePath();
-    if (!localStatePath || !existsSync(localStatePath)) {
+    if (!localStatePath || !(await Bun.file(localStatePath).exists())) {
       return [];
     }
 
@@ -353,7 +554,7 @@ export class ChromeSpecBookmarkManager {
     // First, ensure workspace profile exists
     const profileReady = await this.ensureWorkspaceProfile();
     if (!profileReady) {
-      console.log(`\x1b[33m⚠️  Continuing without workspace profile...\x1b[0m`);
+      bookmarkLog.warn(`\x1b[33m⚠️  Continuing without workspace profile...\x1b[0m`);
     }
 
     const platform = os.platform();
@@ -363,10 +564,10 @@ export class ChromeSpecBookmarkManager {
     // Priority 1: Use explicitly configured path
     if (this.config.chromeBookmarksPath) {
       chromeBookmarksPath = this.resolveBookmarksPath(this.config.chromeBookmarksPath);
-      if (chromeBookmarksPath && existsSync(chromeBookmarksPath)) {
-        console.log(`\x1b[32m✅ Using configured bookmarks path: ${chromeBookmarksPath}\x1b[0m`);
+      if (chromeBookmarksPath && (await Bun.file(chromeBookmarksPath).exists())) {
+        bookmarkLog.info(`\x1b[32m✅ Using configured bookmarks path: ${chromeBookmarksPath}\x1b[0m`);
       } else {
-        console.log(`\x1b[33m⚠️  Configured path not found: ${this.config.chromeBookmarksPath}\x1b[0m`);
+        bookmarkLog.warn(`\x1b[33m⚠️  Configured path not found: ${this.config.chromeBookmarksPath}\x1b[0m`);
         chromeBookmarksPath = null;
       }
     }
@@ -374,8 +575,8 @@ export class ChromeSpecBookmarkManager {
     // Priority 2: Use configured profile directory
     if (!chromeBookmarksPath && this.config.chromeProfileDirectory) {
       chromeBookmarksPath = this.getBookmarksPathForProfile(this.config.chromeProfileDirectory);
-      if (chromeBookmarksPath && existsSync(chromeBookmarksPath)) {
-        console.log(`\x1b[32m✅ Using configured profile directory: ${this.config.chromeProfileDirectory}\x1b[0m`);
+      if (chromeBookmarksPath && (await Bun.file(chromeBookmarksPath).exists())) {
+        bookmarkLog.info(`\x1b[32m✅ Using configured profile directory: ${this.config.chromeProfileDirectory}\x1b[0m`);
       } else {
         chromeBookmarksPath = null;
       }
@@ -390,13 +591,13 @@ export class ChromeSpecBookmarkManager {
       );
       if (profile) {
         chromeBookmarksPath = this.getBookmarksPathForProfile(profile.directory);
-        if (chromeBookmarksPath && existsSync(chromeBookmarksPath)) {
-          console.log(`\x1b[32m✅ Using profile: ${profile.name} (${profile.directory})\x1b[0m`);
+        if (chromeBookmarksPath && (await Bun.file(chromeBookmarksPath).exists())) {
+          bookmarkLog.info(`\x1b[32m✅ Using profile: ${profile.name} (${profile.directory})\x1b[0m`);
         } else {
           chromeBookmarksPath = null;
         }
       } else {
-        console.log(`\x1b[33m⚠️  Profile not found: ${effectiveProfileName}\x1b[0m`);
+        bookmarkLog.warn(`\x1b[33m⚠️  Profile not found: ${effectiveProfileName}\x1b[0m`);
       }
     }
 
@@ -417,47 +618,47 @@ export class ChromeSpecBookmarkManager {
     }
 
     // Priority 5: Fallback to Default profile if enabled
-    if ((!chromeBookmarksPath || !existsSync(chromeBookmarksPath)) && 
+    if ((!chromeBookmarksPath || !(await Bun.file(chromeBookmarksPath).exists())) &&
         this.config.fallbackToDefaultProfile !== false) {
       const defaultPath = this.getDefaultBookmarksPath(platform);
-      if (defaultPath && existsSync(defaultPath)) {
+      if (defaultPath && (await Bun.file(defaultPath).exists())) {
         chromeBookmarksPath = defaultPath;
-        console.log(`\x1b[90mFell back to Default profile\x1b[0m`);
+        bookmarkLog.debug(`\x1b[90mFell back to Default profile\x1b[0m`);
       }
     }
 
-    console.log(`\x1b[90mLooking for Chrome bookmarks at: ${chromeBookmarksPath}\x1b[0m`);
+    bookmarkLog.debug(`\x1b[90mLooking for Chrome bookmarks at: ${chromeBookmarksPath}\x1b[0m`);
 
     // Validate path if it exists
-    if (chromeBookmarksPath && existsSync(chromeBookmarksPath)) {
+    if (chromeBookmarksPath && (await Bun.file(chromeBookmarksPath).exists())) {
       const validation = await this.validateBookmarksPath(chromeBookmarksPath);
       if (!validation.valid) {
-        console.log(`\x1b[33m⚠️  Path validation failed: ${validation.error}\x1b[0m`);
+        bookmarkLog.warn(`\x1b[33m⚠️  Path validation failed: ${validation.error}\x1b[0m`);
         chromeBookmarksPath = null;
       } else if (validation.stats) {
-        console.log(`\x1b[90m  File size: ${(validation.stats.size / 1024).toFixed(2)} KB, Modified: ${validation.stats.modified.toLocaleString()}\x1b[0m`);
+        bookmarkLog.debug(`\x1b[90m  File size: ${(validation.stats.size / 1024).toFixed(2)} KB, Modified: ${validation.stats.modified.toLocaleString()}\x1b[0m`);
       }
     }
 
-    if (!chromeBookmarksPath || !existsSync(chromeBookmarksPath)) {
-      console.log(`\x1b[33m⚠️  Chrome bookmarks file not found\x1b[0m`);
-      
+    if (!chromeBookmarksPath || !(await Bun.file(chromeBookmarksPath).exists())) {
+      bookmarkLog.warn(`\x1b[33m⚠️  Chrome bookmarks file not found\x1b[0m`);
+
       // Try alternative locations
       const alternativePaths = this.getAlternativeBookmarkPaths();
-      
+
       for (const altPath of alternativePaths) {
-        if (existsSync(altPath)) {
+        if (await Bun.file(altPath).exists()) {
           const validation = await this.validateBookmarksPath(altPath);
           if (validation.valid) {
             chromeBookmarksPath = altPath;
-            console.log(`\x1b[32m✅ Found valid bookmarks at: ${altPath}\x1b[0m`);
+            bookmarkLog.info(`\x1b[32m✅ Found valid bookmarks at: ${altPath}\x1b[0m`);
             break;
           }
         }
       }
     }
 
-    if (!chromeBookmarksPath || !existsSync(chromeBookmarksPath)) {
+    if (!chromeBookmarksPath || !(await Bun.file(chromeBookmarksPath).exists())) {
       await this.showErrorPage({
         title: "Chrome Bookmarks Not Found",
         message: "Could not locate Chrome bookmarks file.",
@@ -476,7 +677,7 @@ export class ChromeSpecBookmarkManager {
       const chromeData = JSON.parse(await file(chromeBookmarksPath).text());
       const imported = this.importChromeData(chromeData);
 
-      console.log(`\x1b[32m✅ Synced ${imported} bookmarks from Chrome\x1b[0m`);
+      bookmarkLog.info(`\x1b[32m✅ Synced ${imported} bookmarks from Chrome\x1b[0m`);
       return { imported, errors: 0 };
 
     } catch (error: any) {
@@ -493,16 +694,31 @@ export class ChromeSpecBookmarkManager {
 
   /**
    * Get bookmarks path for a specific profile directory
+   * Validates path stays within Chrome data directory to prevent traversal.
    */
   private getBookmarksPathForProfile(profileDir: string): string {
     const basePath = this.getChromeUserDataPath();
-    
-    // Handle absolute paths
-    if (path.isAbsolute(profileDir)) {
-      return path.join(profileDir, "Bookmarks");
+
+    // Reject traversal attempts in profile directory name
+    if (profileDir.includes("..") || profileDir.includes("\0")) {
+      throw new Error(`Invalid profile directory: "${profileDir}"`);
     }
-    
-    return path.join(basePath, profileDir, "Bookmarks");
+
+    // Handle absolute paths - must still be within Chrome data
+    let bookmarksPath: string;
+    if (path.isAbsolute(profileDir)) {
+      bookmarksPath = path.join(profileDir, "Bookmarks");
+    } else {
+      bookmarksPath = path.join(basePath, profileDir, "Bookmarks");
+    }
+
+    // Validate resolved path is within Chrome data directory
+    const normalized = path.normalize(bookmarksPath);
+    if (!isPathWithinBase(normalized, basePath)) {
+      throw new Error(`Profile path escapes Chrome data directory: "${profileDir}"`);
+    }
+
+    return normalized;
   }
 
   /**
@@ -532,20 +748,14 @@ export class ChromeSpecBookmarkManager {
 
   /**
    * Resolve bookmarks path (handles relative/absolute paths, ~ expansion)
+   * Validates path stays within allowed directories to prevent traversal attacks.
    */
   private resolveBookmarksPath(inputPath: string): string {
-    // Expand ~ to home directory
-    if (inputPath.startsWith("~")) {
-      return path.join(os.homedir(), inputPath.slice(1));
+    const sanitized = sanitizePath(inputPath);
+    if (sanitized === null) {
+      throw new Error(`Invalid path: "${inputPath}" - path traversal or access outside allowed directories`);
     }
-    
-    // If absolute, return as-is
-    if (path.isAbsolute(inputPath)) {
-      return inputPath;
-    }
-    
-    // Relative to current working directory
-    return path.resolve(process.cwd(), inputPath);
+    return sanitized;
   }
 
   /**
@@ -557,11 +767,11 @@ export class ChromeSpecBookmarkManager {
     stats?: { size: number; modified: Date };
   }> {
     try {
-      if (!existsSync(bookmarksPath)) {
+      const file = Bun.file(bookmarksPath);
+      if (!(await file.exists())) {
         return { valid: false, error: "File does not exist" };
       }
 
-      const file = Bun.file(bookmarksPath);
       const stats = await file.stat();
       
       if (!stats.isFile()) {
@@ -638,7 +848,7 @@ export class ChromeSpecBookmarkManager {
    * 2. CHROME DATA PARSER
    * Converts Chrome's internal format to our structure
    */
-  private importChromeData(chromeData: any): number {
+  private importChromeData(chromeData: ChromeBookmarkData): number {
     let importedCount = 0;
     
     const parseChromeNode = (
@@ -758,26 +968,26 @@ export class ChromeSpecBookmarkManager {
     const folder = this.folders.get(folderId);
     
     if (!folder) {
-      console.log(`\x1b[31m❌ Folder ${folderId} not found\x1b[0m`);
+      bookmarkLog.error(`\x1b[31m❌ Folder ${folderId} not found\x1b[0m`);
       return;
     }
     
-    console.log(`\n\x1b[1m🔖 ${folder.name}\x1b[0m \x1b[90m${this.getFolderStats(folderId)}\x1b[0m`);
-    console.log(`\x1b[90m${"─".repeat(cols)}\x1b[0m`);
+    bookmarkLog.info(`\n\x1b[1m🔖 ${folder.name}\x1b[0m \x1b[90m${this.getFolderStats(folderId)}\x1b[0m`);
+    bookmarkLog.debug(`\x1b[90m${"─".repeat(cols)}\x1b[0m`);
     
     // Build tree structure for display
     const treeLines: string[] = [];
     this.buildFolderTree(folder, "", true, treeLines);
     
     // Render tree
-    treeLines.forEach(line => console.log(line));
+    treeLines.forEach(line => bookmarkLog.info(line));
     
     // Footer with drag-and-drop instructions
-    console.log(`\x1b[90m${"─".repeat(cols)}\x1b[0m`);
-    console.log(`\x1b[90m[drag] Click to select • [drop] Enter target • [space] Expand/Collapse • [s] Search • [q] Back\x1b[0m`);
+    bookmarkLog.debug(`\x1b[90m${"─".repeat(cols)}\x1b[0m`);
+    bookmarkLog.debug(`\x1b[90m[drag] Click to select • [drop] Enter target • [space] Expand/Collapse • [s] Search • [q] Back\x1b[0m`);
     
     if (this.dragState) {
-      console.log(`\x1b[33m🔄 DRAG MODE: Moving item ${this.dragState.sourceId}\x1b[0m`);
+      bookmarkLog.info(`\x1b[33m🔄 DRAG MODE: Moving item ${this.dragState.sourceId}\x1b[0m`);
     }
   }
 
@@ -842,8 +1052,8 @@ export class ChromeSpecBookmarkManager {
       position: "inside"
     };
     
-    console.log(`\x1b[33m🔄 Dragging: ${this.getItemName(sourceId)}\x1b[0m`);
-    console.log(`\x1b[90mUse arrow keys to select target, Enter to drop, Escape to cancel\x1b[0m`);
+    bookmarkLog.info(`\x1b[33m🔄 Dragging: ${this.getItemName(sourceId)}\x1b[0m`);
+    bookmarkLog.debug(`\x1b[90mUse arrow keys to select target, Enter to drop, Escape to cancel\x1b[0m`);
   }
 
   setDropTarget(targetId: string, position: "before" | "after" | "inside" = "inside"): void {
@@ -855,7 +1065,7 @@ export class ChromeSpecBookmarkManager {
     const sourceName = this.getItemName(this.dragState.sourceId);
     const targetName = this.getItemName(targetId);
     
-    console.log(`\x1b[33m📍 Drop ${sourceName} ${position} ${targetName}\x1b[0m`);
+    bookmarkLog.info(`\x1b[33m📍 Drop ${sourceName} ${position} ${targetName}\x1b[0m`);
   }
 
   completeDrag(): boolean {
@@ -865,18 +1075,18 @@ export class ChromeSpecBookmarkManager {
     
     try {
       this.moveItem(sourceId, targetId, position);
-      console.log(`\x1b[32m✅ Moved ${this.getItemName(sourceId)} ${position} ${this.getItemName(targetId)}\x1b[0m`);
+      bookmarkLog.info(`\x1b[32m✅ Moved ${this.getItemName(sourceId)} ${position} ${this.getItemName(targetId)}\x1b[0m`);
       this.dragState = null;
       return true;
     } catch (error: any) {
-      console.log(`\x1b[31m❌ Move failed: ${error.message}\x1b[0m`);
+      bookmarkLog.error(`\x1b[31m❌ Move failed: ${error.message}\x1b[0m`);
       return false;
     }
   }
 
   cancelDrag(): void {
     this.dragState = null;
-    console.log(`\x1b[90m✗ Drag cancelled\x1b[0m`);
+    bookmarkLog.debug(`\x1b[90m✗ Drag cancelled\x1b[0m`);
   }
 
   /**
@@ -930,7 +1140,7 @@ export class ChromeSpecBookmarkManager {
     }
     
     // Insert source at new position
-    targetParent.children.splice(insertIndex, 0, source as any);
+    targetParent.children.splice(insertIndex, 0, source);
     this.reorderChildren(targetParent.id);
     
     // Update all orders
@@ -944,44 +1154,59 @@ export class ChromeSpecBookmarkManager {
   async interactiveTree(): Promise<void> {
     console.clear();
     this.render();
-    
+
     let selectedId = ChromeSpecBookmarkManager.CHROME_FOLDER_IDS.ROOT;
     let searchMode = false;
     let searchQuery = "";
     let showHelp = false;
-    
+
     // Set terminal to raw mode for key-by-key reading
     process.stdin.setRawMode(true);
     process.stdin.resume();
     process.stdin.setEncoding('utf8');
-    
+
+    // Cleanup function to restore terminal state and remove listener
+    let keyHandler: ((key: string) => void) | null = null;
+    const cleanup = () => {
+      if (keyHandler) {
+        process.stdin.off('data', keyHandler);
+        keyHandler = null;
+      }
+      if (process.stdin.isTTY) {
+        process.stdin.setRawMode(false);
+      }
+      process.stdin.pause();
+    };
+
     const renderSelection = () => {
       console.clear();
       
       if (showHelp) {
         this.showKeyboardShortcuts();
-        console.log(`\n\x1b[90mPress any key to return...\x1b[0m`);
+        bookmarkLog.debug(`\n\x1b[90mPress any key to return...\x1b[0m`);
         return;
       }
       
       this.render(selectedId);
       
       if (searchMode) {
-        console.log(`\n\x1b[1m🔍 SEARCH MODE: ${searchQuery}_\x1b[0m`);
+        bookmarkLog.info(`\n\x1b[1m🔍 SEARCH MODE: ${searchQuery}_\x1b[0m`);
       } else {
         const item = this.getItemName(selectedId);
-        console.log(`\n\x1b[1m👉 SELECTED: ${item}\x1b[0m`);
-        console.log(`\x1b[90mPress ? for help, S to search, Space to drag\x1b[0m`);
+        bookmarkLog.info(`\n\x1b[1m👉 SELECTED: ${item}\x1b[0m`);
+        bookmarkLog.debug(`\x1b[90mPress ? for help, S to search, Space to drag\x1b[0m`);
       }
     };
     
     let buffer = '';
-    
-    process.stdin.on('data', async (key: string) => {
-      // Handle Ctrl+C
-      if (key === '\u0003') {
-        process.stdin.setRawMode(false);
-        process.exit();
+
+    // Store handler reference for cleanup
+    keyHandler = async (key: string) => {
+      // Handle Ctrl+C or 'q' to quit gracefully
+      if (key === '\u0003' || key === 'q' || key === 'Q') {
+        cleanup();
+        bookmarkLog.debug('\n\x1b[90mExiting interactive tree...\x1b[0m');
+        return;
       }
       
       // Handle Escape sequences (arrow keys)
@@ -1107,8 +1332,8 @@ export class ChromeSpecBookmarkManager {
       // Handle i for import
       if (key === 'i' || key === 'I') {
         if (!searchMode && !showHelp) {
-          console.log(`\n\x1b[33m💡 Import: Use manager.importFromFile("path/to/file.json")\x1b[0m`);
-          console.log(`\x1b[90mPress any key to continue...\x1b[0m`);
+          bookmarkLog.info(`\n\x1b[33m💡 Import: Use manager.importFromFile("path/to/file.json")\x1b[0m`);
+          bookmarkLog.debug(`\x1b[90mPress any key to continue...\x1b[0m`);
           process.stdin.once('data', () => renderSelection());
           return;
         }
@@ -1119,35 +1344,35 @@ export class ChromeSpecBookmarkManager {
         if (!searchMode && !showHelp) {
           const stats = this.getStatistics();
           console.clear();
-          console.log(`\n\x1b[1m📊 Bookmark Statistics\x1b[0m`);
-          console.log("=".repeat(60));
-          console.log(`\n📚 Total Bookmarks: ${stats.totalBookmarks}`);
-          console.log(`📁 Total Folders: ${stats.totalFolders}`);
-          console.log(`👆 Total Visits: ${stats.totalVisits}`);
-          console.log(`\n📂 By Folder:`);
+          bookmarkLog.info(`\n\x1b[1m📊 Bookmark Statistics\x1b[0m`);
+          bookmarkLog.info("=".repeat(60));
+          bookmarkLog.info(`\n📚 Total Bookmarks: ${stats.totalBookmarks}`);
+          bookmarkLog.info(`📁 Total Folders: ${stats.totalFolders}`);
+          bookmarkLog.info(`👆 Total Visits: ${stats.totalVisits}`);
+          bookmarkLog.info(`\n📂 By Folder:`);
           Object.entries(stats.byFolder)
             .sort(([, a], [, b]) => b - a)
             .slice(0, 10)
             .forEach(([folder, count]) => {
-              console.log(`   ${folder}: ${count}`);
+              bookmarkLog.info(`   ${folder}: ${count}`);
             });
           
           if (stats.mostVisited.length > 0) {
-            console.log(`\n🔥 Most Visited:`);
+            bookmarkLog.info(`\n🔥 Most Visited:`);
             stats.mostVisited.slice(0, 5).forEach((bm, i) => {
-              console.log(`   ${i + 1}. ${bm.title} (${bm.visits} visits)`);
+              bookmarkLog.info(`   ${i + 1}. ${bm.title} (${bm.visits} visits)`);
             });
           }
           
           if (stats.recentlyAdded.length > 0) {
-            console.log(`\n🆕 Recently Added (last 7 days):`);
+            bookmarkLog.info(`\n🆕 Recently Added (last 7 days):`);
             stats.recentlyAdded.slice(0, 5).forEach((bm, i) => {
               const daysAgo = Math.floor((Date.now() - bm.added.getTime()) / (1000 * 60 * 60 * 24));
-              console.log(`   ${i + 1}. ${bm.title} (${daysAgo} days ago)`);
+              bookmarkLog.info(`   ${i + 1}. ${bm.title} (${daysAgo} days ago)`);
             });
           }
           
-          console.log(`\n\x1b[90mPress any key to continue...\x1b[0m`);
+          bookmarkLog.debug(`\n\x1b[90mPress any key to continue...\x1b[0m`);
           process.stdin.once('data', () => renderSelection());
           return;
         }
@@ -1166,7 +1391,10 @@ export class ChromeSpecBookmarkManager {
         renderSelection();
         return;
       }
-    });
+    };
+
+    // Register handler (stored in keyHandler for cleanup)
+    process.stdin.on('data', keyHandler);
   }
 
   /**
@@ -1175,8 +1403,8 @@ export class ChromeSpecBookmarkManager {
   private showKeyboardShortcuts(): void {
     const cols = process.stdout.columns || 80;
     
-    console.log("\n\x1b[1m⌨️  Keyboard Shortcuts\x1b[0m");
-    console.log("=".repeat(cols));
+    bookmarkLog.info("\n\x1b[1m⌨️  Keyboard Shortcuts\x1b[0m");
+    bookmarkLog.info("=".repeat(cols));
     
     const shortcuts = [
       { key: "↑/↓", desc: "Navigate items" },
@@ -1189,15 +1417,16 @@ export class ChromeSpecBookmarkManager {
       { key: "I", desc: "Import bookmarks (programmatic)" },
       { key: "? / H", desc: "Show this help" },
       { key: "Escape", desc: "Cancel operation or go back" },
+      { key: "Q", desc: "Quit interactive mode" },
       { key: "Ctrl+C", desc: "Exit" },
     ];
     
     shortcuts.forEach(({ key, desc }) => {
       const keyDisplay = `\x1b[36m${key.padEnd(12)}\x1b[0m`;
-      console.log(`  ${keyDisplay} ${desc}`);
+      bookmarkLog.info(`  ${keyDisplay} ${desc}`);
     });
-    
-    console.log("\n" + "=".repeat(cols));
+
+    bookmarkLog.info("\n" + "=".repeat(cols));
   }
 
   /**
@@ -1225,13 +1454,13 @@ export class ChromeSpecBookmarkManager {
     const limitedResults = results.slice(0, maxResults);
     
     // Display with highlighting
-    console.log(`\n\x1b[1m🔍 "${query}" - ${results.length} results${results.length > maxResults ? ` (showing ${maxResults})` : ''}\x1b[0m`);
+    bookmarkLog.info(`\n\x1b[1m🔍 "${query}" - ${results.length} results${results.length > maxResults ? ` (showing ${maxResults})` : ''}\x1b[0m`);
     
     limitedResults.forEach((bookmark, index) => {
       const highlightedTitle = this.highlightText(bookmark.title, query);
       const folderPath = bookmark.folderPath.join(' › ');
       
-      console.log(
+      bookmarkLog.info(
         `\x1b[90m${(index + 1).toString().padStart(3)}.\x1b[0m ` +
         `${bookmark.icon || '📄'} ${highlightedTitle} ` +
         `\x1b[90m(${folderPath})\x1b[0m`
@@ -1429,7 +1658,7 @@ export class ChromeSpecBookmarkManager {
   async openBookmark(id: string): Promise<void> {
     const bookmark = this.bookmarks.get(id);
     if (!bookmark) {
-      console.log(`\x1b[31m❌ Bookmark not found\x1b[0m`);
+      bookmarkLog.error(`\x1b[31m❌ Bookmark not found\x1b[0m`);
       return;
     }
     
@@ -1437,12 +1666,12 @@ export class ChromeSpecBookmarkManager {
     bookmark.visits++;
     bookmark.lastVisited = new Date();
     
-    console.log(`\x1b[32m🌐 Opening: ${bookmark.title}\x1b[0m`);
-    console.log(`\x1b[90m${bookmark.url}\x1b[0m`);
+    bookmarkLog.info(`\x1b[32m🌐 Opening: ${bookmark.title}\x1b[0m`);
+    bookmarkLog.debug(`\x1b[90m${bookmark.url}\x1b[0m`);
     
     // Determine how to open
     if (bookmark.url.startsWith('chrome://')) {
-      console.log(`\x1b[33m⚠️  Chrome URL - open in browser manually\x1b[0m`);
+      bookmarkLog.warn(`\x1b[33m⚠️  Chrome URL - open in browser manually\x1b[0m`);
     } else if (bookmark.url.startsWith('http')) {
       // Open in default browser
       const platform = os.platform();
@@ -1452,19 +1681,19 @@ export class ChromeSpecBookmarkManager {
       try {
         await spawn([command, bookmark.url]);
       } catch (error: any) {
-        console.log(`\x1b[33m⚠️  Could not open browser: ${error.message}\x1b[0m`);
+        bookmarkLog.warn(`\x1b[33m⚠️  Could not open browser: ${error.message}\x1b[0m`);
       }
     } else if (bookmark.url.startsWith('./') || bookmark.url.startsWith('/')) {
       // Local file - try to open in editor
       try {
         const resolved = resolveSync(bookmark.url, process.cwd());
-        if (existsSync(resolved)) {
+        if (await Bun.file(resolved).exists()) {
           await openInEditor(resolved);
         } else {
-          console.log(`\x1b[31m❌ File not found: ${resolved}\x1b[0m`);
+          bookmarkLog.error(`\x1b[31m❌ File not found: ${resolved}\x1b[0m`);
         }
       } catch (error: any) {
-        console.log(`\x1b[33m⚠️  Could not open file: ${error.message}\x1b[0m`);
+        bookmarkLog.warn(`\x1b[33m⚠️  Could not open file: ${error.message}\x1b[0m`);
       }
     }
   }
@@ -1491,7 +1720,7 @@ export class ChromeSpecBookmarkManager {
     };
     
     await write(filePath, JSON.stringify(exportData, null, 2));
-    console.log(`\x1b[32m✅ Exported to ${filePath}\x1b[0m`);
+    bookmarkLog.info(`\x1b[32m✅ Exported to ${filePath}\x1b[0m`);
   }
 
   /**
@@ -1556,7 +1785,7 @@ export class ChromeSpecBookmarkManager {
     await writer.writeFooter("]\n}");
 
     await writer.close();
-    console.log(
+    bookmarkLog.info(
       `\x1b[32m✅ Streamed export: ${bookmarkCount} bookmarks, ${folderCount} folders to ${filePath}\x1b[0m`
     );
 
@@ -1620,7 +1849,7 @@ export class ChromeSpecBookmarkManager {
       }
     });
 
-    console.log(
+    bookmarkLog.info(
       `\x1b[32m✅ Exported ${result.itemCount} runs to SARIF format: ${filePath}\x1b[0m`
     );
 
@@ -1631,7 +1860,7 @@ export class ChromeSpecBookmarkManager {
    * Import from JSON file (reverse of export)
    */
   async importFromFile(filePath: string): Promise<{ imported: number; errors: number }> {
-    if (!existsSync(filePath)) {
+    if (!(await Bun.file(filePath).exists())) {
       throw new Error(`File not found: ${filePath}`);
     }
 
@@ -1663,7 +1892,7 @@ export class ChromeSpecBookmarkManager {
             importedCount++;
           } catch (error: any) {
             errorCount++;
-            console.log(`\x1b[33m⚠️  Error importing folder ${folderData.id}: ${error.message}\x1b[0m`);
+            bookmarkLog.warn(`\x1b[33m⚠️  Error importing folder ${folderData.id}: ${error.message}\x1b[0m`);
           }
         }
 
@@ -1710,14 +1939,14 @@ export class ChromeSpecBookmarkManager {
             importedCount++;
           } catch (error: any) {
             errorCount++;
-            console.log(`\x1b[33m⚠️  Error importing bookmark ${bookmarkData.id}: ${error.message}\x1b[0m`);
+            bookmarkLog.warn(`\x1b[33m⚠️  Error importing bookmark ${bookmarkData.id}: ${error.message}\x1b[0m`);
           }
         }
       }
 
-      console.log(`\x1b[32m✅ Imported ${importedCount} items from ${filePath}\x1b[0m`);
+      bookmarkLog.info(`\x1b[32m✅ Imported ${importedCount} items from ${filePath}\x1b[0m`);
       if (errorCount > 0) {
-        console.log(`\x1b[33m⚠️  ${errorCount} errors during import\x1b[0m`);
+        bookmarkLog.warn(`\x1b[33m⚠️  ${errorCount} errors during import\x1b[0m`);
       }
 
       return { imported: importedCount, errors: errorCount };
@@ -1785,7 +2014,7 @@ export class ChromeSpecBookmarkManager {
     let added = 0;
     
     bookmarks.forEach(({ title, url, folderId }) => {
-      const id = Date.now().toString() + Math.random().toString(36).substr(2, 9);
+      const id = Bun.randomUUIDv7();
       const targetFolderId = folderId || ChromeSpecBookmarkManager.CHROME_FOLDER_IDS.OTHER_BOOKMARKS;
       
       const bookmark: Bookmark = {
@@ -1865,8 +2094,12 @@ export class ChromeSpecBookmarkManager {
     // This keeps the constructor synchronous
 
     // Merge with provided config (highest priority)
+    // Note: userConfig from constructor is already typed, but validate for safety
     if (userConfig) {
-      Object.assign(defaults, userConfig);
+      const validated = validateConfigData(userConfig);
+      if (validated) {
+        Object.assign(defaults, validated);
+      }
     }
 
     return defaults;
@@ -1875,14 +2108,18 @@ export class ChromeSpecBookmarkManager {
   /**
    * Load configuration from files asynchronously.
    * Call after construction to load file-based configs.
+   * Uses schema validation to reject malformed or unknown config keys.
    */
   async loadConfigFromFiles(): Promise<void> {
     // Try to load from default config file
     try {
       const configFile = path.join(import.meta.dir || process.cwd(), "default-bookmark-config.json");
-      if (existsSync(configFile)) {
-        const fileConfig = await file(configFile).json();
-        Object.assign(this.config, fileConfig);
+      if (await Bun.file(configFile).exists()) {
+        const rawConfig = await file(configFile).json();
+        const validatedConfig = validateConfigData(rawConfig);
+        if (validatedConfig) {
+          Object.assign(this.config, validatedConfig);
+        }
       }
     } catch {
       // Ignore if config file doesn't exist or is invalid
@@ -1891,9 +2128,12 @@ export class ChromeSpecBookmarkManager {
     // Try to load user config
     try {
       const userConfigPath = path.join(os.homedir(), ".config", "bookmark-manager", "user-config.json");
-      if (existsSync(userConfigPath)) {
-        const userConfigData = await file(userConfigPath).json();
-        Object.assign(this.config, userConfigData);
+      if (await Bun.file(userConfigPath).exists()) {
+        const rawUserConfig = await file(userConfigPath).json();
+        const validatedUserConfig = validateConfigData(rawUserConfig);
+        if (validatedUserConfig) {
+          Object.assign(this.config, validatedUserConfig);
+        }
       }
     } catch {
       // Ignore if user config doesn't exist or is invalid
@@ -1964,23 +2204,18 @@ export class ChromeSpecBookmarkManager {
    * Cross-reference bookmark with external systems
    */
   async crossReferenceBookmark(bookmarkId: string, context?: {
-    scanner?: any;
+    scanner?: { scan(hostname: string): Promise<{ issuesFound: number; traceId?: string }> };
     traceId?: string;
   }): Promise<{
     bookmark: Bookmark | null;
-    references: {
-      scanner?: { issues: number; traceId?: string };
-      visits: number;
-      lastVisit?: Date;
-      folderPath: string[];
-    };
+    references: BookmarkReference;
   }> {
     const bookmark = this.bookmarks.get(bookmarkId);
     if (!bookmark) {
       return { bookmark: null, references: { visits: 0, folderPath: [] } };
     }
 
-    const references: any = {
+    const references: BookmarkReference = {
       visits: bookmark.visits,
       lastVisit: bookmark.lastVisited,
       folderPath: bookmark.folderPath
@@ -2019,7 +2254,7 @@ export class ChromeSpecBookmarkManager {
     // Check configured path
     if (this.config.chromeBookmarksPath) {
       chromeBookmarksPath = this.resolveBookmarksPath(this.config.chromeBookmarksPath);
-      if (chromeBookmarksPath && existsSync(chromeBookmarksPath)) {
+      if (chromeBookmarksPath && (await Bun.file(chromeBookmarksPath).exists())) {
         const validation = await this.validateBookmarksPath(chromeBookmarksPath);
         if (validation.valid) {
           source = "configured";
@@ -2031,13 +2266,13 @@ export class ChromeSpecBookmarkManager {
     // Check profile
     if (effectiveProfileName) {
       const profiles = await this.listChromeProfiles();
-      const profile = profiles.find(p => 
-        p.name === effectiveProfileName || 
+      const profile = profiles.find(p =>
+        p.name === effectiveProfileName ||
         p.directory === effectiveProfileName
       );
       if (profile) {
         chromeBookmarksPath = this.getBookmarksPathForProfile(profile.directory);
-        if (chromeBookmarksPath && existsSync(chromeBookmarksPath)) {
+        if (chromeBookmarksPath && (await Bun.file(chromeBookmarksPath).exists())) {
           const validation = await this.validateBookmarksPath(chromeBookmarksPath);
           if (validation.valid) {
             source = "profile";
@@ -2049,7 +2284,7 @@ export class ChromeSpecBookmarkManager {
 
     // Check default
     const defaultPath = this.getDefaultBookmarksPath(os.platform());
-    if (defaultPath && existsSync(defaultPath)) {
+    if (defaultPath && (await Bun.file(defaultPath).exists())) {
       const validation = await this.validateBookmarksPath(defaultPath);
       if (validation.valid) {
         source = "default";
@@ -2060,7 +2295,7 @@ export class ChromeSpecBookmarkManager {
     // Check alternatives
     const alternativePaths = this.getAlternativeBookmarkPaths();
     for (const altPath of alternativePaths) {
-      if (existsSync(altPath)) {
+      if (await Bun.file(altPath).exists()) {
         const validation = await this.validateBookmarksPath(altPath);
         if (validation.valid) {
           source = "alternative";
@@ -2324,9 +2559,9 @@ export class ChromeSpecBookmarkManager {
       // Open in Chrome with workspace profile
       await this.openInWorkspaceProfile(filePath);
       
-      console.log(`\x1b[90m📄 Error page opened in workspace profile\x1b[0m`);
+      bookmarkLog.debug(`\x1b[90m📄 Error page opened in workspace profile\x1b[0m`);
     } catch (error: any) {
-      console.log(`\x1b[31m❌ Failed to show error page: ${error.message}\x1b[0m`);
+      bookmarkLog.error(`\x1b[31m❌ Failed to show error page: ${error.message}\x1b[0m`);
       // Fallback: try to open in default browser
       try {
         const platform = os.platform();
@@ -2334,7 +2569,7 @@ export class ChromeSpecBookmarkManager {
                        platform === 'win32' ? 'start' : 'xdg-open';
         await spawn([command, filePath]);
       } catch {
-        console.log(`\x1b[33m⚠️  Could not open error page. File saved at: ${filePath}\x1b[0m`);
+        bookmarkLog.warn(`\x1b[33m⚠️  Could not open error page. File saved at: ${filePath}\x1b[0m`);
       }
     }
   }
@@ -2365,7 +2600,7 @@ export class ChromeSpecBookmarkManager {
           });
           return;
         } catch (error: any) {
-          console.log(`\x1b[33m⚠️  Could not open with profile, trying default...\x1b[0m`);
+          bookmarkLog.warn(`\x1b[33m⚠️  Could not open with profile, trying default...\x1b[0m`);
         }
       }
       
@@ -2385,7 +2620,7 @@ export class ChromeSpecBookmarkManager {
         "AppData/Local/Google/Chrome/Application/chrome.exe"
       );
       
-      if (this.workspaceProfileDir && existsSync(chromePath)) {
+      if (this.workspaceProfileDir && (await Bun.file(chromePath).exists())) {
         try {
           await spawn([
             chromePath,
@@ -2402,8 +2637,8 @@ export class ChromeSpecBookmarkManager {
         }
       }
       
-      // Fallback
-      await spawn(["start", filePath], { shell: true });
+      // Fallback - use cmd /c start without shell: true to prevent injection
+      await spawn(["cmd", "/c", "start", "", filePath]);
     } else if (platform === "linux") {
       if (this.workspaceProfileDir) {
         try {
@@ -2446,50 +2681,50 @@ export class ChromeSpecBookmarkManager {
 
 export async function startEnterpriseBookmarkManager() {
   console.clear();
-  console.log("\x1b[1m🚀 ENTERPRISE BOOKMARK COMMAND CENTER\x1b[0m");
-  console.log("\x1b[90m" + "=".repeat(60) + "\x1b[0m");
+  bookmarkLog.info("\x1b[1m🚀 ENTERPRISE BOOKMARK COMMAND CENTER\x1b[0m");
+  bookmarkLog.debug("\x1b[90m" + "=".repeat(60) + "\x1b[0m");
   
   // HMR support for development
   let manager: ChromeSpecBookmarkManager;
   if (import.meta.hot) {
     const { getBookmarkManager } = await import("./bookmark-manager-hmr.ts");
     manager = getBookmarkManager();
-    console.log("\x1b[90m✅ HMR enabled - state preserved across updates\x1b[0m\n");
+    bookmarkLog.debug("\x1b[90m✅ HMR enabled - state preserved across updates\x1b[0m\n");
   } else {
     manager = new ChromeSpecBookmarkManager();
   }
   
   // First, ensure workspace profile exists
-  console.log("\x1b[90m🔍 Checking Chrome profiles...\x1b[0m");
+  bookmarkLog.debug("\x1b[90m🔍 Checking Chrome profiles...\x1b[0m");
   const profileReady = await manager.ensureWorkspaceProfile();
   
   if (profileReady) {
-    console.log("\x1b[32m✅ Workspace profile ready\x1b[0m");
+    bookmarkLog.info("\x1b[32m✅ Workspace profile ready\x1b[0m");
     
     // List available profiles
     const profiles = await manager.listChromeProfiles();
     if (profiles.length > 0) {
-      console.log(`\x1b[90m📋 Found ${profiles.length} Chrome profile(s):\x1b[0m`);
+      bookmarkLog.debug(`\x1b[90m📋 Found ${profiles.length} Chrome profile(s):\x1b[0m`);
       profiles.forEach((p, i) => {
         const marker = p.name === manager['workspaceProfileName'] ? "⭐" : "  ";
-        console.log(`\x1b[90m  ${marker} ${i + 1}. ${p.name}\x1b[0m`);
+        bookmarkLog.debug(`\x1b[90m  ${marker} ${i + 1}. ${p.name}\x1b[0m`);
       });
     }
   } else {
-    console.log("\x1b[33m⚠️  Workspace profile setup incomplete\x1b[0m");
-    console.log("\x1b[90m   Error details opened in browser tab\x1b[0m");
+    bookmarkLog.warn("\x1b[33m⚠️  Workspace profile setup incomplete\x1b[0m");
+    bookmarkLog.debug("\x1b[90m   Error details opened in browser tab\x1b[0m");
   }
   
   // Sync with Chrome automatically
-  console.log("\n\x1b[90m🔄 Syncing with Chrome bookmarks...\x1b[0m");
+  bookmarkLog.debug("\n\x1b[90m🔄 Syncing with Chrome bookmarks...\x1b[0m");
   const syncResult = await manager.syncWithChrome();
   
   if (syncResult.imported > 0) {
-    console.log(`\x1b[32m✅ ${syncResult.imported} bookmarks loaded from Chrome\x1b[0m`);
+    bookmarkLog.info(`\x1b[32m✅ ${syncResult.imported} bookmarks loaded from Chrome\x1b[0m`);
   } else if (syncResult.errors > 0) {
-    console.log("\x1b[33m⚠️  Sync encountered errors - check browser tab for details\x1b[0m");
+    bookmarkLog.warn("\x1b[33m⚠️  Sync encountered errors - check browser tab for details\x1b[0m");
   } else {
-    console.log("\x1b[33m⚠️  No Chrome bookmarks found, starting with empty manager\x1b[0m");
+    bookmarkLog.warn("\x1b[33m⚠️  No Chrome bookmarks found, starting with empty manager\x1b[0m");
     
     // Add some enterprise defaults
     const enterpriseBookmarks = [
@@ -2501,7 +2736,7 @@ export async function startEnterpriseBookmarkManager() {
     ];
     
     const added = manager.batchAddBookmarks(enterpriseBookmarks);
-    console.log(`\x1b[32m✅ Added ${added} enterprise bookmarks\x1b[0m`);
+    bookmarkLog.info(`\x1b[32m✅ Added ${added} enterprise bookmarks\x1b[0m`);
   }
   
   // Create some example folders
@@ -2510,7 +2745,7 @@ export async function startEnterpriseBookmarkManager() {
   
   if (otherBookmarks) {
     const devFolder: BookmarkFolder = {
-      id: "dev-" + Date.now(),
+      id: "dev-" + Bun.randomUUIDv7().slice(0, 8),
       name: "Development",
       parentId: "2",
       children: [],
@@ -2520,7 +2755,7 @@ export async function startEnterpriseBookmarkManager() {
     };
     
     const opsFolder: BookmarkFolder = {
-      id: "ops-" + Date.now(),
+      id: "ops-" + Bun.randomUUIDv7().slice(0, 8),
       name: "Operations",
       parentId: "2",
       children: [],
@@ -2543,8 +2778,8 @@ export async function startEnterpriseBookmarkManager() {
     ]);
   }
   
-  console.log("\n\x1b[32m✅ Bookmark manager ready!\x1b[0m");
-  console.log("\x1b[90mPress any key to start interactive mode...\x1b[0m");
+  bookmarkLog.info("\n\x1b[32m✅ Bookmark manager ready!\x1b[0m");
+  bookmarkLog.debug("\x1b[90mPress any key to start interactive mode...\x1b[0m");
   
   process.stdin.setRawMode(true);
   process.stdin.resume();

@@ -2,6 +2,7 @@
 // Enhanced Security Dashboard with Shell-based Analysis
 
 import { $ } from "bun";
+import { securityLog } from "../utils/logger.ts";
 
 interface PackageRisk {
   name: string;
@@ -12,11 +13,36 @@ interface PackageRisk {
   hasEngines: boolean;
 }
 
+// Validate npm package name to prevent command injection
+// Follows npm naming rules: lowercase, no spaces, limited special chars
+function isValidPackageName(name: string): boolean {
+  // Max 214 chars, lowercase, can contain -, _, @, /
+  const NPM_NAME_REGEX = /^(@[a-z0-9-~][a-z0-9-._~]*\/)?[a-z0-9-~][a-z0-9-._~]*$/;
+  return name.length <= 214 && NPM_NAME_REGEX.test(name);
+}
+
+// Validate semver version string
+function isValidVersion(version: string): boolean {
+  // Strict semver + common tags (latest, next, canary, etc.)
+  const SEMVER_REGEX = /^(latest|next|canary|experimental|dev|[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.-]+)?(\+[a-zA-Z0-9.-]+)?)$/;
+  return version.length <= 256 && SEMVER_REGEX.test(version);
+}
+
 class SecurityDashboard {
   async analyzePackage(name: string, version: string): Promise<PackageRisk> {
     const issues: string[] = [];
     let depCount = 0;
     let hasEngines = false;
+
+    // Validate inputs to prevent command injection
+    if (!isValidPackageName(name)) {
+      issues.push("Invalid package name format");
+      return { name, version, riskScore: "F", issues, depCount, hasEngines };
+    }
+    if (!isValidVersion(version)) {
+      issues.push("Invalid version format");
+      return { name, version, riskScore: "F", issues, depCount, hasEngines };
+    }
 
     // Helper to check if score should be downgraded
     const isHighScore = (s: PackageRisk["riskScore"]) => s === "A+" || s === "A";
@@ -30,7 +56,7 @@ class SecurityDashboard {
       return { name, version, riskScore: "D", issues, depCount, hasEngines };
     }
 
-    // Check dependency count via npm view
+    // Check dependency count via npm view (inputs validated above)
     try {
       const depsResult = await $`npm view ${name}@${version} dependencies --json`.quiet().nothrow();
       if (depsResult.exitCode === 0) {
@@ -84,8 +110,8 @@ class SecurityDashboard {
       Issues: pkg.issues.length > 0 ? pkg.issues.join("; ").slice(0, 40) : "-",
     }));
 
-    console.log("\n=== Supply Chain Security Report ===\n");
-    console.log(Bun.inspect.table(rows, undefined, { colors: true }));
+    securityLog.info("\n=== Supply Chain Security Report ===\n");
+    securityLog.table(rows);
 
     // Summary
     const summary = {
@@ -97,9 +123,9 @@ class SecurityDashboard {
       "With Engines": packages.filter((p) => p.hasEngines).length,
     };
 
-    console.log("\n=== Summary ===\n");
+    securityLog.info("\n=== Summary ===\n");
     const summaryRows = Object.entries(summary).map(([Metric, Value]) => ({ Metric, Value }));
-    console.log(Bun.inspect.table(summaryRows, undefined, { colors: true }));
+    securityLog.table(summaryRows);
   }
 }
 
@@ -127,7 +153,7 @@ if (import.meta.main) {
 
   const dashboard = new SecurityDashboard();
 
-  console.log("Analyzing packages...\n");
+  securityLog.info("Analyzing packages...\n");
   const results = await Promise.all(
     packages.map((p) => dashboard.analyzePackage(p.name, p.version))
   );

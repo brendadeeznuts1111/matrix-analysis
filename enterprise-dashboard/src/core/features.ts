@@ -10,6 +10,9 @@
  */
 
 import { feature } from "bun:bundle";
+import { createLogger } from "../utils/logger.ts";
+
+const featuresLog = createLogger("Features");
 
 // ============================================================================
 // Tier Features (mutually exclusive in production)
@@ -51,14 +54,22 @@ export const GOOGLE_CLOUD_TRACE = feature("GOOGLE_CLOUD_TRACE");
  */
 export async function loadPremiumFeatures() {
   if (IS_PRO || IS_ENTERPRISE) {
-    const modules = await Promise.all([
-      import("../dashboard/SecurityAudit"),
-      import("../dashboard/KeychainViewer"),
-    ]);
-    return {
-      SecurityAudit: modules[0],
-      KeychainViewer: modules[1],
-    };
+    try {
+      const modules = await Promise.all([
+        import("../dashboard/SecurityAudit"),
+        import("../dashboard/KeychainViewer"),
+      ]);
+      return {
+        SecurityAudit: modules[0],
+        KeychainViewer: modules[1],
+      };
+    } catch (error) {
+      featuresLog.error(
+        "Failed to load premium modules:",
+        error instanceof Error ? error.message : error
+      );
+      return null;
+    }
   }
   return null;
 }

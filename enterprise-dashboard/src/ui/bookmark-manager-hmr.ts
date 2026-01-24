@@ -4,9 +4,13 @@
  */
 
 import { ChromeSpecBookmarkManager } from "./chrome-bookmark-manager.ts";
+import { createLogger } from "../utils/logger.ts";
+
+const hmrLog = createLogger("HMR");
 
 // HMR state preservation
 let managerInstance: ChromeSpecBookmarkManager | null = null;
+let activeMonitor: BookmarkManagerHMRMonitor | null = null;
 let hmrStats = {
   updates: 0,
   errors: 0,
@@ -21,7 +25,7 @@ export function getBookmarkManager(): ChromeSpecBookmarkManager {
   // Restore from HMR data if available
   if (import.meta.hot?.data.manager) {
     managerInstance = import.meta.hot.data.manager;
-    console.log("🔄 HMR: Restored bookmark manager instance");
+    hmrLog.info("🔄 HMR: Restored bookmark manager instance");
   } else {
     managerInstance = new ChromeSpecBookmarkManager();
   }
@@ -46,7 +50,7 @@ function setupHMRHandlers(manager: ChromeSpecBookmarkManager): void {
     hmrStats.modules.set(modulePath, (hmrStats.modules.get(modulePath) || 0) + 1);
     hmrStats.lastUpdate = Date.now();
     
-    console.log(`🔄 HMR: Updating ${modulePath}`);
+    hmrLog.info(`🔄 HMR: Updating ${modulePath}`);
     
     // Save manager state
     import.meta.hot.data.manager = manager;
@@ -57,39 +61,44 @@ function setupHMRHandlers(manager: ChromeSpecBookmarkManager): void {
   import.meta.hot.on("bun:afterUpdate", (module) => {
     hmrStats.updates++;
     const modulePath = module.id || "unknown";
-    console.log(`✅ HMR: Updated ${modulePath} (${hmrStats.updates} total updates)`);
+    hmrLog.info(`✅ HMR: Updated ${modulePath} (${hmrStats.updates} total updates)`);
   });
 
   // Track errors
   import.meta.hot.on("bun:error", (error) => {
     hmrStats.errors++;
-    console.error(`❌ HMR Error:`, error);
+    hmrLog.error(`❌ HMR Error:`, error);
   });
 
   // Track full reloads
   import.meta.hot.on("bun:beforeFullReload", () => {
-    console.warn("⚠️ HMR: Full reload triggered");
+    hmrLog.warn("⚠️ HMR: Full reload triggered");
   });
 
   // WebSocket connection tracking
   import.meta.hot.on("bun:ws:disconnect", () => {
-    console.warn("⚠️ HMR: WebSocket disconnected");
+    hmrLog.warn("⚠️ HMR: WebSocket disconnected");
   });
 
   import.meta.hot.on("bun:ws:connect", () => {
-    console.log("✅ HMR: WebSocket reconnected");
+    hmrLog.info("✅ HMR: WebSocket reconnected");
   });
 
   // Accept updates
   import.meta.hot.accept((newModule) => {
     // Manager instance is preserved via import.meta.hot.data
-    console.log("✅ HMR: Bookmark manager updated");
+    hmrLog.info("✅ HMR: Bookmark manager updated");
   });
 
-  // Cleanup on dispose
+  // Cleanup on dispose - CRITICAL: stop any running intervals
   import.meta.hot.dispose(() => {
+    // Stop any active HMR monitors to prevent interval leaks
+    if (activeMonitor) {
+      activeMonitor.stop();
+      activeMonitor = null;
+    }
     // State is automatically preserved in import.meta.hot.data
-    console.log("🧹 HMR: Disposing bookmark manager");
+    hmrLog.info("🧹 HMR: Disposing bookmark manager");
   });
 }
 
@@ -139,9 +148,12 @@ export class BookmarkManagerHMRMonitor {
    * Start real-time monitoring
    */
   start(): void {
+    // Track this monitor for HMR cleanup
+    activeMonitor = this;
+
     console.clear();
-    console.log("\x1b[1m🔥 Bookmark Manager HMR Monitor\x1b[0m");
-    console.log("=".repeat(60));
+    hmrLog.info("\x1b[1m🔥 Bookmark Manager HMR Monitor\x1b[0m");
+    hmrLog.info("=".repeat(60));
 
     this.interval = setInterval(() => {
       this.render();
@@ -172,27 +184,27 @@ export class BookmarkManagerHMRMonitor {
       : "0";
 
     console.clear();
-    console.log("\x1b[1m🔥 Bookmark Manager HMR Monitor - Live\x1b[0m");
-    console.log("=".repeat(60));
-    console.log(`\x1b[1mHealth:\x1b[0m ${stats.health} (${stats.score}/100)`);
-    console.log(`\x1b[1mHot Updates:\x1b[0m ${stats.updates.toString().padStart(5)}  \x1b[1mErrors:\x1b[0m ${stats.errors.toString().padStart(5)}`);
-    console.log(`\x1b[1mFrequency:\x1b[0m ${frequency}/min`);
-    console.log("=".repeat(60));
-    
+    hmrLog.info("\x1b[1m🔥 Bookmark Manager HMR Monitor - Live\x1b[0m");
+    hmrLog.info("=".repeat(60));
+    hmrLog.info(`\x1b[1mHealth:\x1b[0m ${stats.health} (${stats.score}/100)`);
+    hmrLog.info(`\x1b[1mHot Updates:\x1b[0m ${stats.updates.toString().padStart(5)}  \x1b[1mErrors:\x1b[0m ${stats.errors.toString().padStart(5)}`);
+    hmrLog.info(`\x1b[1mFrequency:\x1b[0m ${frequency}/min`);
+    hmrLog.info("=".repeat(60));
+
     if (stats.modules.length > 0) {
-      console.log("\x1b[1mMost Updated Modules:\x1b[0m");
+      hmrLog.info("\x1b[1mMost Updated Modules:\x1b[0m");
       stats.modules.slice(0, 5).forEach((m, i) => {
-        console.log(`  ${i + 1}. ${m.module} (${m.count} updates)`);
+        hmrLog.info(`  ${i + 1}. ${m.module} (${m.count} updates)`);
       });
     }
 
-    console.log("\n\x1b[90mPress Ctrl+C to exit\x1b[0m");
+    hmrLog.debug("\n\x1b[90mPress Ctrl+C to exit\x1b[0m");
   }
 }
 
 // Auto-setup if HMR is available
 if (import.meta.hot) {
-  console.log("✅ HMR enabled for Bookmark Manager");
+  hmrLog.info("✅ HMR enabled for Bookmark Manager");
   
   // Restore stats if available
   if (import.meta.hot.data.stats) {

@@ -5,6 +5,12 @@
 
 import { ChromeSpecBookmarkManager } from "./chrome-bookmark-manager.ts";
 import type { Bookmark } from "./chrome-bookmark-manager.ts";
+import { LRUCache } from "../utils/lru-cache.ts";
+import {
+  BOOKMARK_CACHE_MAX_SIZE,
+  REGISTRY_BATCH_SIZE,
+  FETCH_TIMEOUT_MS,
+} from "../config/constants.ts";
 
 export interface PackageRegistryInfo {
   name: string;
@@ -25,62 +31,6 @@ export interface BookmarkPackageCorrelation {
 }
 
 // ============================================================================
-// LRU Cache for Registry Data
-// ============================================================================
-
-interface CacheEntry<T> {
-  data: T;
-  expires: number;
-}
-
-class RegistryLRUCache<K, V> {
-  private cache = new Map<K, CacheEntry<V>>();
-  private readonly maxSize: number;
-  private readonly ttlMs: number;
-
-  constructor(maxSize: number, ttlMs: number = 60 * 60 * 1000) {
-    this.maxSize = maxSize;
-    this.ttlMs = ttlMs;
-  }
-
-  get(key: K): V | undefined {
-    const entry = this.cache.get(key);
-    if (!entry) return undefined;
-
-    if (entry.expires < Date.now()) {
-      this.cache.delete(key);
-      return undefined;
-    }
-
-    // Move to end (most recently used)
-    this.cache.delete(key);
-    this.cache.set(key, entry);
-    return entry.data;
-  }
-
-  set(key: K, value: V): void {
-    this.cache.delete(key);
-
-    if (this.cache.size >= this.maxSize) {
-      const oldestKey = this.cache.keys().next().value;
-      if (oldestKey !== undefined) {
-        this.cache.delete(oldestKey);
-      }
-    }
-
-    this.cache.set(key, { data: value, expires: Date.now() + this.ttlMs });
-  }
-
-  has(key: K): boolean {
-    return this.get(key) !== undefined;
-  }
-
-  getStats(): { size: number; maxSize: number } {
-    return { size: this.cache.size, maxSize: this.maxSize };
-  }
-}
-
-// ============================================================================
 // Bookmark Registry Integration
 // ============================================================================
 
@@ -89,7 +39,7 @@ class RegistryLRUCache<K, V> {
  */
 export class BookmarkRegistryIntegration {
   private bookmarkManager: ChromeSpecBookmarkManager;
-  private registryCache = new RegistryLRUCache<string, PackageRegistryInfo>(500); // Max 500 entries
+  private registryCache = new LRUCache<string, PackageRegistryInfo>(BOOKMARK_CACHE_MAX_SIZE);
 
   constructor(bookmarkManager: ChromeSpecBookmarkManager) {
     this.bookmarkManager = bookmarkManager;
@@ -146,15 +96,23 @@ export class BookmarkRegistryIntegration {
 
   /**
    * Find all bookmarks that reference npm packages
+   * Uses batched parallel requests to avoid N+1 query pattern
    */
   async findPackageBookmarks(): Promise<BookmarkPackageCorrelation[]> {
     const bookmarks = this.bookmarkManager.getAllBookmarks();
     const correlations: BookmarkPackageCorrelation[] = [];
 
-    for (const bookmark of bookmarks) {
-      const correlation = await this.detectPackageFromBookmark(bookmark);
-      if (correlation.isPackageUrl) {
-        correlations.push(correlation);
+    // Process bookmarks in batches (configurable via REGISTRY_BATCH_SIZE)
+    for (let i = 0; i < bookmarks.length; i += REGISTRY_BATCH_SIZE) {
+      const batch = bookmarks.slice(i, i + REGISTRY_BATCH_SIZE);
+      const results = await Promise.allSettled(
+        batch.map(bookmark => this.detectPackageFromBookmark(bookmark))
+      );
+
+      for (const result of results) {
+        if (result.status === "fulfilled" && result.value.isPackageUrl) {
+          correlations.push(result.value);
+        }
       }
     }
 
@@ -198,7 +156,7 @@ export class BookmarkRegistryIntegration {
 
     try {
       const response = await fetch(`https://registry.npmjs.org/${packageName}`, {
-        signal: AbortSignal.timeout(10_000), // 10s timeout
+        signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
       });
       if (!response.ok) return undefined;
 

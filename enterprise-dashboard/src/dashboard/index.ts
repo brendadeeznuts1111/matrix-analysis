@@ -3,6 +3,7 @@
 
 import { feature } from "bun:bundle";
 import { dns } from "bun";
+import { dashboardLog } from "../utils/logger.ts";
 
 export { KeychainViewer } from "./KeychainViewer.ts";
 export { RegistryViewer } from "./RegistryViewer.ts";
@@ -25,10 +26,10 @@ dns.prefetch("api.github.com", 443);
 // Tier-Gated Features (Compile-Time Dead Code Elimination)
 // ============================================================================
 
-console.log("🚀 Starting Enterprise Dashboard...");
+dashboardLog.info("🚀 Starting Enterprise Dashboard...");
 
 // 1. FREE TIER: Standard Monitoring (always included)
-console.log("\x1b[36m[FREE]\x1b[0m System Monitor: Active");
+dashboardLog.info("\x1b[36m[FREE]\x1b[0m System Monitor: Active");
 
 // 2. PRO TIER: Advanced Metrics (removed from Free bundle)
 if (feature("TIER_PRO") || feature("TIER_ENTERPRISE")) {
@@ -44,11 +45,11 @@ if (feature("TIER_ENTERPRISE")) {
 
 // 4. DEBUG LOGGING (removed from production bundles)
 if (feature("DEBUG_LOGGING")) {
-  console.log("\x1b[90m[DEBUG] Internal state initialized\x1b[0m");
-  console.log("\x1b[90m[DEBUG] Build includes DEBUG_LOGGING feature\x1b[0m");
+  dashboardLog.debug("\x1b[90m[DEBUG] Internal state initialized\x1b[0m");
+  dashboardLog.debug("\x1b[90m[DEBUG] Build includes DEBUG_LOGGING feature\x1b[0m");
 }
 
-console.log("");
+dashboardLog.info("");
 
 // ============================================================================
 
@@ -153,7 +154,7 @@ if (import.meta.main) {
   const packages = args.filter((a) => !a.startsWith("--") && !a.startsWith("-"));
 
   const dashboard = await EnterpriseDashboard.create();
-  console.log(
+  dashboardLog.info(
     await dashboard.render({
       showKeychain,
       showRegistry,

@@ -14,13 +14,32 @@ import { BookmarkSecurityIntegration } from "./bookmark-scanner-integration.ts";
 import { BookmarkRegistryIntegration } from "./bookmark-registry-integration.ts";
 import type { Bookmark } from "./chrome-bookmark-manager.ts";
 
+// Union type for all integration types
+type Integration = BookmarkSecurityIntegration | BookmarkRegistryIntegration;
+
+// Cross-reference result interface
+interface CrossReferenceResult {
+  bookmark: Bookmark | null;
+  scanner?: { issues: number; riskLevel: string; traceId?: string };
+  registry?: {
+    packageName?: string;
+    registry?: string;
+    version?: string;
+    description?: string;
+  };
+  visits: number;
+  lastVisit?: Date;
+  folderPath: string[];
+  tags: string[];
+}
+
 /**
  * Integration Registry
  * Tracks all integrations and cross-references
  */
 export class BookmarkIntegrationRegistry {
   private bookmarkManager: ChromeSpecBookmarkManager;
-  private integrations: Map<string, any> = new Map();
+  private integrations: Map<string, Integration> = new Map();
 
   constructor(bookmarkManager: ChromeSpecBookmarkManager) {
     this.bookmarkManager = bookmarkManager;
@@ -65,7 +84,7 @@ export class BookmarkIntegrationRegistry {
       };
     }
 
-    const crossRefs: any = {
+    const crossRefs: CrossReferenceResult = {
       bookmark,
       visits: bookmark.visits,
       lastVisit: bookmark.lastVisited,
@@ -74,12 +93,12 @@ export class BookmarkIntegrationRegistry {
     };
 
     // Get scanner cross-reference if available
-    const scannerIntegration = this.integrations.get("scanner");
+    const scannerIntegration = this.integrations.get("scanner") as BookmarkSecurityIntegration | undefined;
     if (scannerIntegration && bookmark.url.startsWith("http")) {
       try {
         const url = new URL(bookmark.url);
         const scanResult = await scannerIntegration["scanner"].scan(url.hostname);
-        
+
         const riskLevel = scanResult.issuesFound === 0 ? "low" :
                          scanResult.issuesFound < 3 ? "medium" :
                          scanResult.issuesFound < 10 ? "high" : "critical";
@@ -95,7 +114,7 @@ export class BookmarkIntegrationRegistry {
     }
 
     // Get registry cross-reference if available
-    const registryIntegration = this.integrations.get("registry");
+    const registryIntegration = this.integrations.get("registry") as BookmarkRegistryIntegration | undefined;
     if (registryIntegration) {
       const registryCorrelation = await registryIntegration.crossReferenceWithRegistry(bookmarkId);
       if (registryCorrelation.isPackageUrl) {
