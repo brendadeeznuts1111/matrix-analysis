@@ -82,6 +82,14 @@ export const sections: Section[] = [
     slides: ["build-intro", "build-virtual", "build-enterprise"],
   },
   {
+    id: "performance",
+    title: "Performance",
+    icon: "⚡",
+    api: "Response.json/Buffer",
+    category: "optimization",
+    slides: ["perf-intro", "perf-simd"],
+  },
+  {
     id: "integration",
     title: "Integration",
     icon: "🔧",
@@ -566,10 +574,60 @@ await Bun.build({
     tags: ["air-gapped", "compile", "enterprise"],
   },
 
-  // Section 11: Integration
+  // Section 11: Performance Optimizations
+  {
+    id: "perf-intro",
+    number: 32,
+    type: "section",
+    sectionId: "performance",
+    title: "Performance",
+    subtitle: "SIMD Optimizations",
+    content: "Leverage native SIMD for 3.5x faster JSON serialization and pattern matching",
+    icon: "⚡",
+    tags: ["performance", "simd", "optimization"],
+  },
+  {
+    id: "perf-simd",
+    number: 33,
+    type: "content",
+    sectionId: "performance",
+    title: "Response.json() & Buffer",
+    subtitle: "Native Speed Gains",
+    content: "SIMD-optimized JSON serialization for API responses and fast binary pattern matching for large files.",
+    code: `// Response.json() - 3.5x faster for large JSON
+// Before: ~2415ms | After: ~700ms
+export default {
+  fetch(req) {
+    const sarif = generateSarifReport(); // Large JSON
+    return Response.json(sarif); // SIMD-optimized
+  }
+};
+
+// Buffer.indexOf() - 2x faster for 44KB+ files
+class FastPatternMatcher {
+  private buffer: Buffer;
+
+  constructor(content: string) {
+    this.buffer = Buffer.from(content);
+  }
+
+  hasPattern(pattern: string): boolean {
+    return this.buffer.includes(pattern); // SIMD
+  }
+
+  findLine(pattern: string): number {
+    const idx = this.buffer.indexOf(pattern);
+    if (idx === -1) return -1;
+    return this.buffer.subarray(0, idx).toString().split("\\n").length;
+  }
+}`,
+    tags: ["response-json", "buffer", "simd"],
+  },
+
+  // Section 12: Integration
   {
     id: "int-dashboard",
-    number: 32,
+    number: 34,
     type: "section",
     sectionId: "integration",
     title: "Integration",
@@ -580,7 +638,7 @@ await Bun.build({
   },
   {
     id: "int-demo",
-    number: 33,
+    number: 35,
     type: "demo",
     sectionId: "integration",
     title: "DevDashboard",
@@ -590,7 +648,7 @@ await Bun.build({
   },
   {
     id: "int-guide",
-    number: 34,
+    number: 36,
     type: "summary",
     sectionId: "integration",
     title: "API Quick Reference",
@@ -628,7 +686,7 @@ console.log(Bun.inspect.table([...covered, ...utils]));`,
   // Final
   {
     id: "final",
-    number: 35,
+    number: 37,
     type: "final",
     title: "Master Bun's APIs",
     subtitle: "Start Building Today",
