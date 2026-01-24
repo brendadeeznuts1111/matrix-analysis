@@ -339,6 +339,65 @@ steps:
       bun-version: ">=1.3.6"  # Critical fix version
 ```
 
+### bun install CLI Reference
+
+```bash
+bun install [packages...] [flags]
+```
+
+**Dependency Scope:**
+| Flag | Effect |
+|------|--------|
+| `--production` | Skip devDependencies |
+| `--omit dev\|optional\|peer` | Exclude specific dep types |
+| `--only-missing` | Only add if not already in package.json |
+
+**Dependency Type:**
+| Flag | Adds to |
+|------|---------|
+| `--dev` / `-d` | devDependencies |
+| `--optional` | optionalDependencies |
+| `--peer` | peerDependencies |
+| `--exact` | Exact version (no ^ range) |
+
+**Lockfile Control:**
+| Flag | Effect |
+|------|--------|
+| `--frozen-lockfile` | Fail if lockfile would change (CI) |
+| `--save-text-lockfile` | Force text bun.lock (not binary) |
+| `--lockfile-only` | Generate lockfile without installing |
+| `--yarn` | Write yarn.lock (v1 format) |
+| `--no-save` | Don't update package.json or lockfile |
+
+**Installation Control:**
+| Flag | Effect |
+|------|--------|
+| `--force` | Re-fetch all from registry |
+| `--dry-run` | Preview without installing |
+| `--global` / `-g` | Install globally |
+| `--filter <pattern>` | Install for matching workspaces only |
+| `--analyze` | Recursively analyze imports & install |
+| `--trust` | Add to trustedDependencies |
+
+**Performance:**
+| Flag | Default | Effect |
+|------|---------|--------|
+| `--concurrent-scripts` | 5 | Max parallel lifecycle scripts |
+| `--network-concurrency` | 48 | Max parallel network requests |
+| `--backend` | clonefile | `hardlink\|symlink\|copyfile` |
+
+**Common Combos:**
+```bash
+bun install --frozen-lockfile              # CI builds
+bun install --production                   # Deploy (no devDeps)
+bun install --filter "@scope/*"            # Workspace subset
+bun add lodash --exact                     # Pin exact version
+bun add -d vitest                          # Add dev dependency
+bun install --save-text-lockfile           # Migrate to text lockfile
+```
+
+**pnpm Migration:** Requires pnpm lockfile v7+. After `bun install`, remove `pnpm-lock.yaml` and `pnpm-workspace.yaml`.
+
 ### Benchmarking & Profiling
 
 **CLI benchmarking with hyperfine:**
