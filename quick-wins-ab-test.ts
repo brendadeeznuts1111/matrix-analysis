@@ -643,10 +643,10 @@ function parseFlags() {
     flags.iterations = parseInt(iterArg.split("=")[1]) || 1000;
   }
 
-  // Find directory argument (positional after --scan)
-  const scanIdx = args.indexOf("--scan");
-  if (scanIdx !== -1 && args[scanIdx + 1] && !args[scanIdx + 1].startsWith("-")) {
-    flags.scanDir = args[scanIdx + 1];
+  // Find directory argument (any non-flag positional arg)
+  const pathArg = args.find(a => !a.startsWith("-"));
+  if (pathArg) {
+    flags.scanDir = pathArg;
   }
 
   return flags;
