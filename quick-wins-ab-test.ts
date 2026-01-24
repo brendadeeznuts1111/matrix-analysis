@@ -236,6 +236,112 @@ async function fetchWithPrefetch(url: string): Promise<unknown> {
 }
 
 // ============================================================================
+// QUICK WIN #8: RegExp Pre-compilation
+// Rating: 9.0 - Critical (RegExp compilation is expensive)
+// ============================================================================
+
+const BOT_PATTERNS = [
+  "googlebot",
+  "bingbot",
+  "slurp",
+  "duckduckbot",
+  "baiduspider",
+  "yandexbot",
+  "facebookexternalhit",
+  "twitterbot",
+  "linkedinbot",
+];
+
+function detectBotPatternsBefore(userAgent: string): boolean {
+  // BUG: new RegExp() created inside .some() - compiled N times
+  return BOT_PATTERNS.some((pattern) => new RegExp(pattern, "i").test(userAgent));
+}
+
+// Pre-compiled RegExp array (created once at module load)
+const COMPILED_BOT_PATTERNS = BOT_PATTERNS.map((p) => new RegExp(p, "i"));
+
+function detectBotPatternsAfter(userAgent: string): boolean {
+  // FIX: Reuse pre-compiled RegExp objects
+  return COMPILED_BOT_PATTERNS.some((regex) => regex.test(userAgent));
+}
+
+// ============================================================================
+// QUICK WIN #9: Set-based Lookup
+// Rating: 8.2 - High (O(n²) → O(n))
+// ============================================================================
+
+interface Painpoint {
+  file: string;
+  severity: string;
+}
+
+function deduplicatePainpointsBefore(
+  files: string[],
+  painpoints: Painpoint[]
+): Painpoint[] {
+  // BUG: Array.find() inside loop - O(n²) complexity
+  const result: Painpoint[] = [...painpoints];
+  for (const file of files) {
+    const existing = result.find((p) => p.file === file);
+    if (!existing) {
+      result.push({ file, severity: "medium" });
+    }
+  }
+  return result;
+}
+
+function deduplicatePainpointsAfter(
+  files: string[],
+  painpoints: Painpoint[]
+): Painpoint[] {
+  // FIX: Use Set for O(1) lookup
+  const seenFiles = new Set<string>(painpoints.map((p) => p.file));
+  const result: Painpoint[] = [...painpoints];
+  for (const file of files) {
+    if (!seenFiles.has(file)) {
+      seenFiles.add(file);
+      result.push({ file, severity: "medium" });
+    }
+  }
+  return result;
+}
+
+// ============================================================================
+// QUICK WIN #10: Cached String Operations
+// Rating: 7.0 - Medium (repeated allocations)
+// ============================================================================
+
+interface Bookmark {
+  title: string;
+  url: string;
+}
+
+function searchBookmarksBefore(bookmarks: Bookmark[], query: string): number[] {
+  // BUG: .toLowerCase() called multiple times on same string
+  const scores: number[] = [];
+  for (const bookmark of bookmarks) {
+    if (bookmark.title.toLowerCase().includes(query)) {
+      const score = bookmark.title.toLowerCase().startsWith(query) ? 100 : 80;
+      scores.push(score);
+    }
+  }
+  return scores;
+}
+
+function searchBookmarksAfter(bookmarks: Bookmark[], query: string): number[] {
+  // FIX: Cache toLowerCase() result
+  const scores: number[] = [];
+  for (const bookmark of bookmarks) {
+    const titleLower = bookmark.title.toLowerCase();
+    if (titleLower.includes(query)) {
+      const score = titleLower.startsWith(query) ? 100 : 80;
+      scores.push(score);
+    }
+  }
+  return scores;
+}
+
+// ============================================================================
 // QUICK WINS REGISTRY
 // ============================================================================
 
@@ -384,6 +490,80 @@ const QUICK_WINS: QuickWin[] = [
       return "https://api.example.com";
     },
   },
+  {
+    id: "regexp-in-loop",
+    name: "RegExp Pre-compilation",
+    rating: 9.0,
+    file: "fantasy42-fire22-registry/enterprise/packages/dashboard-worker/src/device/detection/device-detector.ts",
+    line: 449,
+    description: "Pre-compile RegExp outside loops to avoid repeated compilation",
+    before: () => {
+      const userAgents = [
+        "Mozilla/5.0 (compatible; Googlebot/2.1)",
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0",
+        "Mozilla/5.0 (compatible; Bingbot/2.0)",
+        "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0)",
+        "facebookexternalhit/1.1",
+      ];
+      return userAgents.map((ua) => detectBotPatternsBefore(ua));
+    },
+    after: () => {
+      const userAgents = [
+        "Mozilla/5.0 (compatible; Googlebot/2.1)",
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0",
+        "Mozilla/5.0 (compatible; Bingbot/2.0)",
+        "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0)",
+        "facebookexternalhit/1.1",
+      ];
+      return userAgents.map((ua) => detectBotPatternsAfter(ua));
+    },
+  },
+  {
+    id: "set-based-lookup",
+    name: "Set-based Lookup",
+    rating: 8.2,
+    file: "enterprise-dashboard/scripts/diagnose/painpoints.ts",
+    line: 327,
+    description: "Use Set for O(1) lookups instead of Array.find() in loops",
+    before: () => {
+      const files = Array.from({ length: 200 }, (_, i) => `src/file-${i % 50}.ts`);
+      const painpoints: Painpoint[] = Array.from({ length: 20 }, (_, i) => ({
+        file: `src/file-${i}.ts`,
+        severity: "high",
+      }));
+      return deduplicatePainpointsBefore(files, painpoints);
+    },
+    after: () => {
+      const files = Array.from({ length: 200 }, (_, i) => `src/file-${i % 50}.ts`);
+      const painpoints: Painpoint[] = Array.from({ length: 20 }, (_, i) => ({
+        file: `src/file-${i}.ts`,
+        severity: "high",
+      }));
+      return deduplicatePainpointsAfter(files, painpoints);
+    },
+  },
+  {
+    id: "cached-string-ops",
+    name: "Cached String Operations",
+    rating: 7.0,
+    file: "enterprise-dashboard/src/ui/bookmarks.ts",
+    line: 265,
+    description: "Cache toLowerCase()/trim() results instead of calling repeatedly",
+    before: () => {
+      const bookmarks: Bookmark[] = Array.from({ length: 100 }, (_, i) => ({
+        title: `My Bookmark ${i} - Important Page`,
+        url: `https://example.com/${i}`,
+      }));
+      return searchBookmarksBefore(bookmarks, "bookmark");
+    },
+    after: () => {
+      const bookmarks: Bookmark[] = Array.from({ length: 100 }, (_, i) => ({
+        title: `My Bookmark ${i} - Important Page`,
+        url: `https://example.com/${i}`,
+      }));
+      return searchBookmarksAfter(bookmarks, "bookmark");
+    },
+  },
 ];
 
 // ============================================================================
@@ -447,6 +627,27 @@ const DETECTION_RULES: DetectionRule[] = [
     severity: "low",
     message: "Consider dns.prefetch() or fetch.preconnect() for repeated endpoints",
     quickWinRef: "dns-prefetch",
+  },
+  {
+    id: "regexp-in-loop",
+    pattern: /\.(some|every|map|filter|forEach|find)\s*\([^)]*new\s+RegExp/,
+    severity: "high",
+    message: "RegExp created inside loop - pre-compile outside",
+    quickWinRef: "regexp-in-loop",
+  },
+  {
+    id: "find-in-loop",
+    pattern: /for\s*\([^)]+\)[^{]*\{[^}]*\.find\s*\(/,
+    severity: "medium",
+    message: "Array.find() in loop - use Set/Map for O(1) lookup",
+    quickWinRef: "set-based-lookup",
+  },
+  {
+    id: "repeated-tolowercase",
+    pattern: /(\w+)\.toLowerCase\(\)[^;]*\1\.toLowerCase\(\)/,
+    severity: "low",
+    message: "Repeated toLowerCase() - cache result",
+    quickWinRef: "cached-string-ops",
   },
 ];
 
