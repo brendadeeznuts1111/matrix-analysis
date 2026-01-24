@@ -5,6 +5,8 @@ export class SecureRegistryClient {
   private token: string;
   private password: string;
   private registryUrl: string;
+  private cache = new Map<string, { data: unknown; expires: number }>();
+  private static TTL_MS = 5 * 60 * 1000; // 5-minute cache
 
   private constructor(token: string, password: string, registryUrl: string) {
     this.token = token;
@@ -28,6 +30,13 @@ export class SecureRegistryClient {
   }
 
   async getPackageInfo(packageName: string): Promise<unknown> {
+    // Check cache first
+    const cached = this.cache.get(packageName);
+    const now = Date.now();
+    if (cached && cached.expires > now) {
+      return cached.data;
+    }
+
     const response = await fetch(`${this.registryUrl}/${packageName}`, {
       headers: {
         Authorization: `Bearer ${this.token}`,
@@ -38,7 +47,9 @@ export class SecureRegistryClient {
       throw new Error(`Registry error: ${response.status} ${response.statusText}`);
     }
 
-    return response.json();
+    const data = await response.json();
+    this.cache.set(packageName, { data, expires: now + SecureRegistryClient.TTL_MS });
+    return data;
   }
 
   async getPackageVersions(packageName: string): Promise<string[]> {

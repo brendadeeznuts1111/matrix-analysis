@@ -32,6 +32,10 @@ if (!distExists) {
   await Bun.spawn(["bun", "run", "build"], { cwd: import.meta.dirname + "/.." }).exited;
 }
 
+// Pre-cache static file + ETag (was: new Bun.file() per request)
+const indexFile = Bun.file("./dist/index.html");
+const indexETag = `"${Bun.hash(await indexFile.text()).toString(16)}"`;
+
 const server = Bun.serve({
   port: PORT,
   async fetch(req) {
@@ -42,11 +46,14 @@ const server = Bun.serve({
       return Response.json(presentation);
     }
 
-    // Serve static files from dist
+    // Serve static files from dist (using pre-cached file)
     if (url.pathname === "/" || url.pathname === "/index.html") {
-      const file = Bun.file("./dist/index.html");
-      return new Response(file, {
-        headers: { "Content-Type": "text/html" },
+      return new Response(indexFile, {
+        headers: {
+          "Content-Type": "text/html",
+          "ETag": indexETag,
+          "Cache-Control": "public, max-age=300",
+        },
       });
     }
 

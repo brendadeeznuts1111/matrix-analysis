@@ -93,6 +93,8 @@ export class BunToolkit {
    */
   static renderResponsive(data: Array<{ label: string; status: string }>): void {
     const cols = process.stdout.columns || 80;
+    // Cache memory usage ONCE before loop (was: N syscalls inside map)
+    const memoryMB = (process.memoryUsage().heapUsed / 1024 / 1024).toFixed(1);
 
     const formatted = data.map((item) => {
       // Use time-ordered UUIDs for the 'Chrome Tab' index
@@ -109,7 +111,7 @@ export class BunToolkit {
         "\x1b[90mTAB_ID\x1b[0m": tabId,
         COMPONENT: label,
         STATUS: item.status,
-        MEMORY: `${(process.memoryUsage().heapUsed / 1024 / 1024).toFixed(1)}MB`,
+        MEMORY: `${memoryMB}MB`,
       };
     });
 
