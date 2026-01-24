@@ -165,3 +165,51 @@ await Bun.write("out.zip", await fetch(url));      // Download
 // Debug headers: fetch(url, { verbose: true })
 // Pool size: BUN_CONFIG_MAX_HTTP_REQUESTS=512 (default: 256)
 ```
+
+### V8 Type Checking APIs (Bun 1.3.6+)
+
+Bun implements V8 C++ APIs for native module (`.node` addon) compatibility:
+
+| C++ API | Checks For | JS Equivalent |
+|---------|------------|---------------|
+| `value->IsMap()` | Map objects | `value instanceof Map` |
+| `value->IsArray()` | Arrays | `Array.isArray(value)` |
+| `value->IsInt32()` | 32-bit signed int | `Number.isInteger(v) && v >= -2³¹ && v < 2³¹` |
+| `value->IsBigInt()` | BigInt values | `typeof value === 'bigint'` |
+
+**Why it matters:**
+- Native modules (`node-canvas`, `sqlite3`, `bcrypt`, `sharp`) work correctly
+- C++ type checks faster than JS equivalents
+- Memory safety via type guards before `As<T>()` casts
+
+**JS usage (consuming native modules):**
+```javascript
+const nativeProcessor = require("native-data-processor.node");
+
+// These work correctly in Bun if the native module uses the new APIs
+nativeProcessor.handleMap(new Map([["key", "value"]]));
+nativeProcessor.handleArray([1, 2, 3, 4]);
+nativeProcessor.handleBigInt(12345678901234567890n);
+```
+
+**C++ cross-platform pattern (writing native modules):**
+```cpp
+// Works in both Bun and Node.js
+v8::Local<v8::Value> ProcessValue(v8::Local<v8::Value> input) {
+  v8::Isolate* isolate = v8::Isolate::GetCurrent();
+
+  if (input->IsArray()) {
+    v8::Local<v8::Array> arr = input.As<v8::Array>();
+    return ProcessArray(isolate, arr);
+  } else if (input->IsMap()) {
+    v8::Local<v8::Map> map = input.As<v8::Map>();
+    return ProcessMap(isolate, map);
+  } else if (input->IsBigInt()) {
+    v8::Local<v8::BigInt> bigint = input.As<v8::BigInt>();
+    return ProcessBigInt(isolate, bigint);
+  }
+  return v8::Undefined(isolate);
+}
+```
+
+**Note:** SecurityBootstrap blocks native addons by default (`blockNativeAddons: true`). These APIs apply when addons are permitted.
