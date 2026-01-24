@@ -14,6 +14,7 @@ import {
   AUDIT_LOG_DISPLAY_LIMIT,
 } from "../../config/constants.ts";
 import { terminalLog } from "../../utils/logger.ts";
+import { TIER } from "../../utils/colors.ts";
 
 // Enterprise-only configuration (uses centralized constants)
 const TERMINAL_CONFIG = {
@@ -80,11 +81,11 @@ class EnterpriseTerminalManager {
     return Array.from(this.sessions.values()).filter(s => s.status === "active");
   }
 
-  getAuditLog() {
+  getAuditLog(): Array<{ timestamp: number; action: string; sessionId: string }> {
     return this.auditLog.slice(-AUDIT_LOG_DISPLAY_LIMIT);
   }
 
-  getConfig() {
+  getConfig(): typeof TERMINAL_CONFIG {
     return TERMINAL_CONFIG;
   }
 }
@@ -95,8 +96,8 @@ const terminalManager = new EnterpriseTerminalManager();
  * Enable enterprise shell access.
  * ENTERPRISE-only feature.
  */
-export function enableShellAccess() {
-  terminalLog.info("\x1b[33m[ENTERPRISE]\x1b[0m Terminal Access: Enabled");
+export function enableShellAccess(): void {
+  terminalLog.info(`${TIER.ENTERPRISE} Terminal Access: Enabled`);
   terminalLog.info(`             Max Sessions: ${TERMINAL_CONFIG.maxSessions}`);
   terminalLog.info(`             Compliance: ${TERMINAL_CONFIG.complianceMode}`);
   terminalLog.info(`             Encryption: ${TERMINAL_CONFIG.encryptionEnabled ? "AES-256" : "Disabled"}`);
@@ -117,9 +118,22 @@ export function enableShellAccess() {
 
 /**
  * Create a new terminal session.
+ * @throws Error if userId is invalid or command is not allowed
  */
 export function createTerminalSession(userId: string, command = "bash"): string {
-  return terminalManager.createSession(userId, command);
+  // Validate userId
+  if (!userId || typeof userId !== "string" || userId.trim().length === 0) {
+    throw new Error("Invalid userId: must be a non-empty string");
+  }
+  // Sanitize userId (remove potentially dangerous characters)
+  if (!/^[a-zA-Z0-9_\-@.]+$/.test(userId)) {
+    throw new Error("Invalid userId: contains disallowed characters");
+  }
+  // Validate command against allowlist
+  if (!TERMINAL_CONFIG.allowedCommands.includes(command)) {
+    throw new Error(`Invalid command: "${command}" is not in allowed commands`);
+  }
+  return terminalManager.createSession(userId.trim(), command);
 }
 
 /**
@@ -132,7 +146,7 @@ export function getActiveSessions(): TerminalSession[] {
 /**
  * Get terminal audit log.
  */
-export function getTerminalAuditLog() {
+export function getTerminalAuditLog(): Array<{ timestamp: number; action: string; sessionId: string }> {
   return terminalManager.getAuditLog();
 }
 

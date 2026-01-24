@@ -10,6 +10,7 @@ import {
   BOOKMARK_CACHE_MAX_SIZE,
   REGISTRY_BATCH_SIZE,
   FETCH_TIMEOUT_MS,
+  NPM_REGISTRY_URL,
 } from "../config/constants.ts";
 
 export interface PackageRegistryInfo {
@@ -155,7 +156,7 @@ export class BookmarkRegistryIntegration {
     }
 
     try {
-      const response = await fetch(`https://registry.npmjs.org/${packageName}`, {
+      const response = await fetch(`${NPM_REGISTRY_URL}/${packageName}`, {
         signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
       });
       if (!response.ok) return undefined;
@@ -173,7 +174,7 @@ export class BookmarkRegistryIntegration {
           ? version.repository
           : version?.repository?.url,
         registry: "npm",
-        registryUrl: `https://registry.npmjs.org/${packageName}`
+        registryUrl: `${NPM_REGISTRY_URL}/${packageName}`
       };
 
       this.registryCache.set(cacheKey, packageInfo);

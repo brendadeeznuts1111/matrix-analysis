@@ -13,6 +13,7 @@ import {
   METRICS_ENDPOINT_TIMEOUT_MS,
 } from "../../config/constants.ts";
 import { metricsLog } from "../../utils/logger.ts";
+import { TIER } from "../../utils/colors.ts";
 
 // Metrics configuration (uses centralized constants)
 const METRICS_CONFIG = {
@@ -108,7 +109,7 @@ const collector = new MetricsCollector();
  * PRO/ENTERPRISE feature.
  */
 export function startAdvancedMetrics() {
-  metricsLog.info("\x1b[35m[PRO]\x1b[0m Advanced Metrics: Enabled");
+  metricsLog.info(`${TIER.PRO} Advanced Metrics: Enabled`);
   metricsLog.info(`      Sampling: ${METRICS_CONFIG.samplingRate}ms`);
   metricsLog.info(`      Dimensions: ${METRICS_CONFIG.dimensions.length}`);
 
@@ -121,8 +122,31 @@ export function startAdvancedMetrics() {
 
 /**
  * Record a custom metric.
+ * @param name - Metric name (must be alphanumeric with dots/underscores)
+ * @param value - Numeric value (must be finite)
+ * @param tags - Optional key-value tags (keys/values must be strings)
  */
-export function recordMetric(name: string, value: number, tags?: Record<string, string>) {
+export function recordMetric(name: string, value: number, tags?: Record<string, string>): void {
+  // Validate metric name
+  if (!name || typeof name !== "string" || name.length === 0) {
+    return; // Silently skip invalid metrics
+  }
+  // Metric names should be alphanumeric with dots, underscores, hyphens
+  if (!/^[a-zA-Z][a-zA-Z0-9._-]*$/.test(name)) {
+    return;
+  }
+  // Validate value is a finite number
+  if (typeof value !== "number" || !Number.isFinite(value)) {
+    return;
+  }
+  // Validate tags if provided
+  if (tags) {
+    for (const [key, val] of Object.entries(tags)) {
+      if (typeof key !== "string" || typeof val !== "string") {
+        return;
+      }
+    }
+  }
   collector.record(name, value, tags);
 }
 

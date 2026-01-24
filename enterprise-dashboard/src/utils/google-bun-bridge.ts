@@ -315,9 +315,9 @@ export namespace V8Profiler {
         break;
       case "object":
         if (Array.isArray(obj)) {
-          shallowSize = 32 + (obj as unknown[]).length * 8; // Array overhead + pointers
+          shallowSize = 32 + obj.length * 8; // Array overhead + pointers
         } else if (obj !== null) {
-          shallowSize = 32 + Object.keys(obj as object).length * 16; // Object overhead + entries
+          shallowSize = 32 + Object.keys(obj).length * 16; // Object overhead + entries
         }
         break;
       default:

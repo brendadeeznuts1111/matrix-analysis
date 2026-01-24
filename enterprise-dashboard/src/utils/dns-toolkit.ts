@@ -8,6 +8,7 @@
  */
 
 import { dns } from "bun";
+import { STATUS } from "./colors.ts";
 
 // ============================================================================
 // Version
@@ -73,6 +74,18 @@ export interface TimingStats {
  * Use for internal services where TLS warmup isn't beneficial.
  */
 export function prefetchDNS(host: string, port = 443): void {
+  // Validate host is not empty and doesn't contain invalid characters
+  if (!host || typeof host !== "string" || host.length === 0) {
+    return; // Silently skip invalid hosts
+  }
+  // Basic hostname validation (no protocols, paths, or invalid chars)
+  if (host.includes("/") || host.includes(":") || host.includes(" ")) {
+    return;
+  }
+  // Validate port range
+  if (port < 1 || port > 65535) {
+    port = 443;
+  }
   dns.prefetch(host, port);
 }
 
@@ -131,9 +144,9 @@ export async function preconnect(url: string): Promise<PreconnectResult> {
       const port = parsed.port ? parseInt(parsed.port, 10) : parsed.protocol === "https:" ? 443 : 80;
       dns.prefetch(parsed.hostname, port);
     }
-  } catch (e) {
+  } catch (err: unknown) {
     success = false;
-    error = e instanceof Error ? e.message : String(e);
+    error = err instanceof Error ? err.message : String(err);
   }
 
   return {
@@ -231,7 +244,7 @@ export async function warmupInfrastructure(
 
     if (verbose) {
       for (const result of preconnects) {
-        const status = result.success ? "\x1b[32m✓\x1b[0m" : "\x1b[31m✗\x1b[0m";
+        const status = result.success ? STATUS.SUCCESS : STATUS.FAIL;
         const label = result.label ? ` (${result.label})` : "";
         console.log(
           `[Preconnect] ${status} ${result.url}${label} - ${result.elapsedMs.toFixed(2)}ms`

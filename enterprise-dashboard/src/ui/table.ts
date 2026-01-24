@@ -119,23 +119,47 @@ export function renderTable<T extends Record<string, unknown>>(
 // Formatting Helpers
 // ============================================================================
 
+/**
+ * Format a file path for display, truncating from the middle.
+ * @param path - The file path to format
+ * @param maxCols - Maximum column width
+ * @returns Truncated path like "/Users/.../file.ts"
+ */
 export function formatPath(path: string, maxCols: number): string {
   return middleTruncate(path, maxCols);
 }
 
+/**
+ * Format a URL for display, removing protocol and truncating from middle.
+ * @param url - The URL to format
+ * @param maxCols - Maximum column width
+ * @returns Truncated URL without protocol
+ */
 export function formatUrl(url: string, maxCols: number): string {
   return middleTruncate(url.replace(/^https?:\/\//, ""), maxCols);
 }
 
+/** Status icons for common states */
 const STATUS_ICONS: Record<string, string> = {
   success: "✓", error: "✗", warning: "⚠", pending: "○", running: "◉", stopped: "◯",
 };
 
+/**
+ * Format a status string with an appropriate icon.
+ * @param status - Status string (success, error, warning, pending, running, stopped)
+ * @returns Status with icon prefix
+ */
 export function formatStatus(status: string): string {
   const icon = STATUS_ICONS[status.toLowerCase()] ?? "•";
   return `${icon} ${status}`;
 }
 
+/**
+ * Format a byte count as a human-readable string.
+ * @param bytes - Number of bytes
+ * @param decimals - Decimal places (default: 1)
+ * @returns Formatted string like "1.5 MB"
+ */
 export function formatBytes(bytes: number, decimals = 1): string {
   if (bytes === 0) return "0 B";
   const k = 1024;
@@ -143,6 +167,11 @@ export function formatBytes(bytes: number, decimals = 1): string {
   return `${(bytes / Math.pow(k, i)).toFixed(decimals)} ${["B", "KB", "MB", "GB", "TB"][i]}`;
 }
 
+/**
+ * Format a duration in milliseconds as a human-readable string.
+ * @param ms - Duration in milliseconds
+ * @returns Formatted string like "1.5s" or "2.3m"
+ */
 export function formatDuration(ms: number): string {
   if (ms < 1000) return `${ms.toFixed(0)}ms`;
   if (ms < 60000) return `${(ms / 1000).toFixed(1)}s`;

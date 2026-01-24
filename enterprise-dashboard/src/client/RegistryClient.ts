@@ -1,72 +1,13 @@
 // src/client/RegistryClient.ts
+import { LRUCache } from "../utils/lru-cache.ts";
+import {
+  DEFAULT_CACHE_TTL_MS,
+  FETCH_TIMEOUT_MS,
+  REGISTRY_CACHE_MAX_SIZE,
+  NPM_REGISTRY_URL,
+} from "../config/constants.ts";
+
 const SERVICE = "matrix-analysis";
-
-// ============================================================================
-// LRU Cache Implementation
-// ============================================================================
-
-interface CacheEntry<T> {
-  data: T;
-  expires: number;
-}
-
-class LRUCache<K, V> {
-  private cache = new Map<K, CacheEntry<V>>();
-  private readonly maxSize: number;
-
-  constructor(maxSize: number) {
-    this.maxSize = maxSize;
-  }
-
-  get(key: K): V | undefined {
-    const entry = this.cache.get(key);
-    if (!entry) return undefined;
-
-    // Check TTL
-    if (entry.expires < Date.now()) {
-      this.cache.delete(key);
-      return undefined;
-    }
-
-    // Move to end (most recently used)
-    this.cache.delete(key);
-    this.cache.set(key, entry);
-    return entry.data;
-  }
-
-  set(key: K, value: V, ttlMs: number): void {
-    // Remove if exists (to update position)
-    this.cache.delete(key);
-
-    // Evict oldest if at capacity
-    if (this.cache.size >= this.maxSize) {
-      const oldestKey = this.cache.keys().next().value;
-      if (oldestKey !== undefined) {
-        this.cache.delete(oldestKey);
-      }
-    }
-
-    this.cache.set(key, { data: value, expires: Date.now() + ttlMs });
-  }
-
-  has(key: K): boolean {
-    const entry = this.cache.get(key);
-    if (!entry) return false;
-    if (entry.expires < Date.now()) {
-      this.cache.delete(key);
-      return false;
-    }
-    return true;
-  }
-
-  get size(): number {
-    return this.cache.size;
-  }
-
-  getStats(): { size: number; maxSize: number } {
-    return { size: this.cache.size, maxSize: this.maxSize };
-  }
-}
 
 // ============================================================================
 // Registry Client
@@ -78,15 +19,12 @@ export class SecureRegistryClient {
   private registryUrl: string;
   private cache: LRUCache<string, unknown>;
   private inFlight = new Map<string, Promise<unknown>>(); // Request deduplication
-  private static TTL_MS = 60 * 60 * 1000; // 1-hour cache (was 5 min)
-  private static FETCH_TIMEOUT_MS = 10_000; // 10-second fetch timeout
-  private static MAX_CACHE_SIZE = 1000; // LRU cache limit
 
   private constructor(token: string, password: string, registryUrl: string) {
     this.token = token;
     this.password = password;
     this.registryUrl = registryUrl;
-    this.cache = new LRUCache(SecureRegistryClient.MAX_CACHE_SIZE);
+    this.cache = new LRUCache(REGISTRY_CACHE_MAX_SIZE, DEFAULT_CACHE_TTL_MS);
   }
 
   static async create(): Promise<SecureRegistryClient> {
@@ -99,7 +37,7 @@ export class SecureRegistryClient {
       throw new Error("Required secrets not found. Run: bun scripts/setup-secrets.ts");
     }
 
-    const registryUrl = process.env.REGISTRY_URL ?? "https://registry.npmjs.org";
+    const registryUrl = NPM_REGISTRY_URL;
 
     return new SecureRegistryClient(token, password, registryUrl);
   }
@@ -117,17 +55,19 @@ export class SecureRegistryClient {
       return inFlightRequest;
     }
 
-    // Create new request
-    const fetchPromise = this.fetchFromRegistry(packageName);
-    this.inFlight.set(packageName, fetchPromise);
+    // Create new request with proper cleanup
+    // Use a deferred promise pattern to avoid unhandled rejections
+    const fetchPromise = this.fetchFromRegistry(packageName)
+      .then((data) => {
+        this.cache.set(packageName, data); // Uses default TTL from config
+        return data;
+      })
+      .finally(() => {
+        this.inFlight.delete(packageName);
+      });
 
-    try {
-      const data = await fetchPromise;
-      this.cache.set(packageName, data, SecureRegistryClient.TTL_MS);
-      return data;
-    } finally {
-      this.inFlight.delete(packageName);
-    }
+    this.inFlight.set(packageName, fetchPromise);
+    return fetchPromise;
   }
 
   private async fetchFromRegistry(packageName: string): Promise<unknown> {
@@ -135,7 +75,7 @@ export class SecureRegistryClient {
       headers: {
         Authorization: `Bearer ${this.token}`,
       },
-      signal: AbortSignal.timeout(SecureRegistryClient.FETCH_TIMEOUT_MS),
+      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
     });
 
     if (!response.ok) {

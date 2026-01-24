@@ -4,6 +4,7 @@
 import { feature } from "bun:bundle";
 import { dns } from "bun";
 import { dashboardLog } from "../utils/logger.ts";
+import { TIER, dim } from "../utils/colors.ts";
 
 export { KeychainViewer } from "./KeychainViewer.ts";
 export { RegistryViewer } from "./RegistryViewer.ts";
@@ -18,7 +19,9 @@ import { SecurityAudit } from "./SecurityAudit.ts";
 // DNS Prefetch (warm cache before network requests)
 // ============================================================================
 
-const REGISTRY_HOST = new URL(process.env.REGISTRY_URL ?? "https://registry.npmjs.org").hostname;
+import { NPM_REGISTRY_URL } from "../config/constants.ts";
+
+const REGISTRY_HOST = new URL(NPM_REGISTRY_URL).hostname;
 dns.prefetch(REGISTRY_HOST, 443);
 dns.prefetch("api.github.com", 443);
 
@@ -29,7 +32,7 @@ dns.prefetch("api.github.com", 443);
 dashboardLog.info("🚀 Starting Enterprise Dashboard...");
 
 // 1. FREE TIER: Standard Monitoring (always included)
-dashboardLog.info("\x1b[36m[FREE]\x1b[0m System Monitor: Active");
+dashboardLog.info(`${TIER.FREE} System Monitor: Active`);
 
 // 2. PRO TIER: Advanced Metrics (removed from Free bundle)
 if (feature("TIER_PRO") || feature("TIER_ENTERPRISE")) {
@@ -45,8 +48,8 @@ if (feature("TIER_ENTERPRISE")) {
 
 // 4. DEBUG LOGGING (removed from production bundles)
 if (feature("DEBUG_LOGGING")) {
-  dashboardLog.debug("\x1b[90m[DEBUG] Internal state initialized\x1b[0m");
-  dashboardLog.debug("\x1b[90m[DEBUG] Build includes DEBUG_LOGGING feature\x1b[0m");
+  dashboardLog.debug(dim("[DEBUG] Internal state initialized"));
+  dashboardLog.debug(dim("[DEBUG] Build includes DEBUG_LOGGING feature"));
 }
 
 dashboardLog.info("");

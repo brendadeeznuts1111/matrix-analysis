@@ -56,12 +56,16 @@ export class BunToolkit {
 
     const proc = Bun.spawn(command, { terminal });
 
-    // Auto-resize binding
+    // Auto-resize binding with guaranteed cleanup
     const resize = () => terminal.resize(process.stdout.columns, process.stdout.rows);
     process.stdout.on("resize", resize);
 
-    await proc.exited;
-    process.stdout.off("resize", resize);
+    try {
+      await proc.exited;
+    } finally {
+      // Always remove listener, even if process crashes/throws
+      process.stdout.off("resize", resize);
+    }
   }
 
   /**

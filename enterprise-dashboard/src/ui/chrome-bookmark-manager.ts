@@ -105,6 +105,10 @@ export interface Bookmark {
   visits: number;
   icon?: string; // Favicon emoji
   order: number; // For drag-and-drop ordering
+  /** Link status from last check (undefined = never checked) */
+  linkStatus?: "ok" | "broken" | "redirect" | "timeout";
+  /** Timestamp of last link status check */
+  lastChecked?: Date;
 }
 
 interface BookmarkFolder {
@@ -2002,9 +2006,67 @@ export class ChromeSpecBookmarkManager {
       byFolder,
       mostVisited: mostVisited.slice(0, 10),
       recentlyAdded: recentlyAdded.slice(0, 10),
-      brokenLinks: 0, // TODO: Implement dead link detection
+      brokenLinks: Array.from(this.bookmarks.values()).filter(b => b.linkStatus === "broken").length,
       totalVisits,
     };
+  }
+
+  /**
+   * Check bookmark URLs for dead links.
+   * Uses HEAD requests with timeout to verify links are accessible.
+   * @param bookmarkIds - Specific bookmark IDs to check, or undefined to check all
+   * @param timeoutMs - Request timeout in milliseconds (default: 5000)
+   * @returns Summary of check results
+   */
+  async checkDeadLinks(
+    bookmarkIds?: string[],
+    timeoutMs = 5000
+  ): Promise<{ checked: number; broken: number; ok: number; errors: string[] }> {
+    const toCheck = bookmarkIds
+      ? bookmarkIds.map(id => this.bookmarks.get(id)).filter((b): b is Bookmark => b !== undefined)
+      : Array.from(this.bookmarks.values());
+
+    const errors: string[] = [];
+    let broken = 0;
+    let ok = 0;
+
+    // Check in batches to avoid overwhelming the network
+    const BATCH_SIZE = 10;
+    for (let i = 0; i < toCheck.length; i += BATCH_SIZE) {
+      const batch = toCheck.slice(i, i + BATCH_SIZE);
+      const results = await Promise.allSettled(
+        batch.map(async (bookmark) => {
+          try {
+            const response = await fetch(bookmark.url, {
+              method: "HEAD",
+              signal: AbortSignal.timeout(timeoutMs),
+              redirect: "follow",
+            });
+            bookmark.linkStatus = response.ok ? "ok" : "broken";
+            bookmark.lastChecked = new Date();
+            return response.ok;
+          } catch (err) {
+            const isTimeout = err instanceof Error && err.name === "TimeoutError";
+            bookmark.linkStatus = isTimeout ? "timeout" : "broken";
+            bookmark.lastChecked = new Date();
+            return false;
+          }
+        })
+      );
+
+      for (const result of results) {
+        if (result.status === "fulfilled" && result.value) {
+          ok++;
+        } else {
+          broken++;
+          if (result.status === "rejected") {
+            errors.push(result.reason?.message || "Unknown error");
+          }
+        }
+      }
+    }
+
+    return { checked: toCheck.length, broken, ok, errors };
   }
 
   /**
