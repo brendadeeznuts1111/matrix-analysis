@@ -512,10 +512,24 @@ async function healthCheck(host: string, port: number) {
     number: 31,
     type: "summary",
     sectionId: "integration",
-    title: "API Selection Guide",
-    subtitle: "Choosing the Right Tool",
-    content: "Performance characteristics, use cases, and best practices for each API. Match the right tool to your specific requirements.",
-    tags: ["guide", "reference"],
+    title: "API Quick Reference",
+    subtitle: "Signatures, Topics & Categories",
+    content: "Complete reference for all covered Bun APIs with signatures, use cases, and categories.",
+    code: `// API Reference Matrix
+const apis = [
+  { api: "Bun.stringWidth(str)",      topic: "Terminal alignment",   category: "Formatting" },
+  { api: "Bun.peek(promise)",         topic: "Sync promise check",   category: "Async" },
+  { api: "Bun.inspect(obj, opts?)",   topic: "Object debugging",     category: "Debugging" },
+  { api: "Bun.inspect.table(data)",   topic: "Terminal tables",      category: "Formatting" },
+  { api: "Bun.openInEditor(path)",    topic: "Editor integration",   category: "DX" },
+  { api: "Bun.deepEquals(a, b)",      topic: "Deep comparison",      category: "Testing" },
+  { api: "Bun.escapeHTML(str)",       topic: "XSS prevention",       category: "Security" },
+  { api: "Bun.$\`cmd\`",               topic: "Shell commands",       category: "Shell" },
+  { api: "Bun.spawn(cmd, opts)",      topic: "Process control",      category: "Shell" },
+  { api: "Bun.connect(opts)",         topic: "TCP/TLS sockets",      category: "Networking" },
+];
+console.log(Bun.inspect.table(apis));`,
+    tags: ["reference", "signatures", "categories"],
   },
 
   // Final
