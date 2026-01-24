@@ -1,5 +1,5 @@
 /**
- * Bun Enterprise Scanner v3.0
+ * Bun Enterprise Scanner v3.1
  *
  * Self-contained scanner with embedded assets for compiled executables.
  * Generates HTML reports, supports PTY interactive fixes, and CDP-style profiling.
@@ -11,6 +11,12 @@
  *   bun scripts/scanner/index.ts --profile        # Output timing profile
  *   bun scripts/scanner/index.ts --json           # JSON output for CI
  *   bun scripts/scanner/index.ts --html           # Generate HTML report
+ *   bun scripts/scanner/index.ts --daemon         # Watch config for hot-reload
+ *   bun scripts/scanner/index.ts --config <path>  # Custom config path
+ *
+ * Daemon Mode:
+ *   Watches .scannerrc or scanner.config.json for changes and automatically
+ *   reloads rules without process restart. Useful for tuning scan rules.
  *
  * Compile to standalone:
  *   bun build --compile --bytecode ./scripts/scanner/index.ts --outfile bun-scanner
@@ -48,6 +54,8 @@ interface ScanOptions {
   json: boolean;
   html: boolean;
   path: string;
+  daemon: boolean;
+  configPath: string;
 }
 
 interface ProfileData {
@@ -175,6 +183,34 @@ class EnhancedScanner {
     if (!this.options.json) {
       console.log(`\x1b[90m[Init] Loaded ${this.rules.length} rules from embedded assets\x1b[0m`);
     }
+  }
+
+  /**
+   * Reload configuration without full restart (for daemon mode hot-reload)
+   */
+  async reloadConfig(): Promise<void> {
+    const prevRuleCount = this.rules.length;
+    this.config = await Assets.load.config(this.options.configPath);
+    const ruleSet = await Assets.load.rules();
+
+    this.rules = ruleSet.rules
+      .filter((r) => r.enabled)
+      .filter((r) => {
+        const cat = r.category.toLowerCase();
+        if (cat === "deps" && !this.config?.rules.deps) return false;
+        if (cat === "perf" && !this.config?.rules.perf) return false;
+        if (cat === "compat" && !this.config?.rules.compat) return false;
+        if (cat === "security" && !this.config?.rules.security) return false;
+        return true;
+      })
+      .map((r) => ({
+        ...r,
+        regex: new RegExp(r.pattern, "i"),
+      }));
+
+    console.log(
+      `\x1b[36m[Hot-Reload] Config reloaded: ${prevRuleCount} → ${this.rules.length} rules\x1b[0m`
+    );
   }
 
   /**
@@ -406,12 +442,26 @@ class EnhancedScanner {
 async function main() {
   const args = process.argv.slice(2);
 
+  // Parse --config=path or --config path
+  const configArgIdx = args.findIndex((a) => a === "--config" || a.startsWith("--config="));
+  let configPath = "./scanner.config.json";
+  if (configArgIdx !== -1) {
+    const arg = args[configArgIdx];
+    if (arg.includes("=")) {
+      configPath = arg.split("=")[1];
+    } else if (args[configArgIdx + 1]) {
+      configPath = args[configArgIdx + 1];
+    }
+  }
+
   const options: ScanOptions = {
     strict: args.includes("--strict"),
     interactive: args.includes("--interactive"),
     profile: args.includes("--profile"),
     json: args.includes("--json"),
     html: args.includes("--html"),
+    daemon: args.includes("--daemon") || args.includes("--watch"),
+    configPath,
     path: args.find((a) => !a.startsWith("--")) || process.cwd(),
   };
 
@@ -421,6 +471,40 @@ async function main() {
 
   const scanner = new EnhancedScanner(options);
   await scanner.init();
+
+  // Daemon mode: watch config file for changes and re-scan
+  if (options.daemon) {
+    console.log(`\x1b[1m🔄 Daemon Mode\x1b[0m - Watching ${configPath} for changes`);
+    console.log(`\x1b[90m   Press Ctrl+C to exit\x1b[0m\n`);
+
+    // Initial scan
+    let results = await scanner.scanProject();
+    scanner.renderDashboard(results);
+
+    // Watch config file for changes
+    const { watch } = await import("fs");
+    let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+
+    watch(configPath, async (eventType) => {
+      if (eventType !== "change") return;
+
+      // Debounce rapid changes (editors often write multiple times)
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(async () => {
+        console.log(`\n\x1b[36m🔄 Config changed, reloading...\x1b[0m`);
+        try {
+          await scanner.reloadConfig();
+          results = await scanner.scanProject();
+          scanner.renderDashboard(results);
+        } catch (err) {
+          console.error(`\x1b[31m[Hot-Reload] Failed to reload config:\x1b[0m`, (err as Error).message);
+        }
+      }, 100);
+    });
+
+    // Keep process alive
+    await new Promise(() => {});
+  }
 
   const results = await scanner.scanProject();
 
