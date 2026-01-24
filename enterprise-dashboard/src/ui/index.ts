@@ -18,6 +18,16 @@ export {
   type TableColumn,
 } from "./table";
 
+// Bookmark Resource Monitor
+export {
+  BookmarkManager,
+  CHROME_FOLDERS,
+  demo as bookmarkDemo,
+  type Bookmark,
+  type BookmarkFolder,
+  type SearchResult,
+} from "./bookmarks";
+
 // Google Chromium element parser
 export {
   parseChromiumComponent,
