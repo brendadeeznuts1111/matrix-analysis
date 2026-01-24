@@ -31,3 +31,9 @@ coverage/
 # Logs
 *.log
 npm-debug.log*
+
+# Generated/Cache
+.bunpm/
+.scanner-cache.json
+scan-report.html
+feedback.ndjson
