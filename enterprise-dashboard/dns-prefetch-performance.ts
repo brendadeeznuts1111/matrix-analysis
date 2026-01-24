@@ -33,10 +33,24 @@ export interface CacheStats {
 }
 
 // ============================================================================
-// Metrics Storage
+// Metrics Storage (Bounded to prevent memory leaks)
 // ============================================================================
 
+const MAX_METRICS_SIZE = 10_000; // Maximum entries before eviction
 export const metrics: DNSMetrics[] = [];
+
+/**
+ * Add a metric entry, evicting oldest entries if at capacity.
+ * Uses FIFO eviction to maintain bounded memory usage.
+ */
+function addMetric(metric: DNSMetrics): void {
+  if (metrics.length >= MAX_METRICS_SIZE) {
+    // Evict oldest 10% to amortize eviction cost
+    const evictCount = Math.ceil(MAX_METRICS_SIZE * 0.1);
+    metrics.splice(0, evictCount);
+  }
+  metrics.push(metric);
+}
 
 // ============================================================================
 // Core API
@@ -79,7 +93,7 @@ export async function trackDNSPerformance(
     timestamp: Date.now(),
   };
 
-  metrics.push(result);
+  addMetric(result);
   return result;
 }
 

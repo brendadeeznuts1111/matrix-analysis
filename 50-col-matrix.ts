@@ -2822,13 +2822,74 @@ if (serveMode) {
     };
   };
 
+  // Authentication helper - validates Bearer token from Authorization header
+  const API_TOKEN = Bun.env.MATRIX_API_TOKEN;
+  const requiresAuth = API_TOKEN && API_TOKEN.length > 0;
+
+  const validateAuth = (req: Request): { valid: boolean; error?: string } => {
+    if (!requiresAuth) return { valid: true };
+
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      return { valid: false, error: "Missing Authorization header" };
+    }
+
+    const [scheme, token] = authHeader.split(" ");
+    if (scheme?.toLowerCase() !== "bearer" || !token) {
+      return { valid: false, error: "Invalid Authorization format. Use: Bearer <token>" };
+    }
+
+    // Constant-time comparison to prevent timing attacks
+    const tokenBytes = new TextEncoder().encode(token);
+    const expectedBytes = new TextEncoder().encode(API_TOKEN);
+    if (tokenBytes.length !== expectedBytes.length) {
+      return { valid: false, error: "Invalid token" };
+    }
+
+    let mismatch = 0;
+    for (let i = 0; i < tokenBytes.length; i++) {
+      mismatch |= tokenBytes[i] ^ expectedBytes[i];
+    }
+
+    if (mismatch !== 0) {
+      return { valid: false, error: "Invalid token" };
+    }
+
+    return { valid: true };
+  };
+
   const server = Bun.serve({
     port: serverPort,
     fetch(req) {
       const url = req.url;
 
-      // WebSocket upgrade
+      // Health check - public endpoint (no auth required)
+      if (routes.health.test(url)) {
+        return Response.json({
+          status: "ok",
+          version: "3.1",
+          uptime: process.uptime(),
+          wsEnabled: wsMode,
+          wsClients: wsClients.size,
+          authRequired: requiresAuth,
+        });
+      }
+
+      // WebSocket upgrade - requires auth via query param or header
       if (wsMode && routes.ws.test(url)) {
+        const wsAuth = validateAuth(req);
+        // Also allow token via query param for WebSocket clients
+        const urlObj = new URL(url);
+        const queryToken = urlObj.searchParams.get("token");
+        const queryValid = queryToken && API_TOKEN && queryToken === API_TOKEN;
+
+        if (!wsAuth.valid && !queryValid) {
+          return Response.json(
+            { error: wsAuth.error || "Authentication required for WebSocket" },
+            { status: 401 }
+          );
+        }
+
         const clientId = `ws-${++wsClientId}`;
         const upgraded = server.upgrade(req, { data: { clientId } });
         if (upgraded) {
@@ -2837,18 +2898,16 @@ if (serveMode) {
         return Response.json({ error: "WebSocket upgrade failed" }, { status: 400 });
       }
 
-      // Health check
-      if (routes.health.test(url)) {
-        return Response.json({
-          status: "ok",
-          version: "3.1",
-          uptime: process.uptime(),
-          wsEnabled: wsMode,
-          wsClients: wsClients.size,
-        });
+      // All other API endpoints require authentication
+      const authResult = validateAuth(req);
+      if (!authResult.valid) {
+        return Response.json(
+          { error: authResult.error, hint: "Set MATRIX_API_TOKEN env var to disable auth" },
+          { status: 401 }
+        );
       }
 
-      // Get cached patterns list
+      // Get cached patterns list (protected)
       if (routes.patterns.test(url)) {
         return Response.json({ patterns, count: patterns.length });
       }

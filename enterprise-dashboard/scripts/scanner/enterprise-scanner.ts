@@ -99,7 +99,7 @@ export class RuleDatabase {
       // Verify signature if public key provided
       if (publicKey) {
         const signature = response.headers.get("X-Rules-Signature");
-        if (!signature || !this.verifySignature(rulesData, signature, publicKey)) {
+        if (!signature || !(await this.verifySignature(rulesData, signature, publicKey))) {
           throw new Error("Rules signature verification failed");
         }
       }
@@ -144,13 +144,35 @@ export class RuleDatabase {
     }
   }
 
-  private verifySignature(data: ArrayBuffer, signature: string, publicKey: string): boolean {
-    // Simplified signature verification
-    // In production, use proper cryptographic verification
+  private async verifySignature(data: ArrayBuffer, signature: string, publicKey: string): Promise<boolean> {
+    // Proper Ed25519 signature verification using Web Crypto API
     try {
-      // This is a placeholder - implement proper signature verification
-      return true;
-    } catch {
+      // Decode the base64-encoded signature
+      const signatureBytes = Uint8Array.from(atob(signature), (c) => c.charCodeAt(0));
+
+      // Decode the base64-encoded public key
+      const publicKeyBytes = Uint8Array.from(atob(publicKey), (c) => c.charCodeAt(0));
+
+      // Import the public key for verification
+      const cryptoKey = await crypto.subtle.importKey(
+        "raw",
+        publicKeyBytes,
+        { name: "Ed25519" },
+        false,
+        ["verify"]
+      );
+
+      // Verify the signature
+      const isValid = await crypto.subtle.verify(
+        { name: "Ed25519" },
+        cryptoKey,
+        signatureBytes,
+        data
+      );
+
+      return isValid;
+    } catch (error) {
+      console.error("[Scanner] Signature verification failed:", error);
       return false;
     }
   }
