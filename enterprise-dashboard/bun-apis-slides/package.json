@@ -5,6 +5,7 @@
   "scripts": {
     "build": "bun src/build.ts",
     "build:light": "bun src/build.ts light",
+    "watch": "bun src/build.ts --watch",
     "preview": "bun src/preview.ts",
     "serve": "bun src/server.ts",
     "open": "bun src/server.ts --open",

@@ -273,10 +273,46 @@ function generateHTML(theme: keyof typeof THEME = "dark"): string {
 
 // Build output
 const outputDir = "./dist";
-const theme = (Bun.argv[2] as keyof typeof THEME) || "dark";
+const args = Bun.argv.slice(2);
+const theme = (args.find(a => a === "light" || a === "dark") as keyof typeof THEME) || "dark";
+const watchMode = args.includes("--watch") || args.includes("-w");
 
-await Bun.write(`${outputDir}/index.html`, generateHTML(theme));
+async function build() {
+  await Bun.write(`${outputDir}/index.html`, generateHTML(theme));
+  console.log(`Built slides to ${outputDir}/index.html (theme: ${theme})`);
+  console.log(`Total slides: ${presentation.slides.length}`);
+  console.log(`Sections: ${sections.length}`);
+}
 
-console.log(`Built slides to ${outputDir}/index.html (theme: ${theme})`);
-console.log(`Total slides: ${presentation.slides.length}`);
-console.log(`Sections: ${sections.length}`);
+await build();
+
+// Watch mode: auto-rebuild on data.ts changes
+if (watchMode) {
+  console.log(`\n🔄 Watch mode - monitoring src/data.ts for changes`);
+  console.log(`   Press Ctrl+C to exit\n`);
+
+  const { watch } = await import("fs");
+  let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+
+  watch("./src/data.ts", async (eventType) => {
+    if (eventType !== "change") return;
+
+    if (debounceTimer) clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(async () => {
+      console.log(`\n🔄 data.ts changed, rebuilding...`);
+      try {
+        // Re-import fresh data (Bun caches imports, need dynamic import with cache bust)
+        const timestamp = Date.now();
+        const freshData = await import(`./data.ts?t=${timestamp}`);
+        Object.assign(presentation, freshData.presentation);
+        await build();
+        console.log(`✓ Rebuilt at ${new Date().toLocaleTimeString()}`);
+      } catch (err) {
+        console.error(`✗ Build failed:`, (err as Error).message);
+      }
+    }, 100);
+  });
+
+  // Keep process alive
+  await new Promise(() => {});
+}
