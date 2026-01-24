@@ -4,3 +4,6 @@ dist/
 # Scanner runtime files
 .scanner-cache.json
 .scanner.lock
+.scanner-baseline.json
+.bun-scanner-metadata.json
+.preinstall-cache.json

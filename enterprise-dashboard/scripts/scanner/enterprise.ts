@@ -97,6 +97,20 @@ interface ScanOptions {
   quiet: number; // 0=normal, 1=errors only, 2=silent
   verbose: boolean;
   offline: boolean;
+  mode: "audit" | "warn" | "enforce";
+  generateBaseline: boolean;
+  baselineFile: string;
+}
+
+interface Baseline {
+  version: string;
+  generatedAt: string;
+  issues: Array<{
+    file: string;
+    line: number;
+    rule: string;
+    hash: string; // Hash of file:line:rule for matching
+  }>;
 }
 
 interface ScanCache {
@@ -443,6 +457,92 @@ class LockManager {
 }
 
 // ============================================================================
+// Baseline Manager
+// ============================================================================
+
+const DEFAULT_BASELINE_FILE = ".scanner-baseline.json";
+const BASELINE_VERSION = "1.0.0";
+
+class BaselineManager {
+  private baselinePath: string;
+  private baseline: Baseline | null = null;
+  private issueHashes: Set<string> = new Set();
+
+  constructor(dir: string, baselineFile: string = DEFAULT_BASELINE_FILE) {
+    this.baselinePath = baselineFile.startsWith("/")
+      ? baselineFile
+      : `${dir}/${baselineFile}`;
+  }
+
+  private computeHash(file: string, line: number, rule: string): string {
+    // Use relative path for portability
+    const relPath = file.split("/").slice(-3).join("/");
+    return createHash("sha256")
+      .update(`${relPath}:${line}:${rule}`)
+      .digest("hex")
+      .slice(0, 16);
+  }
+
+  async load(): Promise<boolean> {
+    try {
+      const file = Bun.file(this.baselinePath);
+      if (await file.exists()) {
+        this.baseline = await file.json();
+        if (this.baseline?.issues) {
+          for (const issue of this.baseline.issues) {
+            this.issueHashes.add(issue.hash);
+          }
+        }
+        return true;
+      }
+    } catch {
+      // No baseline or invalid
+    }
+    return false;
+  }
+
+  async generate(issues: ScanIssue[]): Promise<void> {
+    const baseline: Baseline = {
+      version: BASELINE_VERSION,
+      generatedAt: new Date().toISOString(),
+      issues: issues.map((issue) => ({
+        file: issue.file,
+        line: issue.line,
+        rule: issue.ruleId,
+        hash: this.computeHash(issue.file, issue.line, issue.ruleId),
+      })),
+    };
+
+    await Bun.write(this.baselinePath, JSON.stringify(baseline, null, 2));
+    console.log(
+      `\x1b[32m[Baseline] Generated with ${issues.length} issues → ${this.baselinePath}\x1b[0m`
+    );
+  }
+
+  isBaselined(issue: ScanIssue): boolean {
+    const hash = this.computeHash(issue.file, issue.line, issue.ruleId);
+    return this.issueHashes.has(hash);
+  }
+
+  filterNewIssues(issues: ScanIssue[]): ScanIssue[] {
+    return issues.filter((issue) => !this.isBaselined(issue));
+  }
+
+  getStats(allIssues: ScanIssue[]): { total: number; baselined: number; new: number } {
+    const baselined = allIssues.filter((i) => this.isBaselined(i)).length;
+    return {
+      total: allIssues.length,
+      baselined,
+      new: allIssues.length - baselined,
+    };
+  }
+
+  hasBaseline(): boolean {
+    return this.baseline !== null;
+  }
+}
+
+// ============================================================================
 // Streaming Line Reader (for large files)
 // ============================================================================
 
@@ -783,6 +883,7 @@ class EnterpriseScanner {
   private engine: ScannerEngine;
   private lock: LockManager;
   private progress: ProgressIndicator;
+  private baseline: BaselineManager;
   private shutdownRequested = false;
 
   constructor(options: ScanOptions) {
@@ -798,6 +899,7 @@ class EnterpriseScanner {
     this.engine = new ScannerEngine(this.rulesDb, this.config);
     this.lock = new LockManager(options.path);
     this.progress = new ProgressIndicator(!options.quiet && !IS_CI);
+    this.baseline = new BaselineManager(options.path, options.baselineFile);
 
     this.setupSignalHandlers();
   }
@@ -847,6 +949,14 @@ class EnterpriseScanner {
         this.engine.setCache(cache);
       }
 
+      // Load baseline (if not generating)
+      if (!this.options.generateBaseline) {
+        const hasBaseline = await this.baseline.load();
+        if (hasBaseline && !this.options.quiet) {
+          console.log(`\x1b[90m[Baseline] Loaded ${this.options.baselineFile}\x1b[0m`);
+        }
+      }
+
       // Collect files
       const glob = new Glob("**/*.{ts,tsx,js,jsx}");
       const files: string[] = [];
@@ -894,9 +1004,36 @@ class EnterpriseScanner {
       const endTime = nanoseconds();
       const durationMs = (endTime - startTime) / 1_000_000;
       const allIssues = results.flatMap((r) => r.issues);
-      const errors = allIssues.filter((i) => i.severity === "error").length;
-      const warnings = allIssues.filter((i) => i.severity === "warning").length;
       const cachedCount = results.filter((r) => r.cached).length;
+
+      // Handle baseline generation
+      if (this.options.generateBaseline) {
+        await this.baseline.generate(allIssues);
+        const errors = allIssues.filter((i) => i.severity === "error").length;
+        const warnings = allIssues.filter((i) => i.severity === "warning").length;
+        if (!this.options.quiet) {
+          console.log(Bun.inspect.table([
+            { Metric: "Files Scanned", Value: results.length },
+            { Metric: "Issues Baselined", Value: allIssues.length },
+            { Metric: "Errors", Value: errors },
+            { Metric: "Warnings", Value: warnings },
+          ], undefined, { colors: !NO_COLOR }));
+        }
+        return 0; // Always succeed when generating baseline
+      }
+
+      // Apply baseline filtering for enforcement modes
+      const baselineStats = this.baseline.hasBaseline()
+        ? this.baseline.getStats(allIssues)
+        : { total: allIssues.length, baselined: 0, new: allIssues.length };
+      const newIssues = this.baseline.hasBaseline()
+        ? this.baseline.filterNewIssues(allIssues)
+        : allIssues;
+
+      // Calculate counts based on mode
+      const reportIssues = this.options.mode === "audit" ? allIssues : newIssues;
+      const errors = reportIssues.filter((i) => i.severity === "error").length;
+      const warnings = reportIssues.filter((i) => i.severity === "warning").length;
 
       // Output based on format
       switch (this.options.format) {
@@ -907,8 +1044,8 @@ class EnterpriseScanner {
         }
 
         case "github": {
-          // GitHub Actions annotations
-          for (const issue of allIssues) {
+          // GitHub Actions annotations (only new issues in warn/enforce mode)
+          for (const issue of reportIssues) {
             console.log(formatGitHubAnnotation(issue));
           }
           break;
@@ -917,8 +1054,10 @@ class EnterpriseScanner {
         case "json": {
           console.log(JSON.stringify({
             traceId,
+            mode: this.options.mode,
             files: results.length,
-            issues: allIssues.length,
+            issues: reportIssues.length,
+            baseline: baselineStats,
             errors,
             warnings,
             durationMs,
@@ -929,8 +1068,8 @@ class EnterpriseScanner {
 
         default: {
           // Auto-detect GitHub Actions
-          if (IS_GITHUB_ACTIONS && allIssues.length > 0) {
-            for (const issue of allIssues) {
+          if (IS_GITHUB_ACTIONS && reportIssues.length > 0) {
+            for (const issue of reportIssues) {
               console.log(formatGitHubAnnotation(issue));
             }
           }
@@ -939,19 +1078,46 @@ class EnterpriseScanner {
 
           if (!this.options.quiet) {
             console.log(`\n\x1b[90m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\x1b[0m`);
-            console.log(Bun.inspect.table([
+            const summaryRows = [
               { Metric: "Files Scanned", Value: results.length },
               { Metric: "Cached Files", Value: `${cachedCount} (${((cachedCount / results.length) * 100).toFixed(0)}%)` },
-              { Metric: "Issues Found", Value: allIssues.length },
+            ];
+
+            if (this.baseline.hasBaseline()) {
+              summaryRows.push(
+                { Metric: "Mode", Value: this.options.mode.toUpperCase() },
+                { Metric: "Total Issues", Value: baselineStats.total },
+                { Metric: "Baselined", Value: `${baselineStats.baselined} (ignored)` },
+                { Metric: "New Issues", Value: baselineStats.new }
+              );
+            } else {
+              summaryRows.push({ Metric: "Issues Found", Value: allIssues.length });
+            }
+
+            summaryRows.push(
               { Metric: "Errors", Value: errors },
               { Metric: "Warnings", Value: warnings },
-              { Metric: "Duration", Value: `${durationMs.toFixed(2)}ms` },
-            ], undefined, { colors: !NO_COLOR }));
+              { Metric: "Duration", Value: `${durationMs.toFixed(2)}ms` }
+            );
+
+            console.log(Bun.inspect.table(summaryRows, undefined, { colors: !NO_COLOR }));
+
+            // Show enforcement hint
+            if (this.options.mode === "enforce" && errors > 0) {
+              console.log(`\n\x1b[31m[Enforce] ${errors} new error(s) - failing build\x1b[0m`);
+            } else if (this.options.mode === "warn" && errors > 0) {
+              console.log(`\n\x1b[33m[Warn] ${errors} new error(s) - consider fixing\x1b[0m`);
+            }
           }
         }
       }
 
-      return errors > 0 ? 1 : 0;
+      // Exit code based on mode
+      if (this.options.mode === "enforce") {
+        return errors > 0 ? 1 : 0; // Only new errors fail
+      } else {
+        return 0; // audit and warn modes always pass
+      }
     } finally {
       await this.lock.release();
       this.rulesDb.close();
@@ -976,6 +1142,9 @@ async function main(): Promise<void> {
     quiet: 0,
     verbose: false,
     offline: false,
+    mode: "audit",
+    generateBaseline: false,
+    baselineFile: DEFAULT_BASELINE_FILE,
   };
 
   for (const arg of args) {
@@ -995,6 +1164,12 @@ async function main(): Promise<void> {
       options.verbose = true;
     } else if (arg === "--offline") {
       options.offline = true;
+    } else if (arg.startsWith("--mode=")) {
+      options.mode = arg.split("=")[1] as ScanOptions["mode"];
+    } else if (arg === "--generate-baseline") {
+      options.generateBaseline = true;
+    } else if (arg.startsWith("--baseline-file=")) {
+      options.baselineFile = arg.split("=")[1];
     } else if (arg === "--help" || arg === "-h") {
       console.log(`
 Bun Enterprise Scanner v3.0.0
@@ -1003,25 +1178,35 @@ Usage:
   bun enterprise.ts [path] [options]
 
 Options:
-  --format=<fmt>      Output format: table, json, sarif, github
-  --concurrency=<n>   Max parallel file scans (default: ${DEFAULT_CONCURRENCY})
-  --fix               Apply auto-fixes (writes to .fixed files first)
-  --no-cache          Disable incremental scanning cache
-  -q                  Quiet mode (errors only)
-  -qq                 Silent mode (exit code only)
-  -v, --verbose       Verbose output with timing breakdown
-  --offline           Skip update checks
+  --format=<fmt>         Output format: table, json, sarif, github
+  --concurrency=<n>      Max parallel file scans (default: ${DEFAULT_CONCURRENCY})
+  --fix                  Apply auto-fixes (writes to .fixed files first)
+  --no-cache             Disable incremental scanning cache
+  -q                     Quiet mode (errors only)
+  -qq                    Silent mode (exit code only)
+  -v, --verbose          Verbose output with timing breakdown
+  --offline              Skip update checks
+
+Enforcement:
+  --mode=<mode>          Enforcement mode: audit, warn, enforce (default: audit)
+                           audit   - Report all issues, exit 0
+                           warn    - Report new issues, exit 0
+                           enforce - Report new issues, exit 1 if new errors
+  --generate-baseline    Generate baseline from current issues
+  --baseline-file=<f>    Baseline file path (default: ${DEFAULT_BASELINE_FILE})
 
 Environment:
-  GITHUB_ACTIONS      Auto-enables GitHub annotation format
-  NO_COLOR            Disable colored output
-  CI                  Disable progress indicator
+  GITHUB_ACTIONS         Auto-enables GitHub annotation format
+  NO_COLOR               Disable colored output
+  CI                     Disable progress indicator
 
 Examples:
-  bun enterprise.ts src                    # Scan src directory
-  bun enterprise.ts . --format=sarif       # SARIF for GitHub CodeQL
-  bun enterprise.ts . --concurrency=2      # Limit parallelism for CI
-  bun enterprise.ts . -qq && echo "OK"     # Pure CI mode
+  bun enterprise.ts src                         # Scan src directory
+  bun enterprise.ts . --format=sarif            # SARIF for GitHub CodeQL
+  bun enterprise.ts . --concurrency=2           # Limit parallelism for CI
+  bun enterprise.ts . -qq && echo "OK"          # Pure CI mode
+  bun enterprise.ts . --generate-baseline       # Create baseline
+  bun enterprise.ts . --mode=enforce            # Fail on new errors
 `);
       process.exit(0);
     }
