@@ -514,21 +514,33 @@ async function healthCheck(host: string, port: number) {
     sectionId: "integration",
     title: "API Quick Reference",
     subtitle: "Signatures, Topics & Categories",
-    content: "Complete reference for all covered Bun APIs with signatures, use cases, and categories.",
-    code: `// API Reference Matrix
-const apis = [
-  { api: "Bun.stringWidth(str)",      topic: "Terminal alignment",   category: "Formatting" },
-  { api: "Bun.peek(promise)",         topic: "Sync promise check",   category: "Async" },
-  { api: "Bun.inspect(obj, opts?)",   topic: "Object debugging",     category: "Debugging" },
-  { api: "Bun.inspect.table(data)",   topic: "Terminal tables",      category: "Formatting" },
-  { api: "Bun.openInEditor(path)",    topic: "Editor integration",   category: "DX" },
-  { api: "Bun.deepEquals(a, b)",      topic: "Deep comparison",      category: "Testing" },
-  { api: "Bun.escapeHTML(str)",       topic: "XSS prevention",       category: "Security" },
-  { api: "Bun.$\`cmd\`",               topic: "Shell commands",       category: "Shell" },
-  { api: "Bun.spawn(cmd, opts)",      topic: "Process control",      category: "Shell" },
-  { api: "Bun.connect(opts)",         topic: "TCP/TLS sockets",      category: "Networking" },
+    content: "Complete reference for Bun APIs covered in this presentation plus essential utilities.",
+    code: `// Covered in Slides
+const covered = [
+  { API: "Bun.stringWidth(str)",       Topic: "Terminal alignment",  Category: "Formatting" },
+  { API: "Bun.peek(promise)",          Topic: "Sync promise check",  Category: "Async" },
+  { API: "Bun.inspect(obj, opts?)",    Topic: "Object debugging",    Category: "Debugging" },
+  { API: "Bun.inspect.table(data)",    Topic: "CLI tables",          Category: "Formatting" },
+  { API: "Bun.openInEditor(path)",     Topic: "Jump to code",        Category: "DX" },
+  { API: "Bun.deepEquals(a, b)",       Topic: "Deep comparison",     Category: "Testing" },
+  { API: "Bun.escapeHTML(str)",        Topic: "XSS prevention",      Category: "Security" },
+  { API: "Bun.$\`cmd\`",                Topic: "Shell commands",      Category: "Shell" },
+  { API: "Bun.spawn(cmd, opts)",       Topic: "Process control",     Category: "Shell" },
+  { API: "Bun.connect(opts)",          Topic: "TCP/TLS sockets",     Category: "Network" },
 ];
-console.log(Bun.inspect.table(apis));`,
+// Essential Utilities
+const utils = [
+  { API: "Bun.serve(opts)",            Topic: "HTTP server",         Category: "Server" },
+  { API: "Bun.file(path)",             Topic: "File reference",      Category: "I/O" },
+  { API: "Bun.write(path, data)",      Topic: "Write files",         Category: "I/O" },
+  { API: "Bun.sleep(ms)",              Topic: "Async delay",         Category: "Timing" },
+  { API: "Bun.nanoseconds()",          Topic: "High-res timing",     Category: "Timing" },
+  { API: "Bun.password.hash(pwd)",     Topic: "Argon2id hash",       Category: "Security" },
+  { API: "Bun.randomUUIDv7()",         Topic: "Time-sorted UUID",    Category: "Utils" },
+  { API: "Bun.gzipSync(data)",         Topic: "Compression",         Category: "Utils" },
+  { API: "Bun.version",                Topic: "Runtime version",     Category: "Meta" },
+];
+console.log(Bun.inspect.table([...covered, ...utils]));`,
     tags: ["reference", "signatures", "categories"],
   },
 
