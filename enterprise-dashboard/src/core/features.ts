@@ -35,6 +35,13 @@ export const AB_TEST_NEW_UI = feature("AB_TEST_NEW_UI");
 export const AB_TEST_PTY_POOL = feature("AB_TEST_PTY_POOL");
 
 // ============================================================================
+// Google Cloud Features
+// ============================================================================
+
+export const GOOGLE_API_ENABLED = feature("GOOGLE_API");
+export const GOOGLE_CLOUD_TRACE = feature("GOOGLE_CLOUD_TRACE");
+
+// ============================================================================
 // Feature Guards
 // ============================================================================
 
@@ -95,6 +102,8 @@ declare module "bun:bundle" {
       | "DEBUG_TERMINAL"
       | "DEBUG_PERF"
       | "AB_TEST_NEW_UI"
-      | "AB_TEST_PTY_POOL";
+      | "AB_TEST_PTY_POOL"
+      | "GOOGLE_API"
+      | "GOOGLE_CLOUD_TRACE";
   }
 }
