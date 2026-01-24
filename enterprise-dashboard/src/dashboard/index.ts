@@ -2,6 +2,7 @@
 // Enterprise Dashboard - Security & Registry Management
 
 import { feature } from "bun:bundle";
+import { dns } from "bun";
 
 export { KeychainViewer } from "./KeychainViewer.ts";
 export { RegistryViewer } from "./RegistryViewer.ts";
@@ -11,6 +12,14 @@ export { SecureRegistryClient } from "../client/RegistryClient.ts";
 import { KeychainViewer } from "./KeychainViewer.ts";
 import { RegistryViewer } from "./RegistryViewer.ts";
 import { SecurityAudit } from "./SecurityAudit.ts";
+
+// ============================================================================
+// DNS Prefetch (warm cache before network requests)
+// ============================================================================
+
+const REGISTRY_HOST = new URL(process.env.REGISTRY_URL ?? "https://registry.npmjs.org").hostname;
+dns.prefetch(REGISTRY_HOST, 443);
+dns.prefetch("api.github.com", 443);
 
 // ============================================================================
 // Tier-Gated Features (Compile-Time Dead Code Elimination)
