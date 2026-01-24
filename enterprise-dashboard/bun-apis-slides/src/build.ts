@@ -261,6 +261,18 @@ function generateHTML(theme: keyof typeof THEME = "dark"): string {
       </div>
       <form id="feedback-form">
         <input type="hidden" name="slide" id="feedback-slide" />
+        <input type="hidden" name="selection" id="feedback-selection" />
+        <div id="feedback-context" style="
+          display: none;
+          margin-bottom: 12px;
+          padding: 8px 12px;
+          background: ${t.bg};
+          border-left: 3px solid ${t.accent};
+          border-radius: 4px;
+          font-size: 13px;
+          color: ${t.textMuted};
+          font-style: italic;
+        "></div>
         <label style="display: block; margin-bottom: 12px; color: ${t.textMuted};">
           Type:
           <select name="type" style="
@@ -341,10 +353,15 @@ function generateHTML(theme: keyof typeof THEME = "dark"): string {
     function prevSlide() { goToSlide(currentSlide - 1); }
 
     document.addEventListener('keydown', (e) => {
+      // Skip if typing in textarea/input
+      if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') return;
+
       if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); nextSlide(); }
       if (e.key === 'ArrowLeft') { e.preventDefault(); prevSlide(); }
       if (e.key === 'Home') { e.preventDefault(); goToSlide(0); }
       if (e.key === 'End') { e.preventDefault(); goToSlide(totalSlides - 1); }
+      if (e.key === 'f' || e.key === 'F') { e.preventDefault(); openFeedback(); }
+      if (e.key === 'Escape') { feedbackModal.style.display = 'none'; }
     });
 
     const observer = new IntersectionObserver((entries) => {
@@ -365,11 +382,28 @@ function generateHTML(theme: keyof typeof THEME = "dark"): string {
     const feedbackClose = document.getElementById('feedback-close');
     const feedbackForm = document.getElementById('feedback-form');
     const feedbackStatus = document.getElementById('feedback-status');
+    const feedbackContext = document.getElementById('feedback-context');
+    const feedbackSelection = document.getElementById('feedback-selection');
 
-    feedbackBtn.addEventListener('click', () => {
-      feedbackModal.style.display = 'flex';
+    function openFeedback() {
+      // Capture any selected text
+      const selection = window.getSelection().toString().trim();
       document.getElementById('feedback-slide').value = currentSlide + 1;
-    });
+
+      if (selection) {
+        feedbackSelection.value = selection;
+        feedbackContext.textContent = '"' + (selection.length > 100 ? selection.slice(0, 100) + '...' : selection) + '"';
+        feedbackContext.style.display = 'block';
+      } else {
+        feedbackSelection.value = '';
+        feedbackContext.style.display = 'none';
+      }
+
+      feedbackModal.style.display = 'flex';
+      document.querySelector('#feedback-form textarea').focus();
+    }
+
+    feedbackBtn.addEventListener('click', openFeedback);
 
     feedbackClose.addEventListener('click', () => {
       feedbackModal.style.display = 'none';
@@ -382,10 +416,12 @@ function generateHTML(theme: keyof typeof THEME = "dark"): string {
     feedbackForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const formData = new FormData(feedbackForm);
+      const selection = formData.get('selection');
       const data = {
-        slide: formData.get('slide'),
+        slide: parseInt(formData.get('slide')),
         type: formData.get('type'),
         comment: formData.get('comment'),
+        selection: selection || null,
         timestamp: new Date().toISOString(),
       };
 
