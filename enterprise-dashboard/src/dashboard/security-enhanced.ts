@@ -15,14 +15,19 @@ interface PackageRisk {
 class SecurityDashboard {
   async analyzePackage(name: string, version: string): Promise<PackageRisk> {
     const issues: string[] = [];
-    let score: PackageRisk["riskScore"] = "A+";
     let depCount = 0;
     let hasEngines = false;
 
-    // Check for pre-release
+    // Helper to check if score should be downgraded
+    const isHighScore = (s: PackageRisk["riskScore"]) => s === "A+" || s === "A";
+
+    // Start with best score
+    let score: PackageRisk["riskScore"] = "A+";
+
+    // Check for pre-release (worst case)
     if (version.includes("canary") || version.includes("experimental") || version.includes("dev")) {
       issues.push("Pre-release version in production");
-      score = "D";
+      return { name, version, riskScore: "D", issues, depCount, hasEngines };
     }
 
     // Check dependency count via npm view
@@ -33,10 +38,10 @@ class SecurityDashboard {
         depCount = Object.keys(pkgJson || {}).length;
         if (depCount > 20) {
           issues.push(`High dependency count (${depCount})`);
-          if (score === "A+" || score === "A") score = "C+";
+          if (isHighScore(score)) score = "C+";
         } else if (depCount > 10) {
           issues.push(`Moderate dependencies (${depCount})`);
-          if (score === "A+" || score === "A") score = "B+";
+          if (isHighScore(score)) score = "B+";
         }
       }
     } catch {

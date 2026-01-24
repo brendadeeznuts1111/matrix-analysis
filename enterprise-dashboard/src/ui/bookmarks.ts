@@ -162,7 +162,7 @@ export class BookmarkManager {
   add(
     title: string,
     url: string,
-    folder = CHROME_FOLDERS.OTHER_BOOKMARKS,
+    folder: string = CHROME_FOLDERS.OTHER_BOOKMARKS,
     tags?: string[],
     useChromeId = false
   ): Bookmark {
@@ -301,7 +301,7 @@ export class BookmarkManager {
   /**
    * Render folder view (mirrors chrome://bookmarks/?id=X)
    */
-  render(folderId = CHROME_FOLDERS.OTHER_BOOKMARKS): void {
+  render(folderId: string = CHROME_FOLDERS.OTHER_BOOKMARKS): void {
     const cols = process.stdout.columns || 80;
     const folder = this.folders.get(folderId);
     const bookmarks = this.getByFolder(folderId);
