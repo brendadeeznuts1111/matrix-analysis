@@ -1,0 +1,58 @@
+{
+  "workspaceProfileName": "Bookmark Manager Workspace",
+  "dnsCacheTTL": 30,
+  "maxSearchResults": 50,
+  "autoSync": true,
+  "syncInterval": 300000,
+  "defaultFolder": "2",
+  "faviconEmoji": {
+    "github.com": "🐙",
+    "gitlab.com": "🦊",
+    "stackoverflow.com": "📚",
+    "npmjs.com": "📦",
+    "youtube.com": "📺",
+    "twitter.com": "🐦",
+    "linkedin.com": "💼",
+    "reddit.com": "👁️",
+    "medium.com": "📝",
+    "notion.so": "📓",
+    "figma.com": "🎨",
+    "slack.com": "💬",
+    "discord.com": "🎮",
+    "aws.amazon.com": "☁️",
+    "google.com": "🔍",
+    "microsoft.com": "🪟",
+    "apple.com": "🍎",
+    "docker.com": "🐳",
+    "kubernetes.io": "⚓",
+    "grafana.com": "📊",
+    "datadoghq.com": "🐶",
+    "sentry.io": "🚨",
+    "vercel.com": "▲",
+    "netlify.com": "🌐"
+  },
+  "errorPages": {
+    "theme": "dark",
+    "colors": {
+      "background": "#0a0e27",
+      "surface": "#1a1f3a",
+      "primary": "#3b82f6",
+      "error": "#ef4444",
+      "warning": "#f59e0b",
+      "success": "#10b981",
+      "text": "#e5e7eb",
+      "textMuted": "#9ca3af",
+      "border": "#374151"
+    }
+  },
+  "database": {
+    "path": "./bookmark-manager.db",
+    "backup": true,
+    "backupInterval": 86400000
+  },
+  "performance": {
+    "lazyLoad": true,
+    "cacheSize": 1000,
+    "debounceSearch": 300
+  }
+}

@@ -1,0 +1,87 @@
+{
+  "version": "1.0.0",
+  "metadata": {
+    "author": "Enterprise Team",
+    "created": "2026-01-23T00:00:00.000Z",
+    "description": "Bookmark Manager Configuration and Setup Slides"
+  },
+  "slides": [
+    {
+      "title": "Welcome to Bookmark Manager",
+      "content": "Enterprise-grade bookmark management with Chrome sync, security scanning, and package registry integration.",
+      "config": {
+        "workspaceProfileName": "Bookmark Manager Workspace",
+        "maxSearchResults": 50,
+        "autoSync": true
+      }
+    },
+    {
+      "title": "Chrome Sync Configuration",
+      "content": "Configure Chrome bookmarks synchronization. The manager will auto-detect your Chrome profiles and bookmarks.",
+      "config": {
+        "chromeProfileName": "Default",
+        "autoDetectChromePath": true,
+        "fallbackToDefaultProfile": true
+      },
+      "actions": [
+        {
+          "type": "sync",
+          "params": {}
+        }
+      ]
+    },
+    {
+      "title": "Enhanced Path Configuration",
+      "content": "The manager supports multiple ways to specify Chrome bookmarks location:\n- Direct path (chromeBookmarksPath)\n- Profile name (chromeProfileName)\n- Profile directory (chromeProfileDirectory)\n- Auto-detection with fallback",
+      "config": {
+        "autoDetectChromePath": true,
+        "fallbackToDefaultProfile": true
+      }
+    },
+    {
+      "title": "Security Scanning",
+      "content": "Scan all bookmark URLs for security issues. Integrates with Enterprise Scanner for comprehensive security analysis.",
+      "actions": [
+        {
+          "type": "scan",
+          "params": {
+            "mode": "audit",
+            "riskThreshold": "high"
+          }
+        }
+      ]
+    },
+    {
+      "title": "Package Registry Integration",
+      "content": "Cross-reference bookmarks with npm and GitHub packages. Automatically detects package URLs and fetches metadata.",
+      "config": {}
+    },
+    {
+      "title": "Export and Backup",
+      "content": "Export bookmarks in multiple formats:\n- Standard JSON export\n- Streaming export (memory-efficient)\n- SARIF format (for security tools)",
+      "actions": [
+        {
+          "type": "export",
+          "params": {
+            "path": "./bookmarks-export.json"
+          }
+        }
+      ]
+    },
+    {
+      "title": "Statistics and Analytics",
+      "content": "Get comprehensive statistics:\n- Total bookmarks and folders\n- Most visited bookmarks\n- Recently added bookmarks\n- Usage by folder",
+      "actions": []
+    },
+    {
+      "title": "Integration Registry",
+      "content": "Centralized integration management:\n- Scanner integration\n- Package registry integration\n- Cross-reference system\n- Unified API for all integrations",
+      "config": {}
+    },
+    {
+      "title": "Configuration Complete",
+      "content": "Your bookmark manager is now configured and ready to use!\n\nFeatures enabled:\n✅ Chrome sync\n✅ Security scanning\n✅ Package registry integration\n✅ Enhanced path configuration\n✅ Streaming exports",
+      "actions": []
+    }
+  ]
+}
