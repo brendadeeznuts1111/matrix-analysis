@@ -14,8 +14,10 @@ export class BunToolkit {
    * OPTIMIZED PROMISE PROCESSING (Bun.peek)
    * Processes an array of promises with zero microtask overhead for those
    * already resolved. Ideal for cache-heavy workloads.
+   *
+   * @param concurrency - Maximum concurrent pending promises (default: 100)
    */
-  static async fastAll<T>(promises: Promise<T>[]): Promise<T[]> {
+  static async fastAll<T>(promises: Promise<T>[], concurrency = 100): Promise<T[]> {
     const results: T[] = [];
     const pending: { promise: Promise<T>; index: number }[] = [];
 
@@ -32,12 +34,15 @@ export class BunToolkit {
       }
     }
 
-    // Only await what is actually still running
+    // Process pending promises in batches to limit concurrency
     if (pending.length > 0) {
-      const remaining = await Promise.all(pending.map((item) => item.promise));
-      remaining.forEach((res, i) => {
-        results[pending[i].index] = res;
-      });
+      for (let i = 0; i < pending.length; i += concurrency) {
+        const batch = pending.slice(i, i + concurrency);
+        const batchResults = await Promise.all(batch.map((item) => item.promise));
+        batchResults.forEach((res, j) => {
+          results[batch[j].index] = res;
+        });
+      }
     }
 
     return results;

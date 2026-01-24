@@ -19,6 +19,7 @@ class HMRMonitor {
   private hotUpdates = 0;
   private fullReloads = 0;
   private errors = 0;
+  private monitorInterval: ReturnType<typeof setInterval> | null = null;
 
   constructor() {
     if (!import.meta.hot) {
@@ -103,23 +104,36 @@ class HMRMonitor {
    * Monitor mode - real-time display
    */
   monitor(): void {
+    // Clear any existing interval to prevent leaks
+    this.stop();
+
     console.clear();
     console.log("\x1b[1m🔥 HMR Monitor - Live\x1b[0m");
     console.log("=".repeat(60));
 
-    const interval = setInterval(() => {
+    this.monitorInterval = setInterval(() => {
       this.render();
     }, 1000);
 
     // Handle Ctrl+C
     process.on("SIGINT", () => {
-      clearInterval(interval);
+      this.stop();
       this.renderSummary();
       process.exit(0);
     });
 
     // Initial render
     this.render();
+  }
+
+  /**
+   * Stop the monitor and clear intervals
+   */
+  stop(): void {
+    if (this.monitorInterval !== null) {
+      clearInterval(this.monitorInterval);
+      this.monitorInterval = null;
+    }
   }
 
   /**

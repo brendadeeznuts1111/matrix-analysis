@@ -7,6 +7,7 @@ export class SecureRegistryClient {
   private registryUrl: string;
   private cache = new Map<string, { data: unknown; expires: number }>();
   private static TTL_MS = 5 * 60 * 1000; // 5-minute cache
+  private static FETCH_TIMEOUT_MS = 10_000; // 10-second fetch timeout
 
   private constructor(token: string, password: string, registryUrl: string) {
     this.token = token;
@@ -41,6 +42,7 @@ export class SecureRegistryClient {
       headers: {
         Authorization: `Bearer ${this.token}`,
       },
+      signal: AbortSignal.timeout(SecureRegistryClient.FETCH_TIMEOUT_MS),
     });
 
     if (!response.ok) {
