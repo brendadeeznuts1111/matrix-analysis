@@ -466,14 +466,16 @@ import { SecureRegistryClient } from "./src/client/RegistryClient.ts";
 
 const client = await SecureRegistryClient.create();
 
-// Get package info
+// Get package info (cached for 5 minutes)
 const info = await client.getPackageInfo("zod");
 console.log(info["dist-tags"].latest);
 
-// Get all versions
+// Get all versions (uses cached package info)
 const versions = await client.getPackageVersions("typescript");
 console.log(versions.slice(-5)); // Last 5 versions
 ```
+
+> **Note:** Package info is cached in-memory with a 5-minute TTL to reduce network calls. Repeated requests for the same package return cached data.
 
 ### KeychainViewer
 
