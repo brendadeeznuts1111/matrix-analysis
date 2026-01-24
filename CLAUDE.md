@@ -216,6 +216,10 @@ Bun.openInEditor("./src/app.ts");                  // Open file
 Bun.openInEditor("./src/app.ts", { line: 42 });    // Jump to line
 Bun.openInEditor("./src/app.ts", { line: 42, column: 10 });  // Line + column
 Bun.resolveSync("./src/auth.ts", import.meta.dir); // Resolve relative path
+
+// HTML escaping (XSS prevention)
+Bun.escapeHTML("<script>alert('xss')</script>");  // &lt;script&gt;...
+Bun.escapeHTML(userInput);                         // Always escape user input
 ```
 
 ### Fetch & DNS Optimization
