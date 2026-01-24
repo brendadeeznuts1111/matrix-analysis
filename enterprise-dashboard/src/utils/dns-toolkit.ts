@@ -359,6 +359,57 @@ export function formatTimingLog(url: string, stats: TimingStats): object {
 }
 
 // ============================================================================
+// DNS Cache TTL Configuration
+// ============================================================================
+
+/**
+ * Default DNS cache TTL in Bun (30 seconds).
+ * Configurable via BUN_CONFIG_DNS_TIME_TO_LIVE_SECONDS environment variable.
+ *
+ * Note: getaddrinfo doesn't expose actual DNS TTL, so Bun uses a fixed value.
+ * - Bun default: 30s (balance between caching benefit and freshness)
+ * - AWS recommends: 5s (for JVM)
+ * - JVM default: indefinite
+ */
+export const DNS_TTL_DEFAULT = 30;
+
+/**
+ * Get the current DNS TTL setting.
+ * Returns the value from BUN_CONFIG_DNS_TIME_TO_LIVE_SECONDS or default (30s).
+ */
+export function getDnsTtl(): number {
+  const envTtl = process.env.BUN_CONFIG_DNS_TIME_TO_LIVE_SECONDS;
+  if (envTtl) {
+    const parsed = parseInt(envTtl, 10);
+    if (!isNaN(parsed) && parsed >= 0) {
+      return parsed;
+    }
+  }
+  return DNS_TTL_DEFAULT;
+}
+
+/**
+ * Recommended TTL values for different environments.
+ */
+export const DNS_TTL_RECOMMENDATIONS = {
+  /** AWS recommendation for dynamic infrastructure */
+  aws: 5,
+  /** Bun default - good balance for most apps */
+  default: 30,
+  /** Stable infrastructure with infrequent DNS changes */
+  stable: 300,
+  /** Development/testing with frequent changes */
+  development: 1,
+} as const;
+
+/**
+ * Generate shell command to run with a specific DNS TTL.
+ */
+export function withDnsTtl(ttlSeconds: number, command: string): string {
+  return `BUN_CONFIG_DNS_TIME_TO_LIVE_SECONDS=${ttlSeconds} ${command}`;
+}
+
+// ============================================================================
 // Capability Detection
 // ============================================================================
 
@@ -376,11 +427,13 @@ export function isFullPreconnectAvailable(): boolean {
 export function getCapabilities(): {
   dnsPrefetch: boolean;
   fetchPreconnect: boolean;
+  dnsTtlSeconds: number;
   bunVersion: string;
 } {
   return {
     dnsPrefetch: true, // Always available
     fetchPreconnect: isPreconnectAvailable(),
+    dnsTtlSeconds: getDnsTtl(),
     bunVersion: typeof Bun !== "undefined" ? Bun.version : "unknown",
   };
 }
