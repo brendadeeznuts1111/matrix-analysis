@@ -18,16 +18,35 @@ interface Feedback {
 const FEEDBACK_FILE = "./feedback.ndjson";
 const PORT = 3001;
 
+// Allowed origins for CORS (restrict from wildcard)
+const ALLOWED_ORIGINS = new Set([
+  "http://localhost:3000",
+  "http://localhost:3001",
+  "http://127.0.0.1:3000",
+  "http://127.0.0.1:3001",
+]);
+
+// Simple API key auth for read endpoints (set via env)
+const API_KEY = process.env.FEEDBACK_API_KEY || null;
+
+function isAuthorized(req: Request): boolean {
+  if (!API_KEY) return true; // No key configured = dev mode
+  const authHeader = req.headers.get("Authorization");
+  return authHeader === `Bearer ${API_KEY}`;
+}
+
 const server = Bun.serve({
   port: PORT,
   async fetch(req) {
     const url = new URL(req.url);
+    const origin = req.headers.get("Origin") || "";
 
-    // CORS headers for local development
+    // CORS headers - restrict to known origins
+    const allowedOrigin = ALLOWED_ORIGINS.has(origin) ? origin : "";
     const corsHeaders = {
-      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Origin": allowedOrigin,
       "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type",
+      "Access-Control-Allow-Headers": "Content-Type, Authorization",
     };
 
     // Handle preflight
@@ -74,8 +93,14 @@ const server = Bun.serve({
       }
     }
 
-    // GET /feedback - View all feedback (for review)
+    // GET /feedback - View all feedback (for review) - REQUIRES AUTH
     if (req.method === "GET" && url.pathname === "/feedback") {
+      if (!isAuthorized(req)) {
+        return Response.json(
+          { error: "Unauthorized - set Authorization: Bearer <FEEDBACK_API_KEY>" },
+          { status: 401, headers: corsHeaders }
+        );
+      }
       try {
         const file = Bun.file(FEEDBACK_FILE);
         if (!await file.exists()) {
@@ -95,8 +120,14 @@ const server = Bun.serve({
       }
     }
 
-    // GET /feedback/stats - Feedback statistics
+    // GET /feedback/stats - Feedback statistics - REQUIRES AUTH
     if (req.method === "GET" && url.pathname === "/feedback/stats") {
+      if (!isAuthorized(req)) {
+        return Response.json(
+          { error: "Unauthorized - set Authorization: Bearer <FEEDBACK_API_KEY>" },
+          { status: 401, headers: corsHeaders }
+        );
+      }
       try {
         const file = Bun.file(FEEDBACK_FILE);
         if (!await file.exists()) {

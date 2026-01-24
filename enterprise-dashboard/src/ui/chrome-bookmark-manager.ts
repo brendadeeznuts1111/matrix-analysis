@@ -24,7 +24,7 @@ interface ChromeBookmarkNode {
 }
 
 // Our enriched bookmark interface
-interface Bookmark {
+export interface Bookmark {
   id: string;
   title: string;
   url: string;
@@ -1508,15 +1508,16 @@ export class ChromeSpecBookmarkManager {
     const { StreamingJSONWriter } = await import("./streaming-json-writer.ts");
     const writer = new StreamingJSONWriter(filePath);
 
-    // Write header
-    const header = {
+    // Write header (partial JSON that will be completed by streaming)
+    const headerObj = {
       version: options?.version || "1.0",
       chromeSpec: true,
       exportedAt: new Date().toISOString(),
-      bookmarks: [
     };
-    
-    await writer.writeHeader(JSON.stringify(header).slice(0, -2)); // Remove closing ]
+    const headerJson = JSON.stringify(headerObj);
+    // Create partial header: {"version":"1.0",...,"bookmarks":[
+    const partialHeader = headerJson.slice(0, -1) + ',"bookmarks":[';
+    await writer.writeHeader(partialHeader);
 
     // Stream bookmarks one by one
     let bookmarkCount = 0;

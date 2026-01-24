@@ -236,11 +236,16 @@ export class SecureS3Exporter {
       signed = true;
     }
 
-    // 4. Upload (multipart for large files)
+    // 4. Upload (multipart for large files) with server-side encryption
+    const s3Options = {
+      serverSideEncryption: "AES256" as const,
+      metadata,
+    };
+
     if (data.byteLength > MULTIPART_THRESHOLD) {
       await this.multipartUpload(cacheKey, data, metadata);
     } else {
-      await s3.write(s3Path, data);
+      await s3.write(s3Path, data, s3Options);
     }
 
     console.log(
@@ -277,7 +282,10 @@ export class SecureS3Exporter {
     // For now, use simple write - Bun handles chunking internally
     // TODO: Use explicit multipart API when available
     const s3Path = `s3://${this.bucket}/${key}`;
-    await s3.write(s3Path, data);
+    await s3.write(s3Path, data, {
+      serverSideEncryption: "AES256",
+      metadata,
+    });
   }
 }
 

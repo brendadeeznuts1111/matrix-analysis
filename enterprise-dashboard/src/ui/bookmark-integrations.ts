@@ -4,7 +4,12 @@
  */
 
 import { ChromeSpecBookmarkManager } from "./chrome-bookmark-manager.ts";
-import { EnterpriseScanner } from "./enterprise-scanner.ts";
+import type { ScanResult } from "../../scripts/scanner/enterprise-scanner.ts";
+
+// EnterpriseScanner interface for type safety without hard dependency
+interface EnterpriseScanner {
+  scan(target: string): Promise<ScanResult>;
+}
 import { BookmarkSecurityIntegration } from "./bookmark-scanner-integration.ts";
 import { BookmarkRegistryIntegration } from "./bookmark-registry-integration.ts";
 import type { Bookmark } from "./chrome-bookmark-manager.ts";
