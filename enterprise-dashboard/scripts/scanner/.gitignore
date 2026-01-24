@@ -1,2 +1,6 @@
 # Build artifacts
 dist/
+
+# Scanner runtime files
+.scanner-cache.json
+.scanner.lock

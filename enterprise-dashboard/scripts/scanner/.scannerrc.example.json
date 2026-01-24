@@ -1,0 +1,20 @@
+{
+  "$schema": "./config-schema.json",
+  "ignore": [
+    "node_modules",
+    "dist",
+    "coverage",
+    "*.test.ts",
+    "*.spec.ts"
+  ],
+  "rules": {
+    "console_log": "off",
+    "express_import": "warn",
+    "eval_usage": "error",
+    "hardcoded_secret": "error"
+  },
+  "concurrency": 4,
+  "cache": true,
+  "respectGitignore": true,
+  "extends": "./shared-rules.json"
+}
