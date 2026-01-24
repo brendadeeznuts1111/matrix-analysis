@@ -24,12 +24,72 @@ export interface BookmarkPackageCorrelation {
   registry?: string;
 }
 
+// ============================================================================
+// LRU Cache for Registry Data
+// ============================================================================
+
+interface CacheEntry<T> {
+  data: T;
+  expires: number;
+}
+
+class RegistryLRUCache<K, V> {
+  private cache = new Map<K, CacheEntry<V>>();
+  private readonly maxSize: number;
+  private readonly ttlMs: number;
+
+  constructor(maxSize: number, ttlMs: number = 60 * 60 * 1000) {
+    this.maxSize = maxSize;
+    this.ttlMs = ttlMs;
+  }
+
+  get(key: K): V | undefined {
+    const entry = this.cache.get(key);
+    if (!entry) return undefined;
+
+    if (entry.expires < Date.now()) {
+      this.cache.delete(key);
+      return undefined;
+    }
+
+    // Move to end (most recently used)
+    this.cache.delete(key);
+    this.cache.set(key, entry);
+    return entry.data;
+  }
+
+  set(key: K, value: V): void {
+    this.cache.delete(key);
+
+    if (this.cache.size >= this.maxSize) {
+      const oldestKey = this.cache.keys().next().value;
+      if (oldestKey !== undefined) {
+        this.cache.delete(oldestKey);
+      }
+    }
+
+    this.cache.set(key, { data: value, expires: Date.now() + this.ttlMs });
+  }
+
+  has(key: K): boolean {
+    return this.get(key) !== undefined;
+  }
+
+  getStats(): { size: number; maxSize: number } {
+    return { size: this.cache.size, maxSize: this.maxSize };
+  }
+}
+
+// ============================================================================
+// Bookmark Registry Integration
+// ============================================================================
+
 /**
  * Integrates bookmark manager with package registries
  */
 export class BookmarkRegistryIntegration {
   private bookmarkManager: ChromeSpecBookmarkManager;
-  private registryCache: Map<string, PackageRegistryInfo> = new Map();
+  private registryCache = new RegistryLRUCache<string, PackageRegistryInfo>(500); // Max 500 entries
 
   constructor(bookmarkManager: ChromeSpecBookmarkManager) {
     this.bookmarkManager = bookmarkManager;
@@ -129,14 +189,17 @@ export class BookmarkRegistryIntegration {
    * Get package info from npm registry
    */
   async fetchNpmPackageInfo(packageName: string): Promise<PackageRegistryInfo | undefined> {
-    // Check cache first
+    // Check LRU cache first
     const cacheKey = `npm:${packageName}`;
-    if (this.registryCache.has(cacheKey)) {
-      return this.registryCache.get(cacheKey);
+    const cached = this.registryCache.get(cacheKey);
+    if (cached) {
+      return cached;
     }
 
     try {
-      const response = await fetch(`https://registry.npmjs.org/${packageName}`);
+      const response = await fetch(`https://registry.npmjs.org/${packageName}`, {
+        signal: AbortSignal.timeout(10_000), // 10s timeout
+      });
       if (!response.ok) return undefined;
 
       const data = await response.json();
@@ -148,8 +211,8 @@ export class BookmarkRegistryIntegration {
         version: latest,
         description: version?.description || data.description,
         homepage: version?.homepage || data.homepage,
-        repository: typeof version?.repository === "string" 
-          ? version.repository 
+        repository: typeof version?.repository === "string"
+          ? version.repository
           : version?.repository?.url,
         registry: "npm",
         registryUrl: `https://registry.npmjs.org/${packageName}`
@@ -167,8 +230,9 @@ export class BookmarkRegistryIntegration {
    */
   async fetchGitHubPackageInfo(packageName: string, url: URL): Promise<PackageRegistryInfo | undefined> {
     const cacheKey = `github:${packageName}`;
-    if (this.registryCache.has(cacheKey)) {
-      return this.registryCache.get(cacheKey);
+    const cached = this.registryCache.get(cacheKey);
+    if (cached) {
+      return cached;
     }
 
     try {
@@ -194,6 +258,13 @@ export class BookmarkRegistryIntegration {
     }
 
     return undefined;
+  }
+
+  /**
+   * Get cache statistics for monitoring
+   */
+  getCacheStats(): { size: number; maxSize: number } {
+    return this.registryCache.getStats();
   }
 
   /**

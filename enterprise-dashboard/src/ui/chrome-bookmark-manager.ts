@@ -1,8 +1,9 @@
 // chrome-bookmark-manager.ts
 import {
   stringWidth, resolveSync, openInEditor,
-  spawn, existsSync, readFileSync, writeFileSync
+  spawn, file, write
 } from "bun";
+import { existsSync } from "node:fs";
 // mkdirSync replaced with Bun.spawnSync below
 import * as path from "path";
 import * as os from "os";
@@ -216,7 +217,7 @@ export class ChromeSpecBookmarkManager {
       }
 
       // Read Local State to check profiles
-      const localState = JSON.parse(readFileSync(localStatePath, "utf-8"));
+      const localState = JSON.parse(await file(localStatePath).text());
       const profiles = localState?.profile?.info_cache || {};
 
       // Check if workspace profile exists
@@ -310,7 +311,7 @@ export class ChromeSpecBookmarkManager {
       };
 
       // Write updated Local State
-      writeFileSync(localStatePath, JSON.stringify(localState, null, 2));
+      await write(localStatePath, JSON.stringify(localState, null, 2));
       
       this.workspaceProfileDir = profileDir;
       console.log(`\x1b[32m✅ Created workspace profile: ${profileDir}\x1b[0m`);
@@ -331,9 +332,9 @@ export class ChromeSpecBookmarkManager {
     }
 
     try {
-      const localState = JSON.parse(readFileSync(localStatePath, "utf-8"));
+      const localState = JSON.parse(await file(localStatePath).text());
       const profiles = localState?.profile?.info_cache || {};
-      
+
       return Object.entries(profiles as Record<string, any>).map(([dir, info]) => ({
         name: info?.name || "Unnamed",
         directory: dir,
@@ -472,12 +473,12 @@ export class ChromeSpecBookmarkManager {
     }
 
     try {
-      const chromeData = JSON.parse(readFileSync(chromeBookmarksPath, "utf-8"));
+      const chromeData = JSON.parse(await file(chromeBookmarksPath).text());
       const imported = this.importChromeData(chromeData);
-      
+
       console.log(`\x1b[32m✅ Synced ${imported} bookmarks from Chrome\x1b[0m`);
       return { imported, errors: 0 };
-      
+
     } catch (error: any) {
       await this.showErrorPage({
         title: "Bookmark Sync Error",
@@ -1471,7 +1472,7 @@ export class ChromeSpecBookmarkManager {
   /**
    * 11. EXPORT/IMPORT
    */
-  exportToFile(filePath: string = "./bookmarks-export.json"): void {
+  async exportToFile(filePath: string = "./bookmarks-export.json"): Promise<void> {
     const exportData = {
       version: "1.0",
       chromeSpec: true,
@@ -1489,7 +1490,7 @@ export class ChromeSpecBookmarkManager {
       }))
     };
     
-    writeFileSync(filePath, JSON.stringify(exportData, null, 2));
+    await write(filePath, JSON.stringify(exportData, null, 2));
     console.log(`\x1b[32m✅ Exported to ${filePath}\x1b[0m`);
   }
 
@@ -1629,13 +1630,13 @@ export class ChromeSpecBookmarkManager {
   /**
    * Import from JSON file (reverse of export)
    */
-  importFromFile(filePath: string): { imported: number; errors: number } {
+  async importFromFile(filePath: string): Promise<{ imported: number; errors: number }> {
     if (!existsSync(filePath)) {
       throw new Error(`File not found: ${filePath}`);
     }
 
     try {
-      const importData = JSON.parse(readFileSync(filePath, "utf-8"));
+      const importData = JSON.parse(await file(filePath).text());
       
       if (!importData.chromeSpec || importData.version !== "1.0") {
         throw new Error("Invalid bookmark file format");
@@ -1829,7 +1830,8 @@ export class ChromeSpecBookmarkManager {
   }
 
   /**
-   * Load configuration from file or use defaults
+   * Load configuration from file or use defaults.
+   * File-based configs are loaded asynchronously via loadConfigFromFiles().
    */
   private loadConfig(userConfig?: BookmarkManagerConfig): BookmarkManagerConfig {
     // Default configuration
@@ -1859,30 +1861,8 @@ export class ChromeSpecBookmarkManager {
       },
     };
 
-    // Try to load from default config file
-    try {
-      // Use Bun's import attributes if available
-      const configFile = path.join(import.meta.dir || process.cwd(), "default-bookmark-config.json");
-      if (existsSync(configFile)) {
-        const fileContent = readFileSync(configFile, "utf-8");
-        const fileConfig = JSON.parse(fileContent);
-        Object.assign(defaults, fileConfig);
-      }
-    } catch {
-      // Ignore if config file doesn't exist
-    }
-
-    // Try to load user config
-    try {
-      const userConfigPath = path.join(os.homedir(), ".config", "bookmark-manager", "user-config.json");
-      if (existsSync(userConfigPath)) {
-        const userConfigContent = readFileSync(userConfigPath, "utf-8");
-        const userConfigData = JSON.parse(userConfigContent);
-        Object.assign(defaults, userConfigData);
-      }
-    } catch {
-      // Ignore if user config doesn't exist
-    }
+    // File-based config loading is handled by loadConfigFromFiles()
+    // This keeps the constructor synchronous
 
     // Merge with provided config (highest priority)
     if (userConfig) {
@@ -1890,6 +1870,43 @@ export class ChromeSpecBookmarkManager {
     }
 
     return defaults;
+  }
+
+  /**
+   * Load configuration from files asynchronously.
+   * Call after construction to load file-based configs.
+   */
+  async loadConfigFromFiles(): Promise<void> {
+    // Try to load from default config file
+    try {
+      const configFile = path.join(import.meta.dir || process.cwd(), "default-bookmark-config.json");
+      if (existsSync(configFile)) {
+        const fileConfig = await file(configFile).json();
+        Object.assign(this.config, fileConfig);
+      }
+    } catch {
+      // Ignore if config file doesn't exist or is invalid
+    }
+
+    // Try to load user config
+    try {
+      const userConfigPath = path.join(os.homedir(), ".config", "bookmark-manager", "user-config.json");
+      if (existsSync(userConfigPath)) {
+        const userConfigData = await file(userConfigPath).json();
+        Object.assign(this.config, userConfigData);
+      }
+    } catch {
+      // Ignore if user config doesn't exist or is invalid
+    }
+  }
+
+  /**
+   * Factory method for async initialization with file-based config.
+   */
+  static async create(config?: BookmarkManagerConfig): Promise<ChromeSpecBookmarkManager> {
+    const manager = new ChromeSpecBookmarkManager(config);
+    await manager.loadConfigFromFiles();
+    return manager;
   }
 
   /**
@@ -2302,8 +2319,8 @@ export class ChromeSpecBookmarkManager {
     const filePath = path.join(this.errorPagesDir, fileName);
     
     try {
-      writeFileSync(filePath, html, "utf-8");
-      
+      await write(filePath, html);
+
       // Open in Chrome with workspace profile
       await this.openInWorkspaceProfile(filePath);
       

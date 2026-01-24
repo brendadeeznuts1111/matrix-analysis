@@ -76,13 +76,39 @@ class PTYManager {
 
     this.sessions.set(id, session);
 
-    // Auto-cleanup on exit
-    proc.exited.then((exitCode) => {
-      this.sessions.delete(id);
-      options.onExit?.(exitCode);
-    });
+    // Auto-cleanup on exit with proper resource management
+    this.handleSessionExit(id, proc, options.onExit);
 
     return id;
+  }
+
+  /**
+   * Handle session exit with proper cleanup and timeout.
+   */
+  private async handleSessionExit(
+    id: string,
+    proc: Bun.Subprocess,
+    onExit?: (exitCode: number) => void
+  ): Promise<void> {
+    try {
+      // Wait for graceful exit with 5s timeout
+      const exitCode = await Promise.race([
+        proc.exited,
+        Bun.sleep(5000).then(() => {
+          // Force kill if graceful exit times out
+          if (!proc.killed) {
+            proc.kill(9); // SIGKILL
+          }
+          return -1;
+        }),
+      ]);
+
+      onExit?.(exitCode);
+    } catch (error) {
+      console.error(`[PTY] Session ${id} cleanup error:`, error);
+    } finally {
+      this.sessions.delete(id);
+    }
   }
 
   /**
@@ -107,13 +133,21 @@ class PTYManager {
       process.stdin.setRawMode(true);
     }
 
-    // Forward stdin to terminal
+    // Forward stdin to terminal with error handling
     const stdinReader = async () => {
-      for await (const chunk of process.stdin) {
-        terminal.write(chunk);
+      try {
+        for await (const chunk of process.stdin) {
+          terminal.write(chunk);
+        }
+      } catch (error) {
+        // Log error but don't crash - stdin errors are recoverable
+        if (error instanceof Error && error.name !== "AbortError") {
+          console.error("[PTY] Stdin read error:", error.message);
+        }
       }
     };
-    const stdinPromise = stdinReader().catch(() => {});
+    // Start stdin reader (runs until process exits or stdin closes)
+    stdinReader();
 
     // Handle terminal resize
     const resize = () => {
