@@ -30,6 +30,7 @@
     "matrix:fix": "bun 50-col-matrix.ts --fix",
     "matrix:ci": "bun 50-col-matrix.ts --ci --threshold medium",
     "test": "RUN_TESTS=1 bun --bun --console-depth 5 --cwd test test --seed 42",
+    "test:update": "RUN_TESTS=1 bun --bun --console-depth 5 --cwd test test --seed 42 --update-snapshots",
     "typecheck": "bun --bun tsc --noEmit"
   },
   "type": "module",
