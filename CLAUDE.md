@@ -213,3 +213,55 @@ v8::Local<v8::Value> ProcessValue(v8::Local<v8::Value> input) {
 ```
 
 **Note:** SecurityBootstrap blocks native addons by default (`blockNativeAddons: true`). These APIs apply when addons are permitted.
+
+### Windows Compatibility (Bun 1.3.6+)
+
+Critical Windows stability fixes - Bun is now production-ready on Windows:
+
+| Fix | Before | After |
+|-----|--------|-------|
+| WebSocket `perMessageDeflate` | Crashes on large messages | Works reliably |
+| `bunx` argument parsing | Fails with spaces/empty strings | Handles all edge cases |
+| Native module HMR | Crashes on hot reload | Reloads cleanly |
+| TLS `_secureEstablished` | Incorrect state reporting | Accurate HTTPS detection |
+
+**WebSocket compression (now safe on Windows):**
+```javascript
+const ws = new WebSocket("wss://api.example.com", {
+  perMessageDeflate: true  // No longer crashes on Windows
+});
+ws.send(JSON.stringify(largeDataset));  // Safe
+```
+
+**bunx edge cases fixed:**
+```bash
+bunx create-react-app "My Project"           # Spaces in path
+bunx some-tool --env="production" --debug="" # Empty strings
+bunx my-cli "arg1" "" "arg with spaces"      # Mixed quotes
+```
+
+**Remove platform workarounds:**
+```javascript
+// BEFORE: Platform-specific code
+function send(data) {
+  if (process.platform === "win32") {
+    ws.send(data, { compress: false });  // Workaround
+  } else {
+    ws.send(data, { compress: true });
+  }
+}
+
+// AFTER: Clean cross-platform code
+function send(data) {
+  ws.send(data, { compress: true });  // Works everywhere
+}
+```
+
+**CI/CD - Windows runners now reliable:**
+```yaml
+runs-on: windows-latest
+steps:
+  - uses: oven-sh/setup-bun@v1
+    with:
+      bun-version: ">=1.3.6"  # Critical fix version
+```
