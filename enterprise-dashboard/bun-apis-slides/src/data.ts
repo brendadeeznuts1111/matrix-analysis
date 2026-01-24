@@ -74,6 +74,14 @@ export const sections: Section[] = [
     slides: ["connect-intro", "connect-errors", "connect-patterns"],
   },
   {
+    id: "build",
+    title: "Bun.build()",
+    icon: "📦",
+    api: "Bun.build",
+    category: "bundler",
+    slides: ["build-intro", "build-virtual", "build-enterprise"],
+  },
+  {
     id: "integration",
     title: "Integration",
     icon: "🔧",
@@ -485,10 +493,83 @@ async function healthCheck(host: string, port: number) {
     tags: ["health-check", "tcp-client", "patterns"],
   },
 
-  // Section 10: Integration
+  // Section 10: Bun.build() - Bundler & Compiler
+  {
+    id: "build-intro",
+    number: 29,
+    type: "section",
+    sectionId: "build",
+    title: "Bun.build()",
+    subtitle: "Bundler & Compiler",
+    content: "Zero-config bundling with virtual files, bytecode compilation, and air-gapped builds",
+    icon: "📦",
+    tags: ["bundler", "compile", "build"],
+  },
+  {
+    id: "build-virtual",
+    number: 30,
+    type: "content",
+    sectionId: "build",
+    title: "Virtual File System",
+    subtitle: "No Temp Files Needed",
+    content: "Inject files at build time without disk I/O. Perfect for testing, dynamic config, and rule injection.",
+    code: `// Virtual files for testing - no fixtures needed
+await Bun.build({
+  entrypoints: ["/test/index.ts"],
+  files: {
+    "/test/index.ts": \`
+      import { scan } from "./scanner";
+      export const result = scan(["lodash"]);
+    \`,
+    "/test/scanner.ts": \`
+      export function scan(deps: string[]) {
+        return deps.map(d => ({ name: d, ok: true }));
+      }
+    \`,
+    "./config.ts": \`
+      export const rules = \${JSON.stringify(rules)};
+      export const hash = "\${Bun.hash.xxHash3(data)}";
+    \`
+  },
+  outdir: "./dist"
+});`,
+    tags: ["virtual-fs", "testing", "injection"],
+  },
+  {
+    id: "build-enterprise",
+    number: 31,
+    type: "demo",
+    sectionId: "build",
+    title: "Air-Gapped Builds",
+    subtitle: "Secure CI Without Registry",
+    content: "Compile standalone binaries using pre-approved Bun executables. No npm downloads in production.",
+    code: `// Enterprise: offline compilation
+await Bun.build({
+  entrypoints: ["./scanner.ts"],
+  compile: true,
+  target: "bun-linux-x64",
+  // Use approved binary, no download
+  executablePath: "/enterprise/bin/bun-v1.2.5",
+  minify: true,
+  bytecode: true,
+  files: {
+    // Embed rules at build time
+    "./rules.json": JSON.stringify(rules),
+    "./config.ts": \`
+      export const config = {
+        s3: "\${process.env.S3_BUCKET}",
+        version: "\${process.env.GIT_SHA}"
+      };
+    \`
+  }
+});`,
+    tags: ["air-gapped", "compile", "enterprise"],
+  },
+
+  // Section 11: Integration
   {
     id: "int-dashboard",
-    number: 29,
+    number: 32,
     type: "section",
     sectionId: "integration",
     title: "Integration",
@@ -499,7 +580,7 @@ async function healthCheck(host: string, port: number) {
   },
   {
     id: "int-demo",
-    number: 30,
+    number: 33,
     type: "demo",
     sectionId: "integration",
     title: "DevDashboard",
@@ -509,7 +590,7 @@ async function healthCheck(host: string, port: number) {
   },
   {
     id: "int-guide",
-    number: 31,
+    number: 34,
     type: "summary",
     sectionId: "integration",
     title: "API Quick Reference",
@@ -547,7 +628,7 @@ console.log(Bun.inspect.table([...covered, ...utils]));`,
   // Final
   {
     id: "final",
-    number: 32,
+    number: 35,
     type: "final",
     title: "Master Bun's APIs",
     subtitle: "Start Building Today",
