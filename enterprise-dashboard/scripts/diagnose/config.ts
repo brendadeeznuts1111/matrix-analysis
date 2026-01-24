@@ -151,4 +151,5 @@ if (import.meta.main) {
   }
 }
 
-export { DiagnoseConfig, DEFAULT_CONFIG };
+export type { DiagnoseConfig };
+export { DEFAULT_CONFIG };

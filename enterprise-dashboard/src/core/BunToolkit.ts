@@ -1,6 +1,5 @@
 import {
   randomUUIDv7,
-  startProfiling,
   peek,
   stringWidth,
   inspect,
@@ -30,18 +29,12 @@ export class BunToolkit {
    */
   static async trace<T>(name: string, task: () => Promise<T>): Promise<T> {
     const start = nanoseconds();
-    const profiler = startProfiling(name);
 
     try {
       return await task();
     } finally {
-      const profile = profiler.stop();
       const end = nanoseconds();
       const traceId = randomUUIDv7("hex").slice(0, 8);
-
-      const filename = `./traces/trace-${name}-${traceId}.cpuprofile`;
-      await Bun.write(filename, JSON.stringify(profile));
-
       const duration = (end - start) / 1_000_000;
       console.log(`\x1b[90m[Trace] ${name} (${traceId}) completed in ${duration.toFixed(2)}ms\x1b[0m`);
     }
@@ -80,7 +73,7 @@ export class BunToolkit {
    */
   static syncResult<T>(promise: Promise<T>): T | null {
     const status = peek.status(promise);
-    if (status === "fulfilled") return peek(promise);
+    if (status === "fulfilled") return peek(promise) as T;
     if (status === "rejected") throw peek(promise);
     return null; // Still pending
   }

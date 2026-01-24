@@ -172,7 +172,7 @@ export class ChromiumMonitor {
    */
   static peekComponentData<T>(promise: Promise<T>): T | null {
     const status = peek.status(promise);
-    if (status === "fulfilled") return peek(promise);
+    if (status === "fulfilled") return peek(promise) as T;
     if (status === "rejected") throw peek(promise);
     return null;
   }

@@ -85,3 +85,5 @@ for (const issue of issues) {
 }
 
 process.exit(issues.some(i => i.severity === "high") ? 1 : 0);
+
+export {};

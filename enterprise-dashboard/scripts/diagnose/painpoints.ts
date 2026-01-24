@@ -504,4 +504,4 @@ if (import.meta.main) {
   console.log(detector.render());
 }
 
-export { Painpoint, PainpointConfig, Severity, Category };
+export type { Painpoint, PainpointConfig, Severity, Category };
