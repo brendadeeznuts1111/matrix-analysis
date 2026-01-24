@@ -3,7 +3,7 @@ import {
   stringWidth, resolveSync, openInEditor,
   spawn, existsSync, readFileSync, writeFileSync
 } from "bun";
-import { mkdirSync } from "node:fs";
+// mkdirSync replaced with Bun.spawnSync below
 import * as path from "path";
 import * as os from "os";
 
@@ -183,8 +183,8 @@ export class ChromeSpecBookmarkManager {
     this.errorPagesDir = path.join(os.tmpdir(), "bookmark-manager-errors");
     if (!existsSync(this.errorPagesDir)) {
       try {
-        // Create directory if it doesn't exist
-        mkdirSync(this.errorPagesDir, { recursive: true });
+        // Create directory if it doesn't exist (Bun-native)
+        Bun.spawnSync(["mkdir", "-p", this.errorPagesDir]);
       } catch {
         // Fallback to current directory
         this.errorPagesDir = path.join(process.cwd(), ".bookmark-errors");

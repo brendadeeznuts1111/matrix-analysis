@@ -1,8 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light dark">
   <title>Bun Enterprise Scanner Report</title>
   <style>
     :root {
@@ -14,7 +15,27 @@
       --md-surface: #ffffff;
       --md-background: #f8f9fa;
       --md-on-surface: #202124;
+      --md-on-surface-variant: #5f6368;
       --md-outline: #dadce0;
+      --md-surface-container: #f1f3f4;
+      --md-inverse-surface: #303134;
+      --md-inverse-on-surface: #e8eaed;
+    }
+
+    [data-theme="dark"] {
+      --md-primary: #8ab4f8;
+      --md-error: #f28b82;
+      --md-warning: #fdd663;
+      --md-success: #81c995;
+      --md-info: #8ab4f8;
+      --md-surface: #1e1e1e;
+      --md-background: #121212;
+      --md-on-surface: #e8eaed;
+      --md-on-surface-variant: #9aa0a6;
+      --md-outline: #3c4043;
+      --md-surface-container: #2d2d2d;
+      --md-inverse-surface: #e8eaed;
+      --md-inverse-on-surface: #303134;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -24,6 +45,7 @@
       background: var(--md-background);
       color: var(--md-on-surface);
       line-height: 1.6;
+      transition: background-color 0.2s, color 0.2s;
     }
 
     .container {
@@ -32,6 +54,7 @@
       padding: 24px;
     }
 
+    /* Header */
     header {
       background: var(--md-surface);
       border-bottom: 1px solid var(--md-outline);
@@ -41,12 +64,20 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
     }
 
     header h1 {
       font-size: 24px;
       font-weight: 500;
       color: var(--md-primary);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
     }
 
     .score-badge {
@@ -56,13 +87,142 @@
       border-radius: 24px;
     }
 
-    .score-badge.excellent { background: #e6f4ea; color: var(--md-success); }
-    .score-badge.good { background: #fef7e0; color: var(--md-warning); }
-    .score-badge.poor { background: #fce8e6; color: var(--md-error); }
+    .score-badge.excellent { background: #e6f4ea; color: #1e8e3e; }
+    .score-badge.good { background: #fef7e0; color: #b06000; }
+    .score-badge.poor { background: #fce8e6; color: #d93025; }
 
+    [data-theme="dark"] .score-badge.excellent { background: #1e3a2f; color: #81c995; }
+    [data-theme="dark"] .score-badge.good { background: #3d3523; color: #fdd663; }
+    [data-theme="dark"] .score-badge.poor { background: #3c2325; color: #f28b82; }
+
+    /* Toolbar */
+    .toolbar {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+      align-items: center;
+    }
+
+    .search-box {
+      flex: 1;
+      min-width: 200px;
+      position: relative;
+    }
+
+    .search-box input {
+      width: 100%;
+      padding: 10px 12px 10px 36px;
+      border: 1px solid var(--md-outline);
+      border-radius: 8px;
+      font-size: 14px;
+      background: var(--md-surface);
+      color: var(--md-on-surface);
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .search-box input:focus {
+      outline: none;
+      border-color: var(--md-primary);
+      box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.2);
+    }
+
+    .search-box::before {
+      content: '';
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 16px;
+      height: 16px;
+      background: currentColor;
+      opacity: 0.5;
+      mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z'/%3E%3C/svg%3E") no-repeat center;
+    }
+
+    .kbd {
+      display: inline-block;
+      padding: 2px 6px;
+      font-size: 11px;
+      font-family: 'Roboto Mono', monospace;
+      background: var(--md-surface-container);
+      border: 1px solid var(--md-outline);
+      border-radius: 4px;
+      color: var(--md-on-surface-variant);
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      border: 1px solid var(--md-outline);
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      background: var(--md-surface);
+      color: var(--md-on-surface);
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .btn:hover {
+      background: var(--md-surface-container);
+    }
+
+    .btn:focus {
+      outline: none;
+      box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.3);
+    }
+
+    .btn-primary {
+      background: var(--md-primary);
+      color: white;
+      border-color: var(--md-primary);
+    }
+
+    .btn-primary:hover {
+      filter: brightness(1.1);
+    }
+
+    .btn svg {
+      width: 16px;
+      height: 16px;
+      fill: currentColor;
+    }
+
+    /* Theme Toggle */
+    .theme-toggle {
+      padding: 8px;
+      border-radius: 50%;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      color: var(--md-on-surface);
+      transition: background-color 0.2s;
+    }
+
+    .theme-toggle:hover {
+      background: var(--md-surface-container);
+    }
+
+    .theme-toggle svg {
+      width: 20px;
+      height: 20px;
+      display: block;
+    }
+
+    .theme-toggle .sun { display: none; }
+    .theme-toggle .moon { display: block; }
+    [data-theme="dark"] .theme-toggle .sun { display: block; }
+    [data-theme="dark"] .theme-toggle .moon { display: none; }
+
+    /* Summary Grid */
     .summary-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
       gap: 16px;
       margin-bottom: 24px;
     }
@@ -73,6 +233,12 @@
       border-radius: 8px;
       padding: 16px;
       text-align: center;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .summary-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     }
 
     .summary-card .value {
@@ -83,10 +249,11 @@
 
     .summary-card .label {
       font-size: 14px;
-      color: #5f6368;
+      color: var(--md-on-surface-variant);
       margin-top: 4px;
     }
 
+    /* Issues Table */
     .issues-table {
       background: var(--md-surface);
       border: 1px solid var(--md-outline);
@@ -100,21 +267,58 @@
     }
 
     .issues-table th {
-      background: #f1f3f4;
+      background: var(--md-surface-container);
       padding: 12px 16px;
       text-align: left;
       font-weight: 500;
       font-size: 12px;
       text-transform: uppercase;
       letter-spacing: 0.5px;
-      color: #5f6368;
+      color: var(--md-on-surface-variant);
+      cursor: pointer;
+      user-select: none;
+      transition: background-color 0.2s;
+      position: relative;
     }
+
+    .issues-table th:hover {
+      background: var(--md-outline);
+    }
+
+    .issues-table th::after {
+      content: '';
+      position: absolute;
+      right: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      opacity: 0.3;
+    }
+
+    .issues-table th.sort-asc::after { content: '\2191'; opacity: 1; }
+    .issues-table th.sort-desc::after { content: '\2193'; opacity: 1; }
 
     .issues-table td {
       padding: 12px 16px;
       border-top: 1px solid var(--md-outline);
     }
 
+    .issues-table tr {
+      transition: background-color 0.15s;
+    }
+
+    .issues-table tr:hover {
+      background: var(--md-surface-container);
+    }
+
+    .issues-table tr.selected {
+      background: rgba(26, 115, 232, 0.1);
+    }
+
+    .issues-table tr.hidden {
+      display: none;
+    }
+
+    /* Severity Badges */
     .severity {
       display: inline-block;
       padding: 2px 8px;
@@ -123,19 +327,24 @@
       font-weight: 500;
     }
 
-    .severity.error { background: #fce8e6; color: var(--md-error); }
+    .severity.error { background: #fce8e6; color: #d93025; }
     .severity.warning { background: #fef7e0; color: #b06000; }
-    .severity.info { background: #e8f0fe; color: var(--md-info); }
+    .severity.info { background: #e8f0fe; color: #1967d2; }
+
+    [data-theme="dark"] .severity.error { background: #3c2325; color: #f28b82; }
+    [data-theme="dark"] .severity.warning { background: #3d3523; color: #fdd663; }
+    [data-theme="dark"] .severity.info { background: #1e3048; color: #8ab4f8; }
 
     .fix-suggestion {
       font-family: 'Roboto Mono', monospace;
       font-size: 12px;
-      background: #f1f3f4;
+      background: var(--md-surface-container);
       padding: 4px 8px;
       border-radius: 4px;
-      color: #5f6368;
+      color: var(--md-on-surface-variant);
     }
 
+    /* No Issues State */
     .no-issues {
       text-align: center;
       padding: 48px;
@@ -148,17 +357,193 @@
       margin-bottom: 16px;
     }
 
+    .no-issues h2 {
+      margin-bottom: 8px;
+    }
+
+    .no-issues p {
+      color: var(--md-on-surface-variant);
+    }
+
+    /* Footer */
     footer {
       text-align: center;
       padding: 24px;
-      color: #5f6368;
+      color: var(--md-on-surface-variant);
       font-size: 12px;
     }
 
     .trace-id {
       font-family: 'Roboto Mono', monospace;
       font-size: 11px;
-      color: #9aa0a6;
+      color: var(--md-on-surface-variant);
+      opacity: 0.7;
+    }
+
+    /* Export Menu */
+    .export-menu {
+      position: relative;
+    }
+
+    .export-dropdown {
+      display: none;
+      position: absolute;
+      top: 100%;
+      right: 0;
+      margin-top: 4px;
+      background: var(--md-surface);
+      border: 1px solid var(--md-outline);
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      min-width: 160px;
+      z-index: 100;
+      overflow: hidden;
+    }
+
+    .export-dropdown.open {
+      display: block;
+    }
+
+    .export-dropdown button {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+      padding: 10px 16px;
+      border: none;
+      background: none;
+      font-size: 14px;
+      color: var(--md-on-surface);
+      cursor: pointer;
+      text-align: left;
+      transition: background-color 0.15s;
+    }
+
+    .export-dropdown button:hover {
+      background: var(--md-surface-container);
+    }
+
+    .export-dropdown button svg {
+      width: 16px;
+      height: 16px;
+      fill: currentColor;
+      opacity: 0.7;
+    }
+
+    /* Keyboard Shortcuts Panel */
+    .shortcuts-panel {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: var(--md-surface);
+      border: 1px solid var(--md-outline);
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+      z-index: 1000;
+      min-width: 320px;
+    }
+
+    .shortcuts-panel.open {
+      display: block;
+    }
+
+    .shortcuts-panel h3 {
+      margin-bottom: 16px;
+      font-size: 18px;
+      font-weight: 500;
+    }
+
+    .shortcut-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--md-outline);
+    }
+
+    .shortcut-row:last-child {
+      border-bottom: none;
+    }
+
+    .shortcuts-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 999;
+    }
+
+    .shortcuts-overlay.open {
+      display: block;
+    }
+
+    /* Toast Notifications */
+    .toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 1001;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .toast {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      background: var(--md-inverse-surface);
+      color: var(--md-inverse-on-surface);
+      border-radius: 8px;
+      font-size: 14px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      animation: slideIn 0.3s ease;
+    }
+
+    .toast.success { border-left: 4px solid var(--md-success); }
+    .toast.error { border-left: 4px solid var(--md-error); }
+    .toast.info { border-left: 4px solid var(--md-info); }
+
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    /* Status Bar */
+    .status-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      margin-bottom: 16px;
+      font-size: 13px;
+      color: var(--md-on-surface-variant);
+    }
+
+    /* Print Styles */
+    @media print {
+      body { background: white; color: black; }
+      .toolbar, .theme-toggle, .export-menu, .btn, .status-bar { display: none !important; }
+      .container { max-width: 100%; padding: 0; }
+      header { margin-bottom: 16px; }
+      .summary-card { break-inside: avoid; }
+      .issues-table { break-inside: auto; }
+      .issues-table tr { break-inside: avoid; }
+      footer { margin-top: 24px; }
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .container { padding: 16px; }
+      header { flex-direction: column; text-align: center; }
+      .toolbar { flex-direction: column; }
+      .search-box { min-width: 100%; }
+      .summary-grid { grid-template-columns: repeat(2, 1fr); }
+      .issues-table { overflow-x: auto; }
+      .issues-table table { min-width: 600px; }
     }
   </style>
 </head>
@@ -166,49 +551,94 @@
   <div class="container">
     <header>
       <h1>Bun Enterprise Scanner</h1>
-      <div class="score-badge {{SCORE_CLASS}}">{{SCORE}}/100</div>
+      <div class="header-actions">
+        <div class="score-badge {{SCORE_CLASS}}" role="status" aria-label="Score: {{SCORE}} out of 100">{{SCORE}}/100</div>
+        <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle dark mode" title="Toggle theme (D)">
+          <svg class="moon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9c0-.46-.04-.92-.1-1.36-.98 1.37-2.58 2.26-4.4 2.26-2.98 0-5.4-2.42-5.4-5.4 0-1.81.89-3.42 2.26-4.4-.44-.06-.9-.1-1.36-.1z"/></svg>
+          <svg class="sun" viewBox="0 0 24 24" fill="currentColor"><path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58c-.39-.39-1.03-.39-1.41 0-.39.39-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41L5.99 4.58zm12.37 12.37c-.39-.39-1.03-.39-1.41 0-.39.39-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0 .39-.39.39-1.03 0-1.41l-1.06-1.06zm1.06-10.96c.39-.39.39-1.03 0-1.41-.39-.39-1.03-.39-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06zM7.05 18.36c.39-.39.39-1.03 0-1.41-.39-.39-1.03-.39-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06z"/></svg>
+        </button>
+      </div>
     </header>
 
-    <div class="summary-grid">
+    <div class="toolbar" role="toolbar" aria-label="Report tools">
+      <div class="search-box">
+        <input type="text" id="searchInput" placeholder="Search issues... (/)" aria-label="Search issues">
+      </div>
+      <div class="export-menu">
+        <button class="btn" onclick="toggleExportMenu()" aria-haspopup="true" aria-expanded="false">
+          <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+          Export
+        </button>
+        <div class="export-dropdown" id="exportDropdown" role="menu">
+          <button onclick="exportJSON()" role="menuitem">
+            <svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zM6 20V4h7v5h5v11H6z"/></svg>
+            Export JSON
+          </button>
+          <button onclick="exportCSV()" role="menuitem">
+            <svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zM6 20V4h7v5h5v11H6z"/></svg>
+            Export CSV
+          </button>
+          <button onclick="copyToClipboard()" role="menuitem">
+            <svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+            Copy to Clipboard
+          </button>
+          <button onclick="window.print()" role="menuitem">
+            <svg viewBox="0 0 24 24"><path d="M19 8H5c-1.66 0-3 1.34-3 3v6h4v4h12v-4h4v-6c0-1.66-1.34-3-3-3zm-3 11H8v-5h8v5zm3-7c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm-1-9H6v4h12V3z"/></svg>
+            Print
+          </button>
+        </div>
+      </div>
+      <button class="btn" onclick="showShortcuts()" aria-label="Keyboard shortcuts" title="Keyboard shortcuts (?)">
+        <svg viewBox="0 0 24 24"><path d="M20 5H4c-1.1 0-1.99.9-1.99 2L2 17c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm-9 3h2v2h-2V8zm0 3h2v2h-2v-2zM8 8h2v2H8V8zm0 3h2v2H8v-2zm-1 2H5v-2h2v2zm0-3H5V8h2v2zm9 7H8v-2h8v2zm0-4h-2v-2h2v2zm0-3h-2V8h2v2zm3 3h-2v-2h2v2zm0-3h-2V8h2v2z"/></svg>
+        <span class="kbd">?</span>
+      </button>
+    </div>
+
+    <div class="status-bar" role="status" aria-live="polite">
+      <span id="filterStatus">Showing all issues</span>
+      <span id="selectionStatus"></span>
+    </div>
+
+    <div class="summary-grid" role="region" aria-label="Scan summary">
       <div class="summary-card">
-        <div class="value">{{FILES_SCANNED}}</div>
+        <div class="value" aria-label="Files scanned">{{FILES_SCANNED}}</div>
         <div class="label">Files Scanned</div>
       </div>
       <div class="summary-card">
-        <div class="value">{{TOTAL_LINES}}</div>
+        <div class="value" aria-label="Lines analyzed">{{TOTAL_LINES}}</div>
         <div class="label">Lines Analyzed</div>
       </div>
       <div class="summary-card">
-        <div class="value">{{ISSUES_FOUND}}</div>
+        <div class="value" aria-label="Issues found">{{ISSUES_FOUND}}</div>
         <div class="label">Issues Found</div>
       </div>
       <div class="summary-card">
-        <div class="value">{{DURATION_MS}}ms</div>
+        <div class="value" aria-label="Scan duration">{{DURATION_MS}}ms</div>
         <div class="label">Scan Duration</div>
       </div>
     </div>
 
-    <div class="issues-table">
+    <div class="issues-table" role="region" aria-label="Issues list">
       {{#IF_ISSUES}}
-      <table>
+      <table role="grid" aria-label="Scan issues">
         <thead>
           <tr>
-            <th>File</th>
-            <th>Line</th>
-            <th>Severity</th>
-            <th>Category</th>
-            <th>Issue</th>
+            <th data-sort="file" tabindex="0" role="columnheader" aria-sort="none">File</th>
+            <th data-sort="line" tabindex="0" role="columnheader" aria-sort="none">Line</th>
+            <th data-sort="severity" tabindex="0" role="columnheader" aria-sort="none">Severity</th>
+            <th data-sort="category" tabindex="0" role="columnheader" aria-sort="none">Category</th>
+            <th data-sort="issue" tabindex="0" role="columnheader" aria-sort="none">Issue</th>
             <th>Suggested Fix</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody id="issuesBody">
           {{ISSUES_ROWS}}
         </tbody>
       </table>
       {{/IF_ISSUES}}
       {{#IF_NO_ISSUES}}
       <div class="no-issues">
-        <svg viewBox="0 0 24 24" fill="currentColor">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
           <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
         </svg>
         <h2>No Issues Found</h2>
@@ -223,10 +653,256 @@
     </footer>
   </div>
 
+  <!-- Keyboard Shortcuts Panel -->
+  <div class="shortcuts-overlay" id="shortcutsOverlay" onclick="hideShortcuts()"></div>
+  <div class="shortcuts-panel" id="shortcutsPanel" role="dialog" aria-labelledby="shortcutsTitle" aria-modal="true">
+    <h3 id="shortcutsTitle">Keyboard Shortcuts</h3>
+    <div class="shortcut-row"><span>Navigate issues</span><span><span class="kbd">J</span> / <span class="kbd">K</span></span></div>
+    <div class="shortcut-row"><span>Focus search</span><span><span class="kbd">/</span></span></div>
+    <div class="shortcut-row"><span>Toggle dark mode</span><span><span class="kbd">D</span></span></div>
+    <div class="shortcut-row"><span>Export menu</span><span><span class="kbd">E</span></span></div>
+    <div class="shortcut-row"><span>Show shortcuts</span><span><span class="kbd">?</span></span></div>
+    <div class="shortcut-row"><span>Close dialogs</span><span><span class="kbd">Esc</span></span></div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer" role="region" aria-label="Notifications" aria-live="polite"></div>
+
   <script>
     // Embedded scan results for interactive filtering
     const scanResults = {{RESULTS_JSON}};
-    console.log('Scan results loaded:', scanResults.length, 'files');
+    let currentIndex = -1;
+
+    // Theme Management
+    function initTheme() {
+      const saved = localStorage.getItem('theme');
+      if (saved) {
+        document.documentElement.dataset.theme = saved;
+      } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.documentElement.dataset.theme = 'dark';
+      }
+    }
+
+    function toggleTheme() {
+      const current = document.documentElement.dataset.theme;
+      const next = current === 'dark' ? 'light' : 'dark';
+      document.documentElement.dataset.theme = next;
+      localStorage.setItem('theme', next);
+      showToast(`Switched to ${next} mode`, 'info');
+    }
+
+    initTheme();
+
+    // Search functionality
+    const searchInput = document.getElementById('searchInput');
+    const issuesBody = document.getElementById('issuesBody');
+
+    if (searchInput && issuesBody) {
+      searchInput.addEventListener('input', () => {
+        const query = searchInput.value.toLowerCase();
+        const rows = issuesBody.querySelectorAll('tr');
+        let visible = 0;
+
+        rows.forEach(row => {
+          const text = row.textContent.toLowerCase();
+          const match = !query || text.includes(query);
+          row.classList.toggle('hidden', !match);
+          if (match) visible++;
+        });
+
+        document.getElementById('filterStatus').textContent =
+          query ? `Showing ${visible} of ${rows.length} issues` : 'Showing all issues';
+      });
+    }
+
+    // Column sorting
+    document.querySelectorAll('.issues-table th[data-sort]').forEach(th => {
+      th.addEventListener('click', () => sortTable(th.dataset.sort));
+      th.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          sortTable(th.dataset.sort);
+        }
+      });
+    });
+
+    function sortTable(column) {
+      if (!issuesBody) return;
+      const th = document.querySelector(`th[data-sort="${column}"]`);
+      const rows = Array.from(issuesBody.querySelectorAll('tr'));
+      const colIndex = Array.from(th.parentElement.children).indexOf(th);
+
+      // Toggle sort direction
+      const isAsc = th.classList.contains('sort-asc');
+      document.querySelectorAll('.issues-table th').forEach(h => {
+        h.classList.remove('sort-asc', 'sort-desc');
+        h.setAttribute('aria-sort', 'none');
+      });
+
+      th.classList.add(isAsc ? 'sort-desc' : 'sort-asc');
+      th.setAttribute('aria-sort', isAsc ? 'descending' : 'ascending');
+
+      rows.sort((a, b) => {
+        const aVal = a.children[colIndex]?.textContent || '';
+        const bVal = b.children[colIndex]?.textContent || '';
+
+        // Numeric sort for line numbers
+        if (column === 'line') {
+          return (isAsc ? -1 : 1) * (parseInt(aVal) - parseInt(bVal));
+        }
+        return (isAsc ? -1 : 1) * aVal.localeCompare(bVal);
+      });
+
+      rows.forEach(row => issuesBody.appendChild(row));
+    }
+
+    // Keyboard navigation
+    function navigateIssues(direction) {
+      if (!issuesBody) return;
+      const rows = Array.from(issuesBody.querySelectorAll('tr:not(.hidden)'));
+      if (rows.length === 0) return;
+
+      if (currentIndex >= 0 && currentIndex < rows.length) {
+        rows[currentIndex].classList.remove('selected');
+      }
+
+      currentIndex += direction;
+      if (currentIndex < 0) currentIndex = rows.length - 1;
+      if (currentIndex >= rows.length) currentIndex = 0;
+
+      rows[currentIndex].classList.add('selected');
+      rows[currentIndex].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      document.getElementById('selectionStatus').textContent = `Row ${currentIndex + 1} of ${rows.length}`;
+    }
+
+    // Export functions
+    function toggleExportMenu() {
+      const dropdown = document.getElementById('exportDropdown');
+      const isOpen = dropdown.classList.toggle('open');
+      dropdown.closest('.export-menu').querySelector('.btn').setAttribute('aria-expanded', isOpen);
+    }
+
+    function exportJSON() {
+      const data = JSON.stringify(scanResults, null, 2);
+      downloadFile(data, 'scan-report.json', 'application/json');
+      showToast('Exported as JSON', 'success');
+      toggleExportMenu();
+    }
+
+    function exportCSV() {
+      if (!Array.isArray(scanResults) || scanResults.length === 0) {
+        showToast('No data to export', 'error');
+        return;
+      }
+
+      const headers = ['File', 'Line', 'Severity', 'Category', 'Issue', 'Fix'];
+      const rows = scanResults.map(r => [
+        r.file || '',
+        r.line || '',
+        r.severity || '',
+        r.category || '',
+        `"${(r.issue || '').replace(/"/g, '""')}"`,
+        `"${(r.fix || '').replace(/"/g, '""')}"`
+      ]);
+
+      const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+      downloadFile(csv, 'scan-report.csv', 'text/csv');
+      showToast('Exported as CSV', 'success');
+      toggleExportMenu();
+    }
+
+    function copyToClipboard() {
+      const text = JSON.stringify(scanResults, null, 2);
+      navigator.clipboard.writeText(text).then(() => {
+        showToast('Copied to clipboard', 'success');
+      }).catch(() => {
+        showToast('Failed to copy', 'error');
+      });
+      toggleExportMenu();
+    }
+
+    function downloadFile(content, filename, type) {
+      const blob = new Blob([content], { type });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    // Shortcuts panel
+    function showShortcuts() {
+      document.getElementById('shortcutsOverlay').classList.add('open');
+      document.getElementById('shortcutsPanel').classList.add('open');
+    }
+
+    function hideShortcuts() {
+      document.getElementById('shortcutsOverlay').classList.remove('open');
+      document.getElementById('shortcutsPanel').classList.remove('open');
+    }
+
+    // Toast notifications
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      toast.textContent = message;
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.style.animation = 'slideIn 0.3s ease reverse';
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+    }
+
+    // Global keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+      // Skip if typing in input
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+        if (e.key === 'Escape') {
+          e.target.blur();
+        }
+        return;
+      }
+
+      switch (e.key.toLowerCase()) {
+        case 'j':
+          navigateIssues(1);
+          break;
+        case 'k':
+          navigateIssues(-1);
+          break;
+        case '/':
+          e.preventDefault();
+          searchInput?.focus();
+          break;
+        case 'd':
+          toggleTheme();
+          break;
+        case 'e':
+          toggleExportMenu();
+          break;
+        case '?':
+          showShortcuts();
+          break;
+        case 'escape':
+          hideShortcuts();
+          document.getElementById('exportDropdown')?.classList.remove('open');
+          break;
+      }
+    });
+
+    // Close dropdown on outside click
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.export-menu')) {
+        document.getElementById('exportDropdown')?.classList.remove('open');
+      }
+    });
+
+    console.log('Scan results loaded:', Array.isArray(scanResults) ? scanResults.length : 0, 'issues');
   </script>
 </body>
 </html>
