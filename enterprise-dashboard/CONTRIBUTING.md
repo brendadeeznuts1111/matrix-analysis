@@ -10,9 +10,25 @@ Be respectful, inclusive, and constructive in all interactions.
 
 ### Prerequisites
 
-- [Bun 1.3.6+](https://bun.sh/docs/installation)
-- macOS (for Keychain integration)
+- [Bun 1.3.6+](https://bun.sh/docs/installation) - **critical for Windows stability**
+- macOS (for Keychain integration) or Windows/Linux
 - Git
+
+### Windows Development (Bun 1.3.6+)
+
+Windows is now fully supported with these fixes:
+
+- **WebSocket compression** - `perMessageDeflate` no longer crashes
+- **Native modules** - HMR works correctly with `sharp`, `prisma`, etc.
+- **CLI tools** - `bunx` handles spaces and empty strings in paths
+- **TLS state** - Accurate HTTPS detection in security middleware
+
+```bash
+# Windows-specific: verify you have 1.3.6+
+bun --version
+# If older, upgrade:
+powershell -c "irm bun.sh/install.ps1 | iex"
+```
 
 ### Setup
 

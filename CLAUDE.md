@@ -265,3 +265,54 @@ steps:
     with:
       bun-version: ">=1.3.6"  # Critical fix version
 ```
+
+### Benchmarking & Profiling
+
+**CLI benchmarking with hyperfine:**
+```bash
+# Install
+brew install hyperfine  # or cargo install hyperfine
+
+# Compare runtimes
+hyperfine "bun script.ts" "node script.js"
+hyperfine --warmup 3 "bun build src/index.ts"
+```
+
+**JavaScript heap stats:**
+```typescript
+import { heapStats } from "bun:jsc";
+console.log(heapStats());
+
+// Force garbage collection
+Bun.gc(true);   // synchronous
+Bun.gc(false);  // asynchronous
+```
+
+**Heap snapshots (view in Safari DevTools → Timeline → JS Allocations):**
+```typescript
+import { generateHeapSnapshot } from "bun";
+const snapshot = generateHeapSnapshot();
+await Bun.write("heap.json", JSON.stringify(snapshot, null, 2));
+```
+
+**Native heap stats (mimalloc):**
+```bash
+MIMALLOC_SHOW_STATS=1 bun script.ts
+# Prints: peak, total, freed, current memory on exit
+```
+
+**CPU profiling:**
+```bash
+bun --cpu-prof script.ts                      # Generate .cpuprofile
+bun --cpu-prof --cpu-prof-name my.cpuprofile  # Custom filename
+bun --cpu-prof --cpu-prof-dir ./profiles      # Custom directory
+# Open in Chrome DevTools (Performance tab → Load profile)
+```
+
+| Tool | Use Case | Output |
+|------|----------|--------|
+| `hyperfine` | CLI/script timing | Terminal stats |
+| `heapStats()` | JS memory inspection | Object counts |
+| `generateHeapSnapshot()` | Memory leak debugging | Safari DevTools |
+| `MIMALLOC_SHOW_STATS=1` | Native memory | Exit summary |
+| `--cpu-prof` | Performance bottlenecks | Chrome DevTools |

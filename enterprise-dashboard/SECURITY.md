@@ -138,6 +138,21 @@ This means a package tried to run a lifecycle script but was blocked. Either:
 }
 ```
 
+### 🪟 Windows Native Module Support (Bun 1.3.6+)
+
+Native modules now work reliably on Windows:
+
+- **Hot reload** - Native modules reload without `napi_register_module_v1` errors
+- **Worker threads** - Safe module sharing between main thread and workers
+- **V8 type APIs** - `IsMap()`, `IsArray()`, `IsBigInt()` work correctly
+
+```bash
+# Windows CI is now reliable
+bun test --watch  # Native modules work with HMR
+```
+
+**Minimum version:** Ensure `bun-version: ">=1.3.6"` in CI workflows.
+
 ### 🔍 Verifying Installation
 
 To verify a package installed correctly with its scripts:
