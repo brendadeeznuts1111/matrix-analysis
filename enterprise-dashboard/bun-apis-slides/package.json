@@ -9,7 +9,9 @@
     "preview": "bun src/preview.ts",
     "serve": "bun src/server.ts",
     "open": "bun src/server.ts --open",
-    "dev": "bun src/server.ts --open"
+    "dev": "bun src/server.ts --open",
+    "feedback": "bun src/feedback-server.ts",
+    "feedback:stats": "curl -s http://localhost:3001/feedback/stats | bun -e 'console.log(Bun.inspect.table(await Bun.stdin.json()))'"
   },
   "dependencies": {},
   "devDependencies": {}

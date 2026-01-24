@@ -58,6 +58,14 @@ export const sections: Section[] = [
     slides: ["html-intro", "html-template"],
   },
   {
+    id: "shell",
+    title: "Bun.$ & spawn()",
+    icon: "💻",
+    api: "Bun.$/spawn",
+    category: "shell",
+    slides: ["shell-intro", "shell-patterns", "shell-streaming"],
+  },
+  {
     id: "integration",
     title: "Integration",
     icon: "🔧",
@@ -86,7 +94,7 @@ export const slides: Slide[] = [
     number: 2,
     type: "toc",
     title: "What We'll Cover",
-    content: "Seven powerful APIs to supercharge your development workflow",
+    content: "Eight powerful APIs to supercharge your development workflow",
     tags: ["overview"],
   },
 
@@ -343,10 +351,72 @@ console.log(Bun.inspect.table(risks, undefined, { colors: true }));
     tags: ["templates", "http"],
   },
 
-  // Section 8: Integration
+  // Section 8: Bun.$ & spawn() - Shell Commands
+  {
+    id: "shell-intro",
+    number: 23,
+    type: "section",
+    sectionId: "shell",
+    title: "Bun.$ & spawn()",
+    subtitle: "Shell Commands Made Easy",
+    content: "Execute shell commands with tagged templates or fine-grained process control",
+    icon: "💻",
+    tags: ["shell", "process", "cli"],
+  },
+  {
+    id: "shell-patterns",
+    number: 24,
+    type: "content",
+    sectionId: "shell",
+    title: "Bun.$ Patterns",
+    subtitle: "Tagged Template Shell",
+    content: "Shell commands with interpolation, pipes, and globs. Use .quiet() to suppress output, .nothrow() to handle errors, .text() for string output.",
+    code: `import { $ } from "bun";
+
+// Simple command
+await $\`ls -la\`;
+
+// Interpolation (auto-escaped)
+const file = "my file.txt";
+await $\`cat \${file}\`;
+
+// Chaining methods
+const output = await $\`git status\`.quiet().text();
+const { exitCode } = await $\`npm test\`.nothrow();
+
+// Pipes work naturally
+await $\`cat package.json | grep name\`;`,
+    tags: ["patterns", "shell", "interpolation"],
+  },
+  {
+    id: "shell-streaming",
+    number: 25,
+    type: "demo",
+    sectionId: "shell",
+    title: "Bun.spawn()",
+    subtitle: "Process Control & Streaming",
+    content: "Fine-grained control for long-running processes, streaming I/O, and PTY sessions. Used heavily in CLI tools, build systems, and dev servers.",
+    code: `// Long-running process with streaming
+const proc = Bun.spawn(["node", "server.js"], {
+  stdout: "pipe",
+  stderr: "pipe",
+});
+
+// Stream output
+const output = await new Response(proc.stdout).text();
+await proc.exited; // Wait for completion
+
+// PTY for interactive commands (vim, htop)
+const pty = Bun.spawn(["vim", "file.txt"], {
+  terminal: { cols: 80, rows: 24 },
+});`,
+    tags: ["spawn", "streaming", "pty"],
+  },
+
+  // Section 9: Integration
   {
     id: "int-dashboard",
-    number: 23,
+    number: 26,
     type: "section",
     sectionId: "integration",
     title: "Integration",
@@ -357,7 +427,7 @@ console.log(Bun.inspect.table(risks, undefined, { colors: true }));
   },
   {
     id: "int-demo",
-    number: 24,
+    number: 27,
     type: "demo",
     sectionId: "integration",
     title: "DevDashboard",
@@ -367,7 +437,7 @@ console.log(Bun.inspect.table(risks, undefined, { colors: true }));
   },
   {
     id: "int-guide",
-    number: 25,
+    number: 28,
     type: "summary",
     sectionId: "integration",
     title: "API Selection Guide",
@@ -379,7 +449,7 @@ console.log(Bun.inspect.table(risks, undefined, { colors: true }));
   // Final
   {
     id: "final",
-    number: 26,
+    number: 29,
     type: "final",
     title: "Master Bun's APIs",
     subtitle: "Start Building Today",

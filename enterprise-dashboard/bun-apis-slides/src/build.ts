@@ -215,6 +215,98 @@ function generateHTML(theme: keyof typeof THEME = "dark"): string {
     <button onclick="nextSlide()">Next →</button>
   </div>
   <nav class="slide-nav" id="slideNav"></nav>
+
+  <!-- Feedback Button -->
+  <button id="feedback-btn" style="
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    padding: 12px 20px;
+    background: ${t.accent};
+    color: ${t.bg};
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 14px;
+    z-index: 1000;
+    transition: transform 0.2s;
+  " onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+    💬 Feedback
+  </button>
+
+  <!-- Feedback Modal -->
+  <div id="feedback-modal" style="
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.8);
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+  ">
+    <div style="
+      background: ${t.bgSecondary};
+      padding: 24px;
+      border-radius: 12px;
+      width: 400px;
+      max-width: 90%;
+    ">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <h3 style="margin: 0; color: ${t.text};">Send Feedback</h3>
+        <button id="feedback-close" style="background: none; border: none; color: ${t.textMuted}; font-size: 24px; cursor: pointer;">×</button>
+      </div>
+      <form id="feedback-form">
+        <input type="hidden" name="slide" id="feedback-slide" />
+        <label style="display: block; margin-bottom: 12px; color: ${t.textMuted};">
+          Type:
+          <select name="type" style="
+            width: 100%;
+            padding: 8px;
+            margin-top: 4px;
+            background: ${t.bg};
+            border: 1px solid ${t.border};
+            border-radius: 6px;
+            color: ${t.text};
+          ">
+            <option value="suggestion">💡 Suggestion</option>
+            <option value="bug">🐛 Bug/Issue</option>
+            <option value="question">❓ Question</option>
+            <option value="praise">⭐ Praise</option>
+          </select>
+        </label>
+        <label style="display: block; margin-bottom: 16px; color: ${t.textMuted};">
+          Comment:
+          <textarea name="comment" required rows="4" style="
+            width: 100%;
+            padding: 8px;
+            margin-top: 4px;
+            background: ${t.bg};
+            border: 1px solid ${t.border};
+            border-radius: 6px;
+            color: ${t.text};
+            resize: vertical;
+            box-sizing: border-box;
+          " placeholder="Your feedback about this slide..."></textarea>
+        </label>
+        <button type="submit" style="
+          width: 100%;
+          padding: 12px;
+          background: ${t.accent};
+          color: ${t.bg};
+          border: none;
+          border-radius: 6px;
+          cursor: pointer;
+          font-weight: 600;
+        ">Submit Feedback</button>
+        <p id="feedback-status" style="margin: 8px 0 0; text-align: center; font-size: 14px;"></p>
+      </form>
+    </div>
+  </div>
+
   <script>
     let currentSlide = 0;
     const slides = document.querySelectorAll('.slide');
@@ -266,6 +358,56 @@ function generateHTML(theme: keyof typeof THEME = "dark"): string {
 
     slides.forEach((slide) => observer.observe(slide));
     updateNav();
+
+    // Feedback functionality
+    const feedbackBtn = document.getElementById('feedback-btn');
+    const feedbackModal = document.getElementById('feedback-modal');
+    const feedbackClose = document.getElementById('feedback-close');
+    const feedbackForm = document.getElementById('feedback-form');
+    const feedbackStatus = document.getElementById('feedback-status');
+
+    feedbackBtn.addEventListener('click', () => {
+      feedbackModal.style.display = 'flex';
+      document.getElementById('feedback-slide').value = currentSlide + 1;
+    });
+
+    feedbackClose.addEventListener('click', () => {
+      feedbackModal.style.display = 'none';
+    });
+
+    feedbackModal.addEventListener('click', (e) => {
+      if (e.target === feedbackModal) feedbackModal.style.display = 'none';
+    });
+
+    feedbackForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(feedbackForm);
+      const data = {
+        slide: formData.get('slide'),
+        type: formData.get('type'),
+        comment: formData.get('comment'),
+        timestamp: new Date().toISOString(),
+      };
+
+      try {
+        const res = await fetch('http://localhost:3001/feedback', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+        });
+        if (res.ok) {
+          feedbackStatus.textContent = '✓ Feedback submitted!';
+          feedbackStatus.style.color = '#4ade80';
+          feedbackForm.reset();
+          setTimeout(() => { feedbackModal.style.display = 'none'; feedbackStatus.textContent = ''; }, 1500);
+        } else {
+          throw new Error('Server error');
+        }
+      } catch (err) {
+        feedbackStatus.textContent = '✗ Could not submit. Is feedback server running?';
+        feedbackStatus.style.color = '#f87171';
+      }
+    });
   </script>
 </body>
 </html>`;
