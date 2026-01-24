@@ -1,0 +1,9 @@
+# Bun configuration
+# https://bun.sh/docs/runtime/bunfig
+
+[install]
+# Supply chain protection: only install packages published 3+ days ago
+minimumReleaseAge = 259200  # 3 days in seconds
+
+# Exclude frequently-updated type packages from age gate
+minimumReleaseAgeExcludes = ["@types/node", "@types/bun", "typescript"]
