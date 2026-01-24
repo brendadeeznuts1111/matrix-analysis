@@ -26,6 +26,14 @@ export const sections: Section[] = [
     slides: ["inspect-intro", "inspect-custom", "inspect-terminal"],
   },
   {
+    id: "inspect-table",
+    title: "Bun.inspect.table()",
+    icon: "📊",
+    api: "Bun.inspect.table",
+    category: "formatting",
+    slides: ["table-intro", "table-patterns", "table-dashboard"],
+  },
+  {
     id: "open-editor",
     title: "Bun.openInEditor()",
     icon: "📂",
@@ -78,7 +86,7 @@ export const slides: Slide[] = [
     number: 2,
     type: "toc",
     title: "What We'll Cover",
-    content: "Six powerful APIs to supercharge your development workflow",
+    content: "Seven powerful APIs to supercharge your development workflow",
     tags: ["overview"],
   },
 
@@ -181,10 +189,75 @@ export const slides: Slide[] = [
     tags: ["terminal", "interactive"],
   },
 
-  // Section 4: Bun.openInEditor()
+  // Section 4: Bun.inspect.table() - Most Used API
+  {
+    id: "table-intro",
+    number: 12,
+    type: "section",
+    sectionId: "inspect-table",
+    title: "Bun.inspect.table()",
+    subtitle: "Zero-Dependency Data Tables",
+    content: "Beautiful terminal tables without npm packages—the most used API in enterprise codebases",
+    icon: "📊",
+    tags: ["tables", "formatting", "cli"],
+  },
+  {
+    id: "table-patterns",
+    number: 13,
+    type: "content",
+    sectionId: "inspect-table",
+    title: "Usage Patterns",
+    subtitle: "Column Filtering & Colors",
+    content: "Filter columns with array syntax, enable ANSI colors for terminal output, pre-format data with icons and status indicators for rich CLI experiences.",
+    code: `// All columns
+Bun.inspect.table(data);
+
+// Filter columns
+Bun.inspect.table(data, ["name", "status"]);
+
+// With colors
+Bun.inspect.table(data, undefined, { colors: true });
+
+// Pre-format for display
+const formatted = items.map(x => ({
+  "#": x.id,
+  "Name": \`\${x.icon} \${x.name}\`,
+  "Status": x.active ? "✓ Active" : "✗ Inactive",
+}));
+console.log(Bun.inspect.table(formatted));`,
+    tags: ["patterns", "columns", "colors"],
+  },
+  {
+    id: "table-dashboard",
+    number: 14,
+    type: "demo",
+    sectionId: "inspect-table",
+    title: "Enterprise Dashboard",
+    subtitle: "15+ Files Using This API",
+    content: "Security audits, registry viewers, package managers, scanner reports—all powered by Bun.inspect.table(). Replaces cli-table3, table, and similar npm packages.",
+    code: `// Security Audit Dashboard
+const risks = scanResults.map(r => ({
+  "Package": r.name,
+  "Severity": r.severity === "critical" ? "🔴 CRITICAL" : "⚠️ " + r.severity,
+  "Category": r.category,
+  "Action": r.blocked ? "BLOCKED" : "ALLOWED",
+}));
+console.log(Bun.inspect.table(risks, undefined, { colors: true }));
+
+// Output:
+// ┌─────────┬────────────────┬────────────┬─────────┐
+// │ Package │ Severity       │ Category   │ Action  │
+// ├─────────┼────────────────┼────────────┼─────────┤
+// │ lodash  │ ⚠️ low         │ BUNDLE     │ ALLOWED │
+// │ axios   │ ⚠️ medium      │ ANTIPATTERN│ ALLOWED │
+// └─────────┴────────────────┴────────────┴─────────┘`,
+    tags: ["dashboard", "enterprise", "security"],
+  },
+
+  // Section 5: Bun.openInEditor()
   {
     id: "editor-intro",
-    number: 12,
+    number: 15,
     type: "section",
     sectionId: "open-editor",
     title: "Bun.openInEditor()",
@@ -195,7 +268,7 @@ export const slides: Slide[] = [
   },
   {
     id: "editor-vscode",
-    number: 13,
+    number: 16,
     type: "content",
     sectionId: "open-editor",
     title: "Editor Detection",
@@ -205,7 +278,7 @@ export const slides: Slide[] = [
   },
   {
     id: "editor-nav",
-    number: 14,
+    number: 17,
     type: "demo",
     sectionId: "open-editor",
     title: "Project Navigator",
@@ -214,10 +287,10 @@ export const slides: Slide[] = [
     tags: ["bookmarks", "workflow"],
   },
 
-  // Section 5: Bun.deepEquals()
+  // Section 6: Bun.deepEquals()
   {
     id: "equals-intro",
-    number: 15,
+    number: 18,
     type: "section",
     sectionId: "deep-equals",
     title: "Bun.deepEquals()",
@@ -228,7 +301,7 @@ export const slides: Slide[] = [
   },
   {
     id: "equals-testing",
-    number: 16,
+    number: 19,
     type: "content",
     sectionId: "deep-equals",
     title: "Testing Framework",
@@ -238,7 +311,7 @@ export const slides: Slide[] = [
   },
   {
     id: "equals-custom",
-    number: 17,
+    number: 20,
     type: "code",
     sectionId: "deep-equals",
     title: "Custom Comparison Rules",
@@ -247,10 +320,10 @@ export const slides: Slide[] = [
     tags: ["customization", "rules"],
   },
 
-  // Section 6: Bun.escapeHTML()
+  // Section 7: Bun.escapeHTML()
   {
     id: "html-intro",
-    number: 18,
+    number: 21,
     type: "section",
     sectionId: "escape-html",
     title: "Bun.escapeHTML()",
@@ -261,7 +334,7 @@ export const slides: Slide[] = [
   },
   {
     id: "html-template",
-    number: 19,
+    number: 22,
     type: "content",
     sectionId: "escape-html",
     title: "SafeTemplate Engine",
@@ -270,10 +343,10 @@ export const slides: Slide[] = [
     tags: ["templates", "http"],
   },
 
-  // Section 7: Integration
+  // Section 8: Integration
   {
     id: "int-dashboard",
-    number: 20,
+    number: 23,
     type: "section",
     sectionId: "integration",
     title: "Integration",
@@ -284,7 +357,7 @@ export const slides: Slide[] = [
   },
   {
     id: "int-demo",
-    number: 21,
+    number: 24,
     type: "demo",
     sectionId: "integration",
     title: "DevDashboard",
@@ -294,7 +367,7 @@ export const slides: Slide[] = [
   },
   {
     id: "int-guide",
-    number: 22,
+    number: 25,
     type: "summary",
     sectionId: "integration",
     title: "API Selection Guide",
@@ -306,7 +379,7 @@ export const slides: Slide[] = [
   // Final
   {
     id: "final",
-    number: 23,
+    number: 26,
     type: "final",
     title: "Master Bun's APIs",
     subtitle: "Start Building Today",
