@@ -11,6 +11,16 @@ authors:
 runtime: Bun 1.3.6+
 license: MIT
 repository: https://github.com/brendadeeznuts1111/matrix-analysis
+skills:
+  - /matrix
+  - /diagnose
+  - /analyze
+  - /bench
+  - /pm
+see_also:
+  - CLAUDE.md
+  - README.md
+  - ~/.claude/skills/
 ---
 
 # Roadmap
@@ -24,6 +34,27 @@ repository: https://github.com/brendadeeznuts1111/matrix-analysis
 | **Runtime** | Bun 1.3.6+ |
 | **Status** | Active Development |
 | **Last Updated** | January 25, 2025 |
+
+### Related Skills
+
+| Skill | Command | Description | Phase |
+|:------|:--------|:------------|:-----:|
+| Lockfile Matrix | `/matrix` | Scan projects for lockfile health issues | 1-4 |
+| Project Diagnostics | `/diagnose` | Detect project health and painpoints | 2 |
+| Code Analysis | `/analyze` | Code analysis and refactoring patterns | 2-3 |
+| Benchmarking | `/bench` | Performance benchmark harness | 3 |
+| Package Manager | `/pm` | Bun package management utilities | 1 |
+
+### Related Documentation
+
+| Document | Purpose |
+|:---------|:--------|
+| [`CLAUDE.md`](./CLAUDE.md) | Bun Quick Reference & coding conventions |
+| [`README.md`](./README.md) | Project overview & usage |
+| [`~/.claude/skills/`](file://~/.claude/skills/) | Skill definitions |
+| [`~/.claude/scripts/`](file://~/.claude/scripts/) | Implementation scripts |
+
+---
 
 ## Status Overview
 
