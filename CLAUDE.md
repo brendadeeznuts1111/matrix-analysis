@@ -416,12 +416,21 @@ import.meta.hot.on("bun:error", (err) => console.error(err));
 ```typescript
 Bun.deepEquals(a, b)                       // Deep comparison
 Bun.stringWidth("emoji")                   // Terminal display width
-Bun.sleep(1000)                            // Async sleep (ms)
 Bun.randomUUIDv7()                         // Time-sortable UUID
 Bun.password.hash("pwd")                   // Argon2id hash
 Bun.password.verify("pwd", hash)           // Verify
 Bun.peek(promise)                          // Sync check if resolved
 Bun.fileURLToPath(new URL(".", import.meta.url))  // Get directory path
+
+// Sleep
+await Bun.sleep(1000);                     // Async sleep (ms)
+await Bun.sleep(new Date(Date.now() + 1000));  // Sleep until Date
+Bun.sleepSync(1000);                       // Blocking sleep (blocks thread)
+
+// Find executables (like `which` in terminal)
+Bun.which("ls");                           // "/usr/bin/ls"
+Bun.which("node", { PATH: "/custom/path" });  // Custom PATH
+Bun.which("bin", { cwd: "/app", PATH: "" });  // Search in specific dir
 
 // Open file in editor (respects $EDITOR / $VISUAL)
 Bun.openInEditor("./src/app.ts");                  // Open file
