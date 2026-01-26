@@ -105,7 +105,7 @@ Overall Progress: ████████████████░░░░ 7
 
 | | Metric | Current | Target | Delta | Status |
 |:--:|:-------|--------:|-------:|------:|:------:|
-| 📊 | Analysis Columns | 208 | 210 | +2 | 🟢 99% |
+| 📊 | Analysis Columns | 209 | 210 | +1 | 🟢 99% |
 | 🚩 | CLI Flags | 27 | 28 | +1 | 🟢 96% |
 | 💻 | Platform Support | 3 | 3 | 0 | ✅ 100% |
 | 🧪 | Test Coverage | 38 | 80 | +42 | 🟡 48% |
@@ -373,6 +373,6 @@ Overall Progress: ████████████████░░░░ 7
 | | Metric | Target | Current | Status |
 |:--:|:-------|:-------|:--------|:------:|
 | ⚡ | Performance | >900K ops/s | TBD | ⬜ |
-| 📊 | Coverage | 210 columns | 197 | 🟡 |
+| 📊 | Coverage | 210 columns | 209 | 🟢 |
 | 💻 | Compatibility | Win/Linux/macOS | macOS/Linux | 🔴 |
 | 🔒 | Breaking changes | 0 | 0 | ✅ |
