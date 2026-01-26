@@ -91,8 +91,8 @@ Use Context7 MCP for detailed docs. Below are essential patterns and gotchas.
 
 ```typescript
 const server = Bun.serve({
-  port: 0,  // Auto-select available port (or BUN_PORT/PORT env)
-  hostname: "127.0.0.1",  // Secure default (not 0.0.0.0)
+  port: 0,  // Random available port (default: $BUN_PORT, $PORT, $NODE_PORT, or 3000)
+  hostname: "127.0.0.1",  // Local only (default: "0.0.0.0" exposes to network)
   idleTimeout: 30,  // Close idle connections after 30s
 
   fetch(req, server) {
