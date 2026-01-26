@@ -409,11 +409,12 @@ const deleted = await Bun.secrets.delete({ service: SERVICE, name: "api-key" });
 ```
 
 **Key points:**
-- All operations async and non-blocking
-- Credentials persist across restarts
-- Only the storing user can retrieve
-- Memory zeroed after use
-- Max length: 2048-4096 bytes (platform-dependent)
+- **Signature:** `set({ service, name, value })` — value goes IN the options object (not as 2nd param)
+- All operations async and non-blocking (runs on threadpool)
+- Credentials persist across restarts, user-scoped access only
+- Memory zeroed after use for security
+- Max length: 2048-4096 bytes, names under 256 chars (platform-dependent)
+- Designed for local dev tools, not production deployments
 
 **Use case - .env with keychain references:**
 ```typescript
