@@ -27,32 +27,32 @@ see_also:
 
 > Development roadmap for Matrix Analysis tooling enhancements.
 
-| | |
-|:--|:--|
-| **Project** | Matrix Analysis |
-| **Version** | `1.2.0-dev` |
-| **Runtime** | Bun 1.3.6+ |
-| **Status** | Active Development |
-| **Last Updated** | January 25, 2025 |
+| | | |
+|--:|:--|:--|
+| 📦 | **Project** | Matrix Analysis |
+| 🏷️ | **Version** | `1.2.0-dev` |
+| ⚡ | **Runtime** | Bun 1.3.6+ |
+| 🚦 | **Status** | Active Development |
+| 📅 | **Updated** | January 25, 2025 |
 
 ### Related Skills
 
-| Skill | Command | Description | Phase |
-|:------|:--------|:------------|:-----:|
-| Lockfile Matrix | `/matrix` | Scan projects for lockfile health issues | 1-4 |
-| Project Diagnostics | `/diagnose` | Detect project health and painpoints | 2 |
-| Code Analysis | `/analyze` | Code analysis and refactoring patterns | 2-3 |
-| Benchmarking | `/bench` | Performance benchmark harness | 3 |
-| Package Manager | `/pm` | Bun package management utilities | 1 |
+| | Skill | Command | Description | Phase |
+|:--:|:------|:--------|:------------|:-----:|
+| 🔒 | Lockfile Matrix | `/matrix` | Scan projects for lockfile health issues | 1-4 |
+| 🩺 | Project Diagnostics | `/diagnose` | Detect project health and painpoints | 2 |
+| 🔍 | Code Analysis | `/analyze` | Code analysis and refactoring patterns | 2-3 |
+| ⏱️ | Benchmarking | `/bench` | Performance benchmark harness | 3 |
+| 📦 | Package Manager | `/pm` | Bun package management utilities | 1 |
 
 ### Related Documentation
 
-| Document | Purpose |
-|:---------|:--------|
-| [`CLAUDE.md`](./CLAUDE.md) | Bun Quick Reference & coding conventions |
-| [`README.md`](./README.md) | Project overview & usage |
-| [`~/.claude/skills/`](file://~/.claude/skills/) | Skill definitions |
-| [`~/.claude/scripts/`](file://~/.claude/scripts/) | Implementation scripts |
+| | Document | Purpose |
+|:--:|:---------|:--------|
+| 📘 | [`CLAUDE.md`](./CLAUDE.md) | Bun Quick Reference & coding conventions |
+| 📖 | [`README.md`](./README.md) | Project overview & usage |
+| 🎯 | [`~/.claude/skills/`](file://~/.claude/skills/) | Skill definitions |
+| 📜 | [`~/.claude/scripts/`](file://~/.claude/scripts/) | Implementation scripts |
 
 ---
 
@@ -62,40 +62,40 @@ see_also:
 Overall Progress: ██████░░░░░░░░░░░░░░ 31% (6/19 tasks)
 ```
 
-| Phase | Focus | Status | Progress | Bar |
-|:------|:------|:------:|:--------:|:----|
-| **Phase 1** | Foundation & Persistence | ✅ Complete | 6/6 | `████████████` |
-| **Phase 2** | Core Enhancements | 🔄 Active | 0/5 | `░░░░░░░░░░░░` |
-| **Phase 3** | Advanced Features | 📋 Planned | 0/4 | `░░░░░░░░░░░░` |
-| **Phase 4** | Testing & Polish | 📋 Planned | 0/4 | `░░░░░░░░░░░░` |
+| | Phase | Focus | Status | Progress | Bar |
+|:--:|:------|:------|:------:|:--------:|:----|
+| 1️⃣ | **Phase 1** | Foundation & Persistence | ✅ Complete | `6/6` | `████████████` |
+| 2️⃣ | **Phase 2** | Core Enhancements | 🔄 Active | `0/5` | `░░░░░░░░░░░░` |
+| 3️⃣ | **Phase 3** | Advanced Features | 📋 Planned | `0/4` | `░░░░░░░░░░░░` |
+| 4️⃣ | **Phase 4** | Testing & Polish | 📋 Planned | `0/4` | `░░░░░░░░░░░░` |
 
 ### Phase 1 Deliverables (Complete)
 
-| Deliverable | Module | CLI Flags | Status |
-|:------------|:-------|:----------|:------:|
-| SQLite Persistence | `lockfile-matrix-db.ts` | `--save` `--history` `--compare` | ✅ |
-| HTML Reports | `lockfile-matrix-report.ts` | `--html` `--open` | ✅ |
-| Auto-Fix Engine | `lockfile-matrix-fixer.ts` | `--suggest` `--fix` `--fix-medium` | ✅ |
-| Migration Tools | `lockfile-matrix-fixer.ts` | `--migrate` `--migrate-all` | ✅ |
+| | Deliverable | Module | CLI Flags | Status |
+|:--:|:------------|:-------|:----------|:------:|
+| 💾 | SQLite Persistence | `lockfile-matrix-db.ts` | `--save` `--history` `--compare` | ✅ |
+| 📊 | HTML Reports | `lockfile-matrix-report.ts` | `--html` `--open` | ✅ |
+| 🔧 | Auto-Fix Engine | `lockfile-matrix-fixer.ts` | `--suggest` `--fix` `--fix-medium` | ✅ |
+| 🔄 | Migration Tools | `lockfile-matrix-fixer.ts` | `--migrate` `--migrate-all` | ✅ |
 
 ### Up Next (Phase 2)
 
-| Priority | Feature | Impact | Effort |
-|:--------:|:--------|:-------|:-------|
-| 🔴 | SQL Injection Detection | Security hardening | Low |
-| 🔴 | Secret Scanning | Credential leak prevention | Medium |
-| 🟡 | DNS Prefetch Optimization | 150x faster resolution | Low |
-| 🟡 | Windows CI | Cross-platform support | Medium |
-| 🟢 | CSP Compatibility Check | Header validation | Low |
+| | Priority | Feature | Impact | Effort |
+|:--:|:--------:|:--------|:-------|:-------|
+| 🛡️ | 🔴 High | SQL Injection Detection | Security hardening | Low |
+| 🔑 | 🔴 High | Secret Scanning | Credential leak prevention | Medium |
+| 🌐 | 🟡 Med | DNS Prefetch Optimization | 150x faster resolution | Low |
+| 🪟 | 🟡 Med | Windows CI | Cross-platform support | Medium |
+| 🔒 | 🟢 Low | CSP Compatibility Check | Header validation | Low |
 
 ### Key Metrics
 
-| Metric | Current | Target | Status |
-|:-------|:-------:|:------:|:------:|
-| Analysis Columns | 197 | 210 | 🟡 94% |
-| CLI Flags | 18 | 22 | 🟡 82% |
-| Platform Support | macOS/Linux | +Windows | 🔴 67% |
-| Test Coverage | 0% | 80% | 🔴 0% |
+| | Metric | Current | Target | Delta | Status |
+|:--:|:-------|--------:|-------:|------:|:------:|
+| 📊 | Analysis Columns | 197 | 210 | +13 | 🟡 94% |
+| 🚩 | CLI Flags | 18 | 22 | +4 | 🟡 82% |
+| 💻 | Platform Support | 2 | 3 | +1 | 🔴 67% |
+| 🧪 | Test Coverage | 0% | 80% | +80% | 🔴 0% |
 
 ---
 
@@ -216,17 +216,23 @@ Overall Progress: ██████░░░░░░░░░░░░░░ 3
 ## Validation Checklists
 
 ### Performance
-- [ ] Benchmark before/after: `hyperfine "bun run matrix"`
-- [ ] Memory usage: No leaks with 1000+ patterns
-- [ ] DNS cache: Verify 150x speedup with `Bun.dns.prefetch`
-- [ ] Windows: Test on `windows-latest` runner
-- [ ] Cold start: Measure `bun install` time with text lockfile
+
+| | Check | Command | Status |
+|:--:|:------|:--------|:------:|
+| ⏱️ | Benchmark before/after | `hyperfine "bun run matrix"` | ⬜ |
+| 🧠 | Memory usage (1000+ patterns) | `MIMALLOC_SHOW_STATS=1 bun ...` | ⬜ |
+| 🌐 | DNS cache 150x speedup | `Bun.dns.prefetch` verification | ⬜ |
+| 🪟 | Windows runner | `windows-latest` CI | ⬜ |
+| 🥶 | Cold start timing | `bun install` with text lockfile | ⬜ |
 
 ### Security
-- [ ] Secrets scanning: Test with fake API key
-- [ ] SQL injection: Malicious patterns don't crash
-- [ ] Path traversal: `../` detection works
-- [ ] CSP headers: HTML reports include CSP
+
+| | Check | Test Case | Status |
+|:--:|:------|:----------|:------:|
+| 🔑 | Secrets scanning | Fake API key detection | ⬜ |
+| 💉 | SQL injection | Malicious patterns don't crash | ⬜ |
+| 📁 | Path traversal | `../` detection works | ⬜ |
+| 🔒 | CSP headers | HTML reports include CSP | ⬜ |
 
 ---
 
@@ -234,20 +240,20 @@ Overall Progress: ██████░░░░░░░░░░░░░░ 3
 
 ### Completed Modules
 
-| File | Purpose | Lines |
-|------|---------|-------|
-| `lockfile-matrix-db.ts` | SQLite persistence | ~280 |
-| `lockfile-matrix-fixer.ts` | Auto-fix engine | ~300 |
-| `lockfile-matrix-report.ts` | HTML reports | ~350 |
+| | File | Purpose | Lines | Status |
+|:--:|:-----|:--------|------:|:------:|
+| 💾 | `lockfile-matrix-db.ts` | SQLite persistence | ~280 | ✅ |
+| 🔧 | `lockfile-matrix-fixer.ts` | Auto-fix engine | ~300 | ✅ |
+| 📊 | `lockfile-matrix-report.ts` | HTML reports | ~350 | ✅ |
 
 ### New CLI Flags
 
-```
-Database:   --save, --history, --compare
-Reports:    --html [filename], --open
-Auto-Fix:   --suggest, --fix, --fix-medium, --fix-dry-run
-Migration:  --migrate, --migrate-all, --remove-binary
-```
+| | Category | Flags |
+|:--:|:---------|:------|
+| 💾 | Database | `--save` `--history` `--compare` |
+| 📊 | Reports | `--html [filename]` `--open` |
+| 🔧 | Auto-Fix | `--suggest` `--fix` `--fix-medium` `--fix-dry-run` |
+| 🔄 | Migration | `--migrate` `--migrate-all` `--remove-binary` |
 
 ### File Structure
 
@@ -264,9 +270,9 @@ Migration:  --migrate, --migrate-all, --remove-binary
 
 ## Metrics for Success
 
-| Metric | Target | Current |
-|--------|--------|---------|
-| Performance | >900K ops/s simple patterns | TBD |
-| Coverage | 210 analysis columns | 197 |
-| Compatibility | 100% tests on Win/Linux/macOS | Pending |
-| Breaking changes | 0 | 0 |
+| | Metric | Target | Current | Status |
+|:--:|:-------|:-------|:--------|:------:|
+| ⚡ | Performance | >900K ops/s | TBD | ⬜ |
+| 📊 | Coverage | 210 columns | 197 | 🟡 |
+| 💻 | Compatibility | Win/Linux/macOS | macOS/Linux | 🔴 |
+| 🔒 | Breaking changes | 0 | 0 | ✅ |
