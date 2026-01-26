@@ -754,6 +754,24 @@ bun publish --otp 123456           # Publish with 2FA code
 }
 ```
 
+**Custom Registry (priority: CLI > bunfig.toml > .npmrc):**
+```bash
+bun publish --registry https://my-private-registry.com
+bun publish --cafile ./ca-cert.pem   # With SSL certificate
+```
+
+```toml
+# bunfig.toml
+[install]
+registry = "https://my-private-registry.com"
+```
+
+```ini
+# .npmrc
+registry=https://my-private-registry.com
+//my-private-registry.com/:_authToken=${NPM_TOKEN}
+```
+
 ### Benchmarking & Profiling
 
 **CLI benchmarking with hyperfine:**
