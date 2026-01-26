@@ -596,6 +596,69 @@ bun install --linker isolated              # pnpm-style isolation
 
 **pnpm Migration:** Requires pnpm lockfile v7+. After `bun install`, remove `pnpm-lock.yaml` and `pnpm-workspace.yaml`.
 
+### bun update CLI Reference
+
+Update dependencies to latest versions. Use `bun upgrade` to upgrade Bun CLI itself.
+
+```bash
+bun update [package]           # Update specific package
+bun update                     # Update all dependencies
+bun update -g package          # Update global package
+```
+
+**Interactive Mode (`-i`):**
+```bash
+bun update -i                  # Select packages interactively
+bun update -i -r               # Interactive + recursive (monorepos)
+```
+
+Interactive interface:
+```
+  dependencies              Current  Target   Latest
+    □ react                 17.0.2   18.2.0   18.3.1
+  devDependencies           Current  Target   Latest
+    ☑ typescript            4.8.0    5.0.0    5.3.3
+```
+
+| Column | Meaning |
+|--------|---------|
+| Current | Installed version |
+| Target | Semver-compatible update |
+| Latest | Newest available |
+
+**Keyboard Controls:**
+| Key | Action |
+|-----|--------|
+| `Space` | Toggle selection |
+| `Enter` | Confirm and update |
+| `a` | Select all |
+| `n` | Select none |
+| `i` | Invert selection |
+| `j/k` or `↑/↓` | Navigate |
+| `l` | Toggle target ↔ latest |
+| `Ctrl+C` | Cancel |
+
+**Visual Indicators:** ☑ selected, □ unselected, colors: red=major, yellow=minor, green=patch
+
+**Key Flags:**
+| Flag | Effect |
+|------|--------|
+| `--latest` | Update beyond semver range |
+| `--force` / `-f` | Re-fetch all from registry |
+| `--dry-run` | Preview without installing |
+| `--frozen-lockfile` | Fail if lockfile would change |
+| `--production` / `-p` | Skip devDependencies |
+| `--recursive` / `-r` | Update across workspaces |
+
+**Common Combos:**
+```bash
+bun update -i                       # Interactive selection
+bun update --latest                 # Update all to latest (ignore semver)
+bun update react --latest           # Update specific package to latest
+bun update -i -r                    # Monorepo interactive update
+bun update --dry-run                # Preview changes
+```
+
 ### Benchmarking & Profiling
 
 **CLI benchmarking with hyperfine:**
