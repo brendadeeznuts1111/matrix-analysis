@@ -650,6 +650,20 @@ bun install --minimum-release-age 259200   # 3-day supply chain protection
 bun install --linker isolated              # pnpm-style isolation
 ```
 
+**Stability Check (with minimumReleaseAge):**
+- Detects rapid bugfix patterns (multiple versions published close together)
+- Extends filter to skip unstable versions, selects older mature version
+- Searches up to 7 days past age gate; ignores check if still finding rapid releases
+- Exact versions (`pkg@1.1.1`) respect age gate but bypass stability check
+- Versions without timestamps pass the age check
+
+```toml
+# bunfig.toml
+[install]
+minimumReleaseAge = 259200 # 3 days in seconds
+minimumReleaseAgeExcludes = ["@types/node", "typescript"] # trusted packages
+```
+
 **pnpm Migration:** Requires pnpm lockfile v7+. After `bun install`, remove `pnpm-lock.yaml` and `pnpm-workspace.yaml`.
 
 ### bun update CLI Reference
