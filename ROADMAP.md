@@ -184,7 +184,7 @@ Overall Progress: ██████████████░░░░░░ 6
 ## Phase 3: Advanced Features (In Progress)
 
 ### Watch Mode
-- [x] **Continuous Analysis** - File watcher for real-time feedback ([docs](https://bun.sh/docs/runtime/hot#watch-mode))
+- [x] **Continuous Analysis** - File watcher for real-time feedback ([docs](https://bun.com/docs/runtime/watch-mode))
   ```bash
   bun lockfile-matrix.ts --watch
   ```
@@ -303,7 +303,7 @@ Overall Progress: ██████████████░░░░░░ 6
 | 📊 | `lockfile-matrix-report.ts` | HTML reports | [`Bun.write()`](https://bun.sh/docs/api/file-io#writing-files-bun-write) | ~350 | ✅ |
 | 🛡️ | `lockfile-matrix-security.ts` | Security scanner | [`Bun.$`](https://bun.sh/docs/runtime/shell), regex | ~550 | ✅ |
 | 🌐 | `lockfile-matrix-dns.ts` | DNS prefetch | [`Bun.dns`](https://bun.sh/docs/api/dns) | ~180 | ✅ |
-| 👁️ | `lockfile-matrix-watch.ts` | File watching | [`fs.watch`](https://bun.sh/docs/runtime/hot#watch-mode) | ~280 | ✅ |
+| 👁️ | `lockfile-matrix-watch.ts` | File watching | [`fs.watch`](https://bun.sh/docs/guides/read-file/watch) | ~280 | ✅ |
 
 ### New CLI Flags
 
