@@ -72,14 +72,14 @@ see_also:
 ## Status Overview
 
 ```
-Overall Progress: ██████████████░░░░░░ 67% (14/21 tasks)
+Overall Progress: ████████████████░░░░ 76% (16/21 tasks)
 ```
 
 | | Phase | Focus | Status | Progress | Bar |
 |:--:|:------|:------|:------:|:--------:|:----|
 | 1️⃣ | **Phase 1** | Foundation & Persistence | ✅ Complete | `6/6` | `████████████` |
 | 2️⃣ | **Phase 2** | Core Enhancements | ✅ Complete | `5/5` | `████████████` |
-| 3️⃣ | **Phase 3** | Advanced Features | 🔄 Active | `1/4` | `███░░░░░░░░░` |
+| 3️⃣ | **Phase 3** | Advanced Features | 🔄 Active | `3/6` | `██████░░░░░░` |
 | 4️⃣ | **Phase 4** | Testing & Polish | 🔄 Active | `2/6` | `████░░░░░░░░` |
 
 ### Phase 1 Deliverables (Complete)
@@ -106,7 +106,7 @@ Overall Progress: ██████████████░░░░░░ 6
 | | Metric | Current | Target | Delta | Status |
 |:--:|:-------|--------:|-------:|------:|:------:|
 | 📊 | Analysis Columns | 207 | 210 | +3 | 🟢 99% |
-| 🚩 | CLI Flags | 20 | 22 | +2 | 🟡 91% |
+| 🚩 | CLI Flags | 23 | 25 | +2 | 🟡 92% |
 | 💻 | Platform Support | 3 | 3 | 0 | ✅ 100% |
 | 🧪 | Test Coverage | 38 | 80 | +42 | 🟡 48% |
 
@@ -191,6 +191,24 @@ Overall Progress: ██████████████░░░░░░ 6
   - `lockfile-matrix-watch.ts` - Debounced file watching with graceful shutdown
   - `tests/lockfile-matrix-watch.test.ts` - 9 tests for watch functionality
   - `startWatch()`, `watchDirectory()`, `createWatchSession()`, `integrateWatchMode()`
+
+### Cache Layer
+- [x] **Zstd-Compressed Caching** - Fast repeat scans with integrity checks ([docs](https://bun.sh/docs/api/utils#bun-zstdcompresssync))
+  ```bash
+  bun lockfile-matrix.ts --cache              # Enable caching
+  bun lockfile-matrix.ts --cache-stats        # View cache statistics
+  bun lockfile-matrix.ts --cache-clear        # Clear cached results
+  ```
+  - `lockfile-matrix-cache.ts` - Zstd compression with integrity validation
+  - `cacheAnalysis()`, `loadCachedAnalysis()`, `generateIntegrity()`, `getCacheStats()`
+  - Uses `Bun.zstdCompressSync`, `Bun.hash.crc32` for efficient storage
+
+### Diff Engine
+- [x] **Deep Scan Comparison** - Compare scan results with severity tracking ([docs](https://bun.sh/docs/api/utils#bun-deepequals))
+  - `lockfile-matrix-diff.ts` - Uses `Bun.deepEquals` for object comparison
+  - `diffScans()`, `displayDiff()`, `isHMRSafe()`, `formatDiffSummary()`
+  - Tracks additions, deletions, modifications with severity levels
+  - Health delta calculation and breaking change detection
 
 ### GitHub Action
 - [ ] **CI Integration** - Official action for pipelines
@@ -300,10 +318,12 @@ Overall Progress: ██████████████░░░░░░ 6
 |:--:|:-----|:--------|:---------|------:|:------:|
 | 💾 | `lockfile-matrix-db.ts` | SQLite persistence | [`bun:sqlite`](https://bun.sh/docs/api/sqlite) | ~280 | ✅ |
 | 🔧 | `lockfile-matrix-fixer.ts` | Auto-fix engine | [`Bun.$`](https://bun.sh/docs/runtime/shell) | ~300 | ✅ |
-| 📊 | `lockfile-matrix-report.ts` | HTML reports | [`Bun.write()`](https://bun.sh/docs/api/file-io#writing-files-bun-write) | ~350 | ✅ |
+| 📊 | `lockfile-matrix-report.ts` | HTML reports | [`Bun.write()`](https://bun.sh/docs/api/file-io#writing-files-bun-write), [`Bun.escapeHTML()`](https://bun.sh/docs/api/utils#bun-escapehtml) | ~350 | ✅ |
 | 🛡️ | `lockfile-matrix-security.ts` | Security scanner | [`Bun.$`](https://bun.sh/docs/runtime/shell), regex | ~550 | ✅ |
 | 🌐 | `lockfile-matrix-dns.ts` | DNS prefetch | [`Bun.dns`](https://bun.sh/docs/api/dns) | ~180 | ✅ |
 | 👁️ | `lockfile-matrix-watch.ts` | File watching | [`fs.watch`](https://bun.sh/docs/guides/read-file/watch) | ~280 | ✅ |
+| 📦 | `lockfile-matrix-cache.ts` | Zstd caching | [`Bun.zstdCompressSync`](https://bun.sh/docs/api/utils#bun-zstdcompresssync), [`Bun.hash.crc32`](https://bun.sh/docs/api/utils#bun-hash) | ~310 | ✅ |
+| 🔄 | `lockfile-matrix-diff.ts` | Scan comparison | [`Bun.deepEquals`](https://bun.sh/docs/api/utils#bun-deepequals), [`Bun.inspect.table`](https://bun.sh/docs/api/utils#bun-inspect-table) | ~300 | ✅ |
 
 ### New CLI Flags
 
@@ -314,6 +334,7 @@ Overall Progress: ██████████████░░░░░░ 6
 | 🔧 | Auto-Fix | `--suggest` `--fix` `--fix-medium` `--fix-dry-run` |
 | 🔄 | Migration | `--migrate` `--migrate-all` `--remove-binary` |
 | 👁️ | Watch | `--watch` `--watch-verbose` `--watch-clear` |
+| 📦 | Cache | `--cache` `--cache-stats` `--cache-clear` |
 
 ### File Structure
 
