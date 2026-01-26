@@ -54,6 +54,11 @@ Grep({ pattern: "^export class", path: "file.ts", output_mode: "content", "-A": 
 
 // Find imports and their usage context
 Grep({ pattern: "import.*from", path: "file.ts", output_mode: "content", "-A": 2 })
+
+// Bun-specific patterns
+Grep({ pattern: "Bun\\.serve\\(", path: "src/", output_mode: "content", "-A": 5 })
+Grep({ pattern: "await sql`", path: "src/", output_mode: "content" })
+Grep({ pattern: "Bun\\.file\\(", path: "src/", output_mode: "content" })
 ```
 Benefits: Targeted results, no token limits, focused context. Only use `Read` with offset/limit when you need sequential scanning.
 
@@ -62,6 +67,10 @@ Benefits: Targeted results, no token limits, focused context. Only use `Read` wi
 ## Bun Quick Reference
 
 Use Context7 MCP for detailed docs. Below are essential patterns and gotchas.
+
+### Quick Navigation
+- [Server & Requests](#server--requests) | [Database (SQLite/SQL)](#sqlite) | [Storage (S3/File)](#file-io)
+- [Build & Bundle](#build-system) | [Testing](#testing) | [Node.js Compatibility](#nodejs-compatibility)
 
 ### Server & Requests
 
@@ -103,6 +112,13 @@ await file.bytes();  // Uint8Array
 
 await Bun.write("./out.txt", content);
 await Bun.write("./copy.txt", Bun.file("./source.txt"));
+
+// Delete files (Bun 1.2+)
+await file.delete();  // or file.unlink()
+
+// File stats (Node.js compatible)
+const stat = await file.stat();
+console.log(stat.size, stat.mode, stat.isFile());
 ```
 
 ### S3 with Content-Disposition (Bun 1.3.6+)
@@ -126,6 +142,27 @@ await s3.write("preview.png", imageData, {
 const file = s3.file("contract.docx", {
   contentDisposition: 'attachment; filename="signed-contract.docx"',
 });
+```
+
+### Bun.sql (PostgreSQL Client)
+
+```typescript
+import { sql } from "bun";
+
+// Connection via DATABASE_URL env var
+const users = await sql`
+  SELECT * FROM users
+  WHERE active = ${true}
+  LIMIT ${10}
+`;
+
+// Transactions
+await sql.begin(async (sql) => {
+  await sql`INSERT INTO logs (msg) VALUES (${"start"})`;
+  await sql`UPDATE users SET status = 'active'`;
+});
+
+// MySQL support coming soon
 ```
 
 ### Shell & Spawn
@@ -192,6 +229,29 @@ const db = new Database("app.sqlite");
 const stmt = db.prepare("SELECT * FROM users WHERE id = ?");
 stmt.get(1);   // Single row
 stmt.all();    // All rows
+
+// ORM-less object mapping
+class User {
+  id: number;
+  email: string;
+  get domain() { return this.email.split("@")[1]; }
+}
+const users = db.query("SELECT * FROM users").as(User);
+
+// Iterable queries (memory efficient for large tables)
+for (const row of db.query("SELECT * FROM large_table")) {
+  console.log(row);
+}
+
+// Automatic cleanup with `using`
+{
+  using db = new Database("app.sqlite");
+  using query = db.query("SELECT * FROM users");
+  // Auto-closed on scope exit, even on errors
+}
+
+// BigInt support for 64-bit integers
+const db64 = new Database(":memory:", { safeIntegers: true });
 ```
 
 ### Testing
@@ -200,13 +260,21 @@ stmt.all();    // All rows
 import { describe, it, expect, mock, spyOn, beforeEach } from "bun:test";
 
 describe("feature", () => {
-  beforeEach(() => { /* setup */ });
+  const fetchMock = mock(() => Promise.resolve({ json: () => ({}) }));
+
+  beforeEach(() => {
+    fetchMock.mockClear();  // Reset between tests
+  });
 
   it("works", async () => {
     expect(value).toBe(expected);
     expect(obj).toEqual({ key: "val" });
     await expect(promise).resolves.toBe(value);
     expect(() => fn()).toThrow();
+  });
+
+  it("handles async errors", async () => {
+    await expect(promise).rejects.toThrow("Network error");
   });
 });
 
@@ -380,7 +448,7 @@ bun install [packages...] [flags]
 | Flag | Effect |
 |------|--------|
 | `--frozen-lockfile` | Fail if lockfile would change (CI) |
-| `--save-text-lockfile` | Force text bun.lock (not binary) |
+| `--save-text-lockfile` | Force text bun.lock (default in 1.2+) |
 | `--lockfile-only` | Generate lockfile without installing |
 | `--yarn` | Write yarn.lock (v1 format) |
 | `--no-save` | Don't update package.json or lockfile |
@@ -440,7 +508,7 @@ bun install --production                   # Deploy (no devDeps)
 bun install --filter "@scope/*"            # Workspace subset
 bun add lodash --exact                     # Pin exact version
 bun add -d vitest                          # Add dev dependency
-bun install --save-text-lockfile           # Migrate to text lockfile
+bun install --save-text-lockfile           # Migrate to text lockfile (better diffs)
 bun install --cpu=x64 --os=linux           # Cross-platform install
 bun install --minimum-release-age 259200   # 3-day supply chain protection
 bun install --linker isolated              # pnpm-style isolation
@@ -566,4 +634,136 @@ env:
   NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 steps:
   - run: bun install  # .npmrc ${NPM_TOKEN} works correctly
+```
+
+### HTML Imports & CSS Bundling
+
+```typescript
+// Import HTML directly - bundles JS/CSS automatically
+import homepage from "./index.html";
+
+Bun.serve({
+  static: {
+    "/": homepage,
+  },
+  async fetch(req) {
+    // API requests...
+  },
+});
+
+// CSS imports (experimental)
+import "./styles.css";  // Bundled and optimized
+```
+
+### Node.js Compatibility
+
+```typescript
+// HTTP/2 server (now supported)
+import { createSecureServer } from "node:http2";
+
+// UDP sockets (node:dgram)
+import { createSocket } from "node:dgram";
+
+// Cluster module
+import cluster from "node:cluster";
+```
+
+### Build System
+
+```typescript
+// Environment variable injection at build time
+await Bun.build({
+  entrypoints: ["./app.tsx"],
+  env: "PUBLIC_*",  // Inject process.env.PUBLIC_*
+});
+// CLI: bun build --env="PUBLIC_*" app.tsx
+
+// Remove console/debugger from production
+await Bun.build({
+  entrypoints: ["./index.ts"],
+  drop: ["console", "debugger"],
+  banner: "/* License: MIT */",
+  footer: "/* Built with Bun */",
+});
+```
+
+### Web Streams APIs
+
+```typescript
+// Streaming text decoding (up to 30x faster than Node.js)
+const response = await fetch("https://api.example.com/stream");
+const body = response.body.pipeThrough(new TextDecoderStream());
+
+// Text encoding stream
+const stream = new ReadableStream({
+  start(controller) {
+    controller.enqueue("Hello");
+    controller.close();
+  },
+}).pipeThrough(new TextEncoderStream());
+```
+
+### Experimental C Interop
+
+```typescript
+// Compile and run C from JavaScript
+import { cc } from "bun:ffi";
+
+const lib = cc({
+  source: `
+    int add(int a, int b) {
+      return a + b;
+    }
+  `,
+});
+console.log(lib.add(1, 2));  // 3
+```
+
+### Error Handling Patterns
+
+Consistent with the "Return null" convention:
+
+```typescript
+// Database errors with context
+const user = await sql`SELECT * FROM users WHERE id = ${id}`.catch((err) => {
+  console.error(`DB error fetching user ${id}:`, err.message);
+  return null;
+});
+
+// File operations
+const data = await Bun.file("config.json").json().catch(() => null);
+
+// S3 operations with fallback
+const file = Bun.s3.file("backup.zip");
+const exists = await file.exists().catch(() => false);
+```
+
+### Performance Best Practices
+
+```typescript
+// Use iterable queries for large datasets
+for (const row of db.query("SELECT * FROM huge_table")) {
+  // Process row-by-row, no memory bloat
+}
+
+// DNS prefetch for API calls
+import { dns } from "bun";
+dns.prefetch("api.example.com", 443);
+
+// Zero-copy file uploads (files >=32KB)
+await fetch(url, { body: Bun.file("large.zip") });
+```
+
+### Cross-Runtime Guards
+
+For code that runs in both Bun and Node.js:
+
+```typescript
+if (typeof Bun !== "undefined") {
+  const file = Bun.file("./data.txt");
+  // Use Bun APIs
+} else {
+  // Node.js fallback
+  const fs = require("fs");
+}
 ```
