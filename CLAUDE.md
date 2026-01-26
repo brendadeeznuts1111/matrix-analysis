@@ -36,6 +36,21 @@ console.log(Bun.inspect.table(formatted, undefined, { colors: true }));
 
 **Errors:** Return `null`/default from helpers, don't throw. Use `.catch(() => null)` for non-critical async. Log with context for user-facing failures.
 
+**Script Exit Codes:** Always exit with code 1 on errors:
+```typescript
+// For async main()
+main().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});
+
+// For top-level scripts
+process.on("uncaughtException", (err) => {
+  console.error("Fatal:", err);
+  process.exit(1);
+});
+```
+
 **Browser:** Always use Chrome when opening URLs:
 ```bash
 open -a "Google Chrome" <url>
