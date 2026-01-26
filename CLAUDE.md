@@ -397,16 +397,14 @@ Cross-platform credential storage using OS-native encryption:
 // Use UTI-style service names (reverse domain)
 const SERVICE = "com.mycompany.myapp";
 
-// Store credential (overwrites existing)
+// Object syntax (recommended)
 await Bun.secrets.set({ service: SERVICE, name: "github-token", value: "ghp_xxx" });
-
-// Retrieve credential
 const token = await Bun.secrets.get({ service: SERVICE, name: "github-token" });
-// Returns string | null
-
-// Delete credential
 const deleted = await Bun.secrets.delete({ service: SERVICE, name: "api-key" });
-// Returns boolean
+
+// Positional syntax (set/get only - delete requires object form)
+await Bun.secrets.set(SERVICE, "github-token", "ghp_xxx");
+const token = await Bun.secrets.get(SERVICE, "github-token");
 ```
 
 **Service naming (UTI format):**
@@ -417,7 +415,7 @@ const deleted = await Bun.secrets.delete({ service: SERVICE, name: "api-key" });
 ```
 
 **Key points:**
-- **Signature:** `set({ service, name, value })` — value IN the options object (types say 2nd param, but runtime requires this)
+- **Signatures:** Object form `({ service, name, value })` or positional `(service, name, value)` — NOT `(options, value)`
 - **Slow API** — only for credentials, use config files for non-sensitive settings
 - Credentials persist across restarts, user-scoped access only
 - Memory zeroed after use, encrypted at rest
