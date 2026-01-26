@@ -1,6 +1,29 @@
+---
+title: Matrix Analysis Roadmap
+description: Development roadmap and progress tracking for lockfile-matrix tooling
+version: 1.2.0-dev
+status: active
+created: 2025-01-25
+updated: 2025-01-25
+authors:
+  - nolarose
+  - Claude Opus 4.5
+runtime: Bun 1.3.6+
+license: MIT
+repository: https://github.com/brendadeeznuts1111/matrix-analysis
+---
+
 # Roadmap
 
-> Tracking document for Matrix Analysis tooling enhancements.
+> Development roadmap for Matrix Analysis tooling enhancements.
+
+| | |
+|:--|:--|
+| **Project** | Matrix Analysis |
+| **Version** | `1.2.0-dev` |
+| **Runtime** | Bun 1.3.6+ |
+| **Status** | Active Development |
+| **Last Updated** | January 25, 2025 |
 
 ## Status Overview
 
