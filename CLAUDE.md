@@ -41,6 +41,22 @@ console.log(Bun.inspect.table(formatted, undefined, { colors: true }));
 open -a "Google Chrome" <url>
 ```
 
+**Large Files:** Use Grep with context instead of Read for files >4000 tokens:
+```typescript
+// Find specific patterns with context
+Grep({ pattern: "async function benchmark", path: "file.ts", output_mode: "content", "-B": 2, "-A": 10 })
+
+// Find all test/describe blocks
+Grep({ pattern: "it\\(|describe\\(", path: "file.ts", output_mode: "content", "-A": 3 })
+
+// Find class definitions
+Grep({ pattern: "^export class", path: "file.ts", output_mode: "content", "-A": 20 })
+
+// Find imports and their usage context
+Grep({ pattern: "import.*from", path: "file.ts", output_mode: "content", "-A": 2 })
+```
+Benefits: Targeted results, no token limits, focused context. Only use `Read` with offset/limit when you need sequential scanning.
+
 ---
 
 ## Bun Quick Reference
