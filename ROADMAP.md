@@ -51,21 +51,21 @@ see_also:
 |:--:|:---------|:--------|
 | 📘 | [`CLAUDE.md`](./CLAUDE.md) | Bun Quick Reference & coding conventions |
 | 📖 | [`README.md`](./README.md) | Project overview & usage |
-| 🎯 | [`~/.claude/skills/`](file://~/.claude/skills/) | Skill definitions |
-| 📜 | [`~/.claude/scripts/`](file://~/.claude/scripts/) | Implementation scripts |
+| 🎯 | [`~/.claude/skills/`](/Users/nolarose/.claude/skills/) | Skill definitions |
+| 📜 | [`~/.claude/scripts/`](/Users/nolarose/.claude/scripts/) | Implementation scripts |
 
 ### Bun Documentation
 
 | | API | Usage | Docs |
 |:--:|:----|:------|:-----|
-| 💾 | [`bun:sqlite`](https://bun.sh/docs/api/sqlite) | Database persistence | SQLite integration |
-| 🐚 | [`Bun.$`](https://bun.sh/docs/runtime/shell) | Shell commands | Auto-fix execution |
-| 📁 | [`Bun.file()`](https://bun.sh/docs/api/file-io) | File I/O | Lockfile reading |
-| ✍️ | [`Bun.write()`](https://bun.sh/docs/api/file-io#writing-files-bun-write) | File writing | Report generation |
-| 🌐 | [`Bun.dns`](https://bun.sh/docs/api/dns) | DNS prefetch | Performance optimization |
-| ⏱️ | [`bun:test`](https://bun.sh/docs/cli/test) | Test runner | Unit testing |
-| 📊 | [`Bun.inspect.table()`](https://bun.sh/docs/api/utils#bun-inspect-table) | Table formatting | CLI output |
-| 🔒 | [`Bun.password`](https://bun.sh/docs/api/hashing#bun-password) | Hashing | Security utilities |
+| 💾 | [`bun:sqlite`](https://bun.com/docs/runtime/sqlite) | Database persistence | SQLite integration |
+| 🐚 | [`Bun.$`](https://bun.com/docs/runtime/shell) | Shell commands | Auto-fix execution |
+| 📁 | [`Bun.file()`](https://bun.com/docs/runtime/file-io) | File I/O | Lockfile reading |
+| ✍️ | [`Bun.write()`](https://bun.com/docs/runtime/file-io) | File writing | Report generation |
+| 🌐 | [`Bun.dns`](https://bun.com/docs/runtime/networking/dns) | DNS prefetch | Performance optimization |
+| ⏱️ | [`bun:test`](https://bun.com/docs/test) | Test runner | Unit testing |
+| 📊 | [`Bun.inspect.table()`](https://bun.com/docs/runtime/utils) | Table formatting | CLI output |
+| 🔒 | [`Bun.password`](https://bun.com/docs/runtime/hashing) | Hashing | Security utilities |
 
 ---
 
