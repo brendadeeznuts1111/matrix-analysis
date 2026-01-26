@@ -659,6 +659,48 @@ bun update -i -r                    # Monorepo interactive update
 bun update --dry-run                # Preview changes
 ```
 
+### bun publish CLI Reference
+
+Publish packages to npm registry.
+
+```bash
+bun publish                        # Publish from current directory
+bun publish --dry-run              # Preview without publishing
+bun publish --access public        # Set access level (public/restricted)
+bun publish --tag alpha            # Publish with specific tag
+```
+
+**Key Flags:**
+| Flag | Effect |
+|------|--------|
+| `--access public\|restricted` | Set package access level |
+| `--tag <name>` | Set version tag (default: `latest`) |
+| `--dry-run` | Simulate publish without uploading |
+| `--otp <code>` | Provide 2FA one-time password |
+| `--auth-type web\|legacy` | 2FA method preference |
+| `--registry <url>` | Custom registry URL |
+| `--ignore-scripts` | Skip lifecycle scripts |
+| `--silent` | Suppress output |
+
+**Authentication:**
+```bash
+bunx npm login                     # Login to npm (opens browser)
+bun publish --otp 123456           # Publish with 2FA code
+```
+
+**Environment:** `NPM_CONFIG_TOKEN` for CI/CD automated publishing.
+
+**publishConfig in package.json:**
+```json
+{
+  "publishConfig": {
+    "access": "public",
+    "tag": "latest",
+    "registry": "https://registry.npmjs.org"
+  }
+}
+```
+
 ### Benchmarking & Profiling
 
 **CLI benchmarking with hyperfine:**
