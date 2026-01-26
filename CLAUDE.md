@@ -397,7 +397,7 @@ Cross-platform credential storage using OS-native encryption:
 const SERVICE = "my-app";  // Application identifier
 
 // Store credential (overwrites existing)
-await Bun.secrets.set({ service: SERVICE, name: "github-token" }, "ghp_xxx");
+await Bun.secrets.set({ service: SERVICE, name: "github-token", value: "ghp_xxx" });
 
 // Retrieve credential
 const token = await Bun.secrets.get({ service: SERVICE, name: "github-token" });
@@ -418,7 +418,7 @@ const deleted = await Bun.secrets.delete({ service: SERVICE, name: "api-key" });
 **Use case - .env with keychain references:**
 ```typescript
 // Store token in keychain instead of .env
-await Bun.secrets.set({ service: "matrix-cli", name: "github-token" }, token);
+await Bun.secrets.set({ service: "matrix-cli", name: "github-token", value: token });
 
 // .env references keychain (safe to commit)
 // GITHUB_TOKEN=keychain:github-token
