@@ -51,8 +51,8 @@ see_also:
 |:--:|:---------|:--------|
 | 📘 | [`CLAUDE.md`](./CLAUDE.md) | Bun Quick Reference & coding conventions |
 | 📖 | [`README.md`](./README.md) | Project overview & usage |
-| 🎯 | [`~/.claude/skills/`](/Users/nolarose/.claude/skills/) | Skill definitions |
-| 📜 | [`~/.claude/scripts/`](/Users/nolarose/.claude/scripts/) | Implementation scripts |
+| 🎯 | `~/.claude/skills/` | Skill definitions |
+| 📜 | `~/.claude/scripts/` | Implementation scripts |
 
 ### Bun Documentation
 
