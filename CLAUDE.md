@@ -126,6 +126,15 @@ const linuxAgent = Bun.serve({
   fetch(req) { return Response.json({ ok: true }); },
 });
 // Auto-removed when last reference closed - no manual cleanup needed
+
+// Per-request controls
+Bun.serve({
+  fetch(req, server) {
+    server.timeout(req, 120);  // Extend timeout for this request (seconds, 0 = disable)
+    const ip = server.requestIP(req);  // { address, port, family } or null for Unix
+    return new Response(`Hello ${ip?.address}`);
+  },
+});
 ```
 
 ### URLPattern
