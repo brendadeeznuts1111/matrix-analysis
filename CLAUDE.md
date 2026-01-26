@@ -516,6 +516,41 @@ await Bun.write("out.zip", await fetch(url));      // Download
 // Pool size: BUN_CONFIG_MAX_HTTP_REQUESTS=512 (default: 256)
 ```
 
+### Advanced Fetch Options
+
+```typescript
+// Proxy support (auto-detect from env)
+await fetch(url, {
+  proxy: process.env.HTTPS_PROXY || process.env.HTTP_PROXY,
+});
+
+// Unix socket (Docker daemon, local services)
+await fetch("http://localhost/containers/json", {
+  unix: "/var/run/docker.sock",
+});
+
+// mTLS with client certificates
+await fetch("https://vault.company.com/v1/secret", {
+  tls: {
+    cert: Bun.file("/path/to/client.crt"),
+    key: Bun.file("/path/to/client.key"),
+    ca: [Bun.file("/path/to/ca.pem")],  // Custom CA
+  },
+});
+
+// Timeout via AbortSignal
+await fetch(url, { signal: AbortSignal.timeout(5000) });
+
+// Streaming upload (no memory load)
+const compressed = Bun.file("large.log").stream()
+  .pipeThrough(new CompressionStream("gzip"));
+await fetch(uploadUrl, {
+  method: "PUT",
+  body: compressed,
+  headers: { "Content-Encoding": "gzip" },
+});
+```
+
 ### V8 Type Checking APIs (Bun 1.3.6+)
 
 Bun implements V8 C++ APIs for native module (`.node` addon) compatibility:
