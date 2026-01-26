@@ -283,6 +283,50 @@ const spy = spyOn(obj, "method");
 spy.mockReturnValue(42);
 ```
 
+### Hot Module Replacement (HMR)
+
+Bun's dev server supports HMR via `import.meta.hot` ([docs](https://bun.com/docs/bundler/hot-reloading)):
+
+```typescript
+// Self-accepting module - re-evaluates on change
+import.meta.hot.accept();
+
+// Persist state across hot reloads
+const root = (import.meta.hot.data.root ??= createRoot(elem));
+root.render(<App />);
+
+// Cleanup before module replacement
+import.meta.hot.dispose(() => {
+  sideEffect.cleanup();
+});
+
+// Cleanup when module is no longer imported
+import.meta.hot.prune(() => {
+  ws.close();
+});
+
+// Listen for HMR events
+import.meta.hot.on("bun:beforeUpdate", () => console.log("updating..."));
+import.meta.hot.on("bun:error", (err) => console.error(err));
+```
+
+**API Methods:**
+
+| Method | Purpose |
+|--------|---------|
+| `accept()` | Mark module as hot-replaceable |
+| `accept(cb)` | Callback with new module on update |
+| `accept("./dep", cb)` | Accept dependency updates |
+| `data` | Persist state between reloads |
+| `dispose(cb)` | Cleanup before replacement |
+| `prune(cb)` | Cleanup when imports removed |
+| `on(event, cb)` | Listen for HMR events |
+| `off(event, cb)` | Remove event listener |
+
+**Events:** `bun:beforeUpdate`, `bun:afterUpdate`, `bun:beforeFullReload`, `bun:error`, `bun:ws:disconnect`, `bun:ws:connect`
+
+**Note:** HMR calls are dead-code-eliminated in production. Must call directly (no `const hot = import.meta.hot`).
+
 ### Utilities
 
 ```typescript
