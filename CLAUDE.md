@@ -289,6 +289,21 @@ it("matches snapshot", () => {
 // Update snapshots: bun test --update-snapshots
 ```
 
+**AI Agent Integration:** Set `CLAUDECODE=1` for quieter output (only failures shown):
+```bash
+CLAUDECODE=1 bun test  # Reduces noise, preserves failure details
+```
+
+**Key CLI Flags:**
+| Flag | Description |
+|------|-------------|
+| `--bail` / `--bail=N` | Exit after N failures (default: 1) |
+| `--timeout=N` | Per-test timeout in ms (default: 5000) |
+| `-t "pattern"` | Run tests matching regex |
+| `--coverage` | Generate coverage profile |
+| `--update-snapshots` / `-u` | Update snapshot files |
+| `--rerun-each=N` | Re-run each file N times (catch flaky tests) |
+
 ### Hot Module Replacement (HMR)
 
 Bun's dev server supports HMR via `import.meta.hot` ([docs](https://bun.com/docs/bundler/hot-reloading)):
