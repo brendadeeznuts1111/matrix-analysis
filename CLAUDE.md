@@ -394,7 +394,8 @@ Cross-platform credential storage using OS-native encryption:
 - **Windows**: Credential Manager
 
 ```typescript
-const SERVICE = "my-app";  // Application identifier
+// Use UTI-style service names (reverse domain)
+const SERVICE = "com.mycompany.myapp";
 
 // Store credential (overwrites existing)
 await Bun.secrets.set({ service: SERVICE, name: "github-token", value: "ghp_xxx" });
@@ -408,18 +409,25 @@ const deleted = await Bun.secrets.delete({ service: SERVICE, name: "api-key" });
 // Returns boolean
 ```
 
+**Service naming (UTI format):**
+```typescript
+{ service: "com.docker.hub", name: "username" }      // ✅ Good
+{ service: "com.vercel.cli", name: "team-token" }    // ✅ Good
+{ service: "api", name: "key" }                      // ❌ Too vague
+```
+
 **Key points:**
-- **Signature:** `set({ service, name, value })` — value goes IN the options object (not as 2nd param)
-- All operations async and non-blocking (runs on threadpool)
+- **Signature:** `set({ service, name, value })` — value IN the options object (types say 2nd param, but runtime requires this)
+- **Slow API** — only for credentials, use config files for non-sensitive settings
 - Credentials persist across restarts, user-scoped access only
-- Memory zeroed after use for security
-- Max length: 2048-4096 bytes, names under 256 chars (platform-dependent)
-- Designed for local dev tools, not production deployments
+- Memory zeroed after use, encrypted at rest
+- Max length: 2048-4096 bytes, names under 256 chars
+- For CLI tools and local dev only, not production (use proper secret management)
 
 **Use case - .env with keychain references:**
 ```typescript
 // Store token in keychain instead of .env
-await Bun.secrets.set({ service: "matrix-cli", name: "github-token", value: token });
+await Bun.secrets.set({ service: "io.matrix.cli", name: "github-token", value: token });
 
 // .env references keychain (safe to commit)
 // GITHUB_TOKEN=keychain:github-token
@@ -428,13 +436,13 @@ await Bun.secrets.set({ service: "matrix-cli", name: "github-token", value: toke
 async function resolveEnvValue(value: string): Promise<string> {
   if (value.startsWith("keychain:")) {
     const name = value.slice(9);
-    return await Bun.secrets.get({ service: "matrix-cli", name }) ?? "";
+    return await Bun.secrets.get({ service: "io.matrix.cli", name }) ?? "";
   }
   return value;
 }
 ```
 
-**Linux requirement:** Secret service daemon must be running (gnome-keyring-daemon or kwalletd).
+**Linux:** Requires secret service daemon (gnome-keyring-daemon or kwalletd).
 
 ### Fetch & DNS Optimization
 
