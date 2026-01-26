@@ -72,15 +72,15 @@ see_also:
 ## Status Overview
 
 ```
-Overall Progress: ██████░░░░░░░░░░░░░░ 31% (6/19 tasks)
+Overall Progress: ██████████████░░░░░░ 52% (11/21 tasks)
 ```
 
 | | Phase | Focus | Status | Progress | Bar |
 |:--:|:------|:------|:------:|:--------:|:----|
 | 1️⃣ | **Phase 1** | Foundation & Persistence | ✅ Complete | `6/6` | `████████████` |
-| 2️⃣ | **Phase 2** | Core Enhancements | 🔄 Active | `0/5` | `░░░░░░░░░░░░` |
+| 2️⃣ | **Phase 2** | Core Enhancements | 🔄 Active | `4/5` | `█████████░░░` |
 | 3️⃣ | **Phase 3** | Advanced Features | 📋 Planned | `0/4` | `░░░░░░░░░░░░` |
-| 4️⃣ | **Phase 4** | Testing & Polish | 📋 Planned | `0/4` | `░░░░░░░░░░░░` |
+| 4️⃣ | **Phase 4** | Testing & Polish | 📋 Planned | `1/6` | `██░░░░░░░░░░` |
 
 ### Phase 1 Deliverables (Complete)
 
@@ -93,22 +93,22 @@ Overall Progress: ██████░░░░░░░░░░░░░░ 3
 
 ### Up Next (Phase 2)
 
-| | Priority | Feature | Impact | Effort |
-|:--:|:--------:|:--------|:-------|:-------|
-| 🛡️ | 🔴 High | SQL Injection Detection | Security hardening | Low |
-| 🔑 | 🔴 High | Secret Scanning | Credential leak prevention | Medium |
-| 🌐 | 🟡 Med | DNS Prefetch Optimization | 150x faster resolution | Low |
-| 🪟 | 🟡 Med | Windows CI | Cross-platform support | Medium |
-| 🔒 | 🟢 Low | CSP Compatibility Check | Header validation | Low |
+| | Priority | Feature | Impact | Effort | Status |
+|:--:|:--------:|:--------|:-------|:-------|:------:|
+| 🛡️ | 🔴 High | SQL Injection Detection | Security hardening | Low | ✅ |
+| 🔑 | 🔴 High | Secret Scanning | Credential leak prevention | Medium | ✅ |
+| 🌐 | 🟡 Med | DNS Prefetch Optimization | 150x faster resolution | Low | ✅ |
+| 🪟 | 🟡 Med | Windows CI | Cross-platform support | Medium | ✅ |
+| 🔒 | 🟢 Low | CSP Compatibility Check | Header validation | Low | 🔄 |
 
 ### Key Metrics
 
 | | Metric | Current | Target | Delta | Status |
 |:--:|:-------|--------:|-------:|------:|:------:|
-| 📊 | Analysis Columns | 197 | 210 | +13 | 🟡 94% |
-| 🚩 | CLI Flags | 18 | 22 | +4 | 🟡 82% |
-| 💻 | Platform Support | 2 | 3 | +1 | 🔴 67% |
-| 🧪 | Test Coverage | 0% | 80% | +80% | 🔴 0% |
+| 📊 | Analysis Columns | 207 | 210 | +3 | 🟢 99% |
+| 🚩 | CLI Flags | 19 | 22 | +3 | 🟡 86% |
+| 💻 | Platform Support | 3 | 3 | 0 | ✅ 100% |
+| 🧪 | Test Coverage | 29 | 80 | +51 | 🟡 36% |
 
 ---
 
@@ -151,27 +151,33 @@ Overall Progress: ██████░░░░░░░░░░░░░░ 3
 ## Phase 2: Core Enhancements (In Progress)
 
 ### Security Scanner
-- [ ] **SQL Injection Detection** - Pattern scanning for SQLi vectors
+- [x] **SQL Injection Detection** - Pattern scanning for SQLi vectors
   ```typescript
-  function detectSqlInjection(pattern: string): boolean
+  function detectSqlInjection(pattern: string): { detected: boolean; vectors: SqliVector[] }
   ```
-- [ ] **Secret Scanning** - Detect API keys, JWT tokens, private keys
+- [x] **Secret Scanning** - Detect API keys, JWT tokens, private keys, AWS keys, GitHub tokens
   ```typescript
-  function detectSecrets(pattern: string): string[]
+  function detectSecrets(pattern: string): { found: boolean; types: SecretType[]; matches: string[] }
   ```
-- [ ] **CSP Compatibility Check** - Validate Content-Security-Policy headers
+- [x] **CSP Compatibility Check** - Validate Content-Security-Policy headers
+  ```typescript
+  function checkCspCompatibility(pattern: string): { compatible: boolean; violations: string[] }
+  ```
+- [x] **Path Traversal Detection** - Detect `../` escape sequences
+- [x] **SSRF Detection** - Detect private IPs, localhost, cloud metadata endpoints
 
 ### Performance
-- [ ] **DNS Prefetch Optimization** - Parallel DNS warming for hostnames ([docs](https://bun.sh/docs/api/dns))
+- [x] **DNS Prefetch Optimization** - Parallel DNS warming for hostnames ([docs](https://bun.sh/docs/api/dns))
   ```typescript
   import { dns } from "bun";
   dns.prefetch("api.example.com", 443);
   ```
 
 ### Cross-Platform
-- [ ] **Windows CI** - GitHub Actions workflow for `windows-latest`
+- [x] **Windows CI** - GitHub Actions workflow for `windows-latest`
   - WebSocket `perMessageDeflate` fixes (Bun 1.3.6+)
   - `bunx` argument parsing fixes
+  - Created `.github/workflows/ci.yml` with matrix: `[ubuntu, macos, windows]`
 
 ---
 
@@ -206,11 +212,16 @@ Overall Progress: ██████░░░░░░░░░░░░░░ 3
 
 ---
 
-## Phase 4: Testing & Polish (Planned)
+## Phase 4: Testing & Polish (In Progress)
 
 ### Test Suite
+- [x] **Security Tests** - `tests/lockfile-matrix-security.test.ts` (29 tests)
+  - SQL injection pattern detection (5 vectors)
+  - Secret scanning (API keys, JWT, AWS, GitHub tokens)
+  - CSP compatibility validation
+  - Path traversal detection
+  - SSRF detection
 - [ ] **Unit Tests** - `lockfile-matrix.test.ts`
-  - SQL injection pattern detection
   - Fix suggestion accuracy
   - Windows path handling
   - Migration rollback scenarios
@@ -282,6 +293,8 @@ Overall Progress: ██████░░░░░░░░░░░░░░ 3
 | 💾 | `lockfile-matrix-db.ts` | SQLite persistence | [`bun:sqlite`](https://bun.sh/docs/api/sqlite) | ~280 | ✅ |
 | 🔧 | `lockfile-matrix-fixer.ts` | Auto-fix engine | [`Bun.$`](https://bun.sh/docs/runtime/shell) | ~300 | ✅ |
 | 📊 | `lockfile-matrix-report.ts` | HTML reports | [`Bun.write()`](https://bun.sh/docs/api/file-io#writing-files-bun-write) | ~350 | ✅ |
+| 🛡️ | `lockfile-matrix-security.ts` | Security scanner | [`Bun.$`](https://bun.sh/docs/runtime/shell), regex | ~550 | ✅ |
+| 🌐 | `lockfile-matrix-dns.ts` | DNS prefetch | [`Bun.dns`](https://bun.sh/docs/api/dns) | ~180 | ✅ |
 
 ### New CLI Flags
 
@@ -298,10 +311,16 @@ Overall Progress: ██████░░░░░░░░░░░░░░ 3
 ~/.claude/scripts/
 ├── lockfile-matrix.ts          # Main CLI (32KB)
 ├── lockfile-matrix-db.ts       # Database module
+├── lockfile-matrix-dns.ts      # DNS prefetch module ✨
 ├── lockfile-matrix-fixer.ts    # Fix engine
 ├── lockfile-matrix-report.ts   # HTML generator
-├── lockfile-matrix-security.ts # Security scanner (planned)
-└── lockfile-matrix-seeds.ts    # Test data seeds (planned)
+├── lockfile-matrix-security.ts # Security scanner ✨
+├── lockfile-matrix-seeds.ts    # Test data seeds (planned)
+└── tests/
+    └── lockfile-matrix-security.test.ts  # Security tests (29 tests) ✨
+
+.github/workflows/
+└── ci.yml                      # Cross-platform CI ✨
 ```
 
 ### Benchmarking Tools
