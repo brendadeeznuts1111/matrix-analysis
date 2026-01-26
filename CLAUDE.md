@@ -116,9 +116,16 @@ const server = Bun.serve({
 
 // Unix socket server (local IPC, no network)
 const agent = Bun.serve({
-  unix: "/tmp/my-agent.sock",
+  unix: "/tmp/my-agent.sock",  // Filesystem socket (macOS/Linux)
   fetch(req) { return Response.json({ ok: true }); },
 });
+
+// Abstract namespace socket (Linux only - auto-cleanup, no file)
+const linuxAgent = Bun.serve({
+  unix: "\0my-abstract-socket",  // Null byte prefix = abstract namespace
+  fetch(req) { return Response.json({ ok: true }); },
+});
+// Auto-removed when last reference closed - no manual cleanup needed
 ```
 
 ### URLPattern
