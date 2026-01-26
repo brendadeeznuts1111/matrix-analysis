@@ -281,6 +281,12 @@ describe("feature", () => {
 const fn = mock(() => value);
 const spy = spyOn(obj, "method");
 spy.mockReturnValue(42);
+
+// Snapshot testing
+it("matches snapshot", () => {
+  expect({ a: 1, b: [2, 3] }).toMatchSnapshot();
+});
+// Update snapshots: bun test --update-snapshots
 ```
 
 ### Hot Module Replacement (HMR)
