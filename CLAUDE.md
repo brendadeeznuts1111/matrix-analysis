@@ -117,6 +117,54 @@ route.test(`${BASE}/users/abc`);   // false (regex rejected)
 route.exec(`${BASE}/users/123`);   // { pathname: { groups: { id: "123" } } }
 ```
 
+**URLPattern Router:**
+```typescript
+class Router {
+  private routes: Array<{ pattern: URLPattern; handler: Function }> = [];
+
+  route(path: string, handler: (req: Request, params: Record<string, string>) => Response) {
+    this.routes.push({ pattern: new URLPattern({ pathname: path }), handler });
+  }
+
+  async handle(req: Request): Promise<Response> {
+    for (const { pattern, handler } of this.routes) {
+      const match = pattern.exec(req.url);
+      if (match) return handler(req, match.pathname.groups);
+    }
+    return new Response("Not Found", { status: 404 });
+  }
+}
+
+// Usage
+const router = new Router();
+router.route("/vault/:name", (req, { name }) => Response.json({ name }));
+router.route("/files/*", (req, { 0: filepath }) => new Response(Bun.file(`./exports/${filepath}`)));
+Bun.serve({ fetch: (req) => router.handle(req) });
+```
+
+**URL Validation (connection strings):**
+```typescript
+const patterns = {
+  postgres: new URLPattern({ protocol: "postgres:", pathname: "//:user@:host/:database" }),
+  redis: new URLPattern({ protocol: "redis:", pathname: "//:host/:port" }),
+};
+
+function analyzeUrl(url: string) {
+  for (const [type, pattern] of Object.entries(patterns)) {
+    const match = pattern.exec(url);
+    if (match) return { type, components: match.pathname.groups };
+  }
+  return { type: "unknown" };
+}
+```
+
+**Wildcard Matching:**
+```typescript
+// Match secrets by pattern: "/prod/*" matches prod/database, prod/api_key
+const pattern = new URLPattern({ pathname: "/prod/*" });
+const secrets = allSecrets.filter(s => pattern.test(`x:///${s.name}`));
+```
+
 ### File I/O
 
 ```typescript
