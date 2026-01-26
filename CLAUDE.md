@@ -659,6 +659,59 @@ bun update -i -r                    # Monorepo interactive update
 bun update --dry-run                # Preview changes
 ```
 
+### bun link CLI Reference
+
+Link local packages for development without publishing to npm.
+
+**Register a package (run in package directory):**
+```bash
+cd /path/to/my-lib
+bun link                           # Register "my-lib" as linkable
+```
+
+**Link into another project:**
+```bash
+cd /path/to/my-app
+bun link my-lib                    # Symlink my-lib into node_modules
+bun link my-lib --save             # Also add to package.json
+```
+
+**package.json with linked dependency:**
+```json
+{
+  "dependencies": {
+    "my-lib": "link:my-lib"
+  }
+}
+```
+
+**Unlink:**
+```bash
+cd /path/to/my-lib
+bun unlink                         # Unregister the package
+```
+
+**Key Flags:**
+| Flag | Effect |
+|------|--------|
+| `--save` | Add `link:pkg` to package.json dependencies |
+| `--global` / `-g` | Link globally |
+| `--force` / `-f` | Re-fetch and reinstall |
+| `--dry-run` | Preview without linking |
+
+**Common Workflow:**
+```bash
+# Terminal 1: Library development
+cd ~/projects/my-lib
+bun link
+
+# Terminal 2: App using the library
+cd ~/projects/my-app
+bun link my-lib --save
+
+# Now changes in my-lib are immediately reflected in my-app
+```
+
 ### bun publish CLI Reference
 
 Publish packages to npm registry.
