@@ -135,3 +135,7 @@ test-metafile.json
 *.db-shm
 *.db-wal
 *.db-journal
+
+# Generated reports
+matrix-report-*.html
+bench-matrix-*.json
