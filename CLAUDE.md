@@ -91,11 +91,18 @@ Use Context7 MCP for detailed docs. Below are essential patterns and gotchas.
 
 ```typescript
 const server = Bun.serve({
-  port: 0,  // Auto-select available port
-  fetch(req) {
+  port: 0,  // Auto-select available port (or BUN_PORT/PORT env)
+  hostname: "127.0.0.1",  // Secure default (not 0.0.0.0)
+  idleTimeout: 30,  // Close idle connections after 30s
+
+  fetch(req, server) {
     const url = new URL(req.url);
     const page = url.searchParams.get("page");       // Query params
     const body = await req.json();                   // Request body (.text(), .formData())
+
+    // Get client IP for logging
+    const client = server.requestIP(req);
+    console.log(`${client?.address} ${req.method} ${url.pathname}`);
 
     // ALWAYS use Response.json() for JSON (auto Content-Type)
     return Response.json({ data: result });
@@ -103,6 +110,15 @@ const server = Bun.serve({
   },
 });
 // server.port, server.url, server.stop(), server.stop(true) for force
+// server.pendingRequests, server.pendingWebSockets for metrics
+// server.reload({ fetch }) for hot reload without dropping connections
+// server.unref() to not block process exit
+
+// Unix socket server (local IPC, no network)
+const agent = Bun.serve({
+  unix: "/tmp/my-agent.sock",
+  fetch(req) { return Response.json({ ok: true }); },
+});
 ```
 
 ### URLPattern
