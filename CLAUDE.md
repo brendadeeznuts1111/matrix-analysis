@@ -386,6 +386,55 @@ Bun.escapeHTML("<script>alert('xss')</script>");  // &lt;script&gt;...
 Bun.escapeHTML(userInput);                         // Always escape user input
 ```
 
+### Secrets (OS Keychain)
+
+Cross-platform credential storage using OS-native encryption:
+- **macOS**: Keychain Services
+- **Linux**: libsecret (GNOME Keyring, KWallet)
+- **Windows**: Credential Manager
+
+```typescript
+const SERVICE = "my-app";  // Application identifier
+
+// Store credential (overwrites existing)
+await Bun.secrets.set({ service: SERVICE, name: "github-token" }, "ghp_xxx");
+
+// Retrieve credential
+const token = await Bun.secrets.get({ service: SERVICE, name: "github-token" });
+// Returns string | null
+
+// Delete credential
+const deleted = await Bun.secrets.delete({ service: SERVICE, name: "api-key" });
+// Returns boolean
+```
+
+**Key points:**
+- All operations async and non-blocking
+- Credentials persist across restarts
+- Only the storing user can retrieve
+- Memory zeroed after use
+- Max length: 2048-4096 bytes (platform-dependent)
+
+**Use case - .env with keychain references:**
+```typescript
+// Store token in keychain instead of .env
+await Bun.secrets.set({ service: "matrix-cli", name: "github-token" }, token);
+
+// .env references keychain (safe to commit)
+// GITHUB_TOKEN=keychain:github-token
+
+// Resolve at runtime
+async function resolveEnvValue(value: string): Promise<string> {
+  if (value.startsWith("keychain:")) {
+    const name = value.slice(9);
+    return await Bun.secrets.get({ service: "matrix-cli", name }) ?? "";
+  }
+  return value;
+}
+```
+
+**Linux requirement:** Secret service daemon must be running (gnome-keyring-daemon or kwalletd).
+
 ### Fetch & DNS Optimization
 
 ```typescript
