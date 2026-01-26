@@ -54,6 +54,19 @@ see_also:
 | 🎯 | [`~/.claude/skills/`](file://~/.claude/skills/) | Skill definitions |
 | 📜 | [`~/.claude/scripts/`](file://~/.claude/scripts/) | Implementation scripts |
 
+### Bun Documentation
+
+| | API | Usage | Docs |
+|:--:|:----|:------|:-----|
+| 💾 | [`bun:sqlite`](https://bun.sh/docs/api/sqlite) | Database persistence | SQLite integration |
+| 🐚 | [`Bun.$`](https://bun.sh/docs/runtime/shell) | Shell commands | Auto-fix execution |
+| 📁 | [`Bun.file()`](https://bun.sh/docs/api/file-io) | File I/O | Lockfile reading |
+| ✍️ | [`Bun.write()`](https://bun.sh/docs/api/file-io#writing-files-bun-write) | File writing | Report generation |
+| 🌐 | [`Bun.dns`](https://bun.sh/docs/api/dns) | DNS prefetch | Performance optimization |
+| ⏱️ | [`bun:test`](https://bun.sh/docs/cli/test) | Test runner | Unit testing |
+| 📊 | [`Bun.inspect.table()`](https://bun.sh/docs/api/utils#bun-inspect-table) | Table formatting | CLI output |
+| 🔒 | [`Bun.password`](https://bun.sh/docs/api/hashing#bun-password) | Hashing | Security utilities |
+
 ---
 
 ## Status Overview
@@ -149,7 +162,7 @@ Overall Progress: ██████░░░░░░░░░░░░░░ 3
 - [ ] **CSP Compatibility Check** - Validate Content-Security-Policy headers
 
 ### Performance
-- [ ] **DNS Prefetch Optimization** - Parallel DNS warming for hostnames
+- [ ] **DNS Prefetch Optimization** - Parallel DNS warming for hostnames ([docs](https://bun.sh/docs/api/dns))
   ```typescript
   import { dns } from "bun";
   dns.prefetch("api.example.com", 443);
@@ -165,7 +178,7 @@ Overall Progress: ██████░░░░░░░░░░░░░░ 3
 ## Phase 3: Advanced Features (Planned)
 
 ### Watch Mode
-- [ ] **Continuous Analysis** - File watcher for real-time feedback
+- [ ] **Continuous Analysis** - File watcher for real-time feedback ([docs](https://bun.sh/docs/runtime/hot#watch-mode))
   ```bash
   bun lockfile-matrix.ts --watch
   ```
@@ -179,13 +192,13 @@ Overall Progress: ██████░░░░░░░░░░░░░░ 3
   ```
 
 ### Build System
-- [ ] **Compile-Time Feature Flags** - Enterprise vs community builds
+- [ ] **Compile-Time Feature Flags** - Enterprise vs community builds ([docs](https://bun.sh/docs/bundler))
   ```bash
   bun build --feature=TIER_PRO --minify src/app.ts
   ```
 
 ### PostgreSQL Support
-- [ ] **Bun.sql Integration** - Optional PostgreSQL persistence
+- [ ] **Bun.sql Integration** - Optional PostgreSQL persistence ([docs](https://bun.sh/docs/api/sql))
   ```typescript
   import { sql } from "bun";
   await sql`INSERT INTO results ...`;
@@ -202,6 +215,28 @@ Overall Progress: ██████░░░░░░░░░░░░░░ 3
   - Windows path handling
   - Migration rollback scenarios
 
+### Database Seeds
+- [ ] **Seed Generator** - `lockfile-matrix-seeds.ts`
+  ```typescript
+  import { Database } from "bun:sqlite";
+  export async function seedTestData(db: Database, count = 100): Promise<void>
+  ```
+  - Generate realistic test project data
+  - Configurable health distribution
+  - Reproducible via [`Bun.randomUUIDv7()`](https://bun.sh/docs/api/utils#bun-randomuuidv7)
+
+### Benchmarking
+- [ ] **Benchmark Harness** - Integration with [`/bench`](file://~/.claude/skills/bench.md) skill
+  ```typescript
+  // Using bun:test bench API
+  import { bench, run } from "mitata";
+  bench("lockfile scan", () => scanProjects(testDirs));
+  await run();
+  ```
+  - CLI timing via [`hyperfine`](https://github.com/sharkdp/hyperfine)
+  - Memory profiling via `MIMALLOC_SHOW_STATS=1`
+  - CPU profiling via [`--cpu-prof`](https://bun.sh/docs/runtime/debugging#cpu-profiling)
+
 ### Documentation
 - [ ] **README Updates** - New feature documentation
 - [ ] **SECURITY.md** - Threat model and security considerations
@@ -217,13 +252,15 @@ Overall Progress: ██████░░░░░░░░░░░░░░ 3
 
 ### Performance
 
-| | Check | Command | Status |
-|:--:|:------|:--------|:------:|
-| ⏱️ | Benchmark before/after | `hyperfine "bun run matrix"` | ⬜ |
-| 🧠 | Memory usage (1000+ patterns) | `MIMALLOC_SHOW_STATS=1 bun ...` | ⬜ |
-| 🌐 | DNS cache 150x speedup | `Bun.dns.prefetch` verification | ⬜ |
-| 🪟 | Windows runner | `windows-latest` CI | ⬜ |
-| 🥶 | Cold start timing | `bun install` with text lockfile | ⬜ |
+| | Check | Command | Docs | Status |
+|:--:|:------|:--------|:-----|:------:|
+| ⏱️ | Benchmark before/after | `hyperfine "bun run matrix"` | [hyperfine](https://github.com/sharkdp/hyperfine) | ⬜ |
+| 🧠 | Memory usage (1000+ patterns) | `MIMALLOC_SHOW_STATS=1 bun ...` | [mimalloc](https://bun.sh/docs/project/benchmarking#heap-snapshots) | ⬜ |
+| 🌐 | DNS cache 150x speedup | `Bun.dns.prefetch` verification | [dns.prefetch](https://bun.sh/docs/api/dns) | ⬜ |
+| 🪟 | Windows runner | `windows-latest` CI | [CI setup](https://bun.sh/docs/installation#github-actions) | ⬜ |
+| 🥶 | Cold start timing | `bun install` with text lockfile | [bun install](https://bun.sh/docs/cli/install) | ⬜ |
+| 📊 | CPU profiling | `bun --cpu-prof script.ts` | [CPU profiling](https://bun.sh/docs/runtime/debugging#cpu-profiling) | ⬜ |
+| 📈 | Heap snapshots | `generateHeapSnapshot()` | [Heap snapshots](https://bun.sh/docs/project/benchmarking#heap-snapshots) | ⬜ |
 
 ### Security
 
@@ -240,11 +277,11 @@ Overall Progress: ██████░░░░░░░░░░░░░░ 3
 
 ### Completed Modules
 
-| | File | Purpose | Lines | Status |
-|:--:|:-----|:--------|------:|:------:|
-| 💾 | `lockfile-matrix-db.ts` | SQLite persistence | ~280 | ✅ |
-| 🔧 | `lockfile-matrix-fixer.ts` | Auto-fix engine | ~300 | ✅ |
-| 📊 | `lockfile-matrix-report.ts` | HTML reports | ~350 | ✅ |
+| | File | Purpose | Bun APIs | Lines | Status |
+|:--:|:-----|:--------|:---------|------:|:------:|
+| 💾 | `lockfile-matrix-db.ts` | SQLite persistence | [`bun:sqlite`](https://bun.sh/docs/api/sqlite) | ~280 | ✅ |
+| 🔧 | `lockfile-matrix-fixer.ts` | Auto-fix engine | [`Bun.$`](https://bun.sh/docs/runtime/shell) | ~300 | ✅ |
+| 📊 | `lockfile-matrix-report.ts` | HTML reports | [`Bun.write()`](https://bun.sh/docs/api/file-io#writing-files-bun-write) | ~350 | ✅ |
 
 ### New CLI Flags
 
@@ -263,8 +300,19 @@ Overall Progress: ██████░░░░░░░░░░░░░░ 3
 ├── lockfile-matrix-db.ts       # Database module
 ├── lockfile-matrix-fixer.ts    # Fix engine
 ├── lockfile-matrix-report.ts   # HTML generator
-└── lockfile-matrix-security.ts # Security scanner
+├── lockfile-matrix-security.ts # Security scanner (planned)
+└── lockfile-matrix-seeds.ts    # Test data seeds (planned)
 ```
+
+### Benchmarking Tools
+
+| | Tool | Purpose | Docs |
+|:--:|:-----|:--------|:-----|
+| ⏱️ | [`hyperfine`](https://github.com/sharkdp/hyperfine) | CLI timing | `hyperfine "bun run matrix"` |
+| 📊 | [`--cpu-prof`](https://bun.sh/docs/runtime/debugging#cpu-profiling) | CPU profiling | Chrome DevTools |
+| 🧠 | [`MIMALLOC_SHOW_STATS`](https://bun.sh/docs/project/benchmarking#heap-snapshots) | Native heap | Exit summary |
+| 📈 | [`heapStats()`](https://bun.sh/docs/project/benchmarking#heap-snapshots) | JS heap | Object counts |
+| 🔬 | [`mitata`](https://github.com/evanwashere/mitata) | Micro-benchmarks | Bun test compatible |
 
 ---
 
