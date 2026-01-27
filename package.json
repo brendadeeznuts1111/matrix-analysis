@@ -2,6 +2,9 @@
   "name": "matrix-cli",
   "version": "1.0.0",
   "type": "module",
+  "engines": {
+    "bun": ">=1.0.0"
+  },
   "scripts": {
     "matrix:profile:use": "bun run src/cli.ts profile:use",
     "matrix:profile:list": "bun run src/cli.ts profile:list",
