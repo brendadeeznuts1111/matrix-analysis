@@ -15,6 +15,48 @@ import * as os from "os";
 import * as path from "path";
 
 // ============================================================================
+// UTILITIES
+// ============================================================================
+
+/**
+ * Safely parse JSON with optional validation
+ * Returns undefined on failure instead of throwing, logs corruption for debugging
+ */
+function safeJsonParse<T>(
+  str: string | null | undefined,
+  options?: {
+    context?: string;
+    validate?: (value: unknown) => value is T;
+  }
+): T | undefined {
+  if (!str) return undefined;
+
+  try {
+    const parsed = JSON.parse(str);
+
+    if (options?.validate && !options.validate(parsed)) {
+      console.warn(
+        `[safeJsonParse] Validation failed${options.context ? ` for ${options.context}` : ""}: unexpected shape`
+      );
+      return undefined;
+    }
+
+    return parsed;
+  } catch (err) {
+    console.warn(
+      `[safeJsonParse] Corrupted JSON${options?.context ? ` in ${options.context}` : ""}:`,
+      str.slice(0, 100) + (str.length > 100 ? "..." : "")
+    );
+    return undefined;
+  }
+}
+
+/** Type guard for string arrays */
+function isStringArray(value: unknown): value is string[] {
+  return Array.isArray(value) && value.every((v) => typeof v === "string");
+}
+
+// ============================================================================
 // 1. DNS & HOSTNAME RESOLUTION
 // ============================================================================
 
@@ -307,8 +349,14 @@ class NetworkDatabase {
     if (!result) return null;
 
     return {
-      ipv4: result.ipv4 ? JSON.parse(result.ipv4) : undefined,
-      ipv6: result.ipv6 ? JSON.parse(result.ipv6) : undefined,
+      ipv4: safeJsonParse<string[]>(result.ipv4, {
+        context: `dns_cache.ipv4 for ${hostname}`,
+        validate: isStringArray,
+      }),
+      ipv6: safeJsonParse<string[]>(result.ipv6, {
+        context: `dns_cache.ipv6 for ${hostname}`,
+        validate: isStringArray,
+      }),
     };
   }
 
