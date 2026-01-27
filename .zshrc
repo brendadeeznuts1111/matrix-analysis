@@ -1,0 +1,1 @@
+/Users/nolarose/dotfiles/zshrc
