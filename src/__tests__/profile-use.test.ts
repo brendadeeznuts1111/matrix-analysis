@@ -40,7 +40,7 @@ describe("profile-loader", () => {
 
   describe("resolveSecretRefs", () => {
     it("resolves existing environment variables", () => {
-      const originalHome = process.env.HOME;
+      const originalHome = process.env.HOME ?? "";
       const env = {
         MY_HOME: "${HOME}",
         PLAIN: "value",

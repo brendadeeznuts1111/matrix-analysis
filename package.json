@@ -14,7 +14,7 @@
     "matrix:profile:export": "bun run src/cli.ts profile:export",
     "test": "bun test"
   },
-  "dependencies": {
+  "devDependencies": {
     "@types/bun": "1.3.6"
   }
 }
