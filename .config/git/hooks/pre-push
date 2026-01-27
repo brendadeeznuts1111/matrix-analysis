@@ -1,0 +1,81 @@
+#!/bin/bash
+# BUN-PURE PRE-PUSH HOOK
+# Build validation with Bun only (no tsc check)
+
+set -e
+
+echo "🚀 Bun-Pure pre-push checks..."
+
+# Require Bun
+if ! command -v bun &> /dev/null; then
+    echo "❌ BLOCKED: Bun not installed"
+    exit 1
+fi
+
+z40="0000000000000000000000000000000000000000"
+
+while read local_ref local_sha remote_ref remote_sha; do
+    [ "$local_sha" = "$z40" ] && continue  # Skip deletes
+
+    if [ "$remote_sha" = "$z40" ]; then
+        echo "📤 New branch: $local_ref"
+    else
+        echo "📤 Updating: $remote_ref"
+    fi
+
+    # ═══════════════════════════════════════════════════════════════
+    # 1. RUN TESTS (opt-in: BUN_PREPUSH_TEST=1)
+    # ═══════════════════════════════════════════════════════════════
+    if [ "${BUN_PREPUSH_TEST:-}" = "1" ]; then
+        if [ -f "package.json" ] && grep -q '"test"' package.json; then
+            echo "Running tests..."
+            bun test || exit 1
+        fi
+    fi
+
+    # ═══════════════════════════════════════════════════════════════
+    # 2. BUILD CHECK (opt-in: BUN_PREPUSH_BUILD=1)
+    # ═══════════════════════════════════════════════════════════════
+    if [ "${BUN_PREPUSH_BUILD:-}" = "1" ]; then
+        if [ -f "package.json" ] && grep -q '"build"' package.json; then
+            echo "Running build..."
+            timeout 60 bun run build || {
+                echo "❌ Build failed or timed out"
+                exit 1
+            }
+        fi
+    fi
+
+    # ═══════════════════════════════════════════════════════════════
+    # 3. VERIFY NO WRONG LOCKFILES IN REPO
+    # ═══════════════════════════════════════════════════════════════
+    if [ -f "package-lock.json" ] || [ -f "yarn.lock" ] || [ -f "pnpm-lock.yaml" ]; then
+        echo "❌ BLOCKED: Wrong lockfile in repo. Use bun.lock only."
+        echo "   Run: rm package-lock.json yarn.lock pnpm-lock.yaml"
+        exit 1
+    fi
+
+    # ═══════════════════════════════════════════════════════════════
+    # 4. VERIFY BUN.LOCK EXISTS (smart check)
+    # ═══════════════════════════════════════════════════════════════
+    if [ -f "package.json" ]; then
+        # Check if package.json has any dependencies
+        has_deps=$(grep -E '"(dependencies|devDependencies)"' package.json 2>/dev/null || true)
+
+        if [ -n "$has_deps" ]; then
+            # Has dependencies - check for lockfile
+            if [ ! -f "bun.lock" ] && [ ! -f "bun.lockb" ]; then
+                # Check if this is a workspace root with lockfile in subdir
+                if [ -f "scripts/bun.lock" ] || [ -f "packages/*/bun.lock" ] 2>/dev/null; then
+                    : # Workspace with subdirectory lockfile - OK
+                else
+                    echo "⚠️  WARNING: No bun.lock found. Run: bun install"
+                fi
+            fi
+        fi
+        # No deps = no lockfile needed, skip warning
+    fi
+
+done
+
+echo "✅ Bun-Pure pre-push passed!"

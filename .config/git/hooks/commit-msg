@@ -1,0 +1,100 @@
+#!/bin/bash
+# BUN-PURE COMMIT MESSAGE HOOK
+# Enforces structured commit message format with domain tags
+
+set -e
+
+COMMIT_MSG_FILE="$1"
+COMMIT_MSG=$(cat "$COMMIT_MSG_FILE")
+FIRST_LINE=$(echo "$COMMIT_MSG" | head -1)
+
+# Skip merge commits and fixups
+if echo "$FIRST_LINE" | grep -qE "^(Merge|fixup!|squash!|amend!)"; then
+    exit 0
+fi
+
+# Skip during rebase
+if [ -d ".git/rebase-merge" ] || [ -d ".git/rebase-apply" ]; then
+    exit 0
+fi
+
+echo "🔍 Validating commit message format..."
+
+# ═══════════════════════════════════════════════════════════════
+# COMMIT FORMAT SPECIFICATION
+# ═══════════════════════════════════════════════════════════════
+# Required: [DOMAIN][SCOPE][TYPE] Subject line
+# Optional: [META:{property}] [CLASS] [FUNCTION] [INTERFACE] [#REF:*] [BUN-NATIVE]
+#
+# DOMAIN: Area of codebase (e.g., SHELL, API, CLI, DB, UI, CONFIG, BUILD, TEST, DOCS)
+# SCOPE: Specific component (e.g., ZSHRC, AUTH, ROUTER, SQLITE)
+# TYPE: Change type (FIX, FEAT, REFACTOR, PERF, CHORE, DOCS, TEST, STYLE, BUILD, CI)
+#
+# Examples:
+#   [CLI][AUTH][FEAT] Add OAuth2 login flow
+#   [API][ROUTER][FIX][BUN-NATIVE] Use Bun.serve for endpoints
+#   [DB][SQLITE][PERF][FUNCTION:query] Optimize batch inserts
+#   [UI][DASHBOARD][REFACTOR][CLASS:Widget][#REF:123] Extract widget component
+# ═══════════════════════════════════════════════════════════════
+
+# Valid domains
+DOMAINS="SHELL|API|CLI|DB|UI|CONFIG|BUILD|TEST|DOCS|INFRA|SECURITY|CORE|LIB|SCRIPTS|TOOLS|MCP|HOOKS|PKG"
+
+# Valid types
+TYPES="FIX|FEAT|REFACTOR|PERF|CHORE|DOCS|TEST|STYLE|BUILD|CI|REVERT|WIP"
+
+# Check for required tags: [DOMAIN][SCOPE][TYPE]
+if ! echo "$FIRST_LINE" | grep -qE "^\[[A-Z_-]+\]\[[A-Z0-9_-]+\]\[(${TYPES})\]"; then
+    echo ""
+    echo "❌ COMMIT MESSAGE FORMAT ERROR"
+    echo ""
+    echo "Required format: [DOMAIN][SCOPE][TYPE] Subject"
+    echo ""
+    echo "Your message:"
+    echo "  $FIRST_LINE"
+    echo ""
+    echo "Valid DOMAINS: ${DOMAINS//|/, }"
+    echo "Valid TYPES:   ${TYPES//|/, }"
+    echo ""
+    echo "Examples:"
+    echo "  [CLI][AUTH][FEAT] Add OAuth2 login flow"
+    echo "  [API][ROUTER][FIX] Handle null response"
+    echo "  [SHELL][ZSHRC][FIX] Guard matrix completions"
+    echo ""
+    echo "Optional tags (after TYPE):"
+    echo "  [META:{property}] - Metadata (e.g., [META:STARTUP_ERROR])"
+    echo "  [CLASS:name]      - Class affected"
+    echo "  [FUNCTION:name]   - Function affected"
+    echo "  [INTERFACE:name]  - Interface affected"
+    echo "  [#REF:123]        - Issue/PR reference"
+    echo "  [BUN-NATIVE]      - Uses Bun-specific APIs"
+    echo ""
+    echo "To bypass: git commit --no-verify"
+    exit 1
+fi
+
+# Validate domain is known (warning only for flexibility)
+DOMAIN=$(echo "$FIRST_LINE" | grep -oE '^\[[A-Z_-]+\]' | tr -d '[]')
+if ! echo "$DOMAIN" | grep -qE "^(${DOMAINS})$"; then
+    echo "⚠️  Unknown domain [$DOMAIN] - consider using: ${DOMAINS//|/, }"
+fi
+
+# Check subject exists after tags
+SUBJECT=$(echo "$FIRST_LINE" | sed 's/^\(\[[^]]*\]\)*//' | xargs)
+if [ -z "$SUBJECT" ]; then
+    echo "❌ Missing subject after tags"
+    echo "   Add a description: [DOMAIN][SCOPE][TYPE] Your subject here"
+    exit 1
+fi
+
+# Subject should not end with period
+if echo "$SUBJECT" | grep -qE '\.$'; then
+    echo "⚠️  Subject should not end with period"
+fi
+
+# Subject length check (soft limit 72 chars for first line)
+if [ ${#FIRST_LINE} -gt 100 ]; then
+    echo "⚠️  First line is ${#FIRST_LINE} chars (recommended: <72)"
+fi
+
+echo "✅ Commit message format valid"

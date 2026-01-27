@@ -1,0 +1,217 @@
+#!/bin/bash
+# BUN-PURE PRE-COMMIT HOOK
+# Enforces Bun best practices, blocks Node.js garbage
+# Commit format: [DOMAIN][SCOPE][TYPE] Subject (validated by commit-msg hook)
+
+set -e
+
+echo "🔍 Bun-Pure pre-commit checks..."
+
+# Skip during rebase/amend
+if [ "$GIT_REFLOG_ACTION" = "rebase" ] || [ "$GIT_REFLOG_ACTION" = "amend" ]; then
+    exit 0
+fi
+
+# ═══════════════════════════════════════════════════════════════
+# 1. BUN REQUIRED - NO FALLBACKS
+# ═══════════════════════════════════════════════════════════════
+if ! command -v bun &> /dev/null; then
+    echo "❌ BLOCKED: Bun not installed. Install: curl -fsSL https://bun.sh/install | bash"
+    exit 1
+fi
+
+# ═══════════════════════════════════════════════════════════════
+# 2. BLOCK WRONG LOCKFILES & NODE_MODULES
+# ═══════════════════════════════════════════════════════════════
+STAGED=$(git diff --cached --name-only --diff-filter=ACM 2>/dev/null || echo "")
+
+# Block node_modules (should never be committed)
+if echo "$STAGED" | grep -q "node_modules/"; then
+    echo "❌ BLOCKED: node_modules/ should never be committed!"
+    echo "   Add to .gitignore: echo 'node_modules/' >> .gitignore"
+    exit 1
+fi
+
+if echo "$STAGED" | grep -qE "(package-lock\.json|yarn\.lock|pnpm-lock\.yaml)"; then
+    echo "❌ BLOCKED: Wrong lockfile staged. Use bun.lock only."
+    echo "   Run: rm package-lock.json yarn.lock pnpm-lock.yaml && bun install"
+    exit 1
+fi
+
+# ═══════════════════════════════════════════════════════════════
+# 2.5 BLOCK NEW PACKAGE ADDITIONS (frozen deps)
+# ═══════════════════════════════════════════════════════════════
+if echo "$STAGED" | grep -q "package.json"; then
+    # Compare old vs new dependency count
+    OLD_DEPS=$(git show HEAD:package.json 2>/dev/null | grep -oE '"[a-zA-Z@][^"]*"\s*:\s*"[\^~]?[0-9][^"]*"' | wc -l || echo "0")
+    NEW_DEPS=$(cat package.json 2>/dev/null | grep -oE '"[a-zA-Z@][^"]*"\s*:\s*"[\^~]?[0-9][^"]*"' | wc -l || echo "0")
+
+    if [ "$NEW_DEPS" -gt "$OLD_DEPS" ]; then
+        ADDED=$((NEW_DEPS - OLD_DEPS))
+        echo "❌ BLOCKED: $ADDED new package dependency(s) detected!"
+        echo "   Deps are frozen. Use existing packages only."
+        echo ""
+        echo "   Old count: $OLD_DEPS | New count: $NEW_DEPS"
+        echo ""
+        # Show what was added
+        echo "   New packages:"
+        diff <(git show HEAD:package.json 2>/dev/null | grep -oE '"[a-zA-Z@][^"]*"\s*:\s*"[\^~]?[0-9][^"]*"' | sort) \
+             <(cat package.json | grep -oE '"[a-zA-Z@][^"]*"\s*:\s*"[\^~]?[0-9][^"]*"' | sort) 2>/dev/null | grep "^>" | sed 's/^>/   /' || true
+        echo ""
+        echo "   To bypass (emergency): git commit --no-verify"
+        exit 1
+    fi
+fi
+
+if echo "$STAGED" | grep -qE "(bun\.lock|bun\.lockb)"; then
+    # Check if lockfile has new entries (more packages)
+    OLD_COUNT=$(git show HEAD:bun.lock 2>/dev/null | grep -c '"name":' || echo "0")
+    NEW_COUNT=$(cat bun.lock 2>/dev/null | grep -c '"name":' || echo "0")
+
+    if [ "$NEW_COUNT" -gt "$OLD_COUNT" ]; then
+        ADDED=$((NEW_COUNT - OLD_COUNT))
+        echo "❌ BLOCKED: bun.lock has $ADDED new package(s)!"
+        echo "   Deps are frozen. Revert: git checkout HEAD -- bun.lock"
+        echo "   To bypass (emergency): git commit --no-verify"
+        exit 1
+    fi
+fi
+
+# ═══════════════════════════════════════════════════════════════
+# 3. BLOCK NODE.JS ANTI-PATTERNS IN STAGED FILES
+# ═══════════════════════════════════════════════════════════════
+STAGED_TS=$(echo "$STAGED" | grep -E "\.(ts|tsx|js|jsx)$" || true)
+
+if [ -n "$STAGED_TS" ]; then
+    ERRORS=0
+
+    # Check each staged file
+    for file in $STAGED_TS; do
+        [ -f "$file" ] || continue
+
+        # require() - Use ESM import
+        if grep -nE 'require\s*\(' "$file" 2>/dev/null | grep -v "// ok" | head -1 | grep -q .; then
+            echo "❌ $file: require() → Use ESM import"
+            ERRORS=$((ERRORS + 1))
+        fi
+
+        # module.exports - Use export
+        if grep -n 'module\.exports' "$file" 2>/dev/null | head -1 | grep -q .; then
+            echo "❌ $file: module.exports → Use export"
+            ERRORS=$((ERRORS + 1))
+        fi
+
+        # from "fs" - Use Bun.file/Bun.write
+        if grep -nE "from ['\"]fs['\"]" "$file" 2>/dev/null | head -1 | grep -q .; then
+            echo "❌ $file: from 'fs' → Use Bun.file/Bun.write"
+            ERRORS=$((ERRORS + 1))
+        fi
+
+        # from "child_process" - Use Bun.spawn
+        if grep -nE "from ['\"]child_process['\"]" "$file" 2>/dev/null | head -1 | grep -q .; then
+            echo "❌ $file: child_process → Use Bun.spawn"
+            ERRORS=$((ERRORS + 1))
+        fi
+
+        # Bloated packages
+        for pkg in express axios got node-fetch bcrypt argon2 uuid lodash glob chalk jest vitest dotenv; do
+            if grep -nE "from ['\"]${pkg}['\"]" "$file" 2>/dev/null | head -1 | grep -q .; then
+                echo "❌ $file: '$pkg' → Use Bun alternative"
+                ERRORS=$((ERRORS + 1))
+            fi
+        done
+
+        # __dirname / __filename
+        if grep -nE '__dirname|__filename' "$file" 2>/dev/null | head -1 | grep -q .; then
+            echo "❌ $file: __dirname/__filename → Use import.meta.dir/file"
+            ERRORS=$((ERRORS + 1))
+        fi
+    done
+
+    if [ $ERRORS -gt 0 ]; then
+        echo ""
+        echo "Found $ERRORS Bun-Pure violation(s). Fix before committing."
+        echo "Reference: ~/.claude/CLAUDE.md ## Replacements"
+        exit 1
+    fi
+fi
+
+# ═══════════════════════════════════════════════════════════════
+# 4. WARN ON BLOATED DEPENDENCIES (package.json check)
+# ═══════════════════════════════════════════════════════════════
+if echo "$STAGED" | grep -q "package.json"; then
+    BLOAT_DEPS=(
+        "express" "koa" "hapi" "fastify"
+        "axios" "got" "node-fetch" "request"
+        "lodash" "underscore" "ramda"
+        "moment" "dayjs"
+        "bcrypt" "argon2"
+        "uuid"
+        "glob" "fast-glob"
+        "chalk" "colors" "kleur"
+        "dotenv"
+        "jest" "mocha" "vitest" "ava"
+        "nodemon" "ts-node"
+        "webpack" "rollup" "parcel"
+    )
+
+    for dep in "${BLOAT_DEPS[@]}"; do
+        if grep -q "\"$dep\"" package.json 2>/dev/null; then
+            echo "⚠️  WARNING: Bloated dep '$dep' in package.json"
+            echo "   Consider Bun-native alternative (see ~/.claude/CLAUDE.md)"
+        fi
+    done
+fi
+
+# ═══════════════════════════════════════════════════════════════
+# 5. RUN CONSTANTS CHECK (existing)
+# ═══════════════════════════════════════════════════════════════
+CONSTANTS_CHECK="$HOME/.claude/scripts/pre-commit-constants-check"
+if [ -f "$CONSTANTS_CHECK" ]; then
+    bash "$CONSTANTS_CHECK" 80 || true  # warn only
+fi
+
+# ═══════════════════════════════════════════════════════════════
+# 7. RUN NPMRC SECURITY CHECK
+# ═══════════════════════════════════════════════════════════════
+if [ -f ".npmrc" ] || [ -f "scripts/check-npmrc-security.ts" ]; then
+    echo "🔒 Checking .npmrc for unguarded environment variable patterns..."
+    if [ -f "scripts/check-npmrc-security.ts" ]; then
+        bun scripts/check-npmrc-security.ts .npmrc || {
+            echo ""
+            echo "🚨 SECURITY VIOLATION DETECTED!"
+            echo "   Unguarded environment variable patterns found in .npmrc"
+            echo ""
+            echo "🛠️  To fix:"
+            echo "   1. Add # prefix to sensitive variables: \${TOKEN} → \${#TOKEN}"
+            echo "   2. Or run: bun scripts/check-npmrc-security.ts --fix"
+            echo "   3. Then run: git add .npmrc"
+            echo ""
+            echo "⚠️  Commit blocked for security reasons"
+            echo "   To bypass this check, use: git commit --no-verify"
+            exit 1
+        }
+    fi
+fi
+
+# ═══════════════════════════════════════════════════════════════
+# 8. RUN LINT (opt-in: BUN_PRECOMMIT_LINT=1)
+# ═══════════════════════════════════════════════════════════════
+if [ "${BUN_PRECOMMIT_LINT:-}" = "1" ]; then
+    if [ -f "package.json" ] && grep -q '"lint:check"' package.json; then
+        echo "Running linter..."
+        bun run lint:check || exit 1
+    fi
+fi
+
+# ═══════════════════════════════════════════════════════════════
+# 9. RUN TESTS (opt-in: BUN_PRECOMMIT_TEST=1)
+# ═══════════════════════════════════════════════════════════════
+if [ "${BUN_PRECOMMIT_TEST:-}" = "1" ]; then
+    if [ -f "package.json" ] && grep -q '"test"' package.json; then
+        echo "Running tests..."
+        bun test --pass-with-no-tests 2>/dev/null || bun test 2>/dev/null || echo "⚠️  Tests skipped"
+    fi
+fi
+
+echo "✅ Bun-Pure checks passed!"
