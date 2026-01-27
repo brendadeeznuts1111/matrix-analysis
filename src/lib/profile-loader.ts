@@ -74,8 +74,7 @@ export function getUnresolvedRefs(env: Record<string, string>): string[] {
   for (const value of Object.values(env)) {
     if (typeof value !== "string") continue;
 
-    let match;
-    while ((match = varPattern.exec(value)) !== null) {
+    for (const match of value.matchAll(varPattern)) {
       const varName = match[1];
       if (process.env[varName] === undefined) {
         unresolved.push(varName);

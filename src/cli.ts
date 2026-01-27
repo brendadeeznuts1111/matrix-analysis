@@ -35,7 +35,7 @@ function parseArgs(args: string[]): ParsedArgs {
       i++;
       result.environment = args[i];
     } else if (arg.startsWith("--environment=")) {
-      result.environment = arg.split("=")[1];
+      result.environment = arg.slice("--environment=".length);
     } else if (!arg.startsWith("-")) {
       if (!result.command) {
         result.command = arg;

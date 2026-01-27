@@ -60,9 +60,7 @@ function hasCircularRefs(env: Record<string, string>): boolean {
     if (typeof value !== "string") continue;
     graph[key] = [];
 
-    let match;
-    const regex = new RegExp(varPattern);
-    while ((match = regex.exec(value)) !== null) {
+    for (const match of value.matchAll(varPattern)) {
       const refKey = match[1];
       // Only track references to OTHER keys in this profile's env
       // Self-references (KEY: "${KEY}") resolve from process.env, not circular
