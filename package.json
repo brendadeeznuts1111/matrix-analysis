@@ -6,6 +6,9 @@
     "matrix:profile:use": "bun run src/cli.ts profile:use",
     "matrix:profile:list": "bun run src/cli.ts profile:list",
     "matrix:profile:show": "bun run src/cli.ts profile:show",
+    "matrix:profile:diff": "bun run src/cli.ts profile:diff",
+    "matrix:profile:create": "bun run src/cli.ts profile:create",
+    "matrix:profile:export": "bun run src/cli.ts profile:export",
     "test": "bun test"
   },
   "dependencies": {
