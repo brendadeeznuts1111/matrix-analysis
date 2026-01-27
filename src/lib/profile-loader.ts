@@ -1,0 +1,87 @@
+import { homedir } from "os";
+import { join } from "path";
+
+export interface Profile {
+  name: string;
+  version: string;
+  created?: string;
+  author?: string;
+  description?: string;
+  environment?: string;
+  env: Record<string, string>;
+}
+
+export function getProfilesDir(): string {
+  return join(homedir(), ".matrix", "profiles");
+}
+
+export async function listProfiles(): Promise<string[]> {
+  const dir = getProfilesDir();
+  const glob = new Bun.Glob("*.json");
+  const profiles: string[] = [];
+
+  for await (const file of glob.scan({ cwd: dir, absolute: false })) {
+    profiles.push(file.replace(/\.json$/, ""));
+  }
+
+  return profiles.sort();
+}
+
+export async function loadProfile(name: string): Promise<Profile | null> {
+  const profilePath = join(getProfilesDir(), `${name}.json`);
+  const file = Bun.file(profilePath);
+
+  if (!(await file.exists())) {
+    return null;
+  }
+
+  const content = await file.json().catch(() => null);
+  if (!content) {
+    return null;
+  }
+
+  return content as Profile;
+}
+
+export function resolveSecretRefs(
+  env: Record<string, string>
+): Record<string, string> {
+  const resolved: Record<string, string> = {};
+  const varPattern = /\$\{([^}]+)\}/g;
+
+  for (const [key, value] of Object.entries(env)) {
+    if (typeof value !== "string") {
+      resolved[key] = String(value);
+      continue;
+    }
+
+    resolved[key] = value.replace(varPattern, (match, varName) => {
+      const envValue = process.env[varName];
+      if (envValue !== undefined) {
+        return envValue;
+      }
+      return match;
+    });
+  }
+
+  return resolved;
+}
+
+export function getUnresolvedRefs(env: Record<string, string>): string[] {
+  const varPattern = /\$\{([^}]+)\}/g;
+  const unresolved: string[] = [];
+
+  for (const value of Object.values(env)) {
+    if (typeof value !== "string") continue;
+
+    let match;
+    while ((match = varPattern.exec(value)) !== null) {
+      const varName = match[1];
+      if (process.env[varName] === undefined) {
+        unresolved.push(varName);
+      }
+    }
+  }
+
+  return [...new Set(unresolved)];
+}
