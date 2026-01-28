@@ -1,24 +1,67 @@
 {
-  "name": "matrix-cli",
-  "version": "1.0.0",
+  "name": "nolarose-mcp-config",
+  "version": "1.0.1",
+  "description": "MCP server configuration with Bun native support and RSS integration",
   "type": "module",
-  "engines": {
-    "bun": ">=1.0.0"
-  },
   "scripts": {
-    "matrix:profile:use": "bun run src/cli.ts profile:use",
-    "matrix:profile:list": "bun run src/cli.ts profile:list",
-    "matrix:profile:show": "bun run src/cli.ts profile:show",
-    "matrix:profile:diff": "bun run src/cli.ts profile:diff",
-    "matrix:profile:create": "bun run src/cli.ts profile:create",
-    "matrix:profile:export": "bun run src/cli.ts profile:export",
+    "mcp:inspector": "bun x @modelcontextprotocol/inspector",
+    "mcp:rss": "bun x rss-mcp",
+    "dev": "bun run shop-server.ts",
+    "matrix": "bun run 30-col-matrix.ts",
+    "annotate": "bun run annotation-engine.ts",
     "test": "bun test"
   },
-  "devDependencies": {
-    "@types/bun": "1.3.6",
-    "bun-types": "1.3.6"
-  },
   "dependencies": {
-    "libphonenumber-js": "1.12.35"
-  }
+    "@modelcontextprotocol/server-filesystem": "latest",
+    "@modelcontextprotocol/server-sequential-thinking": "latest",
+    "@modelcontextprotocol/server-puppeteer": "latest",
+    "@upstash/context7-mcp": "latest",
+    "mcp-bun": "latest",
+    "rss-mcp": "^1.0.1"
+  },
+  "mcp": {
+    "servers": {
+      "bun": {
+        "command": "bun",
+        "args": ["run", "node_modules/mcp-bun/dist/index.js"],
+        "env": {
+          "DISABLE_NOTIFICATIONS": "true"
+        },
+        "description": "Bun runtime integration for JavaScript/TypeScript execution (Bun native)"
+      },
+      "context7": {
+        "command": "bun",
+        "args": ["run", "node_modules/@upstash/context7-mcp/dist/index.js"],
+        "description": "Context7 documentation and code search"
+      },
+      "filesystem": {
+        "command": "bun",
+        "args": ["run", "node_modules/@modelcontextprotocol/server-filesystem/dist/index.js", "/Users/nolarose"],
+        "description": "File system access for project operations"
+      },
+      "sequential-thinking": {
+        "command": "bun",
+        "args": ["run", "node_modules/@modelcontextprotocol/server-sequential-thinking/dist/index.js"],
+        "description": "Structured problem-solving and reasoning tool"
+      },
+      "puppeteer": {
+        "command": "bun",
+        "args": ["run", "node_modules/@modelcontextprotocol/server-puppeteer/dist/index.js"],
+        "description": "Browser automation for testing and web scraping",
+        "env": {
+          "HEADLESS": "true"
+        }
+      },
+      "rss": {
+        "command": "bun",
+        "args": ["run", "node_modules/rss-mcp/dist/index.js"],
+        "description": "RSS feed reader and parser for news aggregation",
+        "env": {
+          "RSS_MAX_ITEMS": "50",
+          "RSS_CACHE_TTL": "300"
+        }
+      }
+    }
+  },
+  "keywords": ["bun", "mcp", "dashboard", "telemetry"]
 }
