@@ -38,11 +38,26 @@ tmp/
 *.backup
 
 # Shell and CLI configurations
+.bashrc
 .bash_*
 .zsh_*
 .zcompdump*
 .zprofile
 .zshenv
+.gitconfig
+
+# Bun specific
+.bun-create/
+.bun-secrets-index.json
+.bunx-dev-aliases
+.bunx/
+bunfig.toml
+
+# Development tools
+.aitk/
+.android/
+.chelper/
+.clawdbot/
 
 # Development tool configurations
 .angular-config.json
