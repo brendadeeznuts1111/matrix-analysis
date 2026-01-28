@@ -1,0 +1,133 @@
+# =============================================================================
+# Enterprise Bun Configuration
+# Scoped Registries: @nolarose, @matrix → GitHub Packages
+# Public Registry: npmjs.org
+# =============================================================================
+
+[run]
+# Auto-alias node to bun for migration compatibility
+autoAlias.nodeToBun = true
+# Use Bun's native shell for cross-platform consistency
+shell = "bun"
+# Default environment loading
+env = "inherit"
+
+[test]
+# Parallel execution for faster CI/CD
+concurrent = true
+# Disable coverage by default (enable in CI)
+coverage = false
+# Timeout for long-running enterprise tests
+timeout = 30000
+
+[install]
+# Enable caching for offline reliability
+cache = true
+cacheDir = "~/.bun/install/cache"
+# Prefer offline for speed, fallback to network
+prefer = "fallback"
+# Exact versions for reproducible builds in production
+exact = true
+# Conservative concurrency to avoid corporate proxy/rate limits
+concurrency = 20
+# Always save exact versions
+saveTextLockfile = false  # Use binary lockb for speed
+frozenLockfile = false    # Allow updates in dev, strict in CI
+
+# =============================================================================
+# Registry Configuration
+# =============================================================================
+
+# Public registry (default for non-scoped packages)
+[install.registry]
+url = "https://registry.npmjs.org"
+token = "$NPM_TOKEN"
+
+# =============================================================================
+# Scoped Registries - GitHub Packages
+# =============================================================================
+
+[install.scopes]
+
+# @nolarose organization packages
+"@nolarose" = { 
+    url = "https://npm.pkg.github.com", 
+    token = "$GITHUB_TOKEN" 
+}
+
+# @matrix organization packages  
+"@matrix" = { 
+    url = "https://npm.pkg.github.com", 
+    token = "$GITHUB_TOKEN" 
+}
+
+# =============================================================================
+# Peer Dependencies Strategy
+# =============================================================================
+
+[install.peer]
+# Automatically install peer deps when missing (npm/yarn compat)
+auto = "fallback"
+
+# =============================================================================
+# Git/SSH Configuration for Private Repos
+# =============================================================================
+
+[install.git]
+# SSH key configuration for private GitHub/GitLab repos
+ssh = { 
+    publicKey = "~/.ssh/id_ed25519.pub", 
+    privateKey = "~/.ssh/id_ed25519" 
+}
+
+# =============================================================================
+# Lockfile Strategy
+# =============================================================================
+
+[lockfile]
+# Use Bun's binary lockfile (faster, smaller)
+print = "bun"
+# Hash verification for security
+saveBunLockBinary = true
+
+# =============================================================================
+# Publishing Configuration
+# =============================================================================
+
+[publish]
+# Default publish target: GitHub Packages (restricted access)
+registry = "https://npm.pkg.github.com"
+access = "restricted"
+# Sign releases for security
+signGitTag = true
+
+# =============================================================================
+# Development Server
+# =============================================================================
+
+[dev]
+port = 3000
+host = "localhost"
+# Hot reload settings
+hot = true
+
+# =============================================================================
+# Deployment & Observability
+# =============================================================================
+
+[deploy]
+environment = "production"
+# Production optimization
+minify = true
+sourcemap = false
+
+# Logging configuration
+logLevel = "info"
+
+# =============================================================================
+# Advanced Enterprise Settings
+# =============================================================================
+
+[telemetry]
+# Disable in enterprise environments (privacy/compliance)
+enabled = false

@@ -33,6 +33,14 @@ tmp/
 .tmp/
 *.tmp
 
+# Cache and build directories
+.biome/
+.cache/
+.npm/
+.zai/
+/bin/
+/lib/
+
 # OS and Editor files
 .Trash/
 *.backup
