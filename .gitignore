@@ -32,3 +32,80 @@ npm-debug.log*
 tmp/
 .tmp/
 *.tmp
+
+# OS and Editor files
+.Trash/
+*.backup
+
+# Shell and CLI configurations
+.bash_*
+.zsh_*
+.zcompdump*
+.zprofile
+.zshenv
+
+# Development tool configurations
+.angular-config.json
+.antigravity/
+.azure*
+.cargo/
+.claude*
+.cline/
+.cloudflared/
+.codeium/
+.codex/
+.copilot/
+.cursor/
+.docker/
+.gemini/
+.git-credentials
+.gnupg/
+.kalshi/
+.kilocode/
+.kimi/
+.local/
+.matrix/
+.mcp*
+.npmrc
+.parallel/
+.pty-registry/
+.redhat/
+.ripgreprc
+.rustup/
+.shell_backups/
+.sigstore/
+.sportsbook-cli/
+.ssh/
+.swiftpm/
+.tmux*
+.viminfo
+.windsurf/
+.worktreeinclude
+.wrangler/
+.yarn/
+.z*
+
+# User directories (should not be in git repo)
+Applications/
+Archives/
+Desktop/
+Documents/
+Downloads/
+Library/
+Movies/
+Music/
+Pictures/
+
+# Config directories
+.config/
+
+# Development directories
+dev/
+docs/
+dotfiles/
+go/
+skills/
+test/
+
+# Project directories (if not meant to be tracked)
+Projects/

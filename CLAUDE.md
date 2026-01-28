@@ -200,3 +200,53 @@ if (typeof Bun !== "undefined") {
   // Node.js fallback
 }
 ```
+
+---
+
+## .claude Directory Map
+
+### Source Code
+- `src/` — Main entry points
+- `core/` — Core library modules
+- `api/` — API server
+- `sdk/` — SDK implementations
+- `shared/` — Shared utilities
+- `types/` — TypeScript definitions
+
+### Executables
+- `bin/` — Compiled binaries
+- `scripts/` — Dev/utility scripts (122 files)
+- `tools/` — Tool implementations
+
+### Config
+- `config/` — App/build configs, package.json
+- `hooks/` — Git hooks (pre-commit, pre-push)
+- `settings.json` — Claude Code settings
+
+### Content
+- `docs/` — Documentation
+- `skills/` — Skill definitions (.md)
+- `examples/` — Example code
+- `commands/` — CLI command docs
+
+### Data
+- `data/` — Databases (*.db), reports
+- `assets/` — Static assets, binaries
+- `benchmarks/` — Performance tests
+
+### Apps
+- `apps/` — Application builds
+- `packages/` — Monorepo packages
+
+### Testing
+- `tests/` — Test files
+- `test-results/` — Test output
+
+### Runtime (transient, gitignored)
+- `projects/` — Session data per project
+- `debug/` — Debug logs
+- `file-history/` — File versioning
+- `paste-cache/` — Clipboard cache
+- `todos/`, `plans/`, `tasks/` — Task tracking
+- `session-env/` — Session environments
+- `statsig/` — Feature flags

@@ -97,4 +97,147 @@ if [ ${#FIRST_LINE} -gt 100 ]; then
     echo "⚠️  First line is ${#FIRST_LINE} chars (recommended: <72)"
 fi
 
+# ═══════════════════════════════════════════════════════════════
+# BUN-NATIVE API VALIDATION
+# ═══════════════════════════════════════════════════════════════
+# When [BUN-NATIVE] tag is used, validate Bun API references
+if echo "$COMMIT_MSG" | grep -q "\[BUN-NATIVE\]"; then
+    echo "🔍 Validating Bun-native API references..."
+
+    # Valid Bun native APIs (canonical spelling) - generated from Bun 1.3.7
+    # Core I/O
+    BUN_APIS="Bun.serve|Bun.file|Bun.write|Bun.spawn|Bun.spawnSync|Bun.sleep|Bun.sleepSync"
+    BUN_APIS+="|Bun.listen|Bun.connect|Bun.fetch|Bun.udpSocket"
+    BUN_APIS+="|Bun.stdin|Bun.stdout|Bun.stderr|Bun.main|Bun.argv|Bun.env|Bun.version"
+    # Terminal/ANSI
+    BUN_APIS+="|Bun.color|Bun.stripANSI|Bun.stringWidth|Bun.wrapAnsi|Bun.enableANSIColors|Bun.Terminal"
+    # Parsers (ALL CAPS for acronyms)
+    BUN_APIS+="|Bun.JSONL|Bun.JSONL.parse|Bun.JSONL.parseChunk"
+    BUN_APIS+="|Bun.JSON5|Bun.JSON5.parse|Bun.JSON5.stringify"
+    BUN_APIS+="|Bun.JSONC|Bun.JSONC.parse"
+    BUN_APIS+="|Bun.TOML|Bun.TOML.parse"
+    BUN_APIS+="|Bun.YAML|Bun.YAML.parse|Bun.YAML.stringify"
+    # Security
+    BUN_APIS+="|Bun.password|Bun.password.hash|Bun.password.hashSync|Bun.password.verify|Bun.password.verifySync"
+    BUN_APIS+="|Bun.secrets|Bun.secrets.get|Bun.secrets.set|Bun.secrets.delete"
+    BUN_APIS+="|Bun.CSRF|Bun.CSRF.generate|Bun.CSRF.verify"
+    BUN_APIS+="|Bun.Cookie|Bun.CookieMap"
+    # Hashing
+    BUN_APIS+="|Bun.hash|Bun.sha|Bun.CryptoHasher"
+    BUN_APIS+="|Bun.MD4|Bun.MD5|Bun.SHA1|Bun.SHA224|Bun.SHA256|Bun.SHA384|Bun.SHA512|Bun.SHA512_256"
+    # Build/Transpile
+    BUN_APIS+="|Bun.Transpiler|Bun.build|Bun.plugin"
+    # Runtime
+    BUN_APIS+="|Bun.gc|Bun.nanoseconds|Bun.peek|Bun.shrink|Bun.isMainThread"
+    BUN_APIS+="|Bun.generateHeapSnapshot|Bun.allocUnsafe|Bun.concatArrayBuffers"
+    # Utilities
+    BUN_APIS+="|Bun.deepEquals|Bun.deepMatch|Bun.escapeHTML|Bun.indexOfLine"
+    BUN_APIS+="|Bun.which|Bun.resolve|Bun.resolveSync|Bun.pathToFileURL|Bun.fileURLToPath"
+    BUN_APIS+="|Bun.randomUUIDv7|Bun.randomUUIDv5|Bun.inspect|Bun.inspect.table|Bun.openInEditor"
+    BUN_APIS+="|Bun.semver|Bun.semver.satisfies|Bun.semver.order"
+    # Compression
+    BUN_APIS+="|Bun.gzipSync|Bun.gunzipSync|Bun.deflateSync|Bun.inflateSync"
+    BUN_APIS+="|Bun.zstdCompressSync|Bun.zstdDecompressSync|Bun.zstdCompress|Bun.zstdDecompress"
+    # File system
+    BUN_APIS+="|Bun.Glob|Bun.FileSystemRouter|Bun.Mmap|Bun.mmap|Bun.Archive"
+    # Cloud/Database
+    BUN_APIS+="|Bun.S3|Bun.S3Client|Bun.s3"
+    BUN_APIS+="|Bun.sql|Bun.SQL|Bun.postgres"
+    BUN_APIS+="|Bun.redis|Bun.RedisClient"
+    # Stream helpers
+    BUN_APIS+="|Bun.readableStreamToArray|Bun.readableStreamToArrayBuffer|Bun.readableStreamToBytes"
+    BUN_APIS+="|Bun.readableStreamToBlob|Bun.readableStreamToFormData|Bun.readableStreamToJSON|Bun.readableStreamToText"
+    # Misc
+    BUN_APIS+="|Bun.ArrayBufferSink|Bun.FFI|Bun.dns|Bun.embeddedFiles|Bun.revision|Bun.unsafe"
+    BUN_APIS+="|Bun.\\\$"
+
+    # Extract potential Bun.* references from commit message
+    BUN_REFS=$(echo "$COMMIT_MSG" | grep -oE 'Bun\.[A-Za-z0-9_$.]+' | sort -u || true)
+
+    if [ -n "$BUN_REFS" ]; then
+        INVALID_FOUND=0
+        for ref in $BUN_REFS; do
+            # Normalize for comparison (handle Bun.$ shell syntax)
+            normalized_ref=$(echo "$ref" | sed 's/\.\$/.\\\$/g')
+            if ! echo "$ref" | grep -qE "^(${BUN_APIS})"; then
+                # Check common misspellings
+                case "$ref" in
+                    Bun.jsonl*|Bun.Jsonl*|Bun.JsonL*)
+                        echo "⚠️  Misspelled API: $ref → Use Bun.JSONL (uppercase)"
+                        INVALID_FOUND=1
+                        ;;
+                    Bun.json5*|Bun.Json5*)
+                        echo "⚠️  Misspelled API: $ref → Use Bun.JSON5 (uppercase)"
+                        INVALID_FOUND=1
+                        ;;
+                    Bun.wrapansi*|Bun.WrapAnsi*|Bun.Wrapansi*)
+                        echo "⚠️  Misspelled API: $ref → Use Bun.wrapAnsi (camelCase)"
+                        INVALID_FOUND=1
+                        ;;
+                    Bun.stripansi*|Bun.StripAnsi*|Bun.Stripansi*)
+                        echo "⚠️  Misspelled API: $ref → Use Bun.stripANSI (camelCase+ANSI)"
+                        INVALID_FOUND=1
+                        ;;
+                    Bun.stringwidth*|Bun.StringWidth*|Bun.Stringwidth*)
+                        echo "⚠️  Misspelled API: $ref → Use Bun.stringWidth (camelCase)"
+                        INVALID_FOUND=1
+                        ;;
+                    Bun.randomuuid*|Bun.RandomUUID*)
+                        echo "⚠️  Misspelled API: $ref → Use Bun.randomUUIDv7 (camelCase+v7)"
+                        INVALID_FOUND=1
+                        ;;
+                    Bun.jsonc*|Bun.Jsonc*|Bun.JsonC*)
+                        echo "⚠️  Misspelled API: $ref → Use Bun.JSONC (uppercase)"
+                        INVALID_FOUND=1
+                        ;;
+                    Bun.toml*|Bun.Toml*)
+                        echo "⚠️  Misspelled API: $ref → Use Bun.TOML (uppercase)"
+                        INVALID_FOUND=1
+                        ;;
+                    Bun.yaml*|Bun.Yaml*)
+                        echo "⚠️  Misspelled API: $ref → Use Bun.YAML (uppercase)"
+                        INVALID_FOUND=1
+                        ;;
+                    Bun.csrf*|Bun.Csrf*)
+                        echo "⚠️  Misspelled API: $ref → Use Bun.CSRF (uppercase)"
+                        INVALID_FOUND=1
+                        ;;
+                    Bun.s3client*|Bun.S3client*)
+                        echo "⚠️  Misspelled API: $ref → Use Bun.S3Client (PascalCase)"
+                        INVALID_FOUND=1
+                        ;;
+                    Bun.Sql*|Bun.SQL.*)
+                        # Allow Bun.sql (lowercase) and Bun.SQL (class)
+                        ;;
+                    Bun.cryptohasher*|Bun.Cryptohasher*)
+                        echo "⚠️  Misspelled API: $ref → Use Bun.CryptoHasher (PascalCase)"
+                        INVALID_FOUND=1
+                        ;;
+                    Bun.filesystemrouter*|Bun.Filesystemrouter*|Bun.FileSystemrouter*)
+                        echo "⚠️  Misspelled API: $ref → Use Bun.FileSystemRouter (PascalCase)"
+                        INVALID_FOUND=1
+                        ;;
+                    Bun.redisclient*|Bun.Redisclient*)
+                        echo "⚠️  Misspelled API: $ref → Use Bun.RedisClient (PascalCase)"
+                        INVALID_FOUND=1
+                        ;;
+                    *)
+                        # Unknown but might be valid - just warn
+                        echo "⚠️  Unknown Bun API: $ref (verify spelling)"
+                        ;;
+                esac
+            fi
+        done
+
+        if [ $INVALID_FOUND -eq 1 ]; then
+            echo ""
+            echo "📚 Bun API Reference: https://bun.sh/docs/api"
+            echo "   Common: Bun.serve, Bun.file, Bun.write, Bun.spawn, Bun.sql"
+            echo "   Parsers: Bun.JSONL, Bun.JSON5, Bun.JSONC, Bun.TOML, Bun.YAML (ALL CAPS)"
+            echo "   Terminal: Bun.wrapAnsi, Bun.stripANSI, Bun.stringWidth (camelCase)"
+            echo ""
+        fi
+    fi
+fi
+
 echo "✅ Commit message format valid"
