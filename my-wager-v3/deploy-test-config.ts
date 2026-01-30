@@ -42,10 +42,9 @@ async function deployTier1380TestConfig(): Promise<void> {
 
       try {
         // Region-specific configuration
-        const runner = new SecureTestRunner(
+        const runner = await SecureTestRunner.create(
           'ci',
-          `./configs/${region}/bunfig.toml`,
-          region
+          `./configs/${region}/bunfig.toml`
         );
 
         // Verify configuration inheritance
