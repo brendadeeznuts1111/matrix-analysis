@@ -72,7 +72,11 @@ bunfig.toml
 .antigravity/
 .azure*
 .cargo/
-.claude*
+# Claude config (but allow examples)
+.claude/*
+!.claude/examples/
+!.claude/examples/**
+.claude.json*
 .cline/
 .cloudflared/
 .codeium/
