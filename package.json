@@ -3,6 +3,17 @@
   "version": "1.0.1",
   "description": "MCP server configuration with Bun native support and RSS integration",
   "type": "module",
+  "main": "./src/cli.ts",
+  "module": "./src/cli.ts",
+  "bin": {
+    "matrix": "./src/cli.ts",
+    "nolarose-mcp-config": "./src/cli.ts"
+  },
+  "exports": {
+    ".": "./src/cli.ts",
+    "./lib/*": "./src/lib/*.ts",
+    "./commands/*": "./src/commands/*.ts"
+  },
   "scripts": {
     "mcp:inspector": "bun x @modelcontextprotocol/inspector",
     "mcp:rss": "bun x rss-mcp",
@@ -33,7 +44,16 @@
     "j": "bun run jsonl",
     "jc": "bun run jsonl:chunk",
     "annotate": "bun run annotation-engine.ts",
-    "test": "bun test"
+    "test": "bun test",
+    "migrate": "bun wrap-migrator.ts",
+    "migrate:dry": "bun wrap-migrator.ts --dry-run",
+    "migrate:verbose": "bun wrap-migrator.ts --verbose",
+    "benchmark": "bun benchmark-arm64.ts",
+    "benchmark:output": "bun benchmark-arm64.ts --output",
+    "guardian": "bun guardian.ts",
+    "verify:arm64": "bun verify-arm64.ts",
+    "verify:arm64:output": "bun verify-arm64.ts --output",
+    "demo": "bun arm64-demo.ts"
   },
   "dependencies": {
     "@modelcontextprotocol/server-filesystem": "latest",
@@ -41,7 +61,14 @@
     "@modelcontextprotocol/server-puppeteer": "latest",
     "@upstash/context7-mcp": "latest",
     "mcp-bun": "latest",
-    "rss-mcp": "^1.0.1"
+    "rss-mcp": "^1.0.1",
+    "ts-morph": "^21.0.0",
+    "semver": "^7.5.4"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/node": "latest",
+    "@types/semver": "^7.5.6"
   },
   "mcp": {
     "servers": {

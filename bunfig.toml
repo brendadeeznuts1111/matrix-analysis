@@ -1,0 +1,32 @@
+[install]
+# Supply chain protection: only install packages older than 3 days
+# - Stability check: skips rapid bugfix releases (multiple versions close together)
+# - Searches up to 7 days past age gate for stable version
+# - Exact versions (pkg@1.1.1) respect age gate but bypass stability check
+minimumReleaseAge = 259200 # seconds
+
+# Exclude trusted packages from the age gate
+minimumReleaseAgeExcludes = ["@types/node", "@types/bun", "typescript"]
+
+[install.cache]
+# Cache directory for downloaded packages
+dir = ".cache/bun/install"
+
+[run]
+# Main entry point for the package
+entry = "./src/cli.ts"
+
+# Environment file loading order (matches Bun's default)
+# .env.local → .env.[NODE_ENV] → .env
+env = [".env.local", ".env.development", ".env.production", ".env"]
+
+[test]
+# Test runner configuration
+preload = []
+coverageDir = "./coverage"
+
+[build]
+# Build output directory
+outdir = "./dist"
+minify = true
+sourcemap = true
