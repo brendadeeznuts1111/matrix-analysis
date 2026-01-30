@@ -1,6 +1,14 @@
 #!/usr/bin/env bun
 // Tension Field Historical Analysis Engine
 import { join } from 'node:path';
+import { TENSION_CONSTANTS } from './config';
+
+interface Anomaly {
+  type: string;
+  severity: 'LOW' | 'MEDIUM' | 'HIGH';
+  confidence: number;
+  description: string;
+}
 
 interface HistoricalData {
   timestamp: number;
@@ -11,7 +19,7 @@ interface HistoricalData {
     security: number;
     compliance: number;
   };
-  anomalies: any[];
+  anomalies: Anomaly[];
   riskScore: number;
   events?: string[];
 }
@@ -84,12 +92,12 @@ interface RiskAssessment {
 
 export class HistoricalAnalyzer {
   private data: HistoricalData[] = [];
-  private readonly DATA_FILE = './tension-history.json';
+  private readonly DATA_FILE = TENSION_CONSTANTS.DATA_FILE;
 
   private constructor() {}
 
   static async create(): Promise<HistoricalAnalyzer> {
-    const analyzer = await HistoricalAnalyzer.create();
+    const analyzer = new HistoricalAnalyzer();
     await analyzer.loadData();
     return analyzer;
   }
@@ -122,9 +130,9 @@ export class HistoricalAnalyzer {
   async addDataPoint(data: HistoricalData): Promise<void> {
     this.data.push(data);
 
-    // Keep only last 10,000 points to manage file size
-    if (this.data.length > 10000) {
-      this.data = this.data.slice(-10000);
+    // Keep only last MAX_DATA_POINTS points to manage file size
+    if (this.data.length > TENSION_CONSTANTS.MAX_DATA_POINTS) {
+      this.data = this.data.slice(-TENSION_CONSTANTS.MAX_DATA_POINTS);
     }
 
     await this.saveData();
@@ -202,9 +210,22 @@ export class HistoricalAnalyzer {
     };
   }
 
-  private analyzeTrends(data: HistoricalData[]) {
+  private analyzeTrends(data: HistoricalData[]): {
+    volume: TrendAnalysis;
+    link: TrendAnalysis;
+    profile: TrendAnalysis;
+    security: TrendAnalysis;
+    compliance: TrendAnalysis;
+  } {
     const fields = ['volume', 'link', 'profile', 'security', 'compliance'] as const;
-    const trends: any = {};
+
+    const trends = {
+      volume: {} as TrendAnalysis,
+      link: {} as TrendAnalysis,
+      profile: {} as TrendAnalysis,
+      security: {} as TrendAnalysis,
+      compliance: {} as TrendAnalysis
+    };
 
     fields.forEach(field => {
       const values = data.map(d => d.tensions[field]);
@@ -214,7 +235,7 @@ export class HistoricalAnalyzer {
       const { slope, correlation } = this.linearRegression(timePoints, values);
 
       let direction: 'increasing' | 'decreasing' | 'stable';
-      if (Math.abs(slope) < 0.001) {
+      if (Math.abs(slope) < TENSION_CONSTANTS.STABILITY_THRESHOLD) {
         direction = 'stable';
       } else if (slope > 0) {
         direction = 'increasing';
@@ -226,7 +247,7 @@ export class HistoricalAnalyzer {
         direction,
         slope,
         strength: Math.abs(correlation),
-        confidence: Math.min(1, Math.abs(correlation) * Math.sqrt(data.length / 100))
+        confidence: Math.min(1, Math.abs(correlation) * Math.sqrt(data.length / TENSION_CONSTANTS.TREND_CONFIDENCE_FACTOR))
       };
     });
 
@@ -258,11 +279,11 @@ export class HistoricalAnalyzer {
     const hourlyData = this.groupByHour(data);
     const hourlyVariance = this.calculateVariance(Object.values(hourlyData));
 
-    if (hourlyVariance > 100) {
+    if (hourlyVariance > TENSION_CONSTANTS.DAILY_VARIANCE_THRESHOLD) {
       patterns.push({
         type: 'seasonal',
         description: 'Daily seasonal pattern detected - tension varies by hour',
-        strength: Math.min(1, hourlyVariance / 500),
+        strength: Math.min(1, hourlyVariance / TENSION_CONSTANTS.DAILY_VARIANCE_NORMALIZER),
         frequency: 'daily'
       });
     }
@@ -271,11 +292,11 @@ export class HistoricalAnalyzer {
     const weeklyData = this.groupByDayOfWeek(data);
     const weeklyVariance = this.calculateVariance(Object.values(weeklyData));
 
-    if (weeklyVariance > 80) {
+    if (weeklyVariance > TENSION_CONSTANTS.WEEKLY_VARIANCE_THRESHOLD) {
       patterns.push({
         type: 'seasonal',
         description: 'Weekly seasonal pattern detected - tension varies by day',
-        strength: Math.min(1, weeklyVariance / 400),
+        strength: Math.min(1, weeklyVariance / TENSION_CONSTANTS.WEEKLY_VARIANCE_NORMALIZER),
         frequency: 'weekly'
       });
     }
@@ -297,7 +318,7 @@ export class HistoricalAnalyzer {
         const values2 = data.map(d => d.tensions[field2]);
         const correlation = this.calculateCorrelation(values1, values2);
 
-        if (Math.abs(correlation) > 0.7) {
+        if (Math.abs(correlation) > TENSION_CONSTANTS.CORRELATION_THRESHOLD) {
           patterns.push({
             type: 'correlation',
             description: `Strong ${correlation > 0 ? 'positive' : 'negative'} correlation between ${field1} and ${field2}`,
@@ -319,8 +340,8 @@ export class HistoricalAnalyzer {
     const avgAnomalies = this.average(anomalyCounts);
 
     // Find periods with unusually high anomaly counts
-    const threshold = avgAnomalies * 2;
-    const clusters = this.findConsecutiveValues(anomalyCounts, threshold, 3);
+    const threshold = avgAnomalies * TENSION_CONSTANTS.ANOMALY_CLUSTER_THRESHOLD;
+    const clusters = this.findConsecutiveValues(anomalyCounts, threshold, TENSION_CONSTANTS.MIN_CLUSTER_LENGTH);
 
     if (clusters.length > 0) {
       patterns.push({
@@ -341,11 +362,11 @@ export class HistoricalAnalyzer {
       const values = data.map(d => d.tensions[field]);
       const volatility = this.calculateVolatility(values);
 
-      if (volatility > 30) {
+      if (volatility > TENSION_CONSTANTS.VOLATILITY_THRESHOLD) {
         patterns.push({
           type: 'cyclical',
           description: `High volatility detected in ${field} field - frequent large swings`,
-          strength: Math.min(1, volatility / 50)
+          strength: Math.min(1, volatility / TENSION_CONSTANTS.VOLATILITY_NORMALIZER)
         });
       }
     });
@@ -353,42 +374,52 @@ export class HistoricalAnalyzer {
     return patterns;
   }
 
-  private generateRecommendations(summary: any, trends: any, patterns: PatternAnalysis[]): string[] {
+  private generateRecommendations(
+    summary: AnalysisReport['summary'],
+    trends: {
+      volume: TrendAnalysis;
+      link: TrendAnalysis;
+      profile: TrendAnalysis;
+      security: TrendAnalysis;
+      compliance: TrendAnalysis;
+    },
+    patterns: PatternAnalysis[]
+  ): string[] {
     const recommendations: string[] = [];
 
     // Based on trends
-    Object.entries(trends).forEach(([field, trend]: [string, any]) => {
-      if (trend.direction === 'increasing' && trend.strength > 0.7) {
+    Object.entries(trends).forEach(([field, trend]) => {
+      if (trend.direction === 'increasing' && trend.strength > TENSION_CONSTANTS.TREND_STRENGTH_THRESHOLD) {
         recommendations.push(`🔴 ${field.toUpperCase()} tension is consistently increasing - monitor closely`);
-      } else if (trend.direction === 'decreasing' && trend.strength > 0.7) {
+      } else if (trend.direction === 'decreasing' && trend.strength > TENSION_CONSTANTS.TREND_STRENGTH_THRESHOLD) {
         recommendations.push(`🟢 ${field.toUpperCase()} tension is decreasing - positive trend`);
       }
     });
 
     // Based on peak tensions
-    Object.entries(summary.peakTensions).forEach(([field, value]: [string, any]) => {
-      if (value > 90) {
+    Object.entries(summary.peakTensions).forEach(([field, value]) => {
+      if (value > TENSION_CONSTANTS.HIGH_RISK_THRESHOLD) {
         recommendations.push(`⚠️ ${field.toUpperCase()} reached critical levels (${value.toFixed(1)}%)`);
       }
     });
 
     // Based on patterns
     patterns.forEach(pattern => {
-      if (pattern.type === 'seasonal' && pattern.strength > 0.8) {
+      if (pattern.type === 'seasonal' && pattern.strength > TENSION_CONSTANTS.RECOMMENDATION_STRENGTH_THRESHOLD) {
         recommendations.push(`📅 Strong ${pattern.frequency} pattern detected - adjust resources accordingly`);
       }
-      if (pattern.type === 'correlation' && Math.abs(pattern.correlation!) > 0.9) {
+      if (pattern.type === 'correlation' && Math.abs(pattern.correlation!) > TENSION_CONSTANTS.HIGH_CORRELATION_THRESHOLD) {
         recommendations.push(`🔗 Very strong correlation detected - consider unified monitoring`);
       }
     });
 
     // Based on anomalies
-    if (summary.totalAnomalies > summary.totalDataPoints * 0.1) {
+    if (summary.totalAnomalies > summary.totalDataPoints * TENSION_CONSTANTS.ANOMALY_RATE_THRESHOLD) {
       recommendations.push('🚨 High anomaly rate detected - investigate underlying issues');
     }
 
     // Based on risk score
-    if (summary.avgRiskScore > 70) {
+    if (summary.avgRiskScore > TENSION_CONSTANTS.AVG_RISK_THRESHOLD) {
       recommendations.push('🎯 High average risk score - implement mitigation strategies');
     }
 
@@ -399,50 +430,60 @@ export class HistoricalAnalyzer {
     return recommendations;
   }
 
-  private assessRisk(summary: any, trends: any, patterns: PatternAnalysis[]): RiskAssessment {
+  private assessRisk(
+    summary: AnalysisReport['summary'],
+    trends: {
+      volume: TrendAnalysis;
+      link: TrendAnalysis;
+      profile: TrendAnalysis;
+      security: TrendAnalysis;
+      compliance: TrendAnalysis;
+    },
+    patterns: PatternAnalysis[]
+  ): RiskAssessment {
     const riskFactors: string[] = [];
     let riskScore = 0;
 
     // Risk from peak tensions
-    Object.entries(summary.peakTensions).forEach(([field, value]: [string, any]) => {
-      if (value > 95) {
-        riskScore += 30;
+    Object.entries(summary.peakTensions).forEach(([field, value]) => {
+      if (value > TENSION_CONSTANTS.CRITICAL_RISK_THRESHOLD) {
+        riskScore += TENSION_CONSTANTS.CRITICAL_RISK_SCORE;
         riskFactors.push(`Critical ${field} levels`);
-      } else if (value > 85) {
-        riskScore += 20;
+      } else if (value > TENSION_CONSTANTS.HIGH_RISK_THRESHOLD) {
+        riskScore += TENSION_CONSTANTS.HIGH_RISK_SCORE;
         riskFactors.push(`High ${field} levels`);
       }
     });
 
     // Risk from trends
-    Object.values(trends).forEach((trend: any) => {
+    Object.values(trends).forEach((trend) => {
       if (trend.direction === 'increasing' && trend.strength > 0.8) {
-        riskScore += 15;
+        riskScore += TENSION_CONSTANTS.STRONG_TREND_SCORE;
         riskFactors.push('Strong increasing trend');
       }
     });
 
     // Risk from anomalies
-    if (summary.totalAnomalies > summary.totalDataPoints * 0.2) {
-      riskScore += 25;
+    if (summary.totalAnomalies > summary.totalDataPoints * TENSION_CONSTANTS.HIGH_ANOMALY_RATE_THRESHOLD) {
+      riskScore += TENSION_CONSTANTS.VERY_HIGH_ANOMALY_SCORE;
       riskFactors.push('Very high anomaly rate');
     }
 
     // Risk from patterns
     patterns.forEach(pattern => {
       if (pattern.type === 'sporadic' && pattern.strength > 0.7) {
-        riskScore += 10;
+        riskScore += TENSION_CONSTANTS.SPORADIC_PATTERN_SCORE;
         riskFactors.push('Frequent anomaly clusters');
       }
     });
 
     // Determine overall risk level
     let overallRisk: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
-    if (riskScore >= 80) {
+    if (riskScore >= TENSION_CONSTANTS.CRITICAL_RISK_LEVEL) {
       overallRisk = 'CRITICAL';
-    } else if (riskScore >= 60) {
+    } else if (riskScore >= TENSION_CONSTANTS.HIGH_RISK_LEVEL) {
       overallRisk = 'HIGH';
-    } else if (riskScore >= 40) {
+    } else if (riskScore >= TENSION_CONSTANTS.MEDIUM_RISK_LEVEL) {
       overallRisk = 'MEDIUM';
     } else {
       overallRisk = 'LOW';

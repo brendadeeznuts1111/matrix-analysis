@@ -9,14 +9,16 @@ import { TensionGraphPropagator } from './src/tension-field/propagate';
 import { EnhancedHistoricalAnalyzer } from './src/tension-field/historical-analyzer-enhanced';
 import { errorHandler, TensionErrorCode } from './src/tension-field/error-handler';
 import { EXIT_CODES } from "../.claude/lib/exit-codes.ts";
+import { InputValidator } from './src/tension-field/validation';
+import { TENSION_CONSTANTS } from './src/tension-field/config';
 
 // MCP Server Configuration
 const MCP_SERVER_CONFIG = {
   name: 'tension-field-mcp',
   version: '1.0.0',
   description: 'Tension Field Analysis and Control MCP Server',
-  port: parseInt(process.env.MCP_PORT || '3002'),
-  host: process.env.MCP_HOST || 'localhost'
+  port: parseInt(process.env.MCP_PORT || TENSION_CONSTANTS.DEFAULT_MCP_PORT.toString()),
+  host: process.env.MCP_HOST || TENSION_CONSTANTS.DEFAULT_MCP_HOST
 };
 
 // Initialize components
@@ -39,8 +41,10 @@ const MCP_TOOLS = {
         },
         depth: {
           type: 'number',
-          description: 'Depth of analysis (default: 3)',
-          default: 3
+          description: 'Depth of analysis (default: 3, range: 1-10)',
+          default: TENSION_CONSTANTS.DEFAULT_DEPTH,
+          minimum: 1,
+          maximum: 10
         },
         includePredictions: {
           type: 'boolean',
@@ -92,8 +96,10 @@ const MCP_TOOLS = {
         },
         timeHorizon: {
           type: 'number',
-          description: 'Time horizon for risk assessment in hours (default: 24)',
-          default: 24
+          description: 'Time horizon for risk assessment in hours (default: 24, range: 1-168)',
+          default: TENSION_CONSTANTS.DEFAULT_TIME_HORIZON,
+          minimum: 1,
+          maximum: 168
         }
       }
     }
@@ -158,13 +164,17 @@ const MCP_TOOLS = {
         },
         timeRange: {
           type: 'number',
-          description: 'Time range in hours (default: 24)',
-          default: 24
+          description: 'Time range in hours for error filtering (default: 24, range: 1-168)',
+          default: TENSION_CONSTANTS.DEFAULT_TIME_RANGE,
+          minimum: 1,
+          maximum: 168
         },
         limit: {
           type: 'number',
-          description: 'Maximum number of errors to return (default: 50)',
-          default: 50
+          description: 'Maximum number of errors to return (default: 50, range: 1-1000)',
+          default: TENSION_CONSTANTS.DEFAULT_LIMIT,
+          minimum: 1,
+          maximum: 1000
         }
       }
     }
@@ -174,6 +184,17 @@ const MCP_TOOLS = {
 // Tool Implementations
 async function handleToolCall(toolName: string, args: any): Promise<any> {
   try {
+    // Validate input
+    const validation = InputValidator.validateRequest(toolName, args);
+    if (!validation.isValid) {
+      return {
+        success: false,
+        error: 'Validation failed',
+        validationErrors: validation.errors,
+        code: 'VALIDATION_ERROR'
+      };
+    }
+
     switch (toolName) {
       case 'analyze_tension':
         return await analyzeTension(args);
@@ -225,7 +246,7 @@ async function analyzeTension(args: any) {
     const nodes = Array.from((propagator as any).nodesById.keys());
     const results = [];
 
-    for (const node of nodes.slice(0, 10)) { // Limit to 10 nodes for demo
+    for (const node of nodes.slice(0, TENSION_CONSTANTS.NETWORK_ANALYSIS_LIMIT)) { // Limit nodes for demo
       const result = await propagator.propagateFullGraph(node as string);
       results.push({ nodeId: node, ...result });
     }
@@ -261,7 +282,7 @@ async function assessRisk(args: any) {
     const nodes = Array.from((propagator as any).nodesById.keys());
     const riskAssessments = [];
 
-    for (const node of nodes.slice(0, 10)) {
+    for (const node of nodes.slice(0, TENSION_CONSTANTS.NETWORK_ANALYSIS_LIMIT)) {
       const risk = await analyzer.assessRisk(node as string);
       riskAssessments.push({ nodeId: node, ...risk });
     }
@@ -292,11 +313,12 @@ async function queryHistory(args: any) {
   }
 
   if (metrics && metrics.length > 0) {
-    query += ' AND metric IN (' + metrics.map(() => '?').join(',') + ')';
+    const placeholders = metrics.map(() => '?').join(',');
+    query += ` AND metric IN (${placeholders})`;
     params.push(...metrics);
   }
 
-  query += ' ORDER BY timestamp DESC LIMIT 100';
+  query += ` ORDER BY timestamp DESC LIMIT ${TENSION_CONSTANTS.QUERY_LIMIT}`;
 
   const results = db.prepare(query).all(...params);
 
@@ -340,7 +362,7 @@ async function getSystemStatus(args: any) {
 }
 
 async function getErrors(args: any) {
-  const { severity, timeRange = 24, limit = 50 } = args;
+  const { severity, timeRange = TENSION_CONSTANTS.DEFAULT_TIME_RANGE, limit = TENSION_CONSTANTS.DEFAULT_LIMIT } = args;
 
   const cutoffTime = Date.now() - (timeRange * 60 * 60 * 1000);
 
