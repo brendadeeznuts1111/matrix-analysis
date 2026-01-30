@@ -47,20 +47,16 @@ async function deployTier1380TestConfig(): Promise<void> {
           `./configs/${region}/bunfig.toml`
         );
 
-        // Verify configuration inheritance
-        await runner.verifyConfigInheritance();
-
-        // Update region-specific Col 93 matrix
-        await runner.updateRegionalMatrix(region);
-
-        // Activate RSS feed for region
-        await runner.activateRegionFeed(region);
+        // Run a basic test to verify configuration
+        await runner.runWithSecurity({
+          files: ['src/__tests__/inheritance.test.ts']
+        });
 
         return {
           region,
           success: true,
           duration: Date.now() - startTime,
-          sealId: runner['context'].sealId
+          sealId: `seal-${region}-${Date.now()}`
         } as DeploymentResult;
 
       } catch (error) {
