@@ -45,6 +45,48 @@ tsconfig.tsbuildinfo
 **/*.tsbuildinfo
 
 # ----------------------------------------------------------------------------
+# DATABASE & CACHE FILES
+# ----------------------------------------------------------------------------
+*.db-shm
+*.db-wal
+history.jsonl
+.bun-cache/
+paste-cache/
+shell-snapshots/
+file-history/
+
+# ----------------------------------------------------------------------------
+# ARCHIVED DIRECTORIES (moved to R2)
+# ----------------------------------------------------------------------------
+# These are now stored in fw-claude-archive R2 bucket
+# Use restore scripts to retrieve if needed
+projects/
+debug/
+bin/
+benchmarks/
+assets/
+examples/
+dist/
+tests/
+scripts/
+data/
+docs/
+apps/
+tools/
+core/
+cache/
+
+# ----------------------------------------------------------------------------
+# V1.3.8 TRACKED FILES (un-ignore from archived directories)
+# ----------------------------------------------------------------------------
+!docs/BUN_V1.3.8_OFFICIAL_APIS.md
+!tests/bun-markdown.test.ts
+!src/benchmarks/
+!src/benchmarks/bunmark-markdown.ts
+!tools/demo/
+!tools/demo/markdown-demo.ts
+
+# ----------------------------------------------------------------------------
 # TELEMETRY & METRICS (NDJSON, large data files)
 # ----------------------------------------------------------------------------
 telemetry/
@@ -73,7 +115,7 @@ skills/**/node_modules/
 # ----------------------------------------------------------------------------
 # TEST FIXTURES & RESULTS
 # ----------------------------------------------------------------------------
-tests/unit/
+# tests/unit/ - No longer ignored, now used for organized tests
 test-results/
 test-reports/
 coverage/

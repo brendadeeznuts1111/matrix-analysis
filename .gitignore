@@ -79,6 +79,11 @@ bunfig.toml
 !.claude/examples/
 !.claude/examples/**
 !.claude/.gitignore
+!.claude/AGENTS.md
+!.claude/QUICKREF.md
+!.claude/README.md
+!.claude/OMEGA_SNIPPET_BIBLE.md
+!.claude/OMEGA_SNIPPET_CHEATSHEET.md
 .claude.json*
 .cline/
 .cloudflared/

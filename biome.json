@@ -1,0 +1,35 @@
+{
+	"$schema": "https://biomejs.dev/schemas/2.3.13/schema.json",
+	"files": {
+		"includes": [".claude/**/*.ts", ".claude/**/*.tsx", ".claude/**/*.js"]
+	},
+	"javascript": {
+		"globals": [
+			"Bun",
+			"process",
+			"fetch",
+			"Request",
+			"Response",
+			"Headers",
+			"WebSocket"
+		],
+		"formatter": {
+			"quoteStyle": "double",
+			"trailingCommas": "all"
+		}
+	},
+	"linter": {
+		"enabled": true,
+		"rules": {
+			"recommended": true,
+			"style": {
+				"noNonNullAssertion": "off",
+				"useNodejsImportProtocol": "off"
+			},
+			"correctness": {
+				"noUnusedVariables": "warn",
+				"noUndeclaredVariables": "error"
+			}
+		}
+	}
+}
