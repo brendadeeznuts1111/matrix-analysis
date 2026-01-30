@@ -50,7 +50,7 @@ export function validateProfile(profile: Profile): ValidationResult {
 function hasCircularRefs(env: Record<string, string>): boolean {
   // Circular references only apply when profile keys reference OTHER profile keys
   // whose values also contain references creating a loop.
-  // References like SESSION_SECRET: "${SESSION_SECRET}" resolve from process.env,
+  // References like SESSION_SECRET: "${SESSION_SECRET}" resolve from Bun.env,
   // not from the profile's own env, so they are NOT circular.
   const varPattern = /\$\{([^}]+)\}/g;
   const graph: Record<string, string[]> = {};
@@ -63,7 +63,7 @@ function hasCircularRefs(env: Record<string, string>): boolean {
     for (const match of value.matchAll(varPattern)) {
       const refKey = match[1];
       // Only track references to OTHER keys in this profile's env
-      // Self-references (KEY: "${KEY}") resolve from process.env, not circular
+      // Self-references (KEY: "${KEY}") resolve from Bun.env, not circular
       if (envKeys.has(refKey) && refKey !== key) {
         graph[key].push(refKey);
       }

@@ -1,32 +1,89 @@
-[install]
-# Supply chain protection: only install packages older than 3 days
-# - Stability check: skips rapid bugfix releases (multiple versions close together)
-# - Searches up to 7 days past age gate for stable version
-# - Exact versions (pkg@1.1.1) respect age gate but bypass stability check
-minimumReleaseAge = 259200 # seconds
+# ╔══════════════════════════════════════════════════════════════════════════════╗
+# ║ bunfig.toml — Bun Runtime Configuration                                    ║
+# ║ PATH: /Users/nolarose/bunfig.toml                                          ║
+# ║ TYPE: TOML config   CTX: 6 sections   COMPONENTS: 38 keys                  ║
+# ╚══════════════════════════════════════════════════════════════════════════════╝
 
-# Exclude trusted packages from the age gate
-minimumReleaseAgeExcludes = ["@types/node", "@types/bun", "typescript"]
+# ── Global Runtime ────────────────────────────────────────────────────────────
+# PATH: top-level    TYPE: mixed    CTX: 4 keys
+
+telemetry = false            # boolean — disable analytics/crash reports
+logLevel = "warn"            # string  — "debug" | "warn" | "error"
+smol = false                 # boolean — reduce memory at cost of performance
+
+[console]
+# PATH: console      TYPE: numeric  CTX: 1 key
+depth = 4                    # number  — default depth for console.log() inspection
+
+# ── Package Manager ───────────────────────────────────────────────────────────
+# PATH: install      TYPE: mixed    CTX: 13 keys
+
+[install]
+auto = "auto"                # string  — "auto" | "force" | "disable" | "fallback"
+exact = false                # boolean — use exact versions (no ^ or ~)
+production = false           # boolean — skip devDependencies
+saveTextLockfile = true      # boolean — generate human-readable bun.lock
+frozenLockfile = false       # boolean — error if lockfile would change (CI)
+linker = "hoisted"           # string  — "hoisted" | "isolated"
+concurrentScripts = 16       # number  — max parallel lifecycle scripts
+
+# Supply chain protection: reject packages published < 3 days ago
+# - Stability check: skips rapid bugfix releases
+# - Searches up to 7 days past age gate for stable version
+minimumReleaseAge = 259200   # number  — seconds (259200 = 3 days)
+minimumReleaseAgeExcludes = [# array   — trusted packages bypass age gate
+  "@types/node",
+  "@types/bun",
+  "typescript",
+]
 
 [install.cache]
-# Cache directory for downloaded packages
-dir = ".cache/bun/install"
+# PATH: install.cache  TYPE: mixed  CTX: 3 keys
+dir = ".cache/bun/install"   # string  — local cache directory
+disable = false              # boolean — skip global cache entirely
+disableManifest = false      # boolean — always fetch latest manifests
+
+[install.lockfile]
+# PATH: install.lockfile  TYPE: mixed  CTX: 1 key
+save = true                  # boolean — generate lockfile on install
+
+# ── Script Runner ─────────────────────────────────────────────────────────────
+# PATH: run          TYPE: mixed    CTX: 4 keys
 
 [run]
-# Main entry point for the package
-entry = "./src/cli.ts"
+shell = "bun"                # string  — shell for package.json scripts
+bun = true                   # boolean — prepend PATH with bun-as-node symlink
+silent = false               # boolean — suppress command echo in scripts
+env = [                      # array   — .env file load order
+  ".env.local",
+  ".env.development",
+  ".env.production",
+  ".env",
+]
 
-# Environment file loading order (matches Bun's default)
-# .env.local → .env.[NODE_ENV] → .env
-env = [".env.local", ".env.development", ".env.production", ".env"]
+# ── Test Runner ───────────────────────────────────────────────────────────────
+# PATH: test         TYPE: mixed    CTX: 10 keys
 
 [test]
-# Test runner configuration
-preload = []
-coverageDir = "./coverage"
+root = "src"                 # string  — test execution root directory
+# preload omitted — defaults to [] (Bun TOML parser rejects empty arrays)
+smol = false                 # boolean — reduce memory for test runner
+coverage = false             # boolean — enable code coverage
+coverageDir = "./coverage"   # string  — coverage output directory
+coverageThreshold = 0        # number  — minimum required coverage % (0 = off)
+coverageSkipTestFiles = true # boolean — exclude test files from coverage
+randomize = false            # boolean — run tests in random order
+rerunEach = 0                # number  — re-execute each test file N times
+
+[test.reporter]
+# PATH: test.reporter  TYPE: mixed  CTX: 2 keys
+dots = false                 # boolean — compact dot-based output
+
+# ── Build ─────────────────────────────────────────────────────────────────────
+# PATH: build        TYPE: mixed    CTX: 4 keys
 
 [build]
-# Build output directory
-outdir = "./dist"
-minify = true
-sourcemap = true
+outdir = "./dist"            # string  — build output directory
+minify = true                # boolean — minify output
+sourcemap = true             # boolean — generate source maps
+target = "bun"               # string  — "bun" | "node" | "browser"
