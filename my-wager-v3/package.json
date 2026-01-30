@@ -38,6 +38,7 @@
     "errors:recover": "bun scripts/error-recovery.ts recover",
     "errors:auto": "bun scripts/error-recovery.ts auto",
     "verify:tier1380": "bun deploy-profiles-terminals.ts --verify",
+    "profile": "bun profile-terminal.ts",
     "errors:report": "bun scripts/error-recovery.ts report",
     "errors:demo": "bun scripts/demo-error-handling.ts",
     "mcp:server": "bun mcp-server.ts",
