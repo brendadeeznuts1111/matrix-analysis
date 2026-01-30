@@ -1,6 +1,8 @@
 #!/bin/bash
-# BUN-PURE COMMIT MESSAGE HOOK
-# Enforces structured commit message format with domain tags
+# Factory Wager Enterprise Commit Governance
+# Domain: factory-wager.com
+# Schema: [DOMAIN][COMPONENT:SCOPE][TIER:N%] Subject
+# Backup: commit-msg.backup
 
 set -e
 
@@ -21,223 +23,114 @@ fi
 echo "🔍 Validating commit message format..."
 
 # ═══════════════════════════════════════════════════════════════
-# COMMIT FORMAT SPECIFICATION
+# FACTORY WAGER ENTERPRISE GOVERNANCE
 # ═══════════════════════════════════════════════════════════════
-# Required: [DOMAIN][SCOPE][TYPE] Subject line
-# Optional: [META:{property}] [CLASS] [FUNCTION] [INTERFACE] [#REF:*] [BUN-NATIVE]
+# Schema: [DOMAIN][COMPONENT:SCOPE][TIER:N%] Subject
 #
-# DOMAIN: Area of codebase (e.g., SHELL, API, CLI, DB, UI, CONFIG, BUILD, TEST, DOCS)
-# SCOPE: Specific component (e.g., ZSHRC, AUTH, ROUTER, SQLITE)
-# TYPE: Change type (FIX, FEAT, REFACTOR, PERF, CHORE, DOCS, TEST, STYLE, BUILD, CI)
+# DOMAIN: Enterprise area (RUNTIME, SECURITY, PLATFORM, INFRA, etc.)
+# COMPONENT: Specific component (JSC, GUARDIAN, FORENSICS, DEPLOY, etc.)
+# TIER: Compliance level (500%-1500%)
 #
 # Examples:
-#   [CLI][AUTH][FEAT] Add OAuth2 login flow
-#   [API][ROUTER][FIX][BUN-NATIVE] Use Bun.serve for endpoints
-#   [DB][SQLITE][PERF][FUNCTION:query] Optimize batch inserts
-#   [UI][DASHBOARD][REFACTOR][CLASS:Widget][#REF:123] Extract widget component
+#   [RUNTIME][COMPONENT:JSC][TIER:950] Add deterministic execution
+#   [SECURITY][COMPONENT:FORENSICS][TIER:1320] ARM64 verification
+#   [PLATFORM][COMPONENT:DEPLOY][TIER:1320] Production hardening
+#   [INFRA][COMPONENT:BENCHMARK] Performance regression suite
 # ═══════════════════════════════════════════════════════════════
 
-# Valid domains
-DOMAINS="SHELL|API|CLI|DB|UI|CONFIG|BUILD|TEST|DOCS|INFRA|SECURITY|CORE|LIB|SCRIPTS|TOOLS|MCP|HOOKS|PKG"
+# Valid Enterprise Domains
+VALID_DOMAINS="RUNTIME|SECURITY|PLATFORM|INFRA|BUN|PM|SYSTEM|CLI|SHELL|API|DB|UI|CONFIG|BUILD|TEST|DOCS|CORE|LIB|SCRIPTS|TOOLS|MCP|HOOKS|PKG|POLICY"
 
-# Valid types
-TYPES="FIX|FEAT|REFACTOR|PERF|CHORE|DOCS|TEST|STYLE|BUILD|CI|REVERT|WIP"
+# Valid Components
+VALID_COMPONENTS="JSC|GUARDIAN|ATTESTATION|FORENSICS|DEPLOY|BENCHMARK|REGISTRY|VERSION|GOVERNANCE|BENCH|AUTH|ROUTER|SQLITE|ZSHRC|MATRIX|CHRONOSTASIS|OMEGA|SECRETS"
 
-# Check for required tags: [DOMAIN][SCOPE][TYPE]
-if ! echo "$FIRST_LINE" | grep -qE "^\[[A-Z_-]+\]\[[A-Z0-9_-]+\]\[(${TYPES})\]"; then
-    echo ""
-    echo "❌ COMMIT MESSAGE FORMAT ERROR"
-    echo ""
-    echo "Required format: [DOMAIN][SCOPE][TYPE] Subject"
-    echo ""
-    echo "Your message:"
-    echo "  $FIRST_LINE"
-    echo ""
-    echo "Valid DOMAINS: ${DOMAINS//|/, }"
-    echo "Valid TYPES:   ${TYPES//|/, }"
-    echo ""
-    echo "Examples:"
-    echo "  [CLI][AUTH][FEAT] Add OAuth2 login flow"
-    echo "  [API][ROUTER][FIX] Handle null response"
-    echo "  [SHELL][ZSHRC][FIX] Guard matrix completions"
-    echo ""
-    echo "Optional tags (after TYPE):"
-    echo "  [META:{property}] - Metadata (e.g., [META:STARTUP_ERROR])"
-    echo "  [CLASS:name]      - Class affected"
-    echo "  [FUNCTION:name]   - Function affected"
-    echo "  [INTERFACE:name]  - Interface affected"
-    echo "  [#REF:123]        - Issue/PR reference"
-    echo "  [BUN-NATIVE]      - Uses Bun-specific APIs"
-    echo ""
-    echo "To bypass: git commit --no-verify"
-    exit 1
-fi
-
-# Validate domain is known (warning only for flexibility)
-DOMAIN=$(echo "$FIRST_LINE" | grep -oE '^\[[A-Z_-]+\]' | tr -d '[]')
-if ! echo "$DOMAIN" | grep -qE "^(${DOMAINS})$"; then
-    echo "⚠️  Unknown domain [$DOMAIN] - consider using: ${DOMAINS//|/, }"
-fi
-
-# Check subject exists after tags
-SUBJECT=$(echo "$FIRST_LINE" | sed 's/^\(\[[^]]*\]\)*//' | xargs)
-if [ -z "$SUBJECT" ]; then
-    echo "❌ Missing subject after tags"
-    echo "   Add a description: [DOMAIN][SCOPE][TYPE] Your subject here"
-    exit 1
-fi
-
-# Subject should not end with period
-if echo "$SUBJECT" | grep -qE '\.$'; then
-    echo "⚠️  Subject should not end with period"
-fi
-
-# Subject length check (soft limit 72 chars for first line)
-if [ ${#FIRST_LINE} -gt 100 ]; then
-    echo "⚠️  First line is ${#FIRST_LINE} chars (recommended: <72)"
-fi
+# Valid Types (legacy support)
+VALID_TYPES="FIX|FEAT|REFACTOR|PERF|CHORE|DOCS|TEST|STYLE|BUILD|CI|REVERT|WIP"
 
 # ═══════════════════════════════════════════════════════════════
-# BUN-NATIVE API VALIDATION
+# PATTERN MATCHING
 # ═══════════════════════════════════════════════════════════════
-# When [BUN-NATIVE] tag is used, validate Bun API references
-if echo "$COMMIT_MSG" | grep -q "\[BUN-NATIVE\]"; then
-    echo "🔍 Validating Bun-native API references..."
 
-    # Valid Bun native APIs (canonical spelling) - generated from Bun 1.3.7
-    # Core I/O
-    BUN_APIS="Bun.serve|Bun.file|Bun.write|Bun.spawn|Bun.spawnSync|Bun.sleep|Bun.sleepSync"
-    BUN_APIS+="|Bun.listen|Bun.connect|Bun.fetch|Bun.udpSocket"
-    BUN_APIS+="|Bun.stdin|Bun.stdout|Bun.stderr|Bun.main|Bun.argv|Bun.env|Bun.version"
-    # Terminal/ANSI
-    BUN_APIS+="|Bun.color|Bun.stripANSI|Bun.stringWidth|Bun.wrapAnsi|Bun.enableANSIColors|Bun.Terminal"
-    # Parsers (ALL CAPS for acronyms)
-    BUN_APIS+="|Bun.JSONL|Bun.JSONL.parse|Bun.JSONL.parseChunk"
-    BUN_APIS+="|Bun.JSON5|Bun.JSON5.parse|Bun.JSON5.stringify"
-    BUN_APIS+="|Bun.JSONC|Bun.JSONC.parse"
-    BUN_APIS+="|Bun.TOML|Bun.TOML.parse"
-    BUN_APIS+="|Bun.YAML|Bun.YAML.parse|Bun.YAML.stringify"
-    # Security
-    BUN_APIS+="|Bun.password|Bun.password.hash|Bun.password.hashSync|Bun.password.verify|Bun.password.verifySync"
-    BUN_APIS+="|Bun.secrets|Bun.secrets.get|Bun.secrets.set|Bun.secrets.delete"
-    BUN_APIS+="|Bun.CSRF|Bun.CSRF.generate|Bun.CSRF.verify"
-    BUN_APIS+="|Bun.Cookie|Bun.CookieMap"
-    # Hashing
-    BUN_APIS+="|Bun.hash|Bun.sha|Bun.CryptoHasher"
-    BUN_APIS+="|Bun.MD4|Bun.MD5|Bun.SHA1|Bun.SHA224|Bun.SHA256|Bun.SHA384|Bun.SHA512|Bun.SHA512_256"
-    # Build/Transpile
-    BUN_APIS+="|Bun.Transpiler|Bun.build|Bun.plugin"
-    # Runtime
-    BUN_APIS+="|Bun.gc|Bun.nanoseconds|Bun.peek|Bun.shrink|Bun.isMainThread"
-    BUN_APIS+="|Bun.generateHeapSnapshot|Bun.allocUnsafe|Bun.concatArrayBuffers"
-    # Utilities
-    BUN_APIS+="|Bun.deepEquals|Bun.deepMatch|Bun.escapeHTML|Bun.indexOfLine"
-    BUN_APIS+="|Bun.which|Bun.resolve|Bun.resolveSync|Bun.pathToFileURL|Bun.fileURLToPath"
-    BUN_APIS+="|Bun.randomUUIDv7|Bun.randomUUIDv5|Bun.inspect|Bun.inspect.table|Bun.openInEditor"
-    BUN_APIS+="|Bun.semver|Bun.semver.satisfies|Bun.semver.order"
-    # Compression
-    BUN_APIS+="|Bun.gzipSync|Bun.gunzipSync|Bun.deflateSync|Bun.inflateSync"
-    BUN_APIS+="|Bun.zstdCompressSync|Bun.zstdDecompressSync|Bun.zstdCompress|Bun.zstdDecompress"
-    # File system
-    BUN_APIS+="|Bun.Glob|Bun.FileSystemRouter|Bun.Mmap|Bun.mmap|Bun.Archive"
-    # Cloud/Database
-    BUN_APIS+="|Bun.S3|Bun.S3Client|Bun.s3"
-    BUN_APIS+="|Bun.sql|Bun.SQL|Bun.postgres"
-    BUN_APIS+="|Bun.redis|Bun.RedisClient"
-    # Stream helpers
-    BUN_APIS+="|Bun.readableStreamToArray|Bun.readableStreamToArrayBuffer|Bun.readableStreamToBytes"
-    BUN_APIS+="|Bun.readableStreamToBlob|Bun.readableStreamToFormData|Bun.readableStreamToJSON|Bun.readableStreamToText"
-    # Misc
-    BUN_APIS+="|Bun.ArrayBufferSink|Bun.FFI|Bun.dns|Bun.embeddedFiles|Bun.revision|Bun.unsafe"
-    BUN_APIS+="|Bun.\\\$"
+# Pattern 1: Factory Wager Governance (preferred)
+# [DOMAIN][COMPONENT:SCOPE][TIER:N%] Subject
+GOVERNANCE_REGEX='^\[[A-Z]+\](\[COMPONENT:[A-Z0-9_-]+\])?(\[TIER:[0-9]+%?\])? .+'
 
-    # Extract potential Bun.* references from commit message
-    BUN_REFS=$(echo "$COMMIT_MSG" | grep -oE 'Bun\.[A-Za-z0-9_$.]+' | sort -u || true)
+# Pattern 2: Legacy 3-tag format (backwards compatible)
+# [DOMAIN][SCOPE][TYPE] Subject
+LEGACY_REGEX='^\[[A-Z_-]+\]\[[A-Z0-9_-]+\]\[('${VALID_TYPES}')\]'
 
-    if [ -n "$BUN_REFS" ]; then
-        INVALID_FOUND=0
-        for ref in $BUN_REFS; do
-            # Normalize for comparison (handle Bun.$ shell syntax)
-            normalized_ref=$(echo "$ref" | sed 's/\.\$/.\\\$/g')
-            if ! echo "$ref" | grep -qE "^(${BUN_APIS})"; then
-                # Check common misspellings
-                case "$ref" in
-                    Bun.jsonl*|Bun.Jsonl*|Bun.JsonL*)
-                        echo "⚠️  Misspelled API: $ref → Use Bun.JSONL (uppercase)"
-                        INVALID_FOUND=1
-                        ;;
-                    Bun.json5*|Bun.Json5*)
-                        echo "⚠️  Misspelled API: $ref → Use Bun.JSON5 (uppercase)"
-                        INVALID_FOUND=1
-                        ;;
-                    Bun.wrapansi*|Bun.WrapAnsi*|Bun.Wrapansi*)
-                        echo "⚠️  Misspelled API: $ref → Use Bun.wrapAnsi (camelCase)"
-                        INVALID_FOUND=1
-                        ;;
-                    Bun.stripansi*|Bun.StripAnsi*|Bun.Stripansi*)
-                        echo "⚠️  Misspelled API: $ref → Use Bun.stripANSI (camelCase+ANSI)"
-                        INVALID_FOUND=1
-                        ;;
-                    Bun.stringwidth*|Bun.StringWidth*|Bun.Stringwidth*)
-                        echo "⚠️  Misspelled API: $ref → Use Bun.stringWidth (camelCase)"
-                        INVALID_FOUND=1
-                        ;;
-                    Bun.randomuuid*|Bun.RandomUUID*)
-                        echo "⚠️  Misspelled API: $ref → Use Bun.randomUUIDv7 (camelCase+v7)"
-                        INVALID_FOUND=1
-                        ;;
-                    Bun.jsonc*|Bun.Jsonc*|Bun.JsonC*)
-                        echo "⚠️  Misspelled API: $ref → Use Bun.JSONC (uppercase)"
-                        INVALID_FOUND=1
-                        ;;
-                    Bun.toml*|Bun.Toml*)
-                        echo "⚠️  Misspelled API: $ref → Use Bun.TOML (uppercase)"
-                        INVALID_FOUND=1
-                        ;;
-                    Bun.yaml*|Bun.Yaml*)
-                        echo "⚠️  Misspelled API: $ref → Use Bun.YAML (uppercase)"
-                        INVALID_FOUND=1
-                        ;;
-                    Bun.csrf*|Bun.Csrf*)
-                        echo "⚠️  Misspelled API: $ref → Use Bun.CSRF (uppercase)"
-                        INVALID_FOUND=1
-                        ;;
-                    Bun.s3client*|Bun.S3client*)
-                        echo "⚠️  Misspelled API: $ref → Use Bun.S3Client (PascalCase)"
-                        INVALID_FOUND=1
-                        ;;
-                    Bun.Sql*|Bun.SQL.*)
-                        # Allow Bun.sql (lowercase) and Bun.SQL (class)
-                        ;;
-                    Bun.cryptohasher*|Bun.Cryptohasher*)
-                        echo "⚠️  Misspelled API: $ref → Use Bun.CryptoHasher (PascalCase)"
-                        INVALID_FOUND=1
-                        ;;
-                    Bun.filesystemrouter*|Bun.Filesystemrouter*|Bun.FileSystemrouter*)
-                        echo "⚠️  Misspelled API: $ref → Use Bun.FileSystemRouter (PascalCase)"
-                        INVALID_FOUND=1
-                        ;;
-                    Bun.redisclient*|Bun.Redisclient*)
-                        echo "⚠️  Misspelled API: $ref → Use Bun.RedisClient (PascalCase)"
-                        INVALID_FOUND=1
-                        ;;
-                    *)
-                        # Unknown but might be valid - just warn
-                        echo "⚠️  Unknown Bun API: $ref (verify spelling)"
-                        ;;
-                esac
-            fi
-        done
+# Check for governance pattern first
+if echo "$FIRST_LINE" | grep -qE "$GOVERNANCE_REGEX"; then
+    # Extract and validate DOMAIN
+    DOMAIN=$(echo "$FIRST_LINE" | sed -E 's/^\[([A-Z]+)\].*/\1/')
 
-        if [ $INVALID_FOUND -eq 1 ]; then
-            echo ""
-            echo "📚 Bun API Reference: https://bun.sh/docs/api"
-            echo "   Common: Bun.serve, Bun.file, Bun.write, Bun.spawn, Bun.sql"
-            echo "   Parsers: Bun.JSONL, Bun.JSON5, Bun.JSONC, Bun.TOML, Bun.YAML (ALL CAPS)"
-            echo "   Terminal: Bun.wrapAnsi, Bun.stripANSI, Bun.stringWidth (camelCase)"
-            echo ""
-        fi
+    if ! echo "$VALID_DOMAINS" | grep -qE "(^|\\|)$DOMAIN(\\||$)"; then
+        echo ""
+        echo "❌ Unknown domain: [$DOMAIN]"
+        echo "   Valid: $VALID_DOMAINS"
+        echo ""
+        exit 1
     fi
+
+    # Extract TIER if present (compliance tracking)
+    TIER=$(echo "$FIRST_LINE" | grep -oE '\[TIER:[0-9]+' | sed 's/\[TIER://')
+
+    if [ -n "$TIER" ] && [ "$TIER" -lt 500 ]; then
+        echo "⚠️  WARNING: Tier $TIER% below minimum (500%)"
+    fi
+
+    # Extract COMPONENT if present
+    COMPONENT=$(echo "$FIRST_LINE" | grep -oE '\[COMPONENT:[A-Z0-9_-]+' | sed 's/\[COMPONENT://')
+
+    if [ -n "$COMPONENT" ] && ! echo "$VALID_COMPONENTS" | grep -qE "(^|\\|)$COMPONENT(\\||$)"; then
+        echo "⚠️  Unknown component: $COMPONENT (continuing anyway)"
+    fi
+
+    # Build success message
+    MSG="✅ Factory Wager Governance: [$DOMAIN]"
+    [ -n "$COMPONENT" ] && MSG="$MSG[COMPONENT:$COMPONENT]"
+    [ -n "$TIER" ] && MSG="$MSG[TIER:$TIER%]"
+    MSG="$MSG verified"
+    echo "$MSG"
+    exit 0
 fi
 
-echo "✅ Commit message format valid"
+# Check for legacy pattern
+if echo "$FIRST_LINE" | grep -qE "$LEGACY_REGEX"; then
+    echo "✅ Legacy format accepted (consider migrating to [DOMAIN][COMPONENT:X][TIER:N%])"
+    exit 0
+fi
+
+# Neither pattern matched
+echo ""
+echo "🚨 FACTORY WAGER GOVERNANCE VIOLATION"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo ""
+echo "❌ Invalid commit message format"
+echo ""
+echo "📋 PREFERRED FORMAT (Factory Wager Governance):"
+echo "   [DOMAIN][COMPONENT:SCOPE][TIER:N%] Subject"
+echo ""
+echo "🎯 EXAMPLES:"
+echo "   [RUNTIME][COMPONENT:JSC][TIER:950] Add deterministic execution"
+echo "   [SECURITY][COMPONENT:FORENSICS][TIER:1320] ARM64 verification"
+echo "   [PLATFORM][COMPONENT:DEPLOY][TIER:1320] Production hardening"
+echo "   [INFRA][COMPONENT:BENCHMARK] Performance regression suite"
+echo ""
+echo "📋 LEGACY FORMAT (also accepted):"
+echo "   [DOMAIN][SCOPE][TYPE] Subject"
+echo ""
+echo "🎯 LEGACY EXAMPLES:"
+echo "   [CLI][AUTH][FEAT] Add OAuth2 login flow"
+echo "   [API][ROUTER][FIX] Handle null response"
+echo ""
+echo "📊 VALID DOMAINS: RUNTIME, SECURITY, PLATFORM, INFRA, BUN, PM, SYSTEM, CLI, API, DB, POLICY, etc."
+echo "🔧 VALID COMPONENTS: JSC, GUARDIAN, FORENSICS, DEPLOY, BENCHMARK, REGISTRY, VERSION, MATRIX, CHRONOSTASIS"
+echo "🏆 VALID TIERS: 500%-1500%"
+echo ""
+echo "Your message:"
+echo "   $FIRST_LINE"
+echo ""
+echo "To bypass: git commit --no-verify"
+echo ""
+exit 1
