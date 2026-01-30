@@ -336,7 +336,7 @@ Commands:
 // ─── CLI Entry ───────────────────────────────────────────────────────────────
 
 async function main() {
-	const command = process.argv[2] || "demo";
+	const command = Bun.argv[2] || "demo";
 
 	switch (command) {
 		case "run":

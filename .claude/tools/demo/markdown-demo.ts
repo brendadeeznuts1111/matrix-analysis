@@ -360,7 +360,7 @@ Examples:
 // ─── CLI Entry ───────────────────────────────────────────────────────────────
 
 async function main(): Promise<void> {
-	const command = process.argv[2] || "features";
+	const command = Bun.argv[2] || "features";
 
 	switch (command) {
 		case "features":
@@ -373,7 +373,7 @@ async function main(): Promise<void> {
 			await runPipe();
 			break;
 		case "file":
-			await runFile(process.argv[3] || "README.md");
+			await runFile(Bun.argv[3] || "README.md");
 			break;
 		case "roundtrip":
 			await runRoundtrip();
