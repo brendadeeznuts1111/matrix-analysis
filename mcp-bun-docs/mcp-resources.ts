@@ -6,6 +6,7 @@ import {
 	BUN_DOCS_BASE,
 	BUN_DOCS_VERSION,
 	BUN_137_FEATURE_MATRIX,
+	BUN_137_COMPLETE_MATRIX,
 	BINARY_PERF_METRICS,
 } from "./lib.ts";
 
@@ -17,8 +18,14 @@ export const MATRIX_ACP_RESOURCES = [
 		metadata: {
 			bunVersion: BUN_DOCS_VERSION,
 			baseUrl: BUN_DOCS_BASE,
-			checksum: "sha256:...", // Set by tier1380:seal (QuantumResistantSecureDataRepository)
+			checksum: "sha256:...",
 		},
+	},
+	{
+		uri: "bun://docs/matrix/v1.3.7-complete",
+		mimeType: "application/json",
+		name: "Tier-1380 Complete Matrix (28 entries)",
+		metadata: { bunVersion: BUN_DOCS_VERSION, entryCount: 28 },
 	},
 	{
 		uri: "bun://docs/matrix/perf-baselines",

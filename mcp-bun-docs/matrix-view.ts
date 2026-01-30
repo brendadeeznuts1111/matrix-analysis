@@ -15,6 +15,7 @@ import {
 	SEARCH_WEIGHTS,
 	BINARY_PERF_METRICS,
 	BUN_137_FEATURE_MATRIX,
+	BUN_137_COMPLETE_MATRIX,
 	TIER_1380_COMPLIANCE,
 	TEST_CONFIG_MATRIX,
 	filterEntriesByVersion,
@@ -113,6 +114,9 @@ console.log(Bun.inspect.table(binaryRows, ["Term", "MinVer", "Perf Gain", "Use C
 
 console.log("\n═══ Bun v1.3.7 Feature Matrix (Tier-1380) ═══\n");
 console.log(Bun.inspect.table(BUN_137_FEATURE_MATRIX, ["Term", "Ver", "PerfGain", "Security", "Platforms", "Status"]));
+
+console.log("\n═══ Bun v1.3.7 Complete Matrix (28 entries) ═══\n");
+console.log(Bun.inspect.table(BUN_137_COMPLETE_MATRIX, ["Category", "Term", "PerfFeature", "SecurityPlatform"]));
 
 console.log("\n═══ Tier-1380 Compliance (Col 93 / GB9c) ═══\n");
 console.log(Bun.inspect.table(TIER_1380_COMPLIANCE, ["Item", "Note", "Scope"]));

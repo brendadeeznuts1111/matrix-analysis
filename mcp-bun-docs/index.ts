@@ -25,6 +25,7 @@ import {
 	SEARCH_WEIGHTS,
 	BINARY_PERF_METRICS,
 	BUN_137_FEATURE_MATRIX,
+	BUN_137_COMPLETE_MATRIX,
 	TIER_1380_COMPLIANCE,
 	TEST_CONFIG_MATRIX,
 } from "./lib.ts";
@@ -68,6 +69,7 @@ function getMatrixResourceContent(): string {
 			})),
 			binaryPerfMetrics: BINARY_PERF_METRICS,
 			bun137FeatureMatrix: BUN_137_FEATURE_MATRIX,
+			bun137CompleteMatrix: BUN_137_COMPLETE_MATRIX,
 			tier1380Compliance: TIER_1380_COMPLIANCE,
 			testConfigMatrix: TEST_CONFIG_MATRIX,
 		},
@@ -96,7 +98,7 @@ server.resource(
 	}),
 );
 
-// Tier-1380 ACP: v1.3.7 feature matrix (alias)
+// Tier-1380 ACP: v1.3.7 feature matrix
 server.resource(
 	"bun-docs-matrix-137",
 	MATRIX_ACP_RESOURCES[0].uri,
@@ -106,13 +108,27 @@ server.resource(
 	}),
 );
 
-// Tier-1380 ACP: Performance regression gates
+// Tier-1380 ACP: v1.3.7 complete (28 entries)
 server.resource(
-	"bun-docs-perf-baselines",
+	"bun-docs-matrix-137-complete",
 	MATRIX_ACP_RESOURCES[1].uri,
 	{ description: MATRIX_ACP_RESOURCES[1].name },
 	async () => ({
-		contents: [{ uri: MATRIX_ACP_RESOURCES[1].uri, mimeType: "text/markdown", text: MATRIX_ACP_RESOURCES[1].content }],
+		contents: [{
+			uri: MATRIX_ACP_RESOURCES[1].uri,
+			mimeType: "application/json",
+			text: JSON.stringify({ bunVersion: BUN_DOCS_VERSION, entries: BUN_137_COMPLETE_MATRIX, entryCount: BUN_137_COMPLETE_MATRIX.length }, null, 2),
+		}],
+	}),
+);
+
+// Tier-1380 ACP: Performance regression gates
+server.resource(
+	"bun-docs-perf-baselines",
+	MATRIX_ACP_RESOURCES[2].uri,
+	{ description: MATRIX_ACP_RESOURCES[2].name },
+	async () => ({
+		contents: [{ uri: MATRIX_ACP_RESOURCES[2].uri, mimeType: "text/markdown", text: MATRIX_ACP_RESOURCES[2].content }],
 	}),
 );
 

@@ -1,4 +1,8 @@
-# SearchBun MCP Server
+# SearchBun MCP
+
+**Tier-1380 Test Config:** See [docs/TIER-1380-TEST-CONFIG-SPEC.md](docs/TIER-1380-TEST-CONFIG-SPEC.md) for architecture.
+
+--- Server
 
 Implements the **SearchBun** tool from [bun.com/docs/mcp](https://bun.com/docs/mcp) as a local stdio MCP server, since no public HTTP endpoint is documented.
 

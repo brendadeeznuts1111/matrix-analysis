@@ -61,6 +61,8 @@
     "test:preload": "bun test --preload ./test-setup.ts --preload ./global-mocks.ts",
     "test:env": "bun test --env-file=.env.test",
     "test:ci": "bun test --config=ci",
+    "test:secure": "bun mcp-bun-docs/scripts/secure-test-runner.ts",
+    "test:matrix": "bun mcp-bun-docs/matrix-view.ts",
     "test:dry-run": "bun test --dry-run",
     "test:verbose": "bun test --verbose",
     "migrate": "bun tools/arm64/wrap-migrator.ts",

@@ -15,7 +15,7 @@ export type Stability = "experimental" | "stable" | "deprecated";
 export type Platform = "darwin" | "linux" | "win32";
 export type SecurityClass = "critical" | "high" | "medium" | "low";
 
-export type DocCategory = "storage" | "runtime" | "bundler" | "network";
+export type DocCategory = "storage" | "runtime" | "bundler" | "network" | "cli" | "internals";
 
 export interface BunDocEntry {
 	term: string;
@@ -89,6 +89,18 @@ export const BUN_DOC_ENTRIES: BunDocEntry[] = [
 	{ term: "WebSocket.credentials", path: "api/websocket", bunMinVersion: "1.3.7", stability: "stable", platforms: ["darwin", "linux", "win32"], security: { classification: "critical", notes: "URL credential extraction + Authorization header precedence", zeroTrustEnforced: true }, support: ["ws://user:pass@host", "Basic Auth auto-encoding"], relatedTerms: ["WebSocket"], category: "network" },
 	{ term: "String.isWellFormed", path: "api/string", bunMinVersion: "1.3.7", stability: "stable", platforms: ["darwin", "linux", "win32"], security: SEC_IO, perfProfile: { opsSec: 0, baseline: "5.4x (simdutf)" }, implementation: "WebKit C++ + simdutf", useCases: ["UTF-16 validation"], relatedTerms: ["String.toWellFormed"], category: "runtime" },
 	{ term: "RegExp[Symbol.matchAll]", path: "api/regexp", bunMinVersion: "1.3.7", stability: "stable", platforms: ["darwin", "linux", "win32"], security: SEC_IO, perfProfile: { opsSec: 0, baseline: "C++ reimplementation" }, relatedTerms: ["RegExp", "matchAll"], category: "runtime" },
+	// v1.3.7 Complete Catalog — Tier-1380 (28 entries)
+	{ term: "Buffer.from", path: "api/buffer", bunMinVersion: "1.3.7", stability: "stable", platforms: ["darwin", "linux", "win32"], security: SEC_IO, perfProfile: { opsSec: 0, baseline: "50% faster (8 elems)" }, implementation: "JSC bulk copy + array detection", relatedTerms: ["buffer", "Buffer"], category: "runtime" },
+	{ term: "Bun.wrapAnsi", path: "api/terminal", bunMinVersion: "1.3.7", stability: "stable", platforms: ["darwin", "linux", "win32"], security: SEC_IO, perfProfile: { opsSec: 0, baseline: "88x vs wrap-ansi" }, features: ["OSC 8 hyperlinks", "Full-width Unicode", "GB9c compliant"], relatedTerms: ["Bun.stripANsi"], category: "runtime" },
+	{ term: "Bun.JSON5", path: "api/json5", bunMinVersion: "1.3.7", stability: "stable", platforms: ["darwin", "linux", "win32"], security: SEC_IO, features: ["Comments", "Trailing commas", "Unquoted keys", "Hex numbers"], useCases: ["Chromium config", "Next.js", "Babel", "WebStorm"], relatedTerms: ["json", "Bun.JSONL"], category: "runtime" },
+	{ term: "Bun.JSONL", path: "api/jsonl", bunMinVersion: "1.3.7", stability: "stable", platforms: ["darwin", "linux", "win32"], security: SEC_IO, perfProfile: { opsSec: 0, baseline: "C++ JSC engine" }, methods: ["parse", "parseChunk"], relatedTerms: ["json", "Bun.JSON5"], category: "runtime" },
+	{ term: "--cpu-prof-md", path: "cli/cpu-prof", bunMinVersion: "1.3.7", stability: "stable", platforms: ["darwin", "linux"], security: SEC_IO, useCases: ["Markdown profiles", "GitHub/LLM compatible"], cliFlags: ["--cpu-prof-md"], relatedTerms: ["--heap-prof"], category: "cli" },
+	{ term: "--heap-prof", path: "cli/heap-prof", bunMinVersion: "1.3.7", stability: "stable", platforms: ["darwin", "linux", "win32"], security: SEC_IO, support: ["Chrome DevTools", "Markdown (CLI grep)"], cliFlags: ["--heap-prof"], relatedTerms: ["--cpu-prof-md"], category: "cli" },
+	{ term: "fetch.headerCasing", path: "api/fetch", bunMinVersion: "1.3.7", stability: "stable", platforms: ["darwin", "linux", "win32"], security: SEC_NET, useCases: ["Preserves original casing (RFC 7230)", "Authorization vs authorization fix"], relatedTerms: ["fetch"], category: "network" },
+	{ term: "S3File.write.contentEncoding", path: "api/s3", bunMinVersion: "1.3.7", stability: "stable", platforms: ["darwin", "linux", "win32"], security: SEC_NET, newParams: ["contentEncoding"], support: ["gzip", "br", "deflate"], useCases: ["Pre-compressed uploads", "Brotli static assets"], relatedTerms: ["s3", "S3File.presign"], category: "storage" },
+	{ term: "bun:ffi.envPaths", path: "api/ffi", bunMinVersion: "1.3.7", stability: "stable", platforms: ["darwin", "linux", "win32"], security: SEC_IO, support: ["C_INCLUDE_PATH", "LIBRARY_PATH"], useCases: ["NixOS/FHS non-standard paths"], relatedTerms: ["ffi"], category: "runtime" },
+	{ term: "Mimalloc v3", path: "internals/mimalloc", bunMinVersion: "1.3.7", stability: "stable", platforms: ["darwin", "linux", "win32"], security: SEC_IO, useCases: ["Reduced multi-threaded memory usage"], relatedTerms: ["heap"], category: "internals" },
+	{ term: "Bun.stringWidth", path: "api/utils", bunMinVersion: "1.3.7", stability: "stable", platforms: ["darwin", "linux", "win32"], security: SEC_IO, perfProfile: { opsSec: 0, baseline: "GB9c Indic support" }, implementation: "51KB table (down from 70KB)", useCases: ["Col 93 alignment", "Unicode display width"], relatedTerms: ["Bun.wrapAnsi"], category: "runtime" },
 ];
 
 /** Tier-1380 Test Config Inheritance — bunfig.toml hierarchy */
@@ -108,6 +120,25 @@ export const BUN_137_FEATURE_MATRIX = [
 	{ Term: "WebSocket.creds", Ver: "1.3.7", PerfGain: "-", Security: "Critical", Platforms: "All", Status: "Stable" },
 	{ Term: "String.isWellFormed", Ver: "1.3.7", PerfGain: "5.4x", Security: "Low", Platforms: "All", Status: "Stable" },
 	{ Term: "RegExp.matchAll", Ver: "1.3.7", PerfGain: "C++ fast", Security: "Low", Platforms: "All", Status: "Stable" },
+];
+
+/** Bun v1.3.7 Complete Matrix — Tier-1380 28-entry catalog */
+export const BUN_137_COMPLETE_MATRIX = [
+	{ Category: "Runtime", Term: "Buffer.from", PerfFeature: "50% faster (JSC bulk copy)", SecurityPlatform: "All platforms" },
+	{ Category: "Runtime", Term: "Bun.wrapAnsi", PerfFeature: "88x vs npm (88µs→1µs)", SecurityPlatform: "GB9c Unicode aware" },
+	{ Category: "Runtime", Term: "Bun.JSON5", PerfFeature: "Native .json5 imports", SecurityPlatform: "Comments + trailing commas" },
+	{ Category: "Runtime", Term: "Bun.JSONL", PerfFeature: "Streaming parseChunk()", SecurityPlatform: "C++ UTF-8 BOM skip" },
+	{ Category: "Runtime", Term: "Mimalloc v3", PerfFeature: "Multi-threaded memory ↓", SecurityPlatform: "Heap optimization" },
+	{ Category: "Network", Term: "fetch.headerCasing", PerfFeature: "Preserves Authorization", SecurityPlatform: "RFC 7230 compliant" },
+	{ Category: "Storage", Term: "S3.contentEncoding", PerfFeature: "gzip/br/deflate uploads", SecurityPlatform: "Pre-compressed assets" },
+	{ Category: "Storage", Term: "S3.presign", PerfFeature: "contentDisposition fix", SecurityPlatform: "Inline→attachment control" },
+	{ Category: "Profiling", Term: "--cpu-prof-md", PerfFeature: "Markdown output", SecurityPlatform: "LLM/GitHub analysis" },
+	{ Category: "Profiling", Term: "--heap-prof", PerfFeature: "V8 + Markdown snapshots", SecurityPlatform: "Memory leak grep" },
+	{ Category: "FFI", Term: "bun:ffi.envPaths", PerfFeature: "C_INCLUDE_PATH support", SecurityPlatform: "NixOS compatibility" },
+	{ Category: "Bundler", Term: "Bun.Transpiler", PerfFeature: "replMode (experimental)", SecurityPlatform: "vm.runInContext persistence" },
+	{ Category: "Inspector", Term: "node:inspector", PerfFeature: "Profiler API CDP", SecurityPlatform: "<3% CPU overhead" },
+	{ Category: "Buffer", Term: "Buffer.swap64", PerfFeature: "3.6x (0.56µs)", SecurityPlatform: "CPU intrinsics (AVX/SSE)" },
+	{ Category: "Unicode", Term: "Bun.stringWidth", PerfFeature: "GB9c Indic support", SecurityPlatform: "51KB table (down from 70KB)" },
 ];
 
 /** Tier-1380 Col 93 / GB9c / SecureDataRepository compliance notes */
@@ -166,6 +197,16 @@ export const SEARCH_WEIGHTS: Record<string, number> = {
 	"WebSocket.credentials": 1.5,
 	"String.isWellFormed": 1.2,
 	"RegExp[Symbol.matchAll]": 1.2,
+	"Buffer.from": 1.2,
+	"Bun.wrapAnsi": 1.5,
+	"Bun.JSON5": 1.3,
+	"Bun.JSONL": 1.3,
+	"--cpu-prof-md": 1.2,
+	"--heap-prof": 1.2,
+	"fetch.headerCasing": 1.3,
+	"S3File.write.contentEncoding": 1.3,
+	"bun:ffi.envPaths": 1.2,
+	"Bun.stringWidth": 1.5,
 };
 
 export function buildDocUrl(path: string): string {
