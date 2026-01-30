@@ -30,7 +30,7 @@ class ProfileTerminalBindingManager {
 
     // Use native C++ parser instead of custom YAML loader
     const raw = await Bun.file(path).text();
-    const parsed = Bun.TOML.parse(raw); // <1ms vs 15ms YAML parse
+    const parsed = Bun.TOML.parse(raw) as any; // <1ms vs 15ms YAML parse
 
     const end = performance.now();
     console.log(`⚡ Profile loaded in ${(end - start).toFixed(3)}ms`);
