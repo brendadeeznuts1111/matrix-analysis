@@ -1,6 +1,5 @@
 #!/usr/bin/env bun
 // Header Validation Script
-import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { EXIT_CODES } from "../../.claude/lib/exit-codes.ts";
 
@@ -21,13 +20,13 @@ const GOV_HEADERS: HeaderRule[] = [
   { pattern: /\[GOV-COMPLIANCE-\d+\]/, required: true, description: 'Compliance governance' },
 ];
 
-function validateFile(filePath: string): { errors: string[]; warnings: string[] } {
+async function validateFile(filePath: string): Promise<{ errors: string[]; warnings: string[] }> {
   const errors: string[] = [];
   const warnings: string[] = [];
-  
+
   try {
-    const content = readFileSync(filePath, 'utf8');
-    
+    const content = await Bun.file(filePath).text();
+
     // Check TENSION headers
     TENSION_HEADERS.forEach(header => {
       if (!content.match(header.pattern)) {
@@ -39,7 +38,7 @@ function validateFile(filePath: string): { errors: string[]; warnings: string[] 
         }
       }
     });
-    
+
     // Check GOV headers
     GOV_HEADERS.forEach(header => {
       if (!content.match(header.pattern)) {
@@ -51,33 +50,20 @@ function validateFile(filePath: string): { errors: string[]; warnings: string[] 
         }
       }
     });
-    
+
   } catch (err) {
     errors.push(`Failed to read ${filePath}: ${err}`);
   }
-  
+
   return { errors, warnings };
 }
 
-function findTsFiles(dir: string): string[] {
+async function findTsFiles(dir: string): Promise<string[]> {
+  const glob = new Bun.Glob("**/*.ts");
   const files: string[] = [];
-  
-  try {
-    const entries = readdirSync(dir, { withFileTypes: true });
-    
-    for (const entry of entries) {
-      const fullPath = join(dir, entry.name);
-      
-      if (entry.isDirectory() && !entry.name.startsWith('.')) {
-        files.push(...findTsFiles(fullPath));
-      } else if (entry.isFile() && entry.name.endsWith('.ts')) {
-        files.push(fullPath);
-      }
-    }
-  } catch (err) {
-    console.error(`Error scanning ${dir}: ${err}`);
+  for await (const path of glob.scan({ cwd: dir, onlyFiles: true })) {
+    files.push(join(dir, path));
   }
-  
   return files;
 }
 
@@ -85,7 +71,7 @@ function findTsFiles(dir: string): string[] {
 console.log('🔍 Validating TENSION and GOV headers...');
 
 const srcDir = './src';
-const files = findTsFiles(srcDir);
+const files = await findTsFiles(srcDir);
 
 if (files.length === 0) {
   console.log('⚠️  No TypeScript files found in src/');
@@ -95,18 +81,18 @@ if (files.length === 0) {
 let totalErrors = 0;
 let totalWarnings = 0;
 
-files.forEach(file => {
-  const { errors, warnings } = validateFile(file);
-  
+for (const file of files) {
+  const { errors, warnings } = await validateFile(file);
+
   if (errors.length > 0 || warnings.length > 0) {
     console.log(`\n📄 ${file}`);
     errors.forEach(err => console.log(`  ❌ ${err}`));
     warnings.forEach(warn => console.log(`  ⚠️  ${warn}`));
   }
-  
+
   totalErrors += errors.length;
   totalWarnings += warnings.length;
-});
+}
 
 console.log(`\n📊 Validation Complete`);
 console.log(`Files checked: ${files.length}`);

@@ -1,6 +1,5 @@
 #!/usr/bin/env bun
 // Tension Field Historical Analysis Engine
-import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 
 interface HistoricalData {
@@ -87,15 +86,19 @@ export class HistoricalAnalyzer {
   private data: HistoricalData[] = [];
   private readonly DATA_FILE = './tension-history.json';
 
-  constructor() {
-    this.loadData();
+  private constructor() {}
+
+  static async create(): Promise<HistoricalAnalyzer> {
+    const analyzer = await HistoricalAnalyzer.create();
+    await analyzer.loadData();
+    return analyzer;
   }
 
-  private loadData(): void {
-    if (existsSync(this.DATA_FILE)) {
+  private async loadData(): Promise<void> {
+    const file = Bun.file(this.DATA_FILE);
+    if (await file.exists()) {
       try {
-        const content = readFileSync(this.DATA_FILE, 'utf8');
-        this.data = JSON.parse(content);
+        this.data = await file.json();
         console.log(`📚 Loaded ${this.data.length} historical data points`);
       } catch (err) {
         console.error('❌ Failed to load historical data:', err);
@@ -107,16 +110,16 @@ export class HistoricalAnalyzer {
     }
   }
 
-  private saveData(): void {
+  private async saveData(): Promise<void> {
     try {
-      writeFileSync(this.DATA_FILE, JSON.stringify(this.data, null, 2));
+      await Bun.write(this.DATA_FILE, JSON.stringify(this.data, null, 2));
       console.log(`💾 Saved ${this.data.length} data points to ${this.DATA_FILE}`);
     } catch (err) {
       console.error('❌ Failed to save historical data:', err);
     }
   }
 
-  addDataPoint(data: HistoricalData): void {
+  async addDataPoint(data: HistoricalData): Promise<void> {
     this.data.push(data);
 
     // Keep only last 10,000 points to manage file size
@@ -124,7 +127,7 @@ export class HistoricalAnalyzer {
       this.data = this.data.slice(-10000);
     }
 
-    this.saveData();
+    await this.saveData();
   }
 
   analyzePeriod(startDate?: Date, endDate?: Date): AnalysisReport {
@@ -695,7 +698,7 @@ export class HistoricalAnalyzer {
 
 // CLI interface
 if (import.meta.main) {
-  const analyzer = new HistoricalAnalyzer();
+  const analyzer = await HistoricalAnalyzer.create();
 
   // Generate sample historical data
   console.log('📊 Generating sample historical data...');

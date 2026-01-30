@@ -17,7 +17,7 @@ describe('MCP Server', () => {
     });
 
     // Wait for server to start
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    await Bun.sleep(2000);
 
     // Update client to use test port
     client = new TensionMCPClient('localhost', 3003);
@@ -226,7 +226,7 @@ describe('MCP Integration', () => {
       env: { MCP_PORT: '3004' }
     });
 
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    await Bun.sleep(2000);
     client = new TensionMCPClient('localhost', 3004);
   });
 

@@ -249,7 +249,7 @@ async function simulateMCPCall(toolName: string, complexity: 'simple' | 'medium'
   };
   
   // Simulate processing
-  await new Promise(resolve => setTimeout(resolve, delays[complexity]));
+  await Bun.sleep(delays[complexity]);
   
   // Simulate response generation
   const response = {

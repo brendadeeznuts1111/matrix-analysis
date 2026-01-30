@@ -217,7 +217,7 @@ export class TensionErrorHandler {
 
     console.log(`Attempting recovery for ${error.code} (attempt ${error.retryCount}/${error.maxRetries})`);
 
-    await new Promise(resolve => setTimeout(resolve, delay));
+    await Bun.sleep(delay);
 
     // Retry logic would be implemented by the specific service
     // This is a placeholder for the recovery mechanism

@@ -36,7 +36,7 @@ try {
     TENSIONErrorCode.TIMEOUT_EXCEEDED,
     async () => {
       // Simulate a slow operation
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await Bun.sleep(100);
       return 'Operation completed';
     },
     { operation: 'data-processing' }

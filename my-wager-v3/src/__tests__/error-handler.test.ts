@@ -133,7 +133,7 @@ describe('Error Handler', () => {
       const result = await BunErrorUtils.createTimedError(
         TensionErrorCode.API_TIMEOUT,
         async () => {
-          await new Promise(resolve => setTimeout(resolve, 10));
+          await Bun.sleep(10);
           return 'success';
         }
       );

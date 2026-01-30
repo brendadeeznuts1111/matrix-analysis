@@ -245,7 +245,7 @@ class StressTest {
       }));
       
       // Simulate I/O
-      await new Promise(resolve => setTimeout(resolve, Math.random() * delay));
+      await Bun.sleep(Math.random() * delay);
       
       const duration = performance.now() - start;
       

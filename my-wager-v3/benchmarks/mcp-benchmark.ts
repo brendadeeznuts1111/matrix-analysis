@@ -271,7 +271,7 @@ async function main() {
   });
 
   // Wait for server to start
-  await new Promise(resolve => setTimeout(resolve, 3000));
+  await Bun.sleep(3000);
 
   try {
     const benchmark = new MCPBenchmark();

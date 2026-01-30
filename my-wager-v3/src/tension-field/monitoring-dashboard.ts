@@ -293,7 +293,7 @@ export class LiveMonitoringDashboard {
         Object.values(tensions).map(v => v + (Math.random() - 0.5) * 10)
       );
 
-      await new Promise(resolve => setTimeout(resolve, 2000)); // Collect every 2 seconds
+      await Bun.sleep(2000); // Collect every 2 seconds
     }
   }
 

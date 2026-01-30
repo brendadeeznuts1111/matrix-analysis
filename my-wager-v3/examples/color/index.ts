@@ -35,7 +35,7 @@ for (const example of examples) {
   
   if (example !== examples[examples.length - 1]) {
     console.log('\n' + '='.repeat(50));
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await Bun.sleep(1000);
   }
 }
 

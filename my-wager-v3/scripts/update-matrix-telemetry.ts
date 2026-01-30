@@ -99,9 +99,12 @@ class MatrixTelemetry {
   }
 
   async checkLockfileClean(): Promise<boolean> {
-    const { execSync } = require('child_process');
     try {
-      const status = execSync('git status --porcelain bun.lockb', { encoding: 'utf8' });
+      const { stdout } = await Bun.spawn(["git", "status", "--porcelain", "bun.lockb"], {
+        stdout: "pipe",
+        stderr: "pipe",
+      });
+      const status = await new Response(stdout).text();
       return !status.trim();
     } catch {
       return false;
