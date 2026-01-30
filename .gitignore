@@ -159,3 +159,11 @@ test/
 
 # Project directories (if not meant to be tracked)
 Projects/
+
+# Test reports and benchmarks
+reports/junit.xml
+*.heapsnapshot
+Heap-*
+
+# Advanced test examples (submodule)
+my-wager-v3/examples/advanced-tests/
