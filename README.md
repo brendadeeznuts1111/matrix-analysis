@@ -10,7 +10,7 @@ URLPattern performance analysis matrix with 197 columns. Built for Bun 1.3.6+.
 - **DNS Prefetch** - Hardware-accelerated lookups with 150x faster cached resolution
 - **Color Palette** - HSL-based tier visualization using `Bun.color()`
 
-> **Development Roadmap**: See [ROADMAP.md](./ROADMAP.md) for planned features and progress tracking.
+> **Development Roadmap**: See [ROADMAP.md](./docs/ROADMAP.md) for planned features and progress tracking.
 
 ## Quick Start
 

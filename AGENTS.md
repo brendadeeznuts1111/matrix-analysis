@@ -52,15 +52,15 @@ This is a comprehensive **Bun-native development workspace** featuring:
 ├── src/                          # Main source code
 │   ├── cli.ts                    # CLI entry point
 │   ├── commands/                 # Profile management commands
-│   │   ├── profile-create.ts
-│   │   ├── profile-diff.ts
-│   │   ├── profile-export.ts
-│   │   ├── profile-list.ts
-│   │   ├── profile-show.ts
-│   │   └── profile-use.ts
+│   │   ├── profileCreate.ts
+│   │   ├── profileDiff.ts
+│   │   ├── profileExport.ts
+│   │   ├── profileList.ts
+│   │   ├── profileShow.ts
+│   │   └── profileUse.ts
 │   ├── lib/                      # Shared utilities
 │   │   ├── output.ts
-│   │   ├── profile-loader.ts
+│   │   ├── profileLoader.ts
 │   │   └── validators.ts
 │   └── __tests__/                # Unit tests
 │

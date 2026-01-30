@@ -13,7 +13,7 @@ import {
   computeChanges,
 } from "../lib/output";
 
-describe("profile-loader", () => {
+describe("profileLoader", () => {
   describe("loadProfile", () => {
     it("loads existing profile", async () => {
       const profile = await loadProfile("dev");
