@@ -32,6 +32,7 @@ export interface ArtifactMetadata {
   eventType?: string;
   severity?: string;
   quantumSealed?: boolean;
+  feedId?: string;
 }
 
 export interface ArtifactStorageResult {
