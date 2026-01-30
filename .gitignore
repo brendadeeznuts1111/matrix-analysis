@@ -73,9 +73,12 @@ bunfig.toml
 .azure*
 .cargo/
 # Claude config (but allow examples)
+# NOTE: .claude/.gitignore contains ENHANCED exclusions for agent/MCP/ACP performance
+# See .claude/.gitignore for detailed exclusions of high-duplication directories
 .claude/*
 !.claude/examples/
 !.claude/examples/**
+!.claude/.gitignore
 .claude.json*
 .cline/
 .cloudflared/
