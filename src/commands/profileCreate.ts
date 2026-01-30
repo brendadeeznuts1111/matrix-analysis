@@ -1,5 +1,6 @@
 import { getProfilesDir, loadProfile, listProfiles } from "../lib/profileLoader";
 import type { Profile } from "../lib/profileLoader";
+import { EXIT_CODES } from "../../.claude/lib/exit-codes.ts";
 
 interface CreateOptions {
   from?: string;
@@ -29,7 +30,7 @@ export async function profileCreate(
     if (!options.force) {
       console.error(`\x1b[31mError: Profile "${name}" already exists\x1b[0m`);
       console.error("Use --force to overwrite");
-      process.exit(1);
+      process.exit(EXIT_CODES.CONFLICT_ERROR);
     }
     console.log(`\x1b[33m⚠ Overwriting existing profile "${name}"\x1b[0m`);
   }
@@ -45,7 +46,7 @@ export async function profileCreate(
       if (available.length > 0) {
         console.error(`Available profiles: ${available.join(", ")}`);
       }
-      process.exit(1);
+      process.exit(EXIT_CODES.NOT_FOUND);
     }
 
     profile = {

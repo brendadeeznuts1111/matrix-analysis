@@ -1,0 +1,65 @@
+{
+  "timestamp": "2026-01-30T21:18:24.111Z",
+  "benchmarks": [
+    {
+      "name": "System Status Request",
+      "iterations": 100,
+      "totalTime": 10.701632999999674,
+      "avgTime": 0.10701632999999675,
+      "minTime": 0.0470420000001468,
+      "maxTime": 1.6403329999998277,
+      "throughput": 9344.368284728418
+    },
+    {
+      "name": "Error Query",
+      "iterations": 50,
+      "totalTime": 50528.97245699998,
+      "avgTime": 1010.5794491399996,
+      "minTime": 1001.4930000000004,
+      "maxTime": 1158.7058749999997,
+      "throughput": 0.9895313038979738
+    },
+    {
+      "name": "History Query",
+      "iterations": 30,
+      "totalTime": 30428.808585999963,
+      "avgTime": 1014.293619533332,
+      "minTime": 1001.2377500000002,
+      "maxTime": 1110.0950840000005,
+      "throughput": 0.9859078088848587
+    },
+    {
+      "name": "Tension Analysis",
+      "iterations": 20,
+      "totalTime": 4.736123999959091,
+      "avgTime": 0.23680619999795455,
+      "minTime": 0.053834000005736016,
+      "maxTime": 1.4056669999990845,
+      "throughput": 4222.862408199775
+    },
+    {
+      "name": "Concurrent Requests (10)",
+      "iterations": 20,
+      "totalTime": 9.471623999983422,
+      "avgTime": 0.4735811999991711,
+      "minTime": 0.16920899999968242,
+      "maxTime": 3.0254580000037095,
+      "throughput": 2111.5703072709607
+    },
+    {
+      "name": "Mixed Workload",
+      "iterations": 100,
+      "totalTime": 26285.34845399999,
+      "avgTime": 262.8534845399999,
+      "minTime": 0.0528749999939464,
+      "maxTime": 1151.4244999999937,
+      "throughput": 3.8044007738760808
+    }
+  ],
+  "summary": {
+    "totalTests": 6,
+    "fastestOp": "System Status Request",
+    "slowestOp": "History Query",
+    "highestThroughput": 9344.368284728418
+  }
+}

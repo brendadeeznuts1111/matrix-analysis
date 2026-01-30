@@ -1,5 +1,6 @@
 import { loadProfile } from "../lib/profileLoader";
 import { maskValue } from "../lib/output";
+import { EXIT_CODES } from "../../.claude/lib/exit-codes.ts";
 
 interface DiffEntry {
   key: string;
@@ -20,12 +21,12 @@ export async function profileDiff(
 
   if (!left) {
     console.error(`\x1b[31mError: Profile "${leftName}" not found\x1b[0m`);
-    process.exit(1);
+    process.exit(EXIT_CODES.NOT_FOUND);
   }
 
   if (!right) {
     console.error(`\x1b[31mError: Profile "${rightName}" not found\x1b[0m`);
-    process.exit(1);
+    process.exit(EXIT_CODES.NOT_FOUND);
   }
 
   const allKeys = new Set([

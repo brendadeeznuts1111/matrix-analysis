@@ -7,6 +7,7 @@ import {
   printExportStatements,
   detectConflicts,
 } from "../lib/output";
+import { EXIT_CODES } from "../../.claude/lib/exit-codes.ts";
 
 export interface ProfileUseOptions {
   validateRules: boolean;
@@ -23,7 +24,7 @@ export async function profileUse(
   if (!profile) {
     console.error(`\x1b[31mError: Profile "${name}" not found\x1b[0m`);
     console.error(`Run 'bun run matrix:profile:list' to see available profiles`);
-    process.exit(1);
+    process.exit(EXIT_CODES.NOT_FOUND);
   }
 
   if (options.validateRules) {
@@ -31,13 +32,13 @@ export async function profileUse(
     printValidation(result.passed, result.errors, result.warnings);
 
     if (!result.passed) {
-      process.exit(1);
+      process.exit(EXIT_CODES.VALIDATION_ERROR);
     }
 
     if (result.warnings.length > 0 && !options.force) {
       console.log("\n\x1b[33mUse --force to continue with warnings\x1b[0m");
       if (!options.dryRun) {
-        process.exit(1);
+        process.exit(EXIT_CODES.VALIDATION_ERROR);
       }
     }
   }
@@ -63,7 +64,7 @@ export async function profileUse(
       console.error(
         "\n\x1b[33mUse --force to override or --dry-run to preview\x1b[0m"
       );
-      process.exit(1);
+      process.exit(EXIT_CODES.CONFLICT_ERROR);
     }
   }
 

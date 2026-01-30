@@ -16,6 +16,13 @@
   },
   "scripts": {
     "mcp:inspector": "bun x @modelcontextprotocol/inspector",
+    "mcp:bun-docs": "bun mcp-bun-docs/index.ts",
+    "mcp:bun-test": "bun bun-mcp-test.ts",
+    "mcp:bun-test:suite": "bun test ./bun-mcp.test.ts ./mcp-bun-docs/search-bun.test.ts",
+    "mcp:example:manifest": "bun mcp-bun-docs/examples/manifest-fetch.example.ts",
+    "mcp:example:search": "bun mcp-bun-docs/examples/search-bun.example.ts",
+    "mcp:matrix": "bun mcp-bun-docs/matrix-view.ts",
+    "mcp:ci-validate": "bun mcp-bun-docs/scripts/ci-validate-entries.ts",
     "mcp:rss": "bun x rss-mcp",
     "dev": "bun run .claude/examples/enterprise/shop-server.ts",
     "matrix": "bun run src/cli.ts",
@@ -81,6 +88,11 @@
           "DISABLE_NOTIFICATIONS": "true"
         },
         "description": "Bun runtime integration for JavaScript/TypeScript execution (Bun native)"
+      },
+      "bun-docs": {
+        "command": "bun",
+        "args": ["mcp-bun-docs/index.ts"],
+        "description": "SearchBun - Search Bun docs (bun.com/docs/mcp). API refs, code examples, guides."
       },
       "context7": {
         "command": "bun",

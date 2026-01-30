@@ -14,6 +14,7 @@
 import { parseArgs } from "util";
 import { Glob } from "bun";
 import { Project, Node, ImportDeclaration } from "ts-morph";
+import { EXIT_CODES } from "../../.claude/lib/exit-codes.ts";
 import {
   IS_ARM64,
   HAS_ARM64_OPTIMIZATIONS,
@@ -108,7 +109,7 @@ ARM64 OPTIMIZATIONS:
 
 ╚══════════════════════════════════════════════════════════════════════════════╝
 `);
-  process.exit(0);
+  process.exit(EXIT_CODES.SUCCESS);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -478,5 +479,5 @@ ${result.operation}:
 
 main().catch((error) => {
   console.error("Fatal error:", error);
-  process.exit(1);
+  process.exit(EXIT_CODES.GENERIC_ERROR);
 });

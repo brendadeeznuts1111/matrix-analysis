@@ -5,6 +5,7 @@ import { profileExport } from "./commands/profileExport";
 import { profileList } from "./commands/profileList";
 import { profileShow } from "./commands/profileShow";
 import { profileUse } from "./commands/profileUse";
+import { EXIT_CODES } from "../.claude/lib/exit-codes.ts";
 
 interface ParsedArgs {
 	command: string;
@@ -136,7 +137,7 @@ async function main(): Promise<void> {
 		parsed.command === "--help"
 	) {
 		printUsage();
-		process.exit(0);
+		process.exit(EXIT_CODES.SUCCESS);
 	}
 
 	switch (parsed.command) {
@@ -144,7 +145,7 @@ async function main(): Promise<void> {
 			if (parsed.positional.length < 1) {
 				console.error("\x1b[31mError: Profile name is required\x1b[0m");
 				console.error("Usage: bun run matrix:profile:use <name> [options]");
-				process.exit(1);
+				process.exit(EXIT_CODES.USAGE_ERROR);
 			}
 			await profileUse(parsed.positional[0], {
 				validateRules: parsed.validateRules,
@@ -162,7 +163,7 @@ async function main(): Promise<void> {
 			if (parsed.positional.length < 1) {
 				console.error("\x1b[31mError: Profile name is required\x1b[0m");
 				console.error("Usage: bun run matrix:profile:show <name>");
-				process.exit(1);
+				process.exit(EXIT_CODES.USAGE_ERROR);
 			}
 			await profileShow(parsed.positional[0]);
 			break;
@@ -171,7 +172,7 @@ async function main(): Promise<void> {
 			if (parsed.positional.length < 2) {
 				console.error("\x1b[31mError: Two profile names are required\x1b[0m");
 				console.error("Usage: bun run matrix:profile:diff <left> <right>");
-				process.exit(1);
+				process.exit(EXIT_CODES.USAGE_ERROR);
 			}
 			await profileDiff(parsed.positional[0], parsed.positional[1], {
 				showUnchanged: parsed.showUnchanged,
@@ -182,7 +183,7 @@ async function main(): Promise<void> {
 			if (parsed.positional.length < 1) {
 				console.error("\x1b[31mError: Profile name is required\x1b[0m");
 				console.error("Usage: bun run matrix:profile:create <name> [options]");
-				process.exit(1);
+				process.exit(EXIT_CODES.USAGE_ERROR);
 			}
 			await profileCreate(parsed.positional[0], {
 				from: parsed.from,
@@ -196,7 +197,7 @@ async function main(): Promise<void> {
 			if (parsed.positional.length < 1) {
 				console.error("\x1b[31mError: Profile name is required\x1b[0m");
 				console.error("Usage: bun run matrix:profile:export <name> [options]");
-				process.exit(1);
+				process.exit(EXIT_CODES.USAGE_ERROR);
 			}
 			await profileExport(parsed.positional[0], {
 				output: parsed.output,
@@ -208,11 +209,11 @@ async function main(): Promise<void> {
 		default:
 			console.error(`\x1b[31mUnknown command: ${parsed.command}\x1b[0m`);
 			printUsage();
-			process.exit(1);
+			process.exit(EXIT_CODES.USAGE_ERROR);
 	}
 }
 
 main().catch((err) => {
 	console.error(err);
-	process.exit(1);
+	process.exit(EXIT_CODES.GENERIC_ERROR);
 });

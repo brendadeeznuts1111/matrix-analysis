@@ -1,4 +1,5 @@
 import { loadProfile, resolveSecretRefs } from "../lib/profileLoader";
+import { EXIT_CODES } from "../../.claude/lib/exit-codes.ts";
 
 interface ExportOptions {
   output?: string;
@@ -14,7 +15,7 @@ export async function profileExport(
 
   if (!profile) {
     console.error(`\x1b[31mError: Profile "${name}" not found\x1b[0m`);
-    process.exit(1);
+    process.exit(EXIT_CODES.NOT_FOUND);
   }
 
   // Optionally resolve ${VAR} references

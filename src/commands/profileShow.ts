@@ -1,12 +1,13 @@
 import { loadProfile } from "../lib/profileLoader";
 import { maskValue } from "../lib/output";
+import { EXIT_CODES } from "../../.claude/lib/exit-codes.ts";
 
 export async function profileShow(name: string): Promise<void> {
   const profile = await loadProfile(name);
 
   if (!profile) {
     console.error(`\x1b[31mError: Profile "${name}" not found\x1b[0m`);
-    process.exit(1);
+    process.exit(EXIT_CODES.NOT_FOUND);
   }
 
   console.log(`\x1b[1mProfile: ${profile.name}\x1b[0m`);

@@ -1,12 +1,13 @@
 #!/usr/bin/env bun
 // Bun Package Search Tool
 // Usage: bun run bun-search.ts <query>
+import { EXIT_CODES } from "../.claude/lib/exit-codes.ts";
 
 const query = Bun.argv.slice(2).join(" ");
 
 if (!query) {
   console.error("Usage: bun run bun-search.ts <package-name>");
-  process.exit(1);
+  process.exit(EXIT_CODES.USAGE_ERROR);
 }
 
 // Search npm registry using npm's API
@@ -31,7 +32,7 @@ const searchPackages = async (q: string) => {
     
   } catch (err) {
     console.error("Search failed:", err);
-    process.exit(1);
+    process.exit(EXIT_CODES.USAGE_ERROR);
   }
 };
 

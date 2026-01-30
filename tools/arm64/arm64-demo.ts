@@ -11,6 +11,7 @@
  * - Real-time performance visualization
  */
 
+import { EXIT_CODES } from "../../.claude/lib/exit-codes.ts";
 import {
   IS_ARM64,
   HAS_ARM64_OPTIMIZATIONS,
@@ -390,5 +391,5 @@ async function main() {
 
 main().catch((error) => {
   console.error("Fatal error:", error);
-  process.exit(1);
+  process.exit(EXIT_CODES.GENERIC_ERROR);
 });
