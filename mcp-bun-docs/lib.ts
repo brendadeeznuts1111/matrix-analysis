@@ -125,11 +125,18 @@ export const BUN_137_FEATURE_MATRIX = [
 /** Bun v1.3.7 Complete Matrix — Tier-1380 28-entry catalog */
 export const BUN_137_COMPLETE_MATRIX = [
 	{ Category: "Runtime", Term: "Buffer.from", PerfFeature: "50% faster (JSC bulk copy)", SecurityPlatform: "All platforms" },
+	{ Category: "Runtime", Term: "Buffer.swap16", PerfFeature: "1.8x (0.56µs)", SecurityPlatform: "Side-channel safe" },
+	{ Category: "Runtime", Term: "Buffer.swap64", PerfFeature: "3.6x (0.56µs)", SecurityPlatform: "CPU intrinsics (AVX/SSE)" },
 	{ Category: "Runtime", Term: "Bun.wrapAnsi", PerfFeature: "88x vs npm (88µs→1µs)", SecurityPlatform: "GB9c Unicode aware" },
+	{ Category: "Runtime", Term: "Bun.stringWidth", PerfFeature: "GB9c Indic support", SecurityPlatform: "51KB table (down from 70KB)" },
 	{ Category: "Runtime", Term: "Bun.JSON5", PerfFeature: "Native .json5 imports", SecurityPlatform: "Comments + trailing commas" },
 	{ Category: "Runtime", Term: "Bun.JSONL", PerfFeature: "Streaming parseChunk()", SecurityPlatform: "C++ UTF-8 BOM skip" },
 	{ Category: "Runtime", Term: "Mimalloc v3", PerfFeature: "Multi-threaded memory ↓", SecurityPlatform: "Heap optimization" },
+	{ Category: "Runtime", Term: "String.isWellFormed", PerfFeature: "5.4x (simdutf)", SecurityPlatform: "UTF-16 validation" },
+	{ Category: "Runtime", Term: "RegExp.matchAll", PerfFeature: "C++ reimplementation", SecurityPlatform: "All platforms" },
 	{ Category: "Network", Term: "fetch.headerCasing", PerfFeature: "Preserves Authorization", SecurityPlatform: "RFC 7230 compliant" },
+	{ Category: "Network", Term: "http.maxHeaders", PerfFeature: "200 headers (0.2µs/header)", SecurityPlatform: "DoS protection" },
+	{ Category: "Network", Term: "WebSocket.credentials", PerfFeature: "URL creds + Auth header", SecurityPlatform: "Critical (ZTNA)" },
 	{ Category: "Storage", Term: "S3.contentEncoding", PerfFeature: "gzip/br/deflate uploads", SecurityPlatform: "Pre-compressed assets" },
 	{ Category: "Storage", Term: "S3.presign", PerfFeature: "contentDisposition fix", SecurityPlatform: "Inline→attachment control" },
 	{ Category: "Profiling", Term: "--cpu-prof-md", PerfFeature: "Markdown output", SecurityPlatform: "LLM/GitHub analysis" },
@@ -137,8 +144,6 @@ export const BUN_137_COMPLETE_MATRIX = [
 	{ Category: "FFI", Term: "bun:ffi.envPaths", PerfFeature: "C_INCLUDE_PATH support", SecurityPlatform: "NixOS compatibility" },
 	{ Category: "Bundler", Term: "Bun.Transpiler", PerfFeature: "replMode (experimental)", SecurityPlatform: "vm.runInContext persistence" },
 	{ Category: "Inspector", Term: "node:inspector", PerfFeature: "Profiler API CDP", SecurityPlatform: "<3% CPU overhead" },
-	{ Category: "Buffer", Term: "Buffer.swap64", PerfFeature: "3.6x (0.56µs)", SecurityPlatform: "CPU intrinsics (AVX/SSE)" },
-	{ Category: "Unicode", Term: "Bun.stringWidth", PerfFeature: "GB9c Indic support", SecurityPlatform: "51KB table (down from 70KB)" },
 ];
 
 /** Tier-1380 Col 93 / GB9c / SecureDataRepository compliance notes */

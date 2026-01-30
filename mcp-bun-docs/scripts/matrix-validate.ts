@@ -8,7 +8,7 @@
 import { BUN_DOC_ENTRIES, BUN_DOCS_VERSION } from "../lib.ts";
 
 const COL_93_LIMIT = 93;
-const COL_93_TERMS = ["Transpiler.replMode", "WebSocket.credentials"] as const;
+const COL_93_TERMS = ["Transpiler.replMode", "WebSocket.credentials", "Bun.wrapAnsi"] as const;
 
 function getStringWidth(s: string): number {
 	if (typeof Bun !== "undefined" && "stringWidth" in Bun) {

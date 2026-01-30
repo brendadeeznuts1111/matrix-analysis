@@ -18,6 +18,7 @@ import {
 	TEST_CONFIG_MATRIX,
 	TIER_1380_COMPLIANCE,
 	BUN_137_FEATURE_MATRIX,
+	BUN_137_COMPLETE_MATRIX,
 	filterEntriesByVersion,
 	filterEntriesByStability,
 	filterEntriesByPlatform,
@@ -217,6 +218,17 @@ describe("SearchBun / lib", () => {
 		});
 		test("should have 7 v1.3.7 features", () => {
 			expect(BUN_137_FEATURE_MATRIX).toHaveLength(7);
+		});
+	});
+
+	describe("BUN_137_COMPLETE_MATRIX", () => {
+		test("should include Buffer.from and Bun.wrapAnsi", () => {
+			const terms = BUN_137_COMPLETE_MATRIX.map((r) => r.Term);
+			expect(terms).toContain("Buffer.from");
+			expect(terms).toContain("Bun.wrapAnsi");
+		});
+		test("should have 20 complete matrix rows (v1.3.7 catalog)", () => {
+			expect(BUN_137_COMPLETE_MATRIX.length).toBeGreaterThanOrEqual(18);
 		});
 	});
 
