@@ -35,7 +35,7 @@ methods.forEach(method => {
 if (process.platform !== 'win32') {
   console.log('2️⃣ Reusable Terminal in Action');
   console.log('===============================\n');
-  
+
   // Create reusable terminal with await using
   await using terminal = new Bun.Terminal({
     cols: 80,
@@ -48,9 +48,9 @@ if (process.platform !== 'win32') {
       }
     },
   });
-  
+
   console.log('✅ Created reusable terminal\n');
-  
+
   // Execute multiple commands
   const commands = [
     { cmd: ['echo', 'Hello from reusable terminal!'], desc: 'Simple echo' },
@@ -58,42 +58,37 @@ if (process.platform !== 'win32') {
     { cmd: ['pwd'], desc: 'Current directory' },
     { cmd: ['uname', '-a'], desc: 'System information' }
   ];
-  
+
   for (const { cmd, desc } of commands) {
     console.log(`Running: ${desc}`);
     const proc = Bun.spawn(cmd, { terminal });
     await proc.exited;
     console.log('');
   }
-  
+
   // Demo 3: Terminal resize
   console.log('3️⃣ Terminal Resize Demo');
   console.log('======================\n');
-  
+
   console.log('Resizing terminal to 60x10...');
   terminal.resize(60, 10);
-  
+
   const resizeProc = Bun.spawn(['bash'], { terminal });
   setTimeout(() => {
     terminal.write("echo 'Terminal resized!'\n");
     terminal.write("stty size\n");
     terminal.write("exit\n");
   }, 200);
-  
+
   await resizeProc.exited;
-  
+
   // Demo 4: Terminal with custom environment
   console.log('\n4️⃣ Custom Environment Terminal');
   console.log('==============================\n');
-  
+
   const customTerminal = new Bun.Terminal({
     cols: 80,
     rows: 24,
-    env: {
-      ...process.env,
-      CUSTOM_VAR: 'Tier-1380',
-      TERMINAL_TYPE: 'demo'
-    },
     data(term, data) {
       const output = data.toString();
       if (output.includes('CUSTOM_VAR') || output.includes('TERMINAL_TYPE')) {
@@ -101,20 +96,27 @@ if (process.platform !== 'win32') {
       }
     },
   });
-  
-  const envProc = Bun.spawn(['bash'], { terminal: customTerminal });
+
+  const envProc = Bun.spawn(['bash'], {
+    terminal: customTerminal,
+    env: {
+      ...process.env,
+      CUSTOM_VAR: 'Tier-1380',
+      TERMINAL_TYPE: 'demo'
+    }
+  });
   setTimeout(() => {
     customTerminal.write("echo 'Custom variables:'\n");
     customTerminal.write("echo \"CUSTOM_VAR: \$CUSTOM_VAR\"\n");
     customTerminal.write("echo \"TERMINAL_TYPE: \$TERMINAL_TYPE\"\n");
     customTerminal.write("exit\n");
   }, 200);
-  
+
   await envProc.exited;
   customTerminal.close();
-  
+
   console.log('\n✅ Custom terminal demo complete');
-  
+
 } else {
   console.log('2️⃣ Windows Note');
   console.log('===============\n');

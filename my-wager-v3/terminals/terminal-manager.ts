@@ -58,15 +58,6 @@ export class DedicatedTerminalManager {
     const terminal = new Bun.Terminal({
       cols: 93,  // Tier-1380 Col 93 standard
       rows: 45,  // Matrix display height
-      env: {
-        ...process.env,
-        BUN_TERMINAL_TYPE: 'quantum',
-        BUN_QUANTUM_SEAL: await this.generateSeal(),
-        BUN_PROFILE_ID: profileId,
-        // Disable history for security
-        HISTFILE: '/dev/null',
-        HISTSIZE: '0'
-      },
 
       // Handle incoming data with security scanning
       data: (term: any, data: Buffer) => {
@@ -108,6 +99,12 @@ export class DedicatedTerminalManager {
       env: {
         ...process.env,
         CSRF_TOKEN: await this.csrfProtector.generateToken(),
+        BUN_TERMINAL_TYPE: 'quantum',
+        BUN_QUANTUM_SEAL: await this.generateSeal(),
+        BUN_PROFILE_ID: profileId,
+        // Disable history for security
+        HISTFILE: '/dev/null',
+        HISTSIZE: '0'
       },
       cwd: options.cwd || `/secure/${terminalId}`,
       stdio: ['inherit', 'inherit', 'inherit'] // PTY handles all I/O
@@ -150,7 +147,8 @@ export class DedicatedTerminalManager {
     }
 
     // Update Col 93 Matrix display if matrix terminal
-    if (terminal.env?.BUN_TERMINAL_TYPE === 'matrix') {
+    // Note: We check the profile context since env is not on terminal
+    if (profileId.includes('matrix')) {
       this.updateMatrixDisplay(output);
     }
 
@@ -168,15 +166,17 @@ export class DedicatedTerminalManager {
     // await using support for automatic cleanup
     const terminal = new Bun.Terminal({
       cols: 93,
-      rows: 45,
-      env: await this.loadProfileEnv(profileId)
+      rows: 45
     });
 
     return {
       terminal,
 
       async execute(command: string[]) {
-        const proc = Bun.spawn(command, { terminal });
+        const proc = Bun.spawn(command, {
+          terminal,
+          env: await this.loadProfileEnv(profileId)
+        });
         return proc.exited;
       },
 
