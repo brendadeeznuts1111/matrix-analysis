@@ -2,6 +2,8 @@
 // Reusable Terminal Demo - Bun v1.3.5
 // Shows how to create and reuse a terminal across multiple processes
 
+export {}; // Make this file a module
+
 console.log("🔄 Reusable Terminal Demo");
 console.log("=========================");
 
@@ -13,7 +15,7 @@ await using terminal = new Bun.Terminal({
     // Convert data to string if it's a Buffer
     const dataStr = Buffer.isBuffer(data) ? data.toString() : data;
     // Add prefix to distinguish output
-    const prefixed = dataStr.split('\n').map(line => `[TERM] ${line}`).join('\n');
+    const prefixed = dataStr.split('\n').map((line: string) => `[TERM] ${line}`).join('\n');
     process.stdout.write(prefixed);
   },
 });

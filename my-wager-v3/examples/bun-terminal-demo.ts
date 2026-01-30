@@ -2,6 +2,8 @@
 // Bun Terminal API Demo - PTY Support
 // Demonstrates running vim with pseudo-terminal
 
+export {}; // Make this file a module
+
 console.log("🖥️ Bun Terminal API Demo");
 console.log("========================");
 console.log("Launching vim with PTY support...");
@@ -41,13 +43,13 @@ const proc = Bun.spawn(["vim", "demo-file.txt"], {
 // Handle process exit
 proc.exited.then((code) => {
   console.log(`\n✅ Vim exited with code: ${code}`);
-  
+
   // Show the edited file content
   console.log("\n📄 Edited file content:");
   console.log("=====================");
   const content = await Bun.file("demo-file.txt").text();
   console.log(content);
-  
+
   // Cleanup
   await Bun.file("demo-file.txt").delete();
   process.exit(code);
