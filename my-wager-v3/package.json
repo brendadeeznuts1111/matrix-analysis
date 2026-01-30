@@ -41,6 +41,7 @@
     "profile": "bun profile-terminal.ts",
     "terminal:demo": "bun examples/bun-terminal-demo.ts",
     "terminal:reusable": "bun examples/reusable-terminal-demo.ts",
+    "terminal:tier1380": "bun examples/tier1380-terminal-integration.ts",
     "errors:report": "bun scripts/error-recovery.ts report",
     "errors:demo": "bun scripts/demo-error-handling.ts",
     "mcp:server": "bun mcp-server.ts",
