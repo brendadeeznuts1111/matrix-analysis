@@ -17,6 +17,8 @@ depth = 4                    # number  — default depth for console.log() inspe
 
 # ── Package Manager ───────────────────────────────────────────────────────────
 # PATH: install      TYPE: mixed    CTX: 13 keys
+# Inherited by bun test (registry, exact, prefer, cafile, etc.)
+# @see https://bun.com/docs/test/configuration#install-settings-inheritance
 
 [install]
 auto = "auto"                # string  — "auto" | "force" | "disable" | "fallback"
@@ -63,21 +65,34 @@ env = [                      # array   — .env file load order
 
 # ── Test Runner ───────────────────────────────────────────────────────────────
 # PATH: test         TYPE: mixed    CTX: 10 keys
+# @see https://bun.com/docs/test/configuration
+# CLI options override these (e.g. bun test --timeout 15000 --coverage)
 
 [test]
-root = "src"                 # string  — test execution root directory
-# preload omitted — defaults to [] (Bun TOML parser rejects empty arrays)
+root = ".claude"             # string  — scan for tests in .claude
+preload = ["./test-setup.ts", "./global-mocks.ts"]
+timeout = 10000              # number  — default 10s per test (override: test("x", fn, 5000))
 smol = false                 # boolean — reduce memory for test runner
 coverage = false             # boolean — enable code coverage
 coverageDir = "./coverage"   # string  — coverage output directory
 coverageThreshold = 0        # number  — minimum required coverage % (0 = off)
 coverageSkipTestFiles = true # boolean — exclude test files from coverage
+coveragePathIgnorePatterns = [
+  "**/*.spec.ts", "**/*.test.ts", "dist/**", "node_modules/**",
+]
 randomize = false            # boolean — run tests in random order
 rerunEach = 0                # number  — re-execute each test file N times
 
 [test.reporter]
 # PATH: test.reporter  TYPE: mixed  CTX: 2 keys
 dots = false                 # boolean — compact dot-based output
+junit = "./reports/junit.xml" # JUnit XML for CI (bun test --reporter=junit)
+
+# Override for CI: bun test --config=ci
+[test.ci]
+coverage = true
+coverageThreshold = 0.9
+timeout = 30000
 
 # ── Build ─────────────────────────────────────────────────────────────────────
 # PATH: build        TYPE: mixed    CTX: 4 keys

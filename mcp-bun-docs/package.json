@@ -1,0 +1,7 @@
+{
+	"name": "mcp-bun-docs",
+	"version": "1.0.0",
+	"private": true,
+	"type": "module",
+	"description": "SearchBun MCP server - Bun docs search bridge per https://bun.com/docs/mcp"
+}
