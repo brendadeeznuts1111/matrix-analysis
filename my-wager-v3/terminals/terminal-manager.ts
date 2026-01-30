@@ -1,7 +1,8 @@
 // terminals/terminal-manager.ts — Native PTY Implementation with Bun v1.3.5
 // Tier-1380 Terminal Manager with Quantum Security
 
-import type { Subprocess } from 'bun';
+import { randomUUID } from 'node:crypto';
+import type { Subprocess, Terminal } from 'bun';
 
 export interface TerminalSession {
   id: string;
@@ -60,19 +61,20 @@ export class DedicatedTerminalManager {
       rows: 45,  // Matrix display height
 
       // Handle incoming data with security scanning
-      data: (term: any, data: Buffer) => {
-        this.handleTerminalData(term, data, profileId);
+      data: (term: Terminal, data: Uint8Array) => {
+        this.handleTerminalData(term, Buffer.from(data), profileId);
       }
     });
 
-    const terminalId = `quantum-${Bun.randomUUID()}`;
+    const terminalId = `quantum-${randomUUID()}`;
     this.terminals.set(terminalId, terminal);
 
     // Auto-cleanup with await using pattern
+    const sessionProfileId = profileId;
     return {
       id: terminalId,
       terminal,
-      profileId,
+      profileId: sessionProfileId,
       [Symbol.asyncDispose]: async () => {
         await this.sealTerminalArtifacts(terminalId);
         terminal.close();
@@ -94,6 +96,7 @@ export class DedicatedTerminalManager {
 
     // Spawn with PTY attached
     // process.stdout.isTTY will be true inside this subprocess
+    const currentProfileId = profileId;
     const proc = Bun.spawn(command, {
       terminal,  // Native PTY attachment (v1.3.5)
       env: {
@@ -101,7 +104,7 @@ export class DedicatedTerminalManager {
         CSRF_TOKEN: await this.csrfProtector.generateToken(),
         BUN_TERMINAL_TYPE: 'quantum',
         BUN_QUANTUM_SEAL: await this.generateSeal(),
-        BUN_PROFILE_ID: profileId,
+        BUN_PROFILE_ID: currentProfileId,
         // Disable history for security
         HISTFILE: '/dev/null',
         HISTSIZE: '0'
@@ -169,13 +172,15 @@ export class DedicatedTerminalManager {
       rows: 45
     });
 
+    const profileEnv = await this.loadProfileEnv(profileId);
+
     return {
       terminal,
 
       async execute(command: string[]) {
         const proc = Bun.spawn(command, {
           terminal,
-          env: await this.loadProfileEnv(profileId)
+          env: profileEnv
         });
         return proc.exited;
       },
