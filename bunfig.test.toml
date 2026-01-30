@@ -1,0 +1,41 @@
+# bunfig.toml - Tier-1380 Configuration Inheritance
+[install]
+# Inherited by test for private registry auth
+registry = "https://registry.company.com"
+cafile = "./certs/corporate-ca.pem"
+prefer = "offline"
+exact = true
+
+[test]
+# Base configuration
+root = "src"
+timeout = 10000
+smol = false
+reporter = "spec"
+
+preload = [
+  "./security-mocks.ts",
+  "./test-setup.ts"
+]
+
+coverage = true
+
+[test.ci]
+# CI-specific overrides (inherits [test])
+timeout = 30000
+smol = true
+coverage = { 
+  reporter = ["text", "lcov", "html"],
+  threshold = { lines = 0.9, functions = 0.9, statements = 0.85, branches = 0.8 },
+  pathIgnore = ["generated/**", "**/*.spec.ts"]
+}
+
+[test.staging]
+# Staging environment
+timeout = 15000
+coverage = false
+
+[test.local]
+# Local development
+timeout = 5000
+updateSnapshots = true

@@ -1,0 +1,16 @@
+{
+  "scripts": {
+    "test": "bun run cli/test.ts --config=local",
+    "test:ci": "bun run cli/test.ts --config=ci --smol --coverage",
+    "test:staging": "bun run cli/test.ts --config=staging",
+    "test:secure": "bun run packages/test/secure-test-runner.ts",
+    "test:audit": "bun run cli/test.ts --audit --dry-run",
+    "test:matrix": "bun run cli/test.ts --matrix",
+    "test:bench": "bun run bench/test-config-bench.ts",
+    "test:validate": "bun run test/security-validation.test.ts",
+    "test:3d": "bun run -e \"import('./packages/test/col93-matrix.ts').then(m => console.log(m.generate3DMatrix(require('./packages/test/secure-test-runner.ts').SecureTestRunner.prototype.config)))\"",
+    "test:html": "bun run -e \"import('./packages/test/col93-matrix.ts').then(m => require('fs').writeFileSync('test-matrix.html', m.generateHTMLDashboard({install:{},test:{}})))\"",
+    "test:compare": "bun run -e \"import('./packages/test/col93-matrix.ts').then(m => console.log(m.compareMatrices({install:{},test:{}}, {install:{},test:{}})))\"",
+    "test:json": "bun run -e \"import('./packages/test/col93-matrix.ts').then(m => console.log(m.exportMatrixAsJSON({install:{},test:{}})))\""
+  }
+}

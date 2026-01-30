@@ -1,0 +1,17 @@
+# <type>(<scope>): <subject>
+# <BLANK LINE>
+# <body>
+# <BLANK LINE>
+# <footer>
+
+# Types: feat, fix, docs, style, refactor, test, chore, perf, ci, build, revert
+# Scope: affected component (optional)
+# Subject: imperative mood, no period, <50 chars
+# Body: explains what and why (optional)
+# Footer: breaking changes, closes issues (optional)
+
+# Examples:
+# feat(auth): add OAuth2 login support
+# fix(api): handle null response in user endpoint
+# docs(readme): update installation instructions
+# refactor(utils): simplify date formatting logic

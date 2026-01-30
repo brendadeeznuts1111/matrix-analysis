@@ -25,7 +25,7 @@ export const MATRIX_ACP_RESOURCES = [
 		uri: "bun://docs/matrix/v1.3.7-complete",
 		mimeType: "application/json",
 		name: "Tier-1380 Complete Matrix (28 entries)",
-		metadata: { bunVersion: BUN_DOCS_VERSION, entryCount: 28 },
+		metadata: { bunVersion: BUN_DOCS_VERSION, entryCount: BUN_137_COMPLETE_MATRIX.length },
 	},
 	{
 		uri: "bun://docs/matrix/perf-baselines",

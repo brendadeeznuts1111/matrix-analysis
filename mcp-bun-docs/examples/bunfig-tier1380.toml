@@ -1,0 +1,26 @@
+# bunfig.toml — Tier-1380 Configuration Inheritance
+# https://bun.com/docs/test/configuration
+
+[install]
+registry = "https://registry.npmjs.org"
+prefer = "offline"
+exact = true
+
+[test]
+root = "."
+timeout = 10000
+smol = false
+preload = ["./test-setup.ts", "./global-mocks.ts", "./security-mocks.ts"]
+coverage = false
+
+[test.ci]
+timeout = 30000
+smol = true
+coverage = true
+# coverageThreshold via [test] or bun test --coverage
+
+[test.staging]
+timeout = 15000
+
+[test.local]
+timeout = 5000

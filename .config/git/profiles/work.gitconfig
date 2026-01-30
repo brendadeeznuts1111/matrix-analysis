@@ -1,0 +1,12 @@
+# Work GitHub Profile (brendadeeznuts1111 / DuoPlus)
+# Applied to: ~/Work/, ~/anti-grav/
+
+[user]
+	name = DuoPlus Development Team
+	email = dev@duoplus.com
+
+[github]
+	user = brendadeeznuts1111
+
+# Use work SSH host alias for new clones
+# git clone git@github.com-work:brendadeeznuts1111/repo.git

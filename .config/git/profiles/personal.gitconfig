@@ -1,0 +1,12 @@
+# Primary GitHub Profile (brendadeeznuts1111)
+# Applied to: ~/Projects/
+# Uses: ~/.ssh/id_ed25519 via github.com-personal host
+
+[user]
+	name = DuoPlus Development Team
+	email = dev@duoplus.com
+
+[github]
+	user = brendadeeznuts1111
+
+# Clone with: git clone git@github.com-personal:brendadeeznuts1111/repo.git
