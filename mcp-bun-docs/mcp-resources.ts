@@ -9,6 +9,7 @@ import {
 	BUN_137_COMPLETE_MATRIX,
 	BINARY_PERF_METRICS,
 } from "./lib.ts";
+import { secureMatrixMonitor, skillsMCPServer } from "./skills-matrix-integration";
 
 export const MATRIX_ACP_RESOURCES = [
 	{
@@ -40,5 +41,31 @@ export const MATRIX_ACP_RESOURCES = [
 			"",
 			"**Buffer.swap64 baseline:** 0.56µs/64KB",
 		].join("\n"),
+	},
+	{
+		uri: "bun://security/matrix-classifications",
+		mimeType: "application/json",
+		name: "Security Classifications for Matrix Features",
+		metadata: {
+			bunVersion: BUN_DOCS_VERSION,
+			provider: "Skills Registry",
+			authRequired: true,
+		},
+	},
+	{
+		uri: "bun://security/audit-report",
+		mimeType: "application/json",
+		name: "Real-time Security Audit Report",
+		metadata: {
+			bunVersion: BUN_DOCS_VERSION,
+			provider: "Skills Registry",
+			autoRefresh: "30s",
+		},
+	},
+	{
+		uri: "bun://security/tools",
+		mimeType: "application/json",
+		name: "Available Security Tools",
+		content: async () => JSON.stringify(await skillsMCPServer.listSecurityTools(), null, 2),
 	},
 ];
