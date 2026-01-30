@@ -28,7 +28,7 @@ const demoBasicPTY = async () => {
         if (data.includes("$") && commands.length > 0) {
           const cmd = commands.shift();
           if (cmd) {
-            setTimeout(() => terminal.write(cmd + "\n"), 100);
+            Bun.sleep(100).then(() => terminal.write(cmd + "\n"));
           }
         }
       },
@@ -113,10 +113,10 @@ const demoResizableTerminal = async () => {
   // Simulate resize
   console.log("Initial size: 80x24");
   
-  setTimeout(() => {
+  Bun.sleep(500).then(() => {
     terminal.resize(120, 30);
     console.log("Resized to: 120x30");
-  }, 500);
+  });
 
   const proc = Bun.spawn(["echo", "Terminal supports dynamic resizing"], { terminal });
   await proc.exited;

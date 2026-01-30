@@ -1,6 +1,3 @@
-import { homedir } from "os";
-import { join } from "path";
-
 export interface Profile {
   name: string;
   version: string;
@@ -12,7 +9,7 @@ export interface Profile {
 }
 
 export function getProfilesDir(): string {
-  return join(homedir(), ".matrix", "profiles");
+  return `${Bun.env.HOME}/.matrix/profiles`;
 }
 
 export async function listProfiles(): Promise<string[]> {
@@ -28,7 +25,7 @@ export async function listProfiles(): Promise<string[]> {
 }
 
 export async function loadProfile(name: string): Promise<Profile | null> {
-  const profilePath = join(getProfilesDir(), `${name}.json`);
+  const profilePath = `${getProfilesDir()}/${name}.json`;
   const file = Bun.file(profilePath);
 
   if (!(await file.exists())) {
@@ -56,7 +53,7 @@ export function resolveSecretRefs(
     }
 
     resolved[key] = value.replace(varPattern, (match, varName) => {
-      const envValue = process.env[varName];
+      const envValue = Bun.env[varName];
       if (envValue !== undefined) {
         return envValue;
       }
@@ -76,7 +73,7 @@ export function getUnresolvedRefs(env: Record<string, string>): string[] {
 
     for (const match of value.matchAll(varPattern)) {
       const varName = match[1];
-      if (process.env[varName] === undefined) {
+      if (Bun.env[varName] === undefined) {
         unresolved.push(varName);
       }
     }

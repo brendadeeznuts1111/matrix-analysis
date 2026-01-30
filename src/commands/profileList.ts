@@ -1,4 +1,4 @@
-import { listProfiles, loadProfile, getProfilesDir } from "../lib/profile-loader";
+import { listProfiles, loadProfile, getProfilesDir } from "../lib/profileLoader";
 
 export async function profileList(): Promise<void> {
   const profiles = await listProfiles();

@@ -1,4 +1,4 @@
-import { loadProfile } from "../lib/profile-loader";
+import { loadProfile } from "../lib/profileLoader";
 import { maskValue } from "../lib/output";
 
 interface DiffEntry {

@@ -2,7 +2,7 @@
 // Bun Package Search Tool
 // Usage: bun run bun-search.ts <query>
 
-const query = process.argv.slice(2).join(" ");
+const query = Bun.argv.slice(2).join(" ");
 
 if (!query) {
   console.error("Usage: bun run bun-search.ts <package-name>");

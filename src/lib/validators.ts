@@ -1,5 +1,5 @@
-import type { Profile } from "./profile-loader";
-import { getUnresolvedRefs } from "./profile-loader";
+import type { Profile } from "./profileLoader";
+import { getUnresolvedRefs } from "./profileLoader";
 
 export interface ValidationResult {
   passed: boolean;

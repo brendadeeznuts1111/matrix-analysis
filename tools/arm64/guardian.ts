@@ -345,21 +345,3 @@ export function printDeploymentReport(): void {
 // Auto-print status on module load
 printARM64Status();
 
-// Export default for easy importing
-export default {
-  ARCH,
-  IS_ARM64,
-  IS_APPLE_SILICON,
-  HAS_ARM64_OPTIMIZATIONS,
-  ARM64_CAPS,
-  fastImportCheck,
-  fastImportCheckFor,
-  isTargetImportNode,
-  calculateVisualWidth,
-  calculateScaledOffset,
-  fastBufferFrom,
-  processTextBuffer,
-  getPerformanceMetrics,
-  verifyARM64Assembly,
-  printDeploymentReport,
-};

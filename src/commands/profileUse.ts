@@ -1,4 +1,4 @@
-import { loadProfile, resolveSecretRefs, type Profile } from "../lib/profile-loader";
+import { loadProfile, resolveSecretRefs, type Profile } from "../lib/profileLoader";
 import { validateProfile } from "../lib/validators";
 import {
   printValidation,
@@ -55,7 +55,7 @@ export async function profileUse(
 
   const envVars = resolveSecretRefs(rawEnvVars);
 
-  const conflicts = detectConflicts(envVars, process.env);
+  const conflicts = detectConflicts(envVars, Bun.env);
   if (conflicts.length > 0) {
     printConflicts(conflicts);
 
@@ -68,7 +68,7 @@ export async function profileUse(
   }
 
   if (options.dryRun) {
-    printEnvChanges(envVars, process.env, true);
+    printEnvChanges(envVars, Bun.env, true);
     console.log(
       "\n\x1b[90mRun without --dry-run to apply, then use:\x1b[0m"
     );

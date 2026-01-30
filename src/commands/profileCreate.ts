@@ -1,6 +1,5 @@
-import { join } from "path";
-import { getProfilesDir, loadProfile, listProfiles } from "../lib/profile-loader";
-import type { Profile } from "../lib/profile-loader";
+import { getProfilesDir, loadProfile, listProfiles } from "../lib/profileLoader";
+import type { Profile } from "../lib/profileLoader";
 
 interface CreateOptions {
   from?: string;
@@ -22,7 +21,7 @@ export async function profileCreate(
   options: CreateOptions
 ): Promise<void> {
   const profilesDir = getProfilesDir();
-  const profilePath = join(profilesDir, `${name}.json`);
+  const profilePath = `${profilesDir}/${name}.json`;
   const file = Bun.file(profilePath);
 
   // Check if profile already exists

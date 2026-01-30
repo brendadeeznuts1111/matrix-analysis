@@ -78,6 +78,24 @@ This is a comprehensive **Bun-native development workspace** featuring:
 │   ├── docs/                     # Documentation
 │   └── r2+bun-production-stack-dashboardv1.02.21/  # Dashboard app
 │
+├── tools/                        # Standalone tools
+│   ├── arm64/                    # ARM64 optimization toolkit
+│   │   ├── guardian.ts           # ARM64 utility library
+│   │   ├── wrap-migrator.ts      # AST migration CLI
+│   │   ├── verify-arm64.ts       # Binary ARM64 verifier
+│   │   ├── benchmark-arm64.ts    # Benchmark suite
+│   │   └── arm64-demo.ts         # Interactive demo
+│   └── bun-search.ts             # NPM registry search CLI
+│
+├── examples/                     # Bun feature demos
+│   ├── bun-terminal-demo.ts      # PTY automation
+│   ├── compile-time-flags-demo.ts # Feature detection
+│   └── s3-content-disposition-demo.ts # S3 demo
+│
+├── docs/                         # Project documentation
+│   ├── ROADMAP.md                # Development roadmap
+│   └── release-notes.md          # Release notes
+│
 ├── .claude.json                  # Claude Code configuration
 ├── .mcp.json                     # MCP server definitions
 ├── bunfig.toml                   # Bun configuration
@@ -408,10 +426,10 @@ const { exitCode } = await $`cmd`.nothrow();  // Don't throw
 |------|---------|
 | `README.md` | Project overview and features |
 | `CLAUDE.md` | Bun API quick reference |
-| `ROADMAP.md` | Development roadmap and progress |
+| `docs/ROADMAP.md` | Development roadmap and progress |
 | `skills/README.md` | Skills registry documentation |
 | `skills/docs/dev-hq-cli.md` | Dev HQ CLI full documentation |
-| `release-notes.md` | Bun runtime release notes |
+| `docs/release-notes.md` | Bun runtime release notes |
 
 ---
 

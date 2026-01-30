@@ -1,10 +1,10 @@
 #!/usr/bin/env bun
-import { profileCreate } from "./commands/profile-create";
-import { profileDiff } from "./commands/profile-diff";
-import { profileExport } from "./commands/profile-export";
-import { profileList } from "./commands/profile-list";
-import { profileShow } from "./commands/profile-show";
-import { profileUse } from "./commands/profile-use";
+import { profileCreate } from "./commands/profileCreate";
+import { profileDiff } from "./commands/profileDiff";
+import { profileExport } from "./commands/profileExport";
+import { profileList } from "./commands/profileList";
+import { profileShow } from "./commands/profileShow";
+import { profileUse } from "./commands/profileUse";
 
 interface ParsedArgs {
 	command: string;
@@ -127,7 +127,7 @@ function printUsage(): void {
 }
 
 async function main(): Promise<void> {
-	const args = process.argv.slice(2);
+	const args = Bun.argv.slice(2);
 	const parsed = parseArgs(args);
 
 	if (

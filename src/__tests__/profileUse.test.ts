@@ -4,7 +4,7 @@ import {
   resolveSecretRefs,
   getUnresolvedRefs,
   listProfiles,
-} from "../lib/profile-loader";
+} from "../lib/profileLoader";
 import { validateProfile } from "../lib/validators";
 import {
   maskValue,
@@ -40,7 +40,7 @@ describe("profile-loader", () => {
 
   describe("resolveSecretRefs", () => {
     it("resolves existing environment variables", () => {
-      const originalHome = process.env.HOME ?? "";
+      const originalHome = Bun.env.HOME ?? "";
       const env = {
         MY_HOME: "${HOME}",
         PLAIN: "value",
@@ -66,8 +66,8 @@ describe("profile-loader", () => {
       };
 
       const resolved = resolveSecretRefs(env);
-      expect(resolved.COMBINED).toContain(process.env.HOME!);
-      expect(resolved.COMBINED).toContain(process.env.PATH!);
+      expect(resolved.COMBINED).toContain(Bun.env.HOME!);
+      expect(resolved.COMBINED).toContain(Bun.env.PATH!);
     });
   });
 

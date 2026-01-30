@@ -1,4 +1,4 @@
-import { loadProfile, resolveSecretRefs } from "../lib/profile-loader";
+import { loadProfile, resolveSecretRefs } from "../lib/profileLoader";
 
 interface ExportOptions {
   output?: string;

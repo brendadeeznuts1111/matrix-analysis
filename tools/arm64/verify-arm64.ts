@@ -11,20 +11,7 @@
  * - SIMD load/store pair instructions (ldp/stp)
  */
 
-import { spawn } from "child_process";
 import { IS_ARM64, HAS_ARM64_OPTIMIZATIONS, printDeploymentReport } from "./guardian";
-
-/**
- * Convert a readable stream to string
- */
-function streamToString(stream: NodeJS.ReadableStream): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const chunks: Buffer[] = [];
-    stream.on("data", (chunk) => chunks.push(Buffer.from(chunk)));
-    stream.on("error", reject);
-    stream.on("end", () => resolve(Buffer.concat(chunks).toString("utf-8")));
-  });
-}
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // ASSEMBLY VERIFICATION
@@ -117,8 +104,8 @@ async function verifyBinary(binaryPath: string): Promise<VerificationResult> {
 
   try {
     // First check architecture
-    const fileProc = spawn("file", [binaryPath], { stdio: ["ignore", "pipe", "ignore"] });
-    const fileOutput = await streamToString(fileProc.stdout!);
+    const fileProc = Bun.spawn(["file", binaryPath], { stdout: "pipe", stderr: "ignore" });
+    const fileOutput = await fileProc.stdout.text();
     
     if (fileOutput.includes("ARM64") || fileOutput.includes("arm64")) {
       result.architecture = "arm64";
@@ -127,11 +114,12 @@ async function verifyBinary(binaryPath: string): Promise<VerificationResult> {
     }
 
     // Disassemble with objdump
-    const objdumpProc = spawn("objdump", ["-d", "--no-show-raw-insn", binaryPath], {
-      stdio: ["ignore", "pipe", "ignore"],
+    const objdumpProc = Bun.spawn(["objdump", "-d", "--no-show-raw-insn", binaryPath], {
+      stdout: "pipe",
+      stderr: "ignore",
     });
 
-    const output = await streamToString(objdumpProc.stdout!);
+    const output = await objdumpProc.stdout.text();
     const lines = output.split("\n");
 
     for (const line of lines) {
@@ -163,8 +151,7 @@ async function verifyBinary(binaryPath: string): Promise<VerificationResult> {
 async function verifyBunRuntime(): Promise<VerificationResult | null> {
   try {
     // Find Bun executable path
-    const whichProc = spawn("which", ["bun"], { stdio: ["ignore", "pipe", "ignore"] });
-    const bunPath = (await streamToString(whichProc.stdout!)).trim();
+    const bunPath = Bun.which("bun");
     
     if (!bunPath) {
       console.log("⚠️  Bun executable not found in PATH");

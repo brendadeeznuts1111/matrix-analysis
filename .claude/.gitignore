@@ -69,6 +69,7 @@ examples/
 dist/
 tests/
 scripts/
+src/
 data/
 docs/
 apps/
