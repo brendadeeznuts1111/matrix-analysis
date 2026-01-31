@@ -9,7 +9,6 @@ import {
 	BUN_137_COMPLETE_MATRIX,
 	BINARY_PERF_METRICS,
 } from "./lib.ts";
-import { secureMatrixMonitor, skillsMCPServer } from "./skills-matrix-integration";
 
 export const MATRIX_ACP_RESOURCES = [
 	{
@@ -102,6 +101,6 @@ export const MATRIX_ACP_RESOURCES = [
 		uri: "bun://security/tools",
 		mimeType: "application/json",
 		name: "Available Security Tools",
-		content: async () => JSON.stringify(await skillsMCPServer.listSecurityTools(), null, 2),
+		metadata: { bunVersion: BUN_DOCS_VERSION, provider: "Skills Registry" },
 	},
 ];

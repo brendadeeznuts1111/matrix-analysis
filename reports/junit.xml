@@ -1,17 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuites name="bun test" tests="10" assertions="68" failures="0" skipped="0" time="0.177959">
-  <testsuite name=".claude/lib/__tests__/tier1380-integration.test.ts" file=".claude/lib/__tests__/tier1380-integration.test.ts" tests="10" assertions="68" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-    <testsuite name="Tier-1380 Integration" file=".claude/lib/__tests__/tier1380-integration.test.ts" line="50" tests="10" assertions="68" failures="0" skipped="0" time="0.022" hostname="Mac.attlocal.net">
-      <testcase name="generates team-specific ANSI from HEX" classname="Tier-1380 Integration" time="0.000962" file=".claude/lib/__tests__/tier1380-integration.test.ts" line="64" assertions="8" />
-      <testcase name="CLI formatting works with THEME" classname="Tier-1380 Integration" time="0.000162" file=".claude/lib/__tests__/tier1380-integration.test.ts" line="87" assertions="8" />
-      <testcase name="runCmd integrates with colored output" classname="Tier-1380 Integration" time="0.016947" file=".claude/lib/__tests__/tier1380-integration.test.ts" line="105" assertions="6" />
-      <testcase name="transpiler preserves color imports" classname="Tier-1380 Integration" time="0.003408" file=".claude/lib/__tests__/tier1380-integration.test.ts" line="121" assertions="5" />
-      <testcase name="validates RGBA array structure and bounds" classname="Tier-1380 Integration" time="0.000181" file=".claude/lib/__tests__/tier1380-integration.test.ts" line="145" assertions="7" />
-      <testcase name="generates consistent palettes for same team/profile" classname="Tier-1380 Integration" time="0.000797" file=".claude/lib/__tests__/tier1380-integration.test.ts" line="164" assertions="12" />
-      <testcase name="handles color format conversions correctly" classname="Tier-1380 Integration" time="0.001557" file=".claude/lib/__tests__/tier1380-integration.test.ts" line="189" assertions="7" />
-      <testcase name="supports terminal color detection and fallback" classname="Tier-1380 Integration" time="0.000079" file=".claude/lib/__tests__/tier1380-integration.test.ts" line="213" assertions="5" />
-      <testcase name="integrates with R2 storage and metrics" classname="Tier-1380 Integration" time="0.001186" file=".claude/lib/__tests__/tier1380-integration.test.ts" line="235" assertions="4" />
-      <testcase name="handles edge cases and error conditions" classname="Tier-1380 Integration" time="0.001065" file=".claude/lib/__tests__/tier1380-integration.test.ts" line="276" assertions="6" />
+<testsuites name="bun test" tests="12" assertions="34" failures="0" skipped="0" time="0.010431">
+  <testsuite name="mcp-bun-docs/rss.test.ts" file="mcp-bun-docs/rss.test.ts" tests="12" assertions="34" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+    <testsuite name="parseRSS" file="mcp-bun-docs/rss.test.ts" line="32" tests="5" assertions="19" failures="0" skipped="0" time="0.001" hostname="Mac.attlocal.net">
+      <testcase name="returns RSSFeedResult with feed and audit" classname="parseRSS" time="0.001045" file="mcp-bun-docs/rss.test.ts" line="40" assertions="10" />
+      <testcase name="parses item title, link, pubDate, description" classname="parseRSS" time="0.000106" file="mcp-bun-docs/rss.test.ts" line="55" assertions="4" />
+      <testcase name="throws on non-ok response" classname="parseRSS" time="0" file="mcp-bun-docs/rss.test.ts" line="64" assertions="1" />
+      <testcase name="calls onAudit with audit metadata" classname="parseRSS" time="0" file="mcp-bun-docs/rss.test.ts" line="69" assertions="3" />
+      <testcase name="throws when response contains parsererror" classname="parseRSS" time="0.000199" file="mcp-bun-docs/rss.test.ts" line="77" assertions="1" />
+    </testsuite>
+    <testsuite name="safeRSSPreview" file="mcp-bun-docs/rss.test.ts" line="83" tests="7" assertions="15" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+      <testcase name="returns escaped string when within maxCols" classname="safeRSSPreview" time="0.000199" file="mcp-bun-docs/rss.test.ts" line="84" assertions="1" />
+      <testcase name="truncates and appends ellipsis when over maxCols" classname="safeRSSPreview" time="0.000854" file="mcp-bun-docs/rss.test.ts" line="89" assertions="4" />
+      <testcase name="respects word boundaries when wordAware is true" classname="safeRSSPreview" time="0" file="mcp-bun-docs/rss.test.ts" line="100" assertions="3" />
+      <testcase name="escapes HTML to prevent XSS" classname="safeRSSPreview" time="0" file="mcp-bun-docs/rss.test.ts" line="109" assertions="1" />
+      <testcase name="calls onViolation when truncation occurs" classname="safeRSSPreview" time="0.00014" file="mcp-bun-docs/rss.test.ts" line="114" assertions="3" />
+      <testcase name="does not call onViolation when within limit" classname="safeRSSPreview" time="0" file="mcp-bun-docs/rss.test.ts" line="125" assertions="1" />
+      <testcase name="custom maxCols and reserve" classname="safeRSSPreview" time="0.000055" file="mcp-bun-docs/rss.test.ts" line="131" assertions="2" />
     </testsuite>
   </testsuite>
 </testsuites>

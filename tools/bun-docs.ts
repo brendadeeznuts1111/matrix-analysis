@@ -38,6 +38,13 @@ import {
 	BUN_BLOG_RSS_URL,
 	BUN_GUIDES_URL,
 	BUN_CHANGELOG_RSS,
+	BUN_REPO_URL,
+	BUN_REPO_RELEASES_URL,
+	BUN_PM_URL,
+	BUN_INSTALL_ADD_URL,
+	BUN_NODE_COMPAT_URL,
+	BUN_REFERENCE_URL,
+	getLatestBunReleaseTitleFromRss,
 } from "../mcp-bun-docs/lib.ts";
 
 const args = process.argv.slice(2);
@@ -58,7 +65,12 @@ Usage:
   bun tools/bun-docs.ts blog             Bun blog URL
   bun tools/bun-docs.ts guides           Bun guides index URL
   bun tools/bun-docs.ts rss              Changelog + blog RSS URLs
-  bun tools/bun-docs.ts version          Print doc version constants
+  bun tools/bun-docs.ts repo             oven-sh/bun repo + releases URLs
+  bun tools/bun-docs.ts deps             Package manager + add dependency URLs
+  bun tools/bun-docs.ts compat           Node.js compatibility doc URL
+  bun tools/bun-docs.ts reference       Bun reference (modules) index URL
+  bun tools/bun-docs.ts latest          Latest Bun release title from RSS
+  bun tools/bun-docs.ts version         Print doc version constants
 
 Examples:
   bun tools/bun-docs.ts search "Bun.serve"
@@ -187,6 +199,29 @@ async function main(): Promise<void> {
 		case "rss": {
 			console.log("Changelog/releases:", BUN_CHANGELOG_RSS);
 			console.log("Blog (optional #tag= filter):", BUN_BLOG_RSS_URL);
+			break;
+		}
+		case "repo": {
+			console.log("Repo:", BUN_REPO_URL);
+			console.log("Releases:", BUN_REPO_RELEASES_URL);
+			break;
+		}
+		case "deps": {
+			console.log("Package manager:", BUN_PM_URL);
+			console.log("Add dependency guide:", BUN_INSTALL_ADD_URL);
+			break;
+		}
+		case "compat": {
+			console.log(BUN_NODE_COMPAT_URL);
+			break;
+		}
+		case "reference": {
+			console.log(BUN_REFERENCE_URL);
+			break;
+		}
+		case "latest": {
+			const title = await getLatestBunReleaseTitleFromRss();
+			console.log(title ?? "(fetch failed or no item title)");
 			break;
 		}
 		case "version": {

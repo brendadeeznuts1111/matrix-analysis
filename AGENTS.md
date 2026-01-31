@@ -8,6 +8,7 @@ This is a comprehensive **Bun-native development workspace** featuring:
 
 - **Matrix Analysis Platform** - 197-column URLPattern performance analysis with compile-time caching
 - **Environment Profile Management** - Secure profile system for managing development environments
+- **Matrix Agent** - AI agent management system (migrated from clawdbot) with Telegram integration
 - **Skills Registry** - Secure credential management using OS keychain integration (`Bun.secrets`)
 - **Dev HQ CLI** - Development intelligence platform with feature flags, device management, and templates
 - **MCP Server Ecosystem** - Model Context Protocol configuration for AI assistant integrations
@@ -103,6 +104,14 @@ This is a comprehensive **Bun-native development workspace** featuring:
 │   ├── ROADMAP.md                # Development roadmap
 │   └── release-notes.md          # Release notes
 │
+├── .matrix/                      # Matrix Agent (migrated from clawdbot)
+│   ├── agent/
+│   │   └── config.json           # Agent configuration
+│   ├── logs/                     # Agent logs
+│   ├── scripts/
+│   │   └── health-check.ts       # Health monitoring
+│   └── matrix-agent.ts           # Main agent CLI
+│
 ├── .claude.json                  # Claude Code configuration
 ├── .mcp.json                     # MCP server definitions
 ├── bunfig.toml                   # Bun configuration
@@ -158,7 +167,11 @@ bun run docs:shop                      # Official Bun shop URL
 bun run docs:blog                      # Bun blog URL
 bun run docs:guides                    # Bun guides index URL
 bun run docs:rss                       # Changelog + blog RSS URLs
-bun run bun-docs                       # CLI help
+bun run docs:repo                      # oven-sh/bun repo + releases
+bun run docs:deps                      # Package manager + add dependency
+bun run docs:compat                     # Node.js compatibility doc
+bun run docs:reference                   # Bun reference (modules) index
+bun run bun-docs                        # CLI help
 
 # Shortcuts
 bun run tbind <profile>                # Shortcut for terminal:bind
@@ -484,6 +497,132 @@ if (terminal) {
   );
 }
 ```
+
+---
+
+## Matrix Agent (Migrated from Clawdbot)
+
+The Matrix Agent is an AI agent management system integrated with the Matrix Analysis Platform. It was migrated from `clawdbot` v2026.1.17-1 and renamed to align with the project's Matrix/Tier-1380 theme.
+
+### Directory Structure
+
+```
+~/.matrix/
+├── agent/
+│   └── config.json          # Agent configuration
+├── logs/
+│   └── agent-health.jsonl   # Health check logs
+├── scripts/
+│   └── health-check.ts      # Health monitoring script
+└── matrix-agent.ts          # Main agent CLI
+```
+
+### Configuration
+
+The agent configuration is stored in `~/.matrix/agent/config.json`:
+
+```json
+{
+  "name": "matrix-agent",
+  "version": "1.0.0",
+  "agents": {
+    "defaults": {
+      "model": { "primary": "openrouter/minimax/minimax-m2.1" },
+      "workspace": "/Users/nolarose"
+    }
+  },
+  "channels": {
+    "telegram": { "enabled": true }
+  },
+  "gateway": {
+    "port": 18789,
+    "mode": "local"
+  },
+  "integration": {
+    "profiles": { "enabled": true },
+    "terminal": { "enabled": true },
+    "tier1380": { "enabled": true },
+    "mcp": { "enabled": true }
+  }
+}
+```
+
+### Commands
+
+```bash
+# Initialize agent
+bun run agent:init
+
+# Show agent status
+bun run agent:status
+
+# Run health checks
+bun run agent:health
+
+# Migrate from legacy clawdbot
+bun run agent:migrate
+
+# Profile commands (via agent)
+bun run agent:profile list
+bun run agent:profile use <name>
+bun run agent:profile show <name>
+
+# Tier-1380 commands (via agent)
+bun run agent:tier1380 color init --team=<name> --profile=<name>
+```
+
+### Direct Usage
+
+```bash
+# Using the global command
+matrix-agent status
+matrix-agent health
+matrix-agent migrate
+
+# Or via bun
+bun ~/.matrix/matrix-agent.ts status
+```
+
+### Integration Points
+
+The Matrix Agent integrates with:
+
+1. **Profile System** (`~/.matrix/profiles/`)
+   - Reads and manages environment profiles
+   - Syncs with terminal binding manager
+
+2. **Tier-1380 CLI** (`cli/tier1380.ts`)
+   - Color system management
+   - Team hierarchy
+   - Dashboard operations
+
+3. **Terminal Manager** (`.claude/core/terminal/`)
+   - Profile-terminal bindings
+   - Session management
+
+4. **MCP Servers** (`.mcp.json`)
+   - Bun runtime
+   - Documentation search
+   - File system access
+
+### Migration from Clawdbot
+
+To migrate from the legacy `clawdbot` installation:
+
+```bash
+# Run migration script
+bun run agent:migrate
+
+# Or manually
+bun ~/.matrix/matrix-agent.ts migrate
+```
+
+This will:
+- Copy relevant configuration from `~/.clawdbot/clawdbot.json`
+- Create a migration marker at `~/.matrix/.migrated-from-clawdbot`
+- Preserve agent settings, model preferences, and channel configs
+
+After migration, the legacy `~/.clawdbot` directory can be safely removed.
 
 ---
 

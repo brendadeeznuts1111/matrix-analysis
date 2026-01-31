@@ -20,6 +20,8 @@ import {
 	BUN_REFERENCE_KEYS,
 	BUN_DOC_MAP,
 	BUN_DOC_ENTRIES,
+	BUN_BASE_URL,
+	BUN_INSTALL_SCRIPT_URL,
 	BUN_DOCS_BASE,
 	BUN_FEEDBACK_URL,
 	BUN_FEEDBACK_UPGRADE_FIRST,
@@ -30,6 +32,18 @@ import {
 	BUN_BLOG_RSS_URL,
 	BUN_GUIDES_URL,
 	BUN_CHANGELOG_RSS,
+	BUN_REPO_RELEASES_URL,
+	BUN_PM_URL,
+	BUN_INSTALL_ADD_URL,
+	BUN_NODE_COMPAT_URL,
+	BUN_REFERENCE_URL,
+	BUN_URL_CONFIG,
+	getUrlCanonicalizationAuditEvent,
+	getRssCanonicalizationAuditEvent,
+	getLatestBunReleaseTitleFromRss,
+	COL89_MAX,
+	getDocLinkWidth,
+	assertCol89,
 	BUN_TYPES_REPO_URL,
 	BUN_TYPES_README_URL,
 	BUN_TYPES_AUTHORING_URL,
@@ -59,15 +73,21 @@ describe("SearchBun / lib", () => {
 	});
 
 	describe("constants", () => {
-		test("should point BUN_DOCS_BASE to bun.com", () => {
+		test("should set BUN_BASE_URL to https://bun.com (canonical base)", () => {
+			expect(BUN_BASE_URL).toBe("https://bun.com");
+		});
+		test("should set BUN_INSTALL_SCRIPT_URL to bun.sh/install (only bun.sh exception)", () => {
+			expect(BUN_INSTALL_SCRIPT_URL).toBe("https://bun.sh/install");
+		});
+		test("should derive BUN_DOCS_BASE from BUN_BASE_URL", () => {
 			expect(BUN_DOCS_BASE).toBe("https://bun.com/docs");
 		});
 
 		test("should set BUN_DOCS_MIN_VERSION to 1.3.6", () => {
 			expect(BUN_DOCS_MIN_VERSION).toBe("1.3.6");
 		});
-		test("should point BUN_FEEDBACK_URL to bun.sh/docs/feedback", () => {
-			expect(BUN_FEEDBACK_URL).toBe("https://bun.sh/docs/feedback");
+		test("should derive BUN_FEEDBACK_URL from BUN_BASE_URL", () => {
+			expect(BUN_FEEDBACK_URL).toBe("https://bun.com/docs/feedback");
 		});
 		test("should include upgrade-first guidance in BUN_FEEDBACK_UPGRADE_FIRST", () => {
 			expect(BUN_FEEDBACK_UPGRADE_FIRST).toContain("bun upgrade");
@@ -91,20 +111,90 @@ describe("SearchBun / lib", () => {
 			expect(BUN_TYPES_KEY_FILES).toContain("test.d.ts");
 			expect(BUN_TYPES_KEY_FILES).toContain("serve.d.ts");
 		});
-		test("should point BUN_SHOP_URL to shop.bun.com", () => {
+		test("should point BUN_SHOP_URL to shop.bun.com (subdomain)", () => {
 			expect(BUN_SHOP_URL).toBe("https://shop.bun.com/");
 		});
-		test("should point BUN_BLOG_URL to bun.sh/blog", () => {
-			expect(BUN_BLOG_URL).toBe("https://bun.sh/blog");
+		test("should derive BUN_BLOG_URL from BUN_BASE_URL", () => {
+			expect(BUN_BLOG_URL).toBe("https://bun.com/blog");
 		});
-		test("should point BUN_BLOG_RSS_URL to bun.sh/blog/rss.xml", () => {
-			expect(BUN_BLOG_RSS_URL).toBe("https://bun.sh/blog/rss.xml");
+		test("should set BUN_BLOG_RSS_URL to changelog feed (no separate /blog/rss.xml)", () => {
+			expect(BUN_BLOG_RSS_URL).toBe(BUN_CHANGELOG_RSS);
+			expect(BUN_BLOG_RSS_URL).toBe("https://bun.com/rss.xml");
 		});
-		test("should point BUN_GUIDES_URL to bun.sh/guides", () => {
-			expect(BUN_GUIDES_URL).toBe("https://bun.sh/guides");
+		test("should derive BUN_GUIDES_URL from BUN_BASE_URL", () => {
+			expect(BUN_GUIDES_URL).toBe("https://bun.com/guides");
 		});
 		test("should point BUN_CHANGELOG_RSS to bun.com/rss.xml", () => {
 			expect(BUN_CHANGELOG_RSS).toBe("https://bun.com/rss.xml");
+		});
+		test("should point BUN_REPO_RELEASES_URL to oven-sh/bun/releases", () => {
+			expect(BUN_REPO_RELEASES_URL).toBe("https://github.com/oven-sh/bun/releases");
+		});
+		test("should derive BUN_PM_URL from BUN_BASE_URL", () => {
+			expect(BUN_PM_URL).toBe("https://bun.com/package-manager");
+		});
+		test("should derive BUN_INSTALL_ADD_URL from BUN_BASE_URL", () => {
+			expect(BUN_INSTALL_ADD_URL).toContain("guides/install/add");
+			expect(BUN_INSTALL_ADD_URL).toMatch(/^https:\/\/bun\.com\//);
+		});
+		test("should derive BUN_NODE_COMPAT_URL from BUN_BASE_URL", () => {
+			expect(BUN_NODE_COMPAT_URL).toContain("nodejs-apis");
+			expect(BUN_NODE_COMPAT_URL).toMatch(/^https:\/\/bun\.com\//);
+		});
+		test("should derive BUN_REFERENCE_URL from BUN_BASE_URL", () => {
+			expect(BUN_REFERENCE_URL).toBe("https://bun.com/reference");
+		});
+		test("should expose BUN_URL_CONFIG with base, docs, reference, changelogRSS, installScript, globalsAPI", () => {
+			expect(BUN_URL_CONFIG.base).toBe(BUN_BASE_URL);
+			expect(BUN_URL_CONFIG.docs).toBe(BUN_DOCS_BASE);
+			expect(BUN_URL_CONFIG.reference).toBe(BUN_REFERENCE_URL);
+			expect(BUN_URL_CONFIG.changelogRSS).toBe(BUN_CHANGELOG_RSS);
+			expect(BUN_URL_CONFIG.installScript).toBe(BUN_INSTALL_SCRIPT_URL);
+			expect(BUN_URL_CONFIG.globalsAPI).toBe("https://bun.com/docs/api/globals");
+			expect(BUN_URL_CONFIG.changelogRSS).toBe("https://bun.com/rss.xml");
+			expect(BUN_URL_CONFIG.globalsAPI).toBe("https://bun.com/docs/api/globals");
+		});
+		test("should return URL_CANONICALIZATION_COMPLETE audit event with col89_safe and glyph", () => {
+			const ev = getUrlCanonicalizationAuditEvent();
+			expect(ev.event).toBe("URL_CANONICALIZATION_COMPLETE");
+			expect(ev.col89_safe).toBe(true);
+			expect(ev.details).toContain("URL Standardization Active");
+			expect(ev.details).toContain(BUN_BASE_URL);
+			expect(ev.glyph).toContain("canonical base locked");
+		});
+		test("getRssCanonicalizationAuditEvent returns RSS_CANONICALIZATION_LOCKED with details and glyph", async () => {
+			const ev = await getRssCanonicalizationAuditEvent();
+			expect(ev.event).toBe("RSS_CANONICALIZATION_LOCKED");
+			expect(ev.col89_safe).toBe(true);
+			expect(ev.details).toContain("Unified RSS feed");
+			expect(ev.details).toContain(BUN_CHANGELOG_RSS);
+			expect(ev.glyph).toContain("rss unified");
+			expect(typeof ev.feed_preview_width === "number" || ev.feed_preview_width === undefined).toBe(true);
+		});
+		test("getLatestBunReleaseTitleFromRss returns first item title from RSS", async () => {
+			const xml = '<?xml version="1.0"?><rss><channel><item><title>Bun v99.0.0</title></item></channel></rss>';
+			fetchSpy.mockResolvedValueOnce(new Response(xml));
+			const title = await getLatestBunReleaseTitleFromRss();
+			expect(title).toBe("Bun v99.0.0");
+		});
+		test("getLatestBunReleaseTitleFromRss returns null on fetch failure", async () => {
+			fetchSpy.mockRejectedValueOnce(new Error("network"));
+			const title = await getLatestBunReleaseTitleFromRss();
+			expect(title).toBeNull();
+		});
+		test("COL89_MAX is 89", () => {
+			expect(COL89_MAX).toBe(89);
+		});
+		test("getDocLinkWidth returns width under 89 for typical doc link", () => {
+			const link = "https://bun.com/docs/runtime/utils#bun-stringwidth";
+			const w = getDocLinkWidth(link);
+			expect(w).toBeLessThanOrEqual(COL89_MAX);
+			expect(w).toBeGreaterThan(0);
+		});
+		test("assertCol89 returns true for short link, false for over-89", () => {
+			expect(assertCol89("https://bun.com/docs")).toBe(true);
+			const long = "x".repeat(100);
+			expect(assertCol89(long)).toBe(false);
 		});
 
 		test.each([
@@ -282,14 +372,14 @@ describe("SearchBun / lib", () => {
 
 	describe("getReferenceUrl / BUN_REFERENCE_KEYS", () => {
 		test("should return URL for fileAPI", () => {
-			expect(getReferenceUrl("fileAPI")).toBe("https://bun.sh/docs/api/file-io");
+			expect(getReferenceUrl("fileAPI")).toBe("https://bun.com/docs/api/file-io");
 		});
 		test("should list all reference keys", () => {
 			expect(BUN_REFERENCE_KEYS).toContain("fileAPI");
 			expect(BUN_REFERENCE_KEYS).toContain("httpServer");
 			expect(BUN_REFERENCE_KEYS).toContain("bunTest");
 			expect(BUN_REFERENCE_KEYS).toContain("bunTypes");
-			expect(getReferenceUrl("fileAPI")).toEqual(BUN_REFERENCE_LINKS.fileAPI);
+			expect(getReferenceUrl("fileAPI")).toBe(BUN_REFERENCE_LINKS.fileAPI);
 			expect(getReferenceUrl("bunTest")).toBe(BUN_TEST_REFERENCE_URL);
 			expect(getReferenceUrl("bunTypes")).toBe(BUN_TYPES_REPO_URL);
 			expect(getReferenceUrl("bunTypesReadme")).toBe(BUN_TYPES_README_URL);
@@ -306,6 +396,19 @@ describe("SearchBun / lib", () => {
 			expect(getReferenceUrl("guides")).toBe(BUN_GUIDES_URL);
 			expect(getReferenceUrl("blogRss")).toBe(BUN_BLOG_RSS_URL);
 			expect(getReferenceUrl("changelogRss")).toBe(BUN_CHANGELOG_RSS);
+			expect(BUN_REFERENCE_KEYS).toContain("repo");
+			expect(BUN_REFERENCE_KEYS).toContain("releases");
+			expect(BUN_REFERENCE_KEYS).toContain("pm");
+			expect(BUN_REFERENCE_KEYS).toContain("pmCli");
+			expect(BUN_REFERENCE_KEYS).toContain("installAdd");
+			expect(BUN_REFERENCE_KEYS).toContain("nodeCompat");
+			expect(getReferenceUrl("repo")).toBe(BUN_REPO_URL);
+			expect(getReferenceUrl("releases")).toBe(BUN_REPO_RELEASES_URL);
+			expect(getReferenceUrl("pm")).toBe(BUN_PM_URL);
+			expect(getReferenceUrl("installAdd")).toBe(BUN_INSTALL_ADD_URL);
+			expect(getReferenceUrl("nodeCompat")).toBe(BUN_NODE_COMPAT_URL);
+			expect(BUN_REFERENCE_KEYS).toContain("reference");
+			expect(getReferenceUrl("reference")).toBe(BUN_REFERENCE_URL);
 		});
 	});
 
@@ -317,8 +420,8 @@ describe("SearchBun / lib", () => {
 			expect(names).toContain("fetch");
 			expect(names).toContain("Buffer");
 		});
-		test("should point BUN_GLOBALS_API_URL to api/globals", () => {
-			expect(BUN_GLOBALS_API_URL).toBe("https://bun.sh/docs/api/globals");
+		test("should derive BUN_GLOBALS_API_URL from BUN_BASE_URL", () => {
+			expect(BUN_GLOBALS_API_URL).toBe("https://bun.com/docs/api/globals");
 		});
 		test("should return cross-refs for spawn (subprocess, shell)", () => {
 			const xrefs = getCrossReferences("spawn");

@@ -40,6 +40,12 @@ import {
 	BUN_BLOG_URL,
 	BUN_BLOG_RSS_URL,
 	BUN_GUIDES_URL,
+	BUN_REPO_URL,
+	BUN_REPO_RELEASES_URL,
+	BUN_PM_URL,
+	BUN_INSTALL_ADD_URL,
+	BUN_NODE_COMPAT_URL,
+	BUN_REFERENCE_URL,
 	SEARCH_WEIGHTS,
 	BINARY_PERF_METRICS,
 	BUN_137_FEATURE_MATRIX,
@@ -337,10 +343,10 @@ server.resource(
 	},
 );
 
-// ─── GetBunLinks: shop, blog, guides, RSS ───────────────────────────────────
+// ─── GetBunLinks: shop, blog, guides, RSS, repo, dependencies, compatibility ─
 server.tool(
 	"GetBunLinks",
-	"Return official Bun links: shop (merchandise), blog, guides index, and RSS feeds (changelog + blog, blog supports #tag= filter).",
+	"Return official Bun links: shop, blog, guides, RSS; repo (oven-sh/bun + releases); dependencies (pm, add guide); Node.js compatibility.",
 	{},
 	async () => {
 		const out = {
@@ -348,6 +354,10 @@ server.tool(
 			blog: BUN_BLOG_URL,
 			guides: BUN_GUIDES_URL,
 			rss: { changelog: BUN_CHANGELOG_RSS, blog: BUN_BLOG_RSS_URL },
+			repo: { main: BUN_REPO_URL, releases: BUN_REPO_RELEASES_URL },
+			dependencies: { pm: BUN_PM_URL, installAdd: BUN_INSTALL_ADD_URL },
+			compatibility: { nodeCompat: BUN_NODE_COMPAT_URL },
+			reference: BUN_REFERENCE_URL,
 		};
 		return { content: [{ type: "text" as const, text: JSON.stringify(out, null, 2) }] };
 	},
@@ -356,7 +366,7 @@ server.tool(
 server.resource(
 	"bun-docs-links",
 	"bun://docs/links",
-	{ description: "Bun shop, blog, guides, and RSS feeds (changelog + blog)" },
+	{ description: "Bun shop, blog, guides, RSS; repo; dependencies; Node.js compatibility; reference (modules)" },
 	async () => ({
 		contents: [{
 			uri: "bun://docs/links",
@@ -366,6 +376,10 @@ server.resource(
 				blog: BUN_BLOG_URL,
 				guides: BUN_GUIDES_URL,
 				rss: { changelog: BUN_CHANGELOG_RSS, blog: BUN_BLOG_RSS_URL },
+				repo: { main: BUN_REPO_URL, releases: BUN_REPO_RELEASES_URL },
+				dependencies: { pm: BUN_PM_URL, installAdd: BUN_INSTALL_ADD_URL },
+				compatibility: { nodeCompat: BUN_NODE_COMPAT_URL },
+				reference: BUN_REFERENCE_URL,
 			}, null, 2),
 		}],
 	}),

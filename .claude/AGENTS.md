@@ -4,16 +4,32 @@
 
 Shell mode is **enabled** and **auto-approved**. All shell commands run without confirmation prompts.
 
-### Configuration Location
-`~/.config/kimi/config.json`
+### Configuration Locations
 
-```json
-{
-  "auto_approve_tools": ["shell", "python", "file_edit", "read", "write"],
-  "auto_approve_risky": true,
-  "auto_continue": true,
-  "skip_confirmations": true
-}
+| Path | Purpose |
+|------|---------|
+| `~/.kimi/config.toml` | **Main config** - models, providers, loop control |
+| `~/.kimi/skills/` | Skills directory (symlinked to `.agents/skills`) |
+| `~/.config/kimi/` | Sessions, hooks, plugins (state data) |
+
+### Performance Settings (config.toml)
+
+```toml
+[loop_control]
+max_steps_per_turn = 250           # Higher for complex matrix operations
+max_retries_per_step = 15          # More retries for network operations
+max_ralph_iterations = -1          # Unlimited for long-running tasks
+reserved_context_size = 15000      # Reserve space for matrix data
+
+[mcp.client]
+tool_call_timeout_ms = 300000      # 5 minutes for long operations
+```
+
+### Enhanced Shell Settings
+
+```bash
+# In ~/.kimi/config.toml or set via env:
+export KIMI_CONFIG="$HOME/.kimi/config.toml"
 ```
 
 ### What This Means
@@ -21,6 +37,8 @@ Shell mode is **enabled** and **auto-approved**. All shell commands run without 
 - ✅ File edits happen without prompts
 - ✅ No more CONTINUE/STOP loops
 - ✅ Risky commands are also auto-approved
+- ✅ 250 steps/turn for complex operations
+- ✅ Skills auto-discovered from ~/.kimi/skills/
 
 ## Project Structure
 

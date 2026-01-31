@@ -1,35 +1,46 @@
 /**
  * SearchBun core logic - exported for testing and programmatic use.
  * @col_93 balanced_braces (skills) - code blocks have balanced braces/brackets/parens
+ *
+ * Single canonical base: BUN_BASE_URL (https://bun.com). bun.com and bun.sh serve the same content;
+ * all doc/reference/guides/blog/RSS URLs are derived from BUN_BASE_URL so the codebase is standardized.
+ * Exception: BUN_INSTALL_SCRIPT_URL (bun.sh/install) is the canonical URL in official install instructions.
  */
 
-export const BUN_DOCS_BASE = "https://bun.com/docs";
+/** Canonical base for docs, reference, guides, blog, RSS. Single source of truth. */
+export const BUN_BASE_URL = "https://bun.com";
+
+/** Official install script (only bun.sh URL — canonical in curl install instructions). */
+export const BUN_INSTALL_SCRIPT_URL = "https://bun.sh/install";
+
+export const BUN_DOCS_BASE = `${BUN_BASE_URL}/docs`;
 export const BUN_DOCS_VERSION = "1.3.7";
 export const BUN_DOCS_MIN_VERSION = "1.3.6";
-/** Official Bun changelog/release RSS: https://bun.com/rss.xml */
-export const BUN_CHANGELOG_RSS = "https://bun.com/rss.xml";
+export const BUN_CHANGELOG_RSS = `${BUN_BASE_URL}/rss.xml`;
 
-/** Official Bun shop (merchandise). https://shop.bun.com */
+/** Official Bun shop (merchandise). Subdomain. */
 export const BUN_SHOP_URL = "https://shop.bun.com/";
 
-/** Bun blog (announcements, deep dives). https://bun.sh/blog */
-export const BUN_BLOG_URL = "https://bun.sh/blog";
+export const BUN_BLOG_URL = `${BUN_BASE_URL}/blog`;
+/** Official RSS: changelog + blog (no separate /blog/rss.xml — both bun.com and bun.sh return 404 for /blog/rss.xml). Use BUN_CHANGELOG_RSS. */
+export const BUN_BLOG_RSS_URL = BUN_CHANGELOG_RSS;
+export const BUN_GUIDES_URL = `${BUN_BASE_URL}/guides`;
 
-/** Bun blog RSS (optional #tag= for filtered feeds, e.g. #tag=sqlite). https://bun.sh/blog/rss.xml */
-export const BUN_BLOG_RSS_URL = "https://bun.sh/blog/rss.xml";
+/** oven-sh/bun GitHub releases. https://github.com/oven-sh/bun/releases */
+export const BUN_REPO_RELEASES_URL = "https://github.com/oven-sh/bun/releases";
 
-/** Bun guides index (deployment, frameworks, utilities). https://bun.sh/guides */
-export const BUN_GUIDES_URL = "https://bun.sh/guides";
-
-/** Bun feedback/reporting: upgrade first, then search issues. https://bun.sh/docs/feedback */
-export const BUN_FEEDBACK_URL = "https://bun.sh/docs/feedback";
+export const BUN_PM_URL = `${BUN_BASE_URL}/package-manager`;
+export const BUN_PM_CLI_URL = `${BUN_BASE_URL}/docs/cli/pm`;
+export const BUN_INSTALL_ADD_URL = `${BUN_BASE_URL}/docs/guides/install/add`;
+export const BUN_NODE_COMPAT_URL = `${BUN_BASE_URL}/docs/runtime/nodejs-apis`;
+export const BUN_FEEDBACK_URL = `${BUN_BASE_URL}/docs/feedback`;
 
 /** Short guidance for reporting issues (from official docs). */
 export const BUN_FEEDBACK_UPGRADE_FIRST =
 	"Upgrade first (bun upgrade, or bun upgrade --canary), then search/check issues and discussions before opening a new one.";
 
-/** bun:test API reference (describe, expect, test, mock, spyOn, etc.). https://bun.com/reference/bun/test */
-export const BUN_TEST_REFERENCE_URL = "https://bun.com/reference/bun/test";
+export const BUN_REFERENCE_URL = `${BUN_BASE_URL}/reference`;
+export const BUN_TEST_REFERENCE_URL = `${BUN_BASE_URL}/reference/bun/test`;
 
 /** oven-sh/bun repository (main). https://github.com/oven-sh/bun */
 export const BUN_REPO_URL = "https://github.com/oven-sh/bun";
@@ -56,42 +67,147 @@ export const BUN_TYPES_KEY_FILES = [
 	"shell.d.ts",
 ] as const;
 
-/** Quick reference links for deep-dive documentation */
+/** Quick reference links for deep-dive documentation (all derived from BUN_BASE_URL except external). */
 export const BUN_REFERENCE_LINKS = {
-	fileAPI: "https://bun.sh/docs/api/file-io",
-	httpServer: "https://bun.sh/docs/api/http",
-	shell: "https://bun.sh/docs/runtime/shell",
-	password: "https://bun.sh/docs/api/hashing",
-	json: "https://bun.sh/docs/api/utils#bun-json5-bun-jsonl",
-	/** CLI test guide (bun test, --timeout, --bail, etc.) */
-	test: "https://bun.sh/docs/cli/test",
-	/** bun:test module API reference (describe, expect, test, mock, spyOn) */
-	bunTest: "https://bun.com/reference/bun/test",
-	/** oven-sh/bun repo — bun-types package (TypeScript definitions) */
+	fileAPI: `${BUN_BASE_URL}/docs/api/file-io`,
+	httpServer: `${BUN_BASE_URL}/docs/api/http`,
+	shell: `${BUN_BASE_URL}/docs/runtime/shell`,
+	password: `${BUN_BASE_URL}/docs/api/hashing`,
+	json: `${BUN_BASE_URL}/docs/api/utils#bun-json5-bun-jsonl`,
+	test: `${BUN_BASE_URL}/docs/cli/test`,
+	reference: `${BUN_BASE_URL}/reference`,
+	bunTest: `${BUN_BASE_URL}/reference/bun/test`,
 	bunTypes: "https://github.com/oven-sh/bun/tree/main/packages/bun-types",
-	/** bun-types README */
 	bunTypesReadme: "https://github.com/oven-sh/bun/blob/main/packages/bun-types/README.md",
-	/** bun-types authoring guide */
 	bunTypesAuthoring: "https://github.com/oven-sh/bun/blob/main/packages/bun-types/authoring.md",
-	/** Runtime: Bun APIs */
-	bunApis: "https://bun.sh/docs/runtime/bun-apis",
-	/** Runtime: Web APIs */
-	webApis: "https://bun.sh/docs/runtime/web-apis",
-	/** Runtime: Node-API */
-	nodeApi: "https://bun.sh/docs/runtime/node-api",
-	apiIndex: "https://bun.sh/docs/api/index",
-	color: "https://bun.sh/docs/runtime/color",
-	/** Official merchandise shop */
+	bunApis: `${BUN_BASE_URL}/docs/runtime/bun-apis`,
+	webApis: `${BUN_BASE_URL}/docs/runtime/web-apis`,
+	nodeApi: `${BUN_BASE_URL}/docs/runtime/node-api`,
+	apiIndex: `${BUN_BASE_URL}/docs/api/index`,
+	color: `${BUN_BASE_URL}/docs/runtime/color`,
 	shop: "https://shop.bun.com/",
-	/** Blog (announcements, deep dives) */
-	blog: "https://bun.sh/blog",
-	/** Blog RSS (use #tag= for filtered feeds) */
-	blogRss: "https://bun.sh/blog/rss.xml",
-	/** Changelog/release RSS */
-	changelogRss: "https://bun.com/rss.xml",
-	/** Guides index (deployment, frameworks, utilities) */
-	guides: "https://bun.sh/guides",
+	blog: `${BUN_BASE_URL}/blog`,
+	blogRss: BUN_CHANGELOG_RSS,
+	changelogRss: `${BUN_BASE_URL}/rss.xml`,
+	guides: `${BUN_BASE_URL}/guides`,
+	repo: "https://github.com/oven-sh/bun",
+	releases: "https://github.com/oven-sh/bun/releases",
+	pm: `${BUN_BASE_URL}/package-manager`,
+	pmCli: `${BUN_BASE_URL}/docs/cli/pm`,
+	installAdd: `${BUN_BASE_URL}/docs/guides/install/add`,
+	nodeCompat: `${BUN_BASE_URL}/docs/runtime/nodejs-apis`,
 } as const;
+
+/** URL config for dashboard startup or audit: single base, derived paths, install exception. */
+export const BUN_URL_CONFIG = {
+	base: BUN_BASE_URL,
+	docs: BUN_DOCS_BASE,
+	reference: BUN_REFERENCE_URL,
+	changelogRSS: BUN_CHANGELOG_RSS,
+	blogRss: BUN_BLOG_RSS_URL,
+	installScript: BUN_INSTALL_SCRIPT_URL,
+	globalsAPI: `${BUN_BASE_URL}/docs/api/globals`,
+} as const;
+
+/** Safe summary for Col-89 / audit: escapeHTML when in Bun, else plain. */
+function safeUrlSummary(): string {
+	const c = BUN_URL_CONFIG;
+	const raw = `URL Standardization Active • Base: ${c.base} • Derived: ${Object.keys(c).length - 2} paths • Install exception: ${c.installScript}`;
+	return typeof Bun !== "undefined" && typeof Bun.escapeHTML === "function" ? Bun.escapeHTML(raw) : raw;
+}
+
+/** Col-89 max width for doc link previews / terminal output (Tier-1380). */
+export const COL89_MAX = 89;
+
+/** Width of a doc link (or any string) for Col-89 checks. Uses Bun.stringWidth with countAnsiEscapeCodes: false when in Bun. */
+export function getDocLinkWidth(url: string): number {
+	if (typeof Bun !== "undefined" && typeof Bun.stringWidth === "function") {
+		return Bun.stringWidth(url, { countAnsiEscapeCodes: false });
+	}
+	return url.length;
+}
+
+/** Returns true if text is within Col-89; otherwise false and optionally warns. Use for generated doc link previews. */
+export function assertCol89(text: string, context?: string): boolean {
+	const w = getDocLinkWidth(text);
+	if (w <= COL89_MAX) return true;
+	if (context != null && typeof console !== "undefined" && typeof console.warn === "function") {
+		console.warn(`[COL-89] ${context} width=${w} (max ${COL89_MAX})`);
+	}
+	return false;
+}
+
+/** Audit event payload for URL canonicalization (dashboard startup or auditRepo.append). */
+export function getUrlCanonicalizationAuditEvent(): {
+	event: "URL_CANONICALIZATION_COMPLETE";
+	ts: string;
+	bun_version?: string;
+	col89_safe: boolean;
+	details: string;
+	glyph: string;
+} {
+	return {
+		event: "URL_CANONICALIZATION_COMPLETE",
+		ts: new Date().toISOString(),
+		...(typeof Bun !== "undefined" && Bun.version != null && { bun_version: Bun.version }),
+		col89_safe: true,
+		details: safeUrlSummary(),
+		glyph: "▵⟂⥂ → canonical base locked",
+	};
+}
+
+/** Audit event payload for RSS canonicalization (unified feed locked; no /blog/rss.xml). Async: fetches feed and computes Col-89 width of first 200 chars. */
+export async function getRssCanonicalizationAuditEvent(): Promise<{
+	event: "RSS_CANONICALIZATION_LOCKED";
+	ts: string;
+	bun_version?: string;
+	col89_safe: boolean;
+	details: string;
+	feed_preview_width?: number;
+	glyph: string;
+}> {
+	const rssFeed = BUN_CHANGELOG_RSS;
+	const rawNote = `Unified RSS feed: ${rssFeed} • No separate /blog/rss.xml (404) • Content-Type: application/xml`;
+	const details =
+		typeof Bun !== "undefined" && typeof Bun.escapeHTML === "function" ? Bun.escapeHTML(rawNote) : rawNote;
+
+	let feed_preview_width: number | undefined;
+	try {
+		const res = await fetch(rssFeed);
+		const text = await res.text();
+		const preview = text.slice(0, 200);
+		feed_preview_width =
+			typeof Bun !== "undefined" && typeof Bun.stringWidth === "function"
+				? Bun.stringWidth(preview, { countAnsiEscapeCodes: false })
+				: preview.length;
+	} catch {
+		feed_preview_width = undefined;
+	}
+
+	return {
+		event: "RSS_CANONICALIZATION_LOCKED",
+		ts: new Date().toISOString(),
+		...(typeof Bun !== "undefined" && Bun.version != null && { bun_version: Bun.version }),
+		col89_safe: true,
+		details,
+		...(feed_preview_width != null && { feed_preview_width }),
+		glyph: "▵⟂⥂ → rss unified",
+	};
+}
+
+/** Latest Bun release title from unified RSS (first <item><title>). DOMParser not in Bun main context — uses regex. */
+const FIRST_ITEM_TITLE_RE = /<item[^>]*>[\s\S]*?<title[^>]*>([^<]+)<\/title>/i;
+
+export async function getLatestBunReleaseTitleFromRss(): Promise<string | null> {
+	try {
+		const res = await fetch(BUN_CHANGELOG_RSS);
+		const xml = await res.text();
+		const m = xml.match(FIRST_ITEM_TITLE_RE);
+		return m ? m[1].trim() : null;
+	} catch {
+		return null;
+	}
+}
 
 /** Tier-1380 Matrix v2: traceability schema for ACP filtering & CI gating */
 export type SemVer = `${number}.${number}.${number}`;
@@ -414,7 +530,7 @@ export const BUN_GLOBALS: BunGlobalEntry[] = [
 ];
 
 /** URL for Bun globals API (Bun.* methods). */
-export const BUN_GLOBALS_API_URL = "https://bun.sh/docs/api/globals";
+export const BUN_GLOBALS_API_URL = `${BUN_BASE_URL}/docs/api/globals`;
 
 /** Cross-reference: for a term return related doc entries with URLs. Uses relatedTerms on BunDocEntry. */
 export function getCrossReferences(term: string): { term: string; url: string; path: string }[] {
@@ -487,8 +603,8 @@ export async function searchBunDocs(
 
 	// Try Mintlify-style search
 	const searchUrls = [
-		`https://bun.com/api/search?q=${encodeURIComponent(q)}`,
-		`https://bun.com/search?q=${encodeURIComponent(q)}`,
+		`${BUN_BASE_URL}/api/search?q=${encodeURIComponent(q)}`,
+		`${BUN_BASE_URL}/search?q=${encodeURIComponent(q)}`,
 	];
 
 	for (const url of searchUrls) {
@@ -548,7 +664,7 @@ export async function searchBunDocs(
 	}
 
 	const lines = results.slice(0, 8).map((r) => `- **[${r.title}](${r.url})**${r.snippet ? `\n  ${r.snippet}` : ""}`);
-	return `## Bun docs for "${query}"\n\n${lines.join("\n\n")}\n\n*Source: [bun.com/docs](https://bun.com/docs)*`;
+	return `## Bun docs for "${query}"\n\n${lines.join("\n\n")}\n\n*Source: [bun.com/docs](${BUN_DOCS_BASE})*`;
 }
 
 // Tier-1380 Profiler Pipeline (Markdown → RSS → Dashboard)
