@@ -1,6 +1,7 @@
 import { loadProfile } from "../lib/profileLoader";
 import { maskValue } from "../lib/output";
 import { EXIT_CODES } from "../../.claude/lib/exit-codes.ts";
+import { fmt } from "../../.claude/lib/cli.ts";
 
 interface DiffEntry {
   key: string;
@@ -20,12 +21,12 @@ export async function profileDiff(
   ]);
 
   if (!left) {
-    console.error(`\x1b[31mError: Profile "${leftName}" not found\x1b[0m`);
+    console.error(fmt.fail(`Profile "${leftName}" not found`));
     process.exit(EXIT_CODES.NOT_FOUND);
   }
 
   if (!right) {
-    console.error(`\x1b[31mError: Profile "${rightName}" not found\x1b[0m`);
+    console.error(fmt.fail(`Profile "${rightName}" not found`));
     process.exit(EXIT_CODES.NOT_FOUND);
   }
 
@@ -51,45 +52,45 @@ export async function profileDiff(
     }
   }
 
-  console.log(`\x1b[1mComparing profiles:\x1b[0m ${leftName} ↔ ${rightName}\n`);
+  console.log(fmt.bold(`Comparing profiles: ${leftName} ↔ ${rightName}`) + "\n");
 
   const added = diffs.filter((d) => d.status === "added");
   const removed = diffs.filter((d) => d.status === "removed");
   const changed = diffs.filter((d) => d.status === "changed");
 
   if (added.length === 0 && removed.length === 0 && changed.length === 0) {
-    console.log("\x1b[32m✓ Profiles are identical\x1b[0m");
+    console.log(fmt.success("Profiles are identical"));
     return;
   }
 
   // Summary
   const parts: string[] = [];
-  if (added.length > 0) parts.push(`\x1b[32m+${added.length} added\x1b[0m`);
-  if (removed.length > 0) parts.push(`\x1b[31m-${removed.length} removed\x1b[0m`);
-  if (changed.length > 0) parts.push(`\x1b[33m~${changed.length} changed\x1b[0m`);
+  if (added.length > 0) parts.push(`${fmt.success('+')}${added.length} added`);
+  if (removed.length > 0) parts.push(`${fmt.fail('-')}${removed.length} removed`);
+  if (changed.length > 0) parts.push(`${fmt.warn('~')}${changed.length} changed`);
   console.log(parts.join("  ") + "\n");
 
   // Details
   if (added.length > 0) {
-    console.log(`\x1b[32m── Added in ${rightName} ──\x1b[0m`);
+    console.log(fmt.success(`── Added in ${rightName} ──`));
     for (const d of added) {
-      console.log(`  \x1b[32m+ ${d.key}\x1b[0m = ${maskValue(d.key, d.right!)}`);
+      console.log(`  ${fmt.success('+')} ${d.key} = ${maskValue(d.key, d.right!)}`);
     }
     console.log();
   }
 
   if (removed.length > 0) {
-    console.log(`\x1b[31m── Removed from ${rightName} ──\x1b[0m`);
+    console.log(fmt.fail(`── Removed from ${rightName} ──`));
     for (const d of removed) {
-      console.log(`  \x1b[31m- ${d.key}\x1b[0m = ${maskValue(d.key, d.left!)}`);
+      console.log(`  ${fmt.fail('-')} ${d.key} = ${maskValue(d.key, d.left!)}`);
     }
     console.log();
   }
 
   if (changed.length > 0) {
-    console.log(`\x1b[33m── Changed ──\x1b[0m`);
+    console.log(fmt.warn(`── Changed ──`));
     for (const d of changed) {
-      console.log(`  \x1b[33m~ ${d.key}\x1b[0m`);
+      console.log(`  ${fmt.warn('~')} ${d.key}`);
       console.log(`    ${leftName}: ${maskValue(d.key, d.left!)}`);
       console.log(`    ${rightName}: ${maskValue(d.key, d.right!)}`);
     }

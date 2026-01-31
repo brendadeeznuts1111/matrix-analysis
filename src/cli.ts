@@ -156,6 +156,13 @@ async function main(): Promise<void> {
 }
 
 main().catch((err) => {
-	console.error(err);
+	if (err instanceof Error) {
+		console.error(fmt.fail(`Error: ${err.message}`));
+		if (process.env.DEBUG) {
+			console.error(err.stack);
+		}
+	} else {
+		console.error(fmt.fail(`Unknown error: ${String(err)}`));
+	}
 	process.exit(EXIT_CODES.GENERIC_ERROR);
 });
