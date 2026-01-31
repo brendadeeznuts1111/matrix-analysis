@@ -244,48 +244,160 @@ Bun.which("node")                 // Find executable path
 Bun.escapeHTML(userInput)         // XSS prevention
 Bun.JSONL.parse(content)          // Parse newline-delimited JSON
 Bun.JSON5.parse(content)          // JSON with comments/trailing commas
+Bun.TOML.parse(content)          // Parse TOML config files
+Bun.peek(promise)                 // Read settled value without await (returns promise if pending)
+Bun.peek.status(promise)          // → "fulfilled" | "rejected" | "pending"
+Bun.semver.satisfies("1.3.7", ">=1.3.0")  // true — semver range check
+Bun.semver.order("1.3.7", "1.2.0")        // 1 — compare: -1 | 0 | 1
 ```
 
 ### Inspect, Timing, Streams & ANSI
 
 ```typescript
-// Inspect — pretty-print to string (like console.log but capturable)
-Bun.inspect(value)                                        // string
-Bun.inspect(value, { depth: 4, colors: true })            // with options
-Bun.inspect.table(data, ["col1", "col2"], { colors: true })  // console.table → string
+// ── Inspect ──────────────────────────────────────────────────────────
+// Bun.inspect(value, options?)
+//   defaults: { depth: 2, colors: process.stdout.isTTY, compact: false,
+//     showHidden: false, maxArrayLength: 100, maxStringLength: 10000 }
+//   DIVERGENCE: maxArrayLength/maxStringLength IGNORED in Bun — always full output
+//   → implement manual truncation for large structures (see Tier-1380 guard below)
+Bun.inspect(value)                                        // string (depth: 2, compact: false)
+Bun.inspect(value, { depth: 4, colors: true })            // deeper, colored
+Bun.inspect(value, { depth: null })                       // unlimited depth
+Bun.inspect(value, { compact: true })                     // single-line where possible
+Bun.inspect(value, { compact: 3 })                        // inline up to 3 items
 
-// Custom inspect symbol (Node-compatible 3-arg form)
+// Bun.inspect.table(data, properties?, options?)
+//   options: { colors?: boolean } (default: false)
+//   Gotcha: nested objects >1 level → [Object ...]; slice to ≤50 rows for readability
+Bun.inspect.table(data, ["col1", "col2"], { colors: process.stdout.isTTY })
+
+// Bun.inspect.custom — override inspect for your classes (Node-compat 3-arg)
 class Foo {
   [Bun.inspect.custom](depth: number | null, opts: object, inspect: Function) {
+    if (depth === 0) return "[Foo ...]";  // guard deep recursion in audit objects
     return `Foo<${inspect(this.inner, { depth: (depth ?? 2) - 1 })}>`;
   }
 }
 
-// High-precision timing (nanoseconds, monotonic)
+// ── Timing ───────────────────────────────────────────────────────────
+// Bun.nanoseconds() → u64 monotonic ns since process start
 const t0 = Bun.nanoseconds();
 await doWork();
 console.log(`${(Bun.nanoseconds() - t0) / 1e6} ms`);
 
-// ReadableStream consumers — consume fetch().body etc.
-await Bun.readableStreamToText(stream)         // → string
-await Bun.readableStreamToJSON(stream)         // → parsed object
-await Bun.readableStreamToBytes(stream)        // → Uint8Array
+// ── Comparison ───────────────────────────────────────────────────────
+// Bun.deepEquals(a, b, strict?)  strict default: false
+//   Handles circular refs, NaN, -0/+0
+Bun.deepEquals(a, b)              // loose (allows some coercions)
+Bun.deepEquals(a, b, true)        // strict (exact match, use in tests)
+
+// ── Buffers ──────────────────────────────────────────────────────────
+// Bun.concatArrayBuffers(buffers) → ArrayBuffer (fast path for chunk merging)
+Bun.concatArrayBuffers([chunk1, chunk2])      // practical limit ~2GB
+
+// ── ReadableStream consumers ─────────────────────────────────────────
+// All: (stream: ReadableStream) → Promise<T>
+await Bun.readableStreamToText(stream)         // → string (must be UTF-8)
+await Bun.readableStreamToJSON(stream)         // → parsed object (must be valid JSON)
+await Bun.readableStreamToBytes(stream)        // → Uint8Array (binary safe)
 await Bun.readableStreamToArrayBuffer(stream)  // → ArrayBuffer
 await Bun.readableStreamToBlob(stream)         // → Blob
 await Bun.readableStreamToArray(stream)        // → any[]
 await Bun.readableStreamToFormData(stream, boundary)  // → FormData
 
-// Module resolution (sync, uses Bun's algorithm)
+// ── Module resolution ────────────────────────────────────────────────
+// Bun.resolveSync(specifier, root?)  root default: process.cwd()
+//   Throws if not found
 Bun.resolveSync("zod", import.meta.dir)        // → full path
 
-// ANSI utilities — native, faster than npm equivalents
-Bun.stripANSI(coloredText)                     // remove escape codes (~6-57x faster than strip-ansi)
-Bun.wrapAnsi(text, 89, { wordWrap: true })     // wrap preserving ANSI codes, emoji widths, hyperlinks
+// ── ANSI / text utilities ────────────────────────────────────────────
+// Bun.stringWidth(str, options?)
+//   options: { countAnsiEscapeCodes?: boolean } (default: true)
+//   Handles full Unicode + emoji + ZWJ + full-width + Indic conjuncts (GB9c)
+//   countAnsiEscapeCodes: true → counts escape bytes; false → visual width only
+//   GB9c fix: Devanagari conjuncts (क्ष) now correctly form single grapheme clusters
+Bun.stringWidth("hello 🦊")                    // → 8 (correct visual width)
+Bun.stringWidth("क्ष")                           // → 2 (single cluster, GB9c)
+Bun.stringWidth(text, { countAnsiEscapeCodes: false })  // Col-89: use this for width checks
+
+// Bun.stripANSI(text) — ~6-57x faster than strip-ansi npm
+Bun.stripANSI(coloredText)
+
+// Bun.wrapAnsi(input, columns, options?)
+//   options defaults: { hard: false, wordWrap: true, trim: true, ambiguousIsNarrow: true }
+//   Preserves ANSI codes, hyperlinks, emoji widths
+Bun.wrapAnsi(text, 89, { wordWrap: true })
+
+// ── Semver ───────────────────────────────────────────────────────────
+// Bun.semver.satisfies(version, range) → boolean  (throws on invalid)
+// Bun.semver.order(v1, v2) → -1 | 0 | 1
+Bun.semver.satisfies(Bun.version, ">=1.3.0")   // version gate
+Bun.semver.order("1.3.7", "1.2.0")             // 1 (v1 > v2)
+
+// ── Config parsing ───────────────────────────────────────────────────
+// Bun.TOML.parse(input) → object  (like JSON5/JSONL but for TOML)
+Bun.TOML.parse(await Bun.file("bunfig.toml").text())
+
+// ── Promise peeking ──────────────────────────────────────────────────
+// Bun.peek(promise) → value if settled, promise if pending
+// Bun.peek.status(promise) → "fulfilled" | "rejected" | "pending"
+const val = Bun.peek(promise)                   // sync read if resolved
+Bun.peek.status(promise)                        // check without awaiting
 ```
 
-**`Bun.inspect.table` gotcha:** Nested objects >1 level truncate to `[Object ...]`. `colors: true` adds ANSI styling (cyan headers).
+**Runtime Utilities Reference:**
 
-**`Bun.wrapAnsi` options:** `{ hard?: boolean, wordWrap?: boolean, trim?: boolean, ambiguousIsNarrow?: boolean }`
+| Utility | Defaults | Options / Properties | Types | Min / Max | Version | Test Pattern | Bench |
+| ------- | -------- | -------------------- | ----- | --------- | ------- | ------------ | ----- |
+| `Bun.inspect(value, opts?)` | `depth: 2`, `colors: isTTY`, `compact: true`, `showHidden: false`, `maxArrayLength: 100`, `maxStringLength: 10000`, `customInspect: true`, `breakLength: 70` | `{ depth?: number \| null, colors?: boolean, compact?: boolean \| number, showHidden?: boolean, maxArrayLength?: number, maxStringLength?: number, customInspect?: boolean, breakLength?: number }` | `(any, InspectOptions?) → string` | `depth`: 0–`null`(∞), perf degrades >10; `maxArrayLength`: 0=unlimited; `maxStringLength`: 0=unlimited | ~1.0.0 | `expect(Bun.inspect(obj)).toContain("key")` | ~0.01ms |
+| `Bun.inspect.table(data, props?, opts?)` | `colors: false`, props: all keys | `{ colors?: boolean }` | `(any[] \| object, string[]?, { colors?: boolean }?) → string` | rows: 0–~10k (>500 slow); cols: 1–~50 | ~1.1.10 | `expect(Bun.inspect.table([{a:1}])).toContain("a")` | ~0.1ms <100 rows |
+| `Bun.inspect.custom` | depth from parent | Receives `(depth: number \| null, opts: InspectOptions, inspect: Function)` | `symbol` (method → `string`) | `depth`: 0–`null` | ~1.0.0 | `expect(Bun.inspect(new MyClass())).toBe("custom")` | N/A |
+| `Bun.nanoseconds()` | — | — | `() → number` (u64) | 0 – ~2^64 (~584yr) | ~1.0.0 | `expect(Bun.nanoseconds()).toBeGreaterThan(0)` | <0.001ms |
+| `Bun.deepEquals(a, b, strict?)` | `strict: false` | — | `(any, any, boolean?) → boolean` | circular refs ok; stack overflow ~1M+ depth | ~1.0.0 | `expect(Bun.deepEquals(a, b, true)).toBe(true)` | ~0.01ms shallow |
+| `Bun.concatArrayBuffers(bufs)` | — | — | `((ArrayBuffer \| TypedArray)[]) → ArrayBuffer` | total: ~2GB practical | ~1.0.0 | `expect(result.byteLength).toBe(a.byteLength + b.byteLength)` | <0.01ms small |
+| `Bun.stringWidth(str, opts?)` | `countAnsiEscapeCodes: false` | `{ countAnsiEscapeCodes?: boolean }` | `(string, object?) → number` | str: 0–~1M; returns 0–∞ | ~1.0.15 | `expect(Bun.stringWidth("hi")).toBe(2)` | <0.001ms |
+| `Bun.stripANSI(text)` | — | — | `(string) → string` | — | ~1.0.15 | `expect(Bun.stripANSI("\x1b[31mhi\x1b[0m")).toBe("hi")` | 6–57x > `strip-ansi` |
+| `Bun.wrapAnsi(input, cols, opts?)` | `hard: false`, `wordWrap: true`, `trim: true`, `ambiguousIsNarrow: true` | `{ hard?: boolean, wordWrap?: boolean, trim?: boolean, ambiguousIsNarrow?: boolean }` | `(string, number, object?) → string` | `columns`: 1–∞ (20–120 typical) | ~1.1.x | `expect(Bun.stringWidth(Bun.wrapAnsi(s,40))).toBeLessThanOrEqual(40)` | > `wrap-ansi` |
+| `Bun.resolveSync(spec, root?)` | `root: process.cwd()` | — | `(string, string?) → string` | Throws if not found | ~1.0.0 | `expect(Bun.resolveSync("bun:test")).toContain("bun")` | <0.1ms |
+| `Bun.semver.satisfies(ver, range)` | — (both required) | — | `(string, string) → boolean` | Throws on invalid semver | ~1.0.0 | `expect(Bun.semver.satisfies("1.3.7",">=1.3.0")).toBe(true)` | <0.001ms |
+| `Bun.semver.order(v1, v2)` | — (both required) | — | `(string, string) → -1 \| 0 \| 1` | Throws on invalid semver | ~1.0.0 | `expect(Bun.semver.order("2.0.0","1.0.0")).toBe(1)` | <0.001ms |
+| `Bun.TOML.parse(input)` | — | — | `(string) → object` | input: 0–~1M chars | ~1.0.0 | `expect(Bun.TOML.parse('[a]\nb=1')).toEqual({a:{b:1}})` | <0.1ms typical |
+| `Bun.peek(promise)` | returns promise if pending | `.status(p) → "fulfilled" \| "rejected" \| "pending"` | `(Promise<T>) → T \| Promise<T>` | — | ~1.0.0 | `expect(Bun.peek(Promise.resolve(42))).toBe(42)` | sync <0.001ms |
+| `readableStreamToText(s)` | — | — | `(ReadableStream) → Promise<string>` | UTF-8 only | ~1.0.0 | `expect(await Bun.readableStreamToText(s)).toBe("hi")` | native fast path |
+| `readableStreamToJSON(s)` | — | — | `(ReadableStream) → Promise<object>` | Valid JSON only | ~1.0.0 | `expect(await Bun.readableStreamToJSON(s)).toEqual({ok:1})` | native fast path |
+| `readableStreamToBytes(s)` | — | — | `(ReadableStream) → Promise<Uint8Array>` | Binary safe | ~1.0.0 | `expect((await Bun.readableStreamToBytes(s)).length).toBeGreaterThan(0)` | native fast path |
+
+**Tier-1380 Hardened Defaults (Recommended Presets)**
+
+| Context | Preset | Rationale |
+| ------- | ------ | --------- |
+| Audit log rendering | `{ depth: 5, colors: false, compact: 3 }` + manual array truncate ≤50 | Prevents huge logs, Col-89 violations, DoS-like output |
+| Col-89 enforcement | `stringWidth(…, {countAnsiEscapeCodes: false}) ≤ 89` + `wrapAnsi(…, 89, {wordWrap: true})` | Core invariant — never ship lines >89 columns |
+| deepEquals mode | `strict: true` for crypto/security; `false` for config/schema drift | Strict = zero-trust exact match |
+| semver gate | `Bun.semver.satisfies(Bun.version, ">=1.3.7")` at startup | Ensures stringWidth GB9c, wrapAnsi, deepEquals fixes present |
+| table() row limit | Slice input to ≤30–50 rows before `Bun.inspect.table` | Large tables break terminal readability & Col-89 |
+
+**Tier-1380 Startup Guard:**
+
+```typescript
+// tier1380-guard.ts — run at startup or in audit cron
+const MIN_BUN = ">=1.3.7";
+if (!Bun.semver.satisfies(Bun.version, MIN_BUN)) {
+  console.error(`[TIER-1380] Bun ${Bun.version} < ${MIN_BUN} → upgrade required`);
+  process.exit(1);
+}
+
+function safeInspect(value: any, maxDepth = 6): string {
+  // maxArrayLength/maxStringLength ignored in Bun → manual Col-89 wrapping
+  const raw = Bun.inspect(value, { depth: maxDepth, colors: false, compact: 3 });
+  return Bun.wrapAnsi(raw, 89, { wordWrap: true, trim: true });
+}
+
+function assertCol89(text: string, context = "unknown"): void {
+  const w = Bun.stringWidth(text, { countAnsiEscapeCodes: false });
+  if (w > 89) console.warn(`[COL-89 VIOLATION] ${context} width=${w}`);
+}
+```
 
 ### Cross-Runtime Guard
 
