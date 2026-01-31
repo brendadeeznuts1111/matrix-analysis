@@ -5,7 +5,8 @@
 Successfully combined 4 separate benchmark directories into a unified structure:
 
 ### Old Structure (Consolidated)
-```
+
+```text
 /bench/                    # Test configuration benchmarks
 /benchmarks/              # Bun v1.3.7 performance benchmarks
 /test/scripts/bench/      # Mitata-based utilities
@@ -14,7 +15,7 @@ Successfully combined 4 separate benchmark directories into a unified structure:
 
 ### New Unified Structure
 
-```
+```text
 /benchmarks-combined/
 ├── core/           # Test configuration benchmarks (Tier-1380)
 ├── utils/          # Mitata-based benchmark utilities
