@@ -5,7 +5,7 @@
  * CLI command for checking links in documentation
  */
 
-import { join } from "path";
+import { join, resolve } from "path";
 import { LinkChecker } from '../../benchmarks-combined/scripts/check-links.ts';
 import { fmt } from '../../.claude/lib/cli.ts';
 import { EXIT_CODES } from '../../.claude/lib/exit-codes.ts';
@@ -52,8 +52,9 @@ export async function linksQuick(directory: string = '.'): Promise<void> {
 
   try {
     const scriptPath = join(import.meta.dir, '../../benchmarks-combined/scripts/quick-link-check.ts');
-    const process = Bun.spawn(['bun', scriptPath, directory], {
-      cwd: import.meta.dir,
+    const absDirectory = resolve(directory);
+    const process = Bun.spawn(['bun', scriptPath, absDirectory], {
+      cwd: process.cwd(),
       stdout: 'inherit',
       stderr: 'inherit'
     });
