@@ -41,8 +41,7 @@ export async function linksCheck(options: LinkCheckOptions = {}): Promise<void> 
       await checker.exportResults(exportFormat);
     }
   } catch (error) {
-    console.error(fmt.fail(`Link check failed: ${error instanceof Error ? error.message : String(error)}`));
-    Bun.exit(EXIT_CODES.GENERIC_ERROR);
+    throw new Error(`Link check failed: ${error instanceof Error ? error.message : String(error)}`);
   }
 }
 
@@ -50,24 +49,19 @@ export async function linksCheck(options: LinkCheckOptions = {}): Promise<void> 
 export async function linksQuick(directory: string = '.'): Promise<void> {
   console.log(fmt.bold('🔍 Quick link check (internal only)...'));
 
-  try {
-    const scriptPath = join(import.meta.dir, '../../benchmarks-combined/scripts/quick-link-check.ts');
-    const absDirectory = resolve(directory);
-    const process = Bun.spawn(['bun', scriptPath, absDirectory], {
-      cwd: import.meta.dir,
-      stdout: 'inherit',
-      stderr: 'inherit',
-      env: { ...process.env, FORCE_COLOR: '1' }
-    });
+  const scriptPath = join(import.meta.dir, '../../benchmarks-combined/scripts/quick-link-check.ts');
+  const absDirectory = resolve(directory);
 
-    const result = await process.exited;
+  const process = Bun.spawn(['bun', scriptPath, absDirectory], {
+    cwd: import.meta.dir,
+    stdout: 'inherit',
+    stderr: 'inherit',
+    env: { ...Bun.env, FORCE_COLOR: '1' }
+  });
 
-    if (result !== 0) {
-      console.error(fmt.fail('Quick link check failed'));
-      Bun.exit(EXIT_CODES.GENERIC_ERROR);
-    }
-  } catch (error) {
-    console.error(fmt.fail(`Quick link check failed: ${error instanceof Error ? error.message : String(error)}`));
-    Bun.exit(EXIT_CODES.GENERIC_ERROR);
+  const result = await process.exited;
+
+  if (result !== 0) {
+    throw new Error('Quick link check failed');
   }
 }
