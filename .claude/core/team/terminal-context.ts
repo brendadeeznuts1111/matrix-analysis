@@ -286,9 +286,9 @@ export function getSessionStats(): {
 // Cleanup on exit
 // ═══════════════════════════════════════════════════════════════════════════
 
-process.on("SIGTERM", async () => {
+async function cleanupSessions(signal: string) {
 	console.log(
-		`🛑 SIGTERM: Closing ${activeSessions.size} terminal sessions...`,
+		`🛑 ${signal}: Closing ${activeSessions.size} terminal sessions...`,
 	);
 	for (const [id, session] of activeSessions) {
 		try {
@@ -298,4 +298,10 @@ process.on("SIGTERM", async () => {
 			console.error(`Failed to kill session ${id}:`, err);
 		}
 	}
+}
+
+process.on("SIGTERM", () => cleanupSessions("SIGTERM"));
+process.on("SIGINT", async () => {
+	await cleanupSessions("SIGINT");
+	process.exit(0);
 });

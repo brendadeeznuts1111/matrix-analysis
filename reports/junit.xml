@@ -1,102 +1,69 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuites name="bun test" tests="57" assertions="133" failures="0" skipped="0" time="0.382379">
-  <testsuite name=".claude/tests/unit/shell-integration.test.ts" file=".claude/tests/unit/shell-integration.test.ts" tests="37" assertions="96" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-    <testsuite name="Shell Integration" file=".claude/tests/unit/shell-integration.test.ts" line="54" tests="24" assertions="65" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-      <testsuite name="Environment Detection" file=".claude/tests/unit/shell-integration.test.ts" line="55" tests="3" assertions="10" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-        <testcase name="detectShell returns valid shell" classname="Environment Detection &amp;gt; Shell Integration" time="0.000039" file=".claude/tests/unit/shell-integration.test.ts" line="56" assertions="1" />
-        <testcase name="detectTier returns valid tier" classname="Environment Detection &amp;gt; Shell Integration" time="0.000029" file=".claude/tests/unit/shell-integration.test.ts" line="61" assertions="1" />
-        <testcase name="getEnv returns complete environment" classname="Environment Detection &amp;gt; Shell Integration" time="0.000332" file=".claude/tests/unit/shell-integration.test.ts" line="66" assertions="8" />
+<testsuites name="bun test" tests="38" assertions="96" failures="0" skipped="0" time="0.022387">
+  <testsuite name="tests/ab-variant-e2e.test.ts" file="tests/ab-variant-e2e.test.ts" tests="38" assertions="96" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+    <testsuite name="A/B Variant Cookies - E2E Tests" file="tests/ab-variant-e2e.test.ts" line="11" tests="16" assertions="40" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+      <testsuite name="Cookie Parsing" file="tests/ab-variant-e2e.test.ts" line="46" tests="5" assertions="11" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+        <testcase name="should parse ab-variant-a cookie" classname="Cookie Parsing &amp;gt; A/B Variant Cookies - E2E Tests" time="0.000586" file="tests/ab-variant-e2e.test.ts" line="47" assertions="2" />
+        <testcase name="should parse ab-variant-b cookie" classname="Cookie Parsing &amp;gt; A/B Variant Cookies - E2E Tests" time="0.000129" file="tests/ab-variant-e2e.test.ts" line="57" assertions="2" />
+        <testcase name="should parse multiple cookies" classname="Cookie Parsing &amp;gt; A/B Variant Cookies - E2E Tests" time="0.000124" file="tests/ab-variant-e2e.test.ts" line="67" assertions="3" />
+        <testcase name="should handle URL-encoded cookies" classname="Cookie Parsing &amp;gt; A/B Variant Cookies - E2E Tests" time="0.000089" file="tests/ab-variant-e2e.test.ts" line="78" assertions="2" />
+        <testcase name="should fallback to default when no cookie" classname="Cookie Parsing &amp;gt; A/B Variant Cookies - E2E Tests" time="0.00009" file="tests/ab-variant-e2e.test.ts" line="88" assertions="2" />
       </testsuite>
-      <testsuite name="Configuration Management" file=".claude/tests/unit/shell-integration.test.ts" line="79" tests="3" assertions="4" failures="0" skipped="0" time="0.002" hostname="Mac.attlocal.net">
-        <testcase name="loadConfig returns object" classname="Configuration Management &amp;gt; Shell Integration" time="0.000583" file=".claude/tests/unit/shell-integration.test.ts" line="80" assertions="1" />
-        <testcase name="saveConfig writes config" classname="Configuration Management &amp;gt; Shell Integration" time="0.002233" file=".claude/tests/unit/shell-integration.test.ts" line="85" assertions="1" />
-        <testcase name="CONFIG_DIR is defined" classname="Configuration Management &amp;gt; Shell Integration" time="0.000019" file=".claude/tests/unit/shell-integration.test.ts" line="92" assertions="2" />
+      <testsuite name="Pool Size" file="tests/ab-variant-e2e.test.ts" line="97" tests="2" assertions="4" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+        <testcase name="should use default pool size (prefix filter excludes poolSize)" classname="Pool Size &amp;gt; A/B Variant Cookies - E2E Tests" time="0.000082" file="tests/ab-variant-e2e.test.ts" line="98" assertions="2" />
+        <testcase name="should use default pool size when not specified" classname="Pool Size &amp;gt; A/B Variant Cookies - E2E Tests" time="0.000088" file="tests/ab-variant-e2e.test.ts" line="109" assertions="2" />
       </testsuite>
-      <testsuite name="Session Management" file=".claude/tests/unit/shell-integration.test.ts" line="98" tests="3" assertions="6" failures="0" skipped="0" time="0.001" hostname="Mac.attlocal.net">
-        <testcase name="saveSession creates session" classname="Session Management &amp;gt; Shell Integration" time="0.000406" file=".claude/tests/unit/shell-integration.test.ts" line="101" assertions="3" />
-        <testcase name="loadSession retrieves session" classname="Session Management &amp;gt; Shell Integration" time="0.000156" file=".claude/tests/unit/shell-integration.test.ts" line="108" assertions="2" />
-        <testcase name="listSessions includes test session" classname="Session Management &amp;gt; Shell Integration" time="0.001339" file=".claude/tests/unit/shell-integration.test.ts" line="114" assertions="1" />
+      <testsuite name="Session Management" file="tests/ab-variant-e2e.test.ts" line="120" tests="2" assertions="6" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+        <testcase name="should generate session ID when missing" classname="Session Management &amp;gt; A/B Variant Cookies - E2E Tests" time="0.000098" file="tests/ab-variant-e2e.test.ts" line="121" assertions="3" />
+        <testcase name="should not expose session ID in prefixed cookies (security)" classname="Session Management &amp;gt; A/B Variant Cookies - E2E Tests" time="0.0001" file="tests/ab-variant-e2e.test.ts" line="132" assertions="3" />
       </testsuite>
-      <testsuite name="Prompt Generation" file=".claude/tests/unit/shell-integration.test.ts" line="121" tests="2" assertions="21" failures="0" skipped="0" time="0.064" hostname="Mac.attlocal.net">
-        <testcase name="generatePrompt returns string" classname="Prompt Generation &amp;gt; Shell Integration" time="0.064291" file=".claude/tests/unit/shell-integration.test.ts" line="122" assertions="2" />
-        <testcase name="all themes are valid" classname="Prompt Generation &amp;gt; Shell Integration" time="0.000057" file=".claude/tests/unit/shell-integration.test.ts" line="128" assertions="19" />
+      <testsuite name="Performance" file="tests/ab-variant-e2e.test.ts" line="147" tests="2" assertions="7" failures="0" skipped="0" time="0.003" hostname="Mac.attlocal.net">
+        <testcase name="should handle 100 requests in &lt;500ms" classname="Performance &amp;gt; A/B Variant Cookies - E2E Tests" time="0.003914" file="tests/ab-variant-e2e.test.ts" line="148" assertions="3" />
+        <testcase name="should handle concurrent requests" classname="Performance &amp;gt; A/B Variant Cookies - E2E Tests" time="0.000441" file="tests/ab-variant-e2e.test.ts" line="168" assertions="4" />
       </testsuite>
-      <testsuite name="Hook System" file=".claude/tests/unit/shell-integration.test.ts" line="141" tests="6" assertions="14" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-        <testcase name="loadHooks returns config" classname="Hook System &amp;gt; Shell Integration" time="0.000201" file=".claude/tests/unit/shell-integration.test.ts" line="142" assertions="3" />
-        <testcase name="addHook creates hook" classname="Hook System &amp;gt; Shell Integration" time="0.00051" file=".claude/tests/unit/shell-integration.test.ts" line="149" assertions="4" />
-        <testcase name="toggleHook toggles state" classname="Hook System &amp;gt; Shell Integration" time="0.000821" file=".claude/tests/unit/shell-integration.test.ts" line="160" assertions="1" />
-        <testcase name="listHooks returns array" classname="Hook System &amp;gt; Shell Integration" time="0.000081" file=".claude/tests/unit/shell-integration.test.ts" line="171" assertions="1" />
-        <testcase name="hook presets are defined" classname="Hook System &amp;gt; Shell Integration" time="0.000009" file=".claude/tests/unit/shell-integration.test.ts" line="176" assertions="3" />
-        <testcase name="applyPreset adds hooks" classname="Hook System &amp;gt; Shell Integration" time="0.000389" file=".claude/tests/unit/shell-integration.test.ts" line="183" assertions="2" />
+      <testsuite name="Edge Cases" file="tests/ab-variant-e2e.test.ts" line="190" tests="4" assertions="8" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+        <testcase name="should handle empty cookie header" classname="Edge Cases &amp;gt; A/B Variant Cookies - E2E Tests" time="0.000089" file="tests/ab-variant-e2e.test.ts" line="191" assertions="2" />
+        <testcase name="should handle malformed cookies" classname="Edge Cases &amp;gt; A/B Variant Cookies - E2E Tests" time="0.000085" file="tests/ab-variant-e2e.test.ts" line="201" assertions="2" />
+        <testcase name="should handle very long cookie values" classname="Edge Cases &amp;gt; A/B Variant Cookies - E2E Tests" time="0.0001" file="tests/ab-variant-e2e.test.ts" line="211" assertions="2" />
+        <testcase name="should handle special characters in values" classname="Edge Cases &amp;gt; A/B Variant Cookies - E2E Tests" time="0.000078" file="tests/ab-variant-e2e.test.ts" line="222" assertions="2" />
       </testsuite>
-      <testsuite name="CLI Binaries" file=".claude/tests/unit/shell-integration.test.ts" line="199" tests="5" assertions="7" failures="0" skipped="0" time="0.017" hostname="Mac.attlocal.net">
-        <testcase name="omega binary exists" classname="CLI Binaries &amp;gt; Shell Integration" time="0.000022" file=".claude/tests/unit/shell-integration.test.ts" line="200" assertions="1" />
-        <testcase name="omega --version works" classname="CLI Binaries &amp;gt; Shell Integration" time="0.017204" file=".claude/tests/unit/shell-integration.test.ts" line="206" assertions="1" />
-        <testcase name="kimi-shell binary exists" classname="CLI Binaries &amp;gt; Shell Integration" time="0.000015" file=".claude/tests/unit/shell-integration.test.ts" line="212" assertions="1" />
-        <testcase name="omega-tui binary exists" classname="CLI Binaries &amp;gt; Shell Integration" time="0.000105" file=".claude/tests/unit/shell-integration.test.ts" line="218" assertions="1" />
-        <testcase name="completions exist" classname="CLI Binaries &amp;gt; Shell Integration" time="0.000011" file=".claude/tests/unit/shell-integration.test.ts" line="224" assertions="3" />
-      </testsuite>
-      <testsuite name="Install Script" file=".claude/tests/unit/shell-integration.test.ts" line="235" tests="2" assertions="3" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-        <testcase name="install script exists" classname="Install Script &amp;gt; Shell Integration" time="0.000053" file=".claude/tests/unit/shell-integration.test.ts" line="236" assertions="1" />
-        <testcase name="install script has correct shebang" classname="Install Script &amp;gt; Shell Integration" time="0.000325" file=".claude/tests/unit/shell-integration.test.ts" line="242" assertions="2" />
+      <testsuite name="Security" file="tests/ab-variant-e2e.test.ts" line="233" tests="1" assertions="4" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+        <testcase name="should only parse prefixed cookies" classname="Security &amp;gt; A/B Variant Cookies - E2E Tests" time="0.000078" file="tests/ab-variant-e2e.test.ts" line="234" assertions="4" />
       </testsuite>
     </testsuite>
-    <testsuite name="Shell Integration - Integration" file=".claude/tests/unit/shell-integration.test.ts" line="250" tests="6" assertions="13" failures="0" skipped="0" time="0.181" hostname="Mac.attlocal.net">
-      <testcase name="shell init outputs aliases" classname="Shell Integration - Integration" time="0.011994" file=".claude/tests/unit/shell-integration.test.ts" line="251" assertions="3" />
-      <testcase name="shell status shows version" classname="Shell Integration - Integration" time="0.065079" file=".claude/tests/unit/shell-integration.test.ts" line="260" assertions="2" />
-      <testcase name="omega dashboard displays" classname="Shell Integration - Integration" time="0.02616" file=".claude/tests/unit/shell-integration.test.ts" line="268" assertions="2" />
-      <testcase name="omega scripts lists scripts" classname="Shell Integration - Integration" time="0.01928" file=".claude/tests/unit/shell-integration.test.ts" line="276" assertions="2" />
-      <testcase name="omega errors code works" classname="Shell Integration - Integration" time="0.032053" file=".claude/tests/unit/shell-integration.test.ts" line="284" assertions="2" />
-      <testcase name="omega metrics timing works" classname="Shell Integration - Integration" time="0.028894" file=".claude/tests/unit/shell-integration.test.ts" line="294" assertions="2" />
+    <testsuite name="A/B Cookie Utils" file="tests/ab-variant-e2e.test.ts" line="248" tests="6" assertions="20" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+      <testcase name="should parse cookies with prefix filter" classname="A/B Cookie Utils" time="0.00003" file="tests/ab-variant-e2e.test.ts" line="249" assertions="4" />
+      <testcase name="should extract A/B variant with fallback" classname="A/B Cookie Utils" time="0" file="tests/ab-variant-e2e.test.ts" line="259" assertions="2" />
+      <testcase name="should get pool size with fallback (prefix filtered)" classname="A/B Cookie Utils" time="0" file="tests/ab-variant-e2e.test.ts" line="271" assertions="2" />
+      <testcase name="should format Set-Cookie header" classname="A/B Cookie Utils" time="0.000075" file="tests/ab-variant-e2e.test.ts" line="283" assertions="6" />
+      <testcase name="should check Col-89 width" classname="A/B Cookie Utils" time="0" file="tests/ab-variant-e2e.test.ts" line="301" assertions="4" />
+      <testcase name="should wrap text to Col-89 (or preserve if Bun unavailable)" classname="A/B Cookie Utils" time="0" file="tests/ab-variant-e2e.test.ts" line="310" assertions="2" />
     </testsuite>
-    <testsuite name="Error Handling" file=".claude/tests/unit/shell-integration.test.ts" line="305" tests="5" assertions="15" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-      <testcase name="EXIT_CODES contains standard codes" classname="Error Handling" time="0.000025" file=".claude/tests/unit/shell-integration.test.ts" line="306" assertions="4" />
-      <testcase name="classifyExitCode categorizes correctly" classname="Error Handling" time="0.000035" file=".claude/tests/unit/shell-integration.test.ts" line="313" assertions="4" />
-      <testcase name="getExitCodeInfo returns info" classname="Error Handling" time="0.000036" file=".claude/tests/unit/shell-integration.test.ts" line="320" assertions="3" />
-      <testcase name="suggestRecovery provides suggestions" classname="Error Handling" time="0.00003" file=".claude/tests/unit/shell-integration.test.ts" line="327" assertions="1" />
-      <testcase name="calculateSuccessRate computes correctly" classname="Error Handling" time="0.000091" file=".claude/tests/unit/shell-integration.test.ts" line="332" assertions="3" />
-    </testsuite>
-    <testsuite name="Metrics" file=".claude/tests/unit/shell-integration.test.ts" line="339" tests="2" assertions="3" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-      <testcase name="CommandTimer can be instantiated" classname="Metrics" time="0.000105" file=".claude/tests/unit/shell-integration.test.ts" line="340" assertions="1" />
-      <testcase name="PERFORMANCE_THRESHOLDS are defined" classname="Metrics" time="0.000017" file=".claude/tests/unit/shell-integration.test.ts" line="345" assertions="2" />
-    </testsuite>
-  </testsuite>
-  <testsuite name=".claude/tests/omega/integration.test.ts" file=".claude/tests/omega/integration.test.ts" tests="20" assertions="37" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-    <testsuite name="OMEGA Integration" file=".claude/tests/omega/integration.test.ts" line="15" tests="18" assertions="35" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-      <testsuite name="Version Registry" file=".claude/tests/omega/integration.test.ts" line="16" tests="3" assertions="10" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-        <testcase name="getVersion returns valid version" classname="Version Registry &amp;gt; OMEGA Integration" time="0.000245" file=".claude/tests/omega/integration.test.ts" line="17" assertions="4" />
-        <testcase name="parseVersion handles standard versions" classname="Version Registry &amp;gt; OMEGA Integration" time="0.000051" file=".claude/tests/omega/integration.test.ts" line="25" assertions="3" />
-        <testcase name="parseVersion handles invalid input" classname="Version Registry &amp;gt; OMEGA Integration" time="0.000019" file=".claude/tests/omega/integration.test.ts" line="32" assertions="3" />
+    <testsuite name="API Server A/B Integration" file="tests/ab-variant-e2e.test.ts" line="325" tests="16" assertions="36" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+      <testsuite name="Enhanced AB Endpoints" file="tests/ab-variant-e2e.test.ts" line="488" tests="6" assertions="14" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+        <testcase name="should return variant with source field" classname="Enhanced AB Endpoints &amp;gt; API Server A/B Integration" time="0.000471" file="tests/ab-variant-e2e.test.ts" line="489" assertions="4" />
+        <testcase name="should fallback to default when no cookie" classname="Enhanced AB Endpoints &amp;gt; API Server A/B Integration" time="0.000142" file="tests/ab-variant-e2e.test.ts" line="500" assertions="2" />
+        <testcase name="should snapshot with default zstd format" classname="Enhanced AB Endpoints &amp;gt; API Server A/B Integration" time="0.000325" file="tests/ab-variant-e2e.test.ts" line="507" assertions="4" />
+        <testcase name="should snapshot with deflate format" classname="Enhanced AB Endpoints &amp;gt; API Server A/B Integration" time="0.000157" file="tests/ab-variant-e2e.test.ts" line="518" assertions="2" />
+        <testcase name="should snapshot with gzip format" classname="Enhanced AB Endpoints &amp;gt; API Server A/B Integration" time="0.000134" file="tests/ab-variant-e2e.test.ts" line="527" assertions="1" />
+        <testcase name="should reject invalid snapshot format" classname="Enhanced AB Endpoints &amp;gt; API Server A/B Integration" time="0.000122" file="tests/ab-variant-e2e.test.ts" line="535" assertions="1" />
       </testsuite>
-      <testsuite name="Health System" file=".claude/tests/omega/integration.test.ts" line="40" tests="2" assertions="8" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-        <testcase name="healthCheck returns status object" classname="Health System &amp;gt; OMEGA Integration" time="0.000258" file=".claude/tests/omega/integration.test.ts" line="41" assertions="4" />
-        <testcase name="healthCheck includes all component checks" classname="Health System &amp;gt; OMEGA Integration" time="0.000087" file=".claude/tests/omega/integration.test.ts" line="49" assertions="4" />
+      <testsuite name="Multi-Tenant Endpoint" file="tests/ab-variant-e2e.test.ts" line="541" tests="3" assertions="8" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+        <testcase name="should resolve tenant from X-Tenant-ID header" classname="Multi-Tenant Endpoint &amp;gt; API Server A/B Integration" time="0.000177" file="tests/ab-variant-e2e.test.ts" line="542" assertions="4" />
+        <testcase name="should resolve tenant from query param when header provided" classname="Multi-Tenant Endpoint &amp;gt; API Server A/B Integration" time="0.000114" file="tests/ab-variant-e2e.test.ts" line="556" assertions="2" />
+        <testcase name="should resolve tenant from path when no header" classname="Multi-Tenant Endpoint &amp;gt; API Server A/B Integration" time="0.000179" file="tests/ab-variant-e2e.test.ts" line="568" assertions="2" />
       </testsuite>
-      <testsuite name="File Operations" file=".claude/tests/omega/integration.test.ts" line="58" tests="2" assertions="4" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-        <testcase name="manifest file is readable" classname="File Operations &amp;gt; OMEGA Integration" time="0.000251" file=".claude/tests/omega/integration.test.ts" line="59" assertions="3" />
-        <testcase name="health module is executable" classname="File Operations &amp;gt; OMEGA Integration" time="0.00003" file=".claude/tests/omega/integration.test.ts" line="69" assertions="1" />
+      <testsuite name="WebSocket Sub-Protocol" file="tests/ab-variant-e2e.test.ts" line="577" tests="5" assertions="11" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+        <testcase name="should upgrade with ab-events protocol" classname="WebSocket Sub-Protocol &amp;gt; API Server A/B Integration" time="0.00023" file="tests/ab-variant-e2e.test.ts" line="578" assertions="2" />
+        <testcase name="should upgrade with ab-metrics protocol" classname="WebSocket Sub-Protocol &amp;gt; API Server A/B Integration" time="0.000161" file="tests/ab-variant-e2e.test.ts" line="589" assertions="2" />
+        <testcase name="should accept unknown protocol and default to ab-events" classname="WebSocket Sub-Protocol &amp;gt; API Server A/B Integration" time="0.000133" file="tests/ab-variant-e2e.test.ts" line="600" assertions="2" />
+        <testcase name="should respond to ping messages" classname="WebSocket Sub-Protocol &amp;gt; API Server A/B Integration" time="0.000397" file="tests/ab-variant-e2e.test.ts" line="611" assertions="2" />
+        <testcase name="should stream variant events to ab-events subscribers" classname="WebSocket Sub-Protocol &amp;gt; API Server A/B Integration" time="0.000355" file="tests/ab-variant-e2e.test.ts" line="631" assertions="3" />
       </testsuite>
-      <testsuite name="CLI Integration" file=".claude/tests/omega/integration.test.ts" line="76" tests="3" assertions="3" failures="0" skipped="0" time="0.015" hostname="Mac.attlocal.net">
-        <testcase name="omega binary exists" classname="CLI Integration &amp;gt; OMEGA Integration" time="0.000031" file=".claude/tests/omega/integration.test.ts" line="77" assertions="1" />
-        <testcase name="kimi-shell binary exists" classname="CLI Integration &amp;gt; OMEGA Integration" time="0.000024" file=".claude/tests/omega/integration.test.ts" line="83" assertions="1" />
-        <testcase name="omega --help runs successfully" classname="CLI Integration &amp;gt; OMEGA Integration" time="0.01575" file=".claude/tests/omega/integration.test.ts" line="89" assertions="1" />
+      <testsuite name="Metrics Aggregation" file="tests/ab-variant-e2e.test.ts" line="656" tests="2" assertions="3" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+        <testcase name="should track impressions via /api/ab/status polling endpoint" classname="Metrics Aggregation &amp;gt; API Server A/B Integration" time="0.000411" file="tests/ab-variant-e2e.test.ts" line="657" assertions="2" />
+        <testcase name="should count tenant-specific metrics" classname="Metrics Aggregation &amp;gt; API Server A/B Integration" time="0.000267" file="tests/ab-variant-e2e.test.ts" line="673" assertions="1" />
       </testsuite>
-      <testsuite name="Scripts Integration" file=".claude/tests/omega/integration.test.ts" line="99" tests="6" assertions="6" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-        <testcase name="./scripts/deploy-omega.sh exists" classname="Scripts Integration &amp;gt; OMEGA Integration" time="0.00009" file=".claude/tests/omega/integration.test.ts" line="110" assertions="1" />
-        <testcase name="./scripts/backup-omega.sh exists" classname="Scripts Integration &amp;gt; OMEGA Integration" time="0.000007" file=".claude/tests/omega/integration.test.ts" line="110" assertions="1" />
-        <testcase name="./scripts/restore-omega.sh exists" classname="Scripts Integration &amp;gt; OMEGA Integration" time="0.00001" file=".claude/tests/omega/integration.test.ts" line="110" assertions="1" />
-        <testcase name="./scripts/rotate-secrets.sh exists" classname="Scripts Integration &amp;gt; OMEGA Integration" time="0." file=".claude/tests/omega/integration.test.ts" line="110" assertions="1" />
-        <testcase name="./scripts/validate-env.sh exists" classname="Scripts Integration &amp;gt; OMEGA Integration" time="0.000003" file=".claude/tests/omega/integration.test.ts" line="110" assertions="1" />
-        <testcase name="./scripts/monitor-omega.sh exists" classname="Scripts Integration &amp;gt; OMEGA Integration" time="0" file=".claude/tests/omega/integration.test.ts" line="110" assertions="1" />
-      </testsuite>
-      <testsuite name="Configuration" file=".claude/tests/omega/integration.test.ts" line="118" tests="2" assertions="4" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-        <testcase name="package.json has omega scripts" classname="Configuration &amp;gt; OMEGA Integration" time="0.000083" file=".claude/tests/omega/integration.test.ts" line="119" assertions="3" />
-        <testcase name="wrangler config exists" classname="Configuration &amp;gt; OMEGA Integration" time="0.000089" file=".claude/tests/omega/integration.test.ts" line="126" assertions="1" />
-      </testsuite>
-    </testsuite>
-    <testsuite name="Performance" file=".claude/tests/omega/integration.test.ts" line="134" tests="2" assertions="2" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-      <testcase name="getVersion completes within 1ms" classname="Performance" time="0.000122" file=".claude/tests/omega/integration.test.ts" line="135" assertions="1" />
-      <testcase name="healthCheck completes within 10ms" classname="Performance" time="0.000112" file=".claude/tests/omega/integration.test.ts" line="142" assertions="1" />
     </testsuite>
   </testsuite>
 </testsuites>

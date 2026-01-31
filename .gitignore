@@ -33,6 +33,9 @@ tmp/
 .tmp/
 *.tmp
 
+# A/B variant snapshots (runtime)
+ab-snapshots.db
+
 # Generated indexes
 .options.index
 
@@ -70,7 +73,7 @@ bunfig.toml
 .aitk/
 .android/
 .chelper/
-.clawdbot/
+.openclawd/
 
 # Development tool configurations
 .angular-config.json
