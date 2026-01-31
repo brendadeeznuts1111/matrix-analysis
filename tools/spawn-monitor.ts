@@ -1,11 +1,11 @@
 #!/usr/bin/env bun
 /**
  * Spawn Performance Monitor & Validator
- * 
+ *
  * Validates close_range() optimization and monitors spawn performance
  * in production. Based on real Bun v1.3.6+ improvements.
- * 
- * @see https://github.com/oven-sh/bun/pull/xxxxx (close_range syscall)
+ *
+ * @see https://github.com/oven-sh/bun/pull/{PR_NUMBER} (close_range syscall)
  */
 
 import { spawn } from "bun";
