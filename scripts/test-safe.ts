@@ -14,9 +14,4 @@ const process = spawn('bun', args, {
   shell: true
 });
 
-process.on('exit', (code) => {
-  // Use Bun.exit instead of process.exit
-  if (code && code !== 0) {
-    Bun.exit(code);
-  }
-});
+// Let the process exit naturally with the test exit code
