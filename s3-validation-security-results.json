@@ -1,0 +1,32 @@
+{
+  "timestamp": "2026-01-31T01:22:51.924Z",
+  "bunVersion": "v24.3.0",
+  "s3ValidationFix": {
+    "description": "Fixed - S3 credential validation now rejects invalid parameters",
+    "validatedParameters": [
+      "pageSize (1-1000)",
+      "partSize (5MB-5GB)",
+      "retry (0-10)"
+    ],
+    "securityBenefits": [
+      "Prevents resource exhaustion",
+      "Stops memory issues from large uploads",
+      "Blocks infinite retry loops",
+      "Ensures AWS S3 compliance"
+    ]
+  },
+  "validRanges": {
+    "pageSize": {
+      "min": 1,
+      "max": 1000
+    },
+    "partSize": {
+      "min": "5MB",
+      "max": "5GB"
+    },
+    "retry": {
+      "min": 0,
+      "max": 10
+    }
+  }
+}

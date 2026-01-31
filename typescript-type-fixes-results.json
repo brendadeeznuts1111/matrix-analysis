@@ -1,0 +1,15 @@
+{
+  "timestamp": "2026-01-31T01:22:08.127Z",
+  "bunVersion": "v24.3.0",
+  "typeFixes": {
+    "bunBuildAutoload": "Fixed - autoloadTsconfig and autoloadPackageJson now typed",
+    "sqliteRunReturn": "Fixed - .run() returns Changes object with proper types",
+    "fileSinkWrite": "Fixed - write() returns Promise<number> for async writes"
+  },
+  "improvements": [
+    "Better TypeScript IntelliSense",
+    "Accurate type documentation",
+    "Proper return type inference",
+    "Type safety improvements"
+  ]
+}

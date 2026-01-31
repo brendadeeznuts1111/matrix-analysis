@@ -1,0 +1,15 @@
+{
+  "timestamp": "2026-01-31T01:22:33.007Z",
+  "bunVersion": "v24.3.0",
+  "webAPIFixes": {
+    "urlSearchParamsConfigurable": "Fixed - size property now configurable per Web IDL",
+    "websocketDecompressionProtection": "Fixed - 128MB limit prevents memory exhaustion",
+    "fetchStreamMemoryLeak": "Fixed - ReadableStream properly cleaned up"
+  },
+  "securityImprovements": [
+    "Memory exhaustion protection",
+    "Web IDL specification compliance",
+    "Resource leak prevention",
+    "Automatic cleanup mechanisms"
+  ]
+}
