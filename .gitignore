@@ -166,8 +166,17 @@ Projects/
 
 # Test reports and benchmarks
 reports/junit.xml
+reports/*.json
 *.heapsnapshot
 Heap-*
+
+# Generated test/benchmark artifacts
+test-*.txt
+bench-*.json
+*-results.json
+demo-*.js
+test-transpiled-*.js
+matrix-v*.lock
 
 # Advanced test examples (submodule)
 my-wager-v3/examples/advanced-tests/

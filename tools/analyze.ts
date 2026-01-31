@@ -107,8 +107,28 @@ function parseArgs(argv: string[], config: AnalyzeConfig = {}): {
 	const rest = argv.slice(2);
 	let cmd = rest[0] ?? "";
 
-	const knownCommands = ["scan", "types", "props", "deps", "classes", "strength", "complexity", "rename", "polish"];
+	const knownCommands = ["scan", "types", "props", "deps", "classes", "strength", "complexity", "rename", "polish", "coverage"];
+	const benchMode = rest.includes("--bench");
+	const coverageMode = rest.includes("--coverage") && (cmd === "" || cmd === "scan" || !knownCommands.includes(cmd));
 	const explicitHelp = cmd === "-h" || cmd === "--help";
+
+	if (benchMode) {
+		return {
+			cmd: "bench",
+			rest: rest.filter((a) => a !== "--bench" && !a.startsWith("--bench-format=")),
+			roots: (() => {
+				const rootsArg = rest.find((a) => a.startsWith("--roots="));
+				return rootsArg ? rootsArg.slice("--roots=".length).split(",").map((s) => s.trim()).filter(Boolean)
+					: (config.roots?.length ? config.roots : [...DEFAULT_ROOTS]);
+			})(),
+			all: false,
+			limit: config.limit ?? DEFAULT_LIMIT,
+			format: "table",
+			metrics: true,
+			depth: null,
+			ignorePatterns: config.ignore ?? [],
+		};
+	}
 
 	if (explicitHelp) {
 		return {
@@ -124,8 +144,12 @@ function parseArgs(argv: string[], config: AnalyzeConfig = {}): {
 		};
 	}
 
+	// --coverage as sole/primary flag → coverage subcommand
+	if (coverageMode) {
+		cmd = "coverage";
+	}
 	// No subcommand or first arg is an option → default to scan
-	if (cmd === "" || cmd.startsWith("--") || !knownCommands.includes(cmd)) {
+	else if (cmd === "" || cmd.startsWith("--") || !knownCommands.includes(cmd)) {
 		cmd = "scan";
 	}
 
@@ -173,12 +197,16 @@ Usage:
   bun tools/analyze.ts scan --all         Scan entire repo (**/*.ts, **/*.tsx)
   bun tools/analyze.ts types [--props] [--kind=interface|type|class|enum]  Exported types; --kind filters
   bun tools/analyze.ts props [--kind=...]   Types with properties; --kind = interface | type | class | enum
-  bun tools/analyze.ts deps [--circular]   Imports / circular dep detection
+  bun tools/analyze.ts deps [--circular] [--format=dot]   Imports / circular / import graph DOT
   bun tools/analyze.ts complexity [--threshold=N]  Cyclomatic-style complexity (default: 10)
-  bun tools/analyze.ts classes [--format=tree|dot]  Class hierarchy / inheritance
-  bun tools/analyze.ts strength [--weakest]         Component strength (or weakest first)
+  bun tools/analyze.ts classes [--inheritance] [--format=tree|dot]  Class hierarchy (--inheritance = tree)
+  bun tools/analyze.ts strength [--weakest] [--penalize-lines]  Strength (--penalize-lines = discount huge files)
   bun tools/analyze.ts rename <Old> <New> [--auto] Rename symbol (default: dry-run)
   bun tools/analyze.ts polish [--fix-imports]      Remove unused imports (default: dry-run)
+  bun tools/analyze.ts coverage [--roots=dir1,dir2] [--] [test args]
+                                Run bun test --coverage (--roots limits to those dirs)
+  bun tools/analyze.ts --coverage [--roots=...]   Same as 'coverage'
+  bun tools/analyze.ts --bench [--roots=...]       Benchmark read-only subcommands
 
 Config: .analyze.json or bunfig.toml [analyze] (roots, limit, ignore, complexity.threshold)
 
@@ -188,7 +216,7 @@ Options (scan / default):
   --depth=<n>            Max directory depth
   --ignore=<glob1,glob2> Exclude paths (e.g. **/*.test.ts,**/node_modules)
   --limit=<n>            Max rows (default: 25)
-  --format=table|json|tree|dot  Output (tree/dot for classes)
+  --format=table|json|tree|dot  Output (tree/dot for classes; dot for deps import graph)
   --metrics             Include imports/exports (default: on)
   --no-metrics          Skip imports/exports columns
   --help, -h            This message
@@ -487,6 +515,20 @@ async function runDeps(opts: ReturnType<typeof parseArgs>): Promise<void> {
 		if (toPaths.length) edges.set(fromPath, toPaths);
 	}
 
+	// G3: deps --format=dot — import graph as Graphviz DOT
+	if (opts.format === "dot") {
+		console.log("digraph imports {");
+		for (const [fromPath, toPaths] of edges) {
+			const fromId = '"' + fromPath.replace(/"/g, '\\"') + '"';
+			for (const to of toPaths) {
+				const toId = '"' + to.replace(/"/g, '\\"') + '"';
+				console.log("  " + fromId + " -> " + toId + ";");
+			}
+		}
+		console.log("}");
+		return;
+	}
+
 	if (opts.format === "json") {
 		const out: Record<string, unknown> = Object.fromEntries(importsByFile);
 		if (circular) {
@@ -562,6 +604,10 @@ async function runComplexity(opts: ReturnType<typeof parseArgs>, config: Analyze
 }
 
 async function runClasses(opts: ReturnType<typeof parseArgs>): Promise<void> {
+	// G1: --inheritance = alias for "show tree" when format is table/json
+	const useTree = opts.rest.includes("--inheritance") && (opts.format === "table" || opts.format === "json");
+	const effectiveFormat = useTree ? "tree" : opts.format;
+
 	const glob = new Bun.Glob(GLOB_PATTERN);
 	const roots = opts.all ? ["."] : opts.roots;
 	const classList: { name: string; extends: string; file: string }[] = [];
@@ -609,7 +655,7 @@ async function runClasses(opts: ReturnType<typeof parseArgs>): Promise<void> {
 		return lines;
 	}
 
-	if (opts.format === "dot") {
+	if (effectiveFormat === "dot") {
 		console.log("digraph inheritance {");
 		for (const row of classList) {
 			if (row.extends) console.log('  "' + row.name + '" -> "' + row.extends + '";');
@@ -618,7 +664,7 @@ async function runClasses(opts: ReturnType<typeof parseArgs>): Promise<void> {
 		return;
 	}
 
-	if (opts.format === "tree") {
+	if (effectiveFormat === "tree") {
 		const out: string[] = [];
 		for (const root of treeRoots) {
 			out.push(root);
@@ -630,7 +676,7 @@ async function runClasses(opts: ReturnType<typeof parseArgs>): Promise<void> {
 	}
 
 	const slice = classList.slice(0, opts.limit);
-	if (opts.format === "json") {
+	if (effectiveFormat === "json") {
 		console.log(JSON.stringify({ total: classList.length, classes: slice }, null, 2));
 		return;
 	}
@@ -639,8 +685,12 @@ async function runClasses(opts: ReturnType<typeof parseArgs>): Promise<void> {
 	console.log("\nTotal classes:", classList.length);
 }
 
+/** G2: Optional line penalty — files over LINE_PENALTY_THRESHOLD get score scaled down. */
+const LINE_PENALTY_THRESHOLD = 500;
+
 async function runStrength(opts: ReturnType<typeof parseArgs>): Promise<void> {
 	const weakest = opts.rest.includes("--weakest");
+	const penalizeLines = opts.rest.includes("--penalize-lines");
 	const glob = new Bun.Glob(GLOB_PATTERN);
 	const roots = opts.all ? ["."] : opts.roots;
 	const rows: { file: string; score: number; lines: number; complexity: number; exports: number }[] = [];
@@ -654,7 +704,10 @@ async function runStrength(opts: ReturnType<typeof parseArgs>): Promise<void> {
 				const lines = text.split(/\n/).length;
 				const complexity = approxComplexity(text);
 				const exports = (text.match(/^export\s+(const|function|class|interface|type|enum|async)/gm) || []).length;
-				const score = complexity <= 0 ? exports * 100 : (exports / (1 + complexity)) * 100;
+				let score = complexity <= 0 ? exports * 100 : (exports / (1 + complexity)) * 100;
+				if (penalizeLines && lines > LINE_PENALTY_THRESHOLD) {
+					score *= LINE_PENALTY_THRESHOLD / lines;
+				}
 				rows.push({ file: path, score: Math.round(score * 10) / 10, lines, complexity, exports });
 			}
 		} catch {
@@ -815,6 +868,68 @@ async function runPolish(opts: ReturnType<typeof parseArgs>): Promise<void> {
 	console.log("Removed " + changes.length + " unused import(s).");
 }
 
+const BENCH_COMMANDS = ["scan", "types", "deps", "complexity", "classes", "strength"] as const;
+
+async function runCoverage(opts: ReturnType<typeof parseArgs>): Promise<void> {
+	const passthrough = opts.rest.filter((a) => a !== "--coverage" && !a.startsWith("--roots="));
+	// Only pass --roots= dirs to bun test when user explicitly passed --roots= (else full suite)
+	const rootsExplicit = process.argv.some((a) => a.startsWith("--roots="));
+	const rootsToPass = rootsExplicit ? opts.roots : [];
+	const args = [process.execPath, "test", "--coverage", ...rootsToPass, ...passthrough];
+	const proc = Bun.spawn(args, {
+		cwd: process.cwd(),
+		stdout: "inherit",
+		stderr: "inherit",
+		stdin: "inherit",
+	});
+	const exitCode = await proc.exited;
+	process.exit(exitCode ?? 0);
+}
+
+async function runBench(opts: ReturnType<typeof parseArgs>, config: AnalyzeConfig): Promise<void> {
+	const benchFormat = opts.rest.some((a) => a.startsWith("--bench-format="))
+		? (opts.rest.find((a) => a.startsWith("--bench-format="))!.slice("--bench-format=".length) as "table" | "json")
+		: "table";
+	const roots = opts.roots.join(",");
+	const scriptPath = import.meta.path;
+	const rows: { command: string; ms: number; files: number | string; filesPerSec: number | string }[] = [];
+
+	for (const cmd of BENCH_COMMANDS) {
+		const t0 = Bun.nanoseconds();
+		const proc = Bun.spawn(
+			[process.execPath, scriptPath, cmd, `--roots=${roots}`, "--format=json"],
+			{ cwd: process.cwd(), stdout: "pipe", stderr: "pipe" },
+		);
+		await proc.exited;
+		const ms = (Bun.nanoseconds() - t0) / 1e6;
+		let files: number | string = 0;
+		try {
+			const out = await new Response(proc.stdout).text();
+			const j = JSON.parse(out) as Record<string, unknown>;
+			files = (typeof j.total === "number" ? j.total : (j.files as unknown[])?.length ?? 0) as number;
+		} catch {
+			files = "-";
+		}
+		const filesPerSec = typeof files === "number" && files > 0 && ms > 0 ? Math.round(files / (ms / 1000)) : "-";
+		rows.push({ command: cmd, ms: Math.round(ms), files, filesPerSec });
+	}
+
+	if (benchFormat === "json") {
+		console.log(JSON.stringify({ benchmark: "analyze", commands: rows, timestamp: Date.now() }, null, 2));
+	} else {
+		console.log("⏱️ Analyze benchmark (read-only commands)\n");
+		console.log(Bun.inspect.table(rows, ["command", "ms", "files", "filesPerSec"], { colors: process.stdout.isTTY }));
+	}
+
+	// Broadcast plan status to MCP realtime
+	try {
+		const { updateAnalyzePlanStatus } = await import("./analyze-plan-status.ts");
+		await updateAnalyzePlanStatus({ stage: "2.x", completed: ["2.1", "2.2"], message: "Bench harness + entry done" });
+	} catch {
+		// Plan status updater optional
+	}
+}
+
 async function main(): Promise<void> {
 	const config = await loadConfig();
 	const opts = parseArgs(process.argv, config);
@@ -849,6 +964,12 @@ async function main(): Promise<void> {
 			break;
 		case "polish":
 			await runPolish(opts);
+			break;
+		case "coverage":
+			await runCoverage(opts);
+			break;
+		case "bench":
+			await runBench(opts, config);
 			break;
 		default:
 			usage();

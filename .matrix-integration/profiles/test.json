@@ -1,0 +1,29 @@
+{
+  "name": "test",
+  "version": "1.0.0",
+  "created": "2026-01-28T10:15:00.000Z",
+  "author": "cline",
+  "description": "CI/CD and automated testing profile with mock services and coverage reporting",
+  "env": {
+    "MATRIX_PROJECT": "testing",
+    "MATRIX_REGISTRY": "@local",
+    "MATRIX_MONITORING": "false",
+    "MATRIX_LOG_LEVEL": "info",
+    "MATRIX_DEPLOY_TARGET": "test",
+    "NODE_ENV": "test",
+    "BUN_PREFER_OFFLINE": "true",
+    "DEBUG": "",
+    "TEST_MODE": "true",
+    "ENABLE_MOCK_DATA": "true",
+    "DATABASE_URL": "sqlite::memory:",
+    "REDIS_URL": "redis://localhost:6379/1",
+    "TEST_COVERAGE": "true",
+    "COVERAGE_REPORTER": "lcov,text-summary",
+    "FAIL_FAST": "false",
+    "PARALLEL_TESTS": "true",
+    "TEST_TIMEOUT": "10000",
+    "API_TIMEOUT": "5000",
+    "LOG_FORMAT": "text",
+    "CI": "true"
+  }
+}

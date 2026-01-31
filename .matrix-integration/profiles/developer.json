@@ -1,0 +1,30 @@
+{
+  "name": "developer",
+  "version": "1.0.0",
+  "created": "2026-01-28T10:15:00.000Z",
+  "author": "cline",
+  "description": "Personal developer profile with maximum verbosity and debugging tools",
+  "env": {
+    "MATRIX_PROJECT": "dev-personal",
+    "MATRIX_REGISTRY": "@local",
+    "MATRIX_MONITORING": "false",
+    "MATRIX_LOG_LEVEL": "debug",
+    "MATRIX_DEPLOY_TARGET": "local",
+    "NODE_ENV": "development",
+    "DEBUG": "app:*,matrix:*",
+    "DEVELOPMENT_MODE": "true",
+    "HOT_RELOAD": "true",
+    "SOURCE_MAPS": "true",
+    "BUN_DEBUG": "true",
+    "CONSOLE_DEPTH": "5",
+    "LOG_PRETTY_PRINT": "true",
+    "CONSOLE_COLORS": "true",
+    "ERROR_STACK_TRACES": "true",
+    "DEV_TOOLS": "true",
+    "BROWSER_SYNC": "true",
+    "API_PROXY": "http://localhost:8080",
+    "STATIC_PORT": "3000",
+    "DEV_DATABASE": "${DEV_DATABASE_URL}",
+    "LOCAL_ONLY": "true"
+  }
+}

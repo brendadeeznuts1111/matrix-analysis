@@ -385,6 +385,31 @@ server.resource(
 	}),
 );
 
+// Analyze CLI plan status (live MCP resource, updated by analyze --bench / analyze-plan-status)
+server.resource(
+	"bun-analyze-plan-realtime",
+	"bun://analyze/plan/realtime",
+	{ description: "Analyze CLI plan status — stages, done/pending counts, last updated. Live updates via analyze --bench." },
+	async () => {
+		const path = `${process.cwd()}/.matrix-integration/mcp/analyze_plan_realtime.json`;
+		let text: string;
+		try {
+			const f = Bun.file(path);
+			if (await f.exists()) text = await f.text();
+			else throw new Error("not found");
+		} catch {
+			text = JSON.stringify({
+				uri: "bun://analyze/plan/realtime",
+				data: { plan: "analyze_cli_missing_features", stages: {}, lastUpdated: Date.now(), message: "No status yet; run: bun tools/analyze.ts --bench" },
+				timestamp: Date.now(),
+			}, null, 2);
+		}
+		return {
+			contents: [{ uri: "bun://analyze/plan/realtime", mimeType: "application/json", text }],
+		};
+	},
+);
+
 async function main(): Promise<void> {
 	const transport = new StdioServerTransport();
 	await server.connect(transport);

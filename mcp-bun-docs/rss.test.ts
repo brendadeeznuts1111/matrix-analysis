@@ -3,7 +3,7 @@
  * RSS parser tests — parseRSS (Bun-safe, no DOMParser).
  */
 
-import { describe, expect, test, spyOn, beforeEach, afterEach } from "bun:test";
+import { describe, expect, it, spyOn, beforeEach, afterEach } from "bun:test";
 import { parseRSS, safeRSSPreview, type RSSFeed, type RSSItem } from "./rss.ts";
 
 let fetchSpy: ReturnType<typeof spyOn> | null = null;
@@ -37,7 +37,7 @@ describe("parseRSS", () => {
 		if (fetchSpy) fetchSpy.mockRestore();
 	});
 
-	test("returns RSSFeedResult with feed and audit", async () => {
+	it("returns RSSFeedResult with feed and audit", async () => {
 		const result = await parseRSS("https://example.com/feed.xml");
 		expect(result).toHaveProperty("feed");
 		expect(result).toHaveProperty("audit");
@@ -52,7 +52,7 @@ describe("parseRSS", () => {
 		expect(feed.items.length).toBe(2);
 	});
 
-	test("parses item title, link, pubDate, description", async () => {
+	it("parses item title, link, pubDate, description", async () => {
 		const { feed } = await parseRSS("https://example.com/feed.xml");
 		const first = feed.items[0];
 		expect(first.title).toBe("Bun v99.0.0");
@@ -61,12 +61,12 @@ describe("parseRSS", () => {
 		expect(first.description).toBe("Release notes");
 	});
 
-	test("throws on non-ok response", async () => {
+	it("throws on non-ok response", async () => {
 		fetchSpy!.mockResolvedValueOnce(new Response("", { status: 404 }));
 		await expect(parseRSS("https://example.com/feed.xml")).rejects.toThrow("RSS fetch failed: 404");
 	});
 
-	test("calls onAudit with audit metadata", async () => {
+	it("calls onAudit with audit metadata", async () => {
 		let captured: { fetchTimeMs: number; sizeBytes: number } | null = null;
 		await parseRSS("https://example.com/feed.xml", { onAudit: (a) => { captured = a; } });
 		expect(captured).not.toBeNull();
@@ -74,19 +74,19 @@ describe("parseRSS", () => {
 		expect(captured!.sizeBytes).toBeGreaterThan(0);
 	});
 
-	test("throws when response contains parsererror", async () => {
+	it("throws when response contains parsererror", async () => {
 		fetchSpy!.mockResolvedValueOnce(new Response("<xml><parsererror>bad</parsererror></xml>"));
 		await expect(parseRSS("https://example.com/feed.xml")).rejects.toThrow("parsererror");
 	});
 });
 
 describe("safeRSSPreview", () => {
-	test("returns escaped string when within maxCols", () => {
+	it("returns escaped string when within maxCols", () => {
 		const short = "Bun v1.3.7";
 		expect(safeRSSPreview(short)).toBe(Bun.escapeHTML(short));
 	});
 
-	test("truncates and appends ellipsis when over maxCols", () => {
+	it("truncates and appends ellipsis when over maxCols", () => {
 		const long =
 			"Bun v1.3.7: GB9c Indic fix, stringWidth table reduced 27%, zero-width handling improved and more release notes here";
 		expect(Bun.stringWidth(long, { countAnsiEscapeCodes: false })).toBeGreaterThan(89);
@@ -97,7 +97,7 @@ describe("safeRSSPreview", () => {
 		expect(Bun.stringWidth(inner, { countAnsiEscapeCodes: false })).toBeLessThanOrEqual(86);
 	});
 
-	test("respects word boundaries when wordAware is true", () => {
+	it("respects word boundaries when wordAware is true", () => {
 		const long = "One two three four five six seven eight nine ten";
 		const out = safeRSSPreview(long, { maxCols: 20, reserve: 3, wordAware: true });
 		expect(out).toEndWith("…");
@@ -106,12 +106,12 @@ describe("safeRSSPreview", () => {
 		expect(inner.trimEnd()).toBe(inner); // no trailing space from word break
 	});
 
-	test("escapes HTML to prevent XSS", () => {
+	it("escapes HTML to prevent XSS", () => {
 		const xss = "<script>alert(1)</script>";
 		expect(safeRSSPreview(xss)).toBe(Bun.escapeHTML(xss));
 	});
 
-	test("calls onViolation when truncation occurs", () => {
+	it("calls onViolation when truncation occurs", () => {
 		const violations: { width: number; maxCols: number }[] = [];
 		safeRSSPreview("x".repeat(200), {
 			maxCols: 89,
@@ -122,13 +122,13 @@ describe("safeRSSPreview", () => {
 		expect(violations[0].maxCols).toBe(89);
 	});
 
-	test("does not call onViolation when within limit", () => {
+	it("does not call onViolation when within limit", () => {
 		let called = false;
 		safeRSSPreview("short", { onViolation: () => { called = true; } });
 		expect(called).toBe(false);
 	});
 
-	test("custom maxCols and reserve", () => {
+	it("custom maxCols and reserve", () => {
 		const long = "A".repeat(100);
 		const out = safeRSSPreview(long, { maxCols: 40, reserve: 2 });
 		expect(out).toEndWith("…");

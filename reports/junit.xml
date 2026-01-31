@@ -1,21 +1,34 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuites name="bun test" tests="12" assertions="34" failures="0" skipped="0" time="0.010431">
-  <testsuite name="mcp-bun-docs/rss.test.ts" file="mcp-bun-docs/rss.test.ts" tests="12" assertions="34" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-    <testsuite name="parseRSS" file="mcp-bun-docs/rss.test.ts" line="32" tests="5" assertions="19" failures="0" skipped="0" time="0.001" hostname="Mac.attlocal.net">
-      <testcase name="returns RSSFeedResult with feed and audit" classname="parseRSS" time="0.001045" file="mcp-bun-docs/rss.test.ts" line="40" assertions="10" />
-      <testcase name="parses item title, link, pubDate, description" classname="parseRSS" time="0.000106" file="mcp-bun-docs/rss.test.ts" line="55" assertions="4" />
-      <testcase name="throws on non-ok response" classname="parseRSS" time="0" file="mcp-bun-docs/rss.test.ts" line="64" assertions="1" />
-      <testcase name="calls onAudit with audit metadata" classname="parseRSS" time="0" file="mcp-bun-docs/rss.test.ts" line="69" assertions="3" />
-      <testcase name="throws when response contains parsererror" classname="parseRSS" time="0.000199" file="mcp-bun-docs/rss.test.ts" line="77" assertions="1" />
-    </testsuite>
-    <testsuite name="safeRSSPreview" file="mcp-bun-docs/rss.test.ts" line="83" tests="7" assertions="15" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-      <testcase name="returns escaped string when within maxCols" classname="safeRSSPreview" time="0.000199" file="mcp-bun-docs/rss.test.ts" line="84" assertions="1" />
-      <testcase name="truncates and appends ellipsis when over maxCols" classname="safeRSSPreview" time="0.000854" file="mcp-bun-docs/rss.test.ts" line="89" assertions="4" />
-      <testcase name="respects word boundaries when wordAware is true" classname="safeRSSPreview" time="0" file="mcp-bun-docs/rss.test.ts" line="100" assertions="3" />
-      <testcase name="escapes HTML to prevent XSS" classname="safeRSSPreview" time="0" file="mcp-bun-docs/rss.test.ts" line="109" assertions="1" />
-      <testcase name="calls onViolation when truncation occurs" classname="safeRSSPreview" time="0.00014" file="mcp-bun-docs/rss.test.ts" line="114" assertions="3" />
-      <testcase name="does not call onViolation when within limit" classname="safeRSSPreview" time="0" file="mcp-bun-docs/rss.test.ts" line="125" assertions="1" />
-      <testcase name="custom maxCols and reserve" classname="safeRSSPreview" time="0.000055" file="mcp-bun-docs/rss.test.ts" line="131" assertions="2" />
+<testsuites name="bun test" tests="21" assertions="53" failures="0" skipped="0" time="0.02381">
+  <testsuite name=".claude/src/system/version/version-system.test.ts" file=".claude/src/system/version/version-system.test.ts" tests="21" assertions="53" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+    <testsuite name="VERSION_SYSTEM" file=".claude/src/system/version/version-system.test.ts" line="11" tests="21" assertions="53" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+      <testsuite name="VersionSystem Core" file=".claude/src/system/version/version-system.test.ts" line="12" tests="16" assertions="44" failures="0" skipped="0" time="0.001" hostname="Mac.attlocal.net">
+        <testcase name="should parse valid semver" classname="VersionSystem Core &amp;gt; VERSION_SYSTEM" time="0.001285" file=".claude/src/system/version/version-system.test.ts" line="13" assertions="1" />
+        <testcase name="should parse semver with prerelease" classname="VersionSystem Core &amp;gt; VERSION_SYSTEM" time="0.000015" file=".claude/src/system/version/version-system.test.ts" line="24" assertions="1" />
+        <testcase name="should parse semver with build" classname="VersionSystem Core &amp;gt; VERSION_SYSTEM" time="0.000018" file=".claude/src/system/version/version-system.test.ts" line="35" assertions="1" />
+        <testcase name="should parse semver with prerelease and build" classname="VersionSystem Core &amp;gt; VERSION_SYSTEM" time="0" file=".claude/src/system/version/version-system.test.ts" line="46" assertions="1" />
+        <testcase name="should handle v prefix" classname="VersionSystem Core &amp;gt; VERSION_SYSTEM" time="0.000018" file=".claude/src/system/version/version-system.test.ts" line="57" assertions="1" />
+        <testcase name="should return null for invalid semver" classname="VersionSystem Core &amp;gt; VERSION_SYSTEM" time="0.000022" file=".claude/src/system/version/version-system.test.ts" line="68" assertions="3" />
+        <testcase name="should compare versions correctly" classname="VersionSystem Core &amp;gt; VERSION_SYSTEM" time="0.000045" file=".claude/src/system/version/version-system.test.ts" line="74" assertions="4" />
+        <testcase name="should satisfy caret ranges" classname="VersionSystem Core &amp;gt; VERSION_SYSTEM" time="0.000107" file=".claude/src/system/version/version-system.test.ts" line="87" assertions="4" />
+        <testcase name="should satisfy tilde ranges" classname="VersionSystem Core &amp;gt; VERSION_SYSTEM" time="0.000035" file=".claude/src/system/version/version-system.test.ts" line="102" assertions="2" />
+        <testcase name="should satisfy greater/less ranges" classname="VersionSystem Core &amp;gt; VERSION_SYSTEM" time="0.000031" file=".claude/src/system/version/version-system.test.ts" line="111" assertions="5" />
+        <testcase name="should bump versions correctly" classname="VersionSystem Core &amp;gt; VERSION_SYSTEM" time="0.000101" file=".claude/src/system/version/version-system.test.ts" line="129" assertions="4" />
+        <testcase name="should bump prerelease versions" classname="VersionSystem Core &amp;gt; VERSION_SYSTEM" time="0" file=".claude/src/system/version/version-system.test.ts" line="144" assertions="1" />
+        <testcase name="should validate semver" classname="VersionSystem Core &amp;gt; VERSION_SYSTEM" time="0.000056" file=".claude/src/system/version/version-system.test.ts" line="153" assertions="4" />
+        <testcase name="should format version" classname="VersionSystem Core &amp;gt; VERSION_SYSTEM" time="0.000034" file=".claude/src/system/version/version-system.test.ts" line="160" assertions="2" />
+        <testcase name="should get runtime info" classname="VersionSystem Core &amp;gt; VERSION_SYSTEM" time="0.00005" file=".claude/src/system/version/version-system.test.ts" line="174" assertions="6" />
+        <testcase name="should check compatibility" classname="VersionSystem Core &amp;gt; VERSION_SYSTEM" time="0" file=".claude/src/system/version/version-system.test.ts" line="184" assertions="4" />
+      </testsuite>
+      <testsuite name="VersionSystem Singleton" file=".claude/src/system/version/version-system.test.ts" line="193" tests="2" assertions="2" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+        <testcase name="should return same instance" classname="VersionSystem Singleton &amp;gt; VERSION_SYSTEM" time="0" file=".claude/src/system/version/version-system.test.ts" line="194" assertions="1" />
+        <testcase name="should cache parsed versions" classname="VersionSystem Singleton &amp;gt; VERSION_SYSTEM" time="0" file=".claude/src/system/version/version-system.test.ts" line="200" assertions="1" />
+      </testsuite>
+      <testsuite name="Version Comparison Edge Cases" file=".claude/src/system/version/version-system.test.ts" line="215" tests="3" assertions="7" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+        <testcase name="should handle prerelease comparison" classname="Version Comparison Edge Cases &amp;gt; VERSION_SYSTEM" time="0.000408" file=".claude/src/system/version/version-system.test.ts" line="216" assertions="3" />
+        <testcase name="should handle canary versions" classname="Version Comparison Edge Cases &amp;gt; VERSION_SYSTEM" time="0.000011" file=".claude/src/system/version/version-system.test.ts" line="233" assertions="2" />
+        <testcase name="should handle nightly versions" classname="Version Comparison Edge Cases &amp;gt; VERSION_SYSTEM" time="0.000018" file=".claude/src/system/version/version-system.test.ts" line="239" assertions="2" />
+      </testsuite>
     </testsuite>
   </testsuite>
 </testsuites>

@@ -1,0 +1,160 @@
+{
+  "name": "thuis",
+  "version": "1.0.0",
+  "created": "2026-01-31T01:24:00Z",
+  "author": "Bun TIER-1380",
+  "description": "Home automation and local server terminal profile for Bun.thuis ecosystem",
+  "environment": "home",
+  "env": {
+    "THUIS_HOME": "${HOME}/.bun/thuis",
+    "THUIS_CONFIG": "${THUIS_HOME}/thuis.config.json",
+    "THUIS_MODE": "daemon",
+    "THUIS_SERVER_PORT": "3000",
+    "THUIS_SSL": "true",
+    "THUIS_AUTOMATE": "enabled",
+    "THUIS_SCHEDULE": "cron",
+    "THUIS_LOG_LEVEL": "info",
+    "THUIS_DATA_DIR": "${THUIS_HOME}/data",
+    "THUIS_PLUGINS_DIR": "${THUIS_HOME}/plugins",
+    "THUIS_BACKUP_DIR": "${THUIS_HOME}/backups",
+    "BUN_HOME": "${HOME}/.bun",
+    "NODE_ENV": "development",
+    "BUN_CONFIG": "${BUN_HOME}/config.toml",
+    "PATH": "${THUIS_HOME}/bin:${PATH}",
+    "LD_LIBRARY_PATH": "${THUIS_HOME}/lib:${LD_LIBRARY_PATH}",
+    "DYLD_LIBRARY_PATH": "${THUIS_HOME}/lib:${DYLD_LIBRARY_PATH}",
+    "THUIS_NOTIFY": "true",
+    "THUIS_TRAY": "true",
+    "THUIS_AUTOSTART": "true",
+    "THUIS_SERVICE_NAME": "bun-thuis",
+    "THUIS_PID_FILE": "${THUIS_HOME}/thuis.pid",
+    "THUIS_SOCKET": "${THUIS_HOME}/thuis.sock",
+    "THUIS_LOG_FILE": "${THUIS_HOME}/logs/thuis.log",
+    "THUIS_BACKUP_ENABLED": "true",
+    "THUIS_BACKUP_INTERVAL": "24h",
+    "THUIS_UPDATE_CHECK": "true",
+    "THUIS_TELEMETRY": "false"
+  },
+  "thuisConfig": {
+    "homeDirectory": "${HOME}/.bun/thuis",
+    "configFile": "thuis.config.json",
+    "serviceMode": "daemon",
+    "features": {
+      "localServer": true,
+      "autoStart": true,
+      "trayIcon": true,
+      "notifications": true,
+      "backup": true,
+      "telemetry": false,
+      "autoUpdate": true
+    },
+    "server": {
+      "port": 3000,
+      "ssl": true,
+      "host": "localhost",
+      "certPath": "${THUIS_HOME}/ssl/cert.pem",
+      "keyPath": "${THUIS_HOME}/ssl/key.pem"
+    },
+    "automation": {
+      "enabled": true,
+      "schedule": "cron",
+      "tasksDir": "${THUIS_HOME}/tasks",
+      "logsDir": "${THUIS_HOME}/logs/automation"
+    },
+    "plugins": {
+      "enabled": true,
+      "directory": "${THUIS_HOME}/plugins",
+      "autoLoad": true
+    }
+  },
+  "terminalSettings": {
+    "prompt": "\\[\\033[36mthuis\\033[0m\\] \\w $ ",
+    "colors": "thuis",
+    "historySize": 10000,
+    "autoComplete": true,
+    "syntaxHighlighting": true
+  },
+  "aliases": {
+    "thuis-start": "bun run ~/.bun/thuis/scripts/start.ts",
+    "thuis-stop": "bun run ~/.bun/thuis/scripts/stop.ts",
+    "thuis-status": "bun run ~/.bun/thuis/scripts/status.ts",
+    "thuis-config": "nano ${THUIS_CONFIG}",
+    "thuis-logs": "tail -f ${THUIS_LOG_FILE}",
+    "thuis-backup": "bun run ~/.bun/thuis/scripts/backup.ts",
+    "thuis-restore": "bun run ~/.bun/thuis/scripts/restore.ts",
+    "thuis-update": "bun run ~/.bun/thuis/scripts/update.ts",
+    "thuis-plugins": "bun run ~/.bun/thuis/scripts/plugins.ts",
+    "thuis-serve": "bun run ~/.bun/thuis/scripts/serve.ts",
+    "thuis-automate": "bun run ~/.bun/thuis/scripts/automate.ts",
+    "thuis-matrix": "bun-matrix show --thuis",
+    "thuis-clean": "bun run ~/.bun/thuis/scripts/clean.ts"
+  },
+  "scripts": {
+    "init": "mkdir -p ${THUIS_HOME}/{data,plugins,backups,logs,ssl,bin,lib,tasks,scripts}",
+    "setup": "bun run ~/.bun/thuis/scripts/setup.ts",
+    "start": "bun --thuis-daemon ${THUIS_HOME}/server/index.ts",
+    "stop": "kill -TERM $(cat ${THUIS_PID_FILE})",
+    "restart": "thuis-stop && sleep 2 && thuis-start",
+    "status": "ps aux | grep 'bun.*thuis' | grep -v grep",
+    "logs": "tail -f ${THUIS_LOG_FILE}",
+    "config": "nano ${THUIS_CONFIG}",
+    "backup": "tar -czf ${THUIS_BACKUP_DIR}/thuis-backup-$(date +%Y%m%d-%H%M%S).tar.gz ${THUIS_HOME}",
+    "clean": "find ${THUIS_HOME} -name '*.tmp' -delete && find ${THUIS_HOME} -name '*.log' -mtime +7 -delete"
+  },
+  "paths": {
+    "bin": "${THUIS_HOME}/bin",
+    "lib": "${THUIS_HOME}/lib",
+    "include": "${THUIS_HOME}/include",
+    "share": "${THUIS_HOME}/share",
+    "man": "${THUIS_HOME}/man"
+  },
+  "services": [
+    {
+      "name": "bun-thuis",
+      "description": "Bun Thuis Home Automation Service",
+      "command": "bun --thuis-daemon ${THUIS_HOME}/server/index.ts",
+      "pidFile": "${THUIS_PID_FILE}",
+      "logFile": "${THUIS_LOG_FILE}",
+      "autoStart": true,
+      "restartOnCrash": true
+    },
+    {
+      "name": "bun-thuis-serve",
+      "description": "Bun Thuis Local Web Server",
+      "command": "bun --thuis-serve --port=${THUIS_SERVER_PORT} --ssl=${THUIS_SSL}",
+      "pidFile": "${THUIS_HOME}/serve.pid",
+      "logFile": "${THUIS_HOME}/logs/serve.log",
+      "autoStart": true,
+      "restartOnCrash": true
+    },
+    {
+      "name": "bun-thuis-automate",
+      "description": "Bun Thuis Task Automation Service",
+      "command": "bun --thuis-automate --schedule=${THUIS_SCHEDULE}",
+      "pidFile": "${THUIS_HOME}/automate.pid",
+      "logFile": "${THUIS_HOME}/logs/automation.log",
+      "autoStart": true,
+      "restartOnCrash": true
+    }
+  ],
+  "requirements": {
+    "bun": ">=1.3.7",
+    "node": ">=18.0.0",
+    "os": ["darwin", "linux", "win32"],
+    "memory": "512MB",
+    "disk": "100MB"
+  },
+  "features": {
+    "homeAutomation": true,
+    "localServer": true,
+    "taskAutomation": true,
+    "pluginSystem": true,
+    "backupRestore": true,
+    "sslSupport": true,
+    "notifications": true,
+    "trayIcon": true,
+    "autoStart": true,
+    "logging": true,
+    "telemetry": false
+  }
+}

@@ -46,19 +46,25 @@ This is a local project folder. Run `kimi` from this directory to activate conte
 
 ## Shell Mode
 
-Custom shell-mode skill available at:
-- Skill: `~/.claude/skills/shell-mode.md`
-- CLI helper: `~/.claude/bin/shell-mode`
+Enhanced shell-mode with infrastructure management:
+- **Skill**: `./skills/shell-mode.md` - Shell customization guide
+- **Kimi Shell**: `./bin/kimi-shell` - Shell initialization (v5.0)
+- **Infrastructure CLI**: `./bin/infra` - Service management and monitoring
 
 Usage:
 ```bash
-# In Kimi CLI, type shell commands directly:
-ls -la
-bun install
-npm run build
+# Initialize shell mode
+source <(./bin/kimi-shell init)
 
-# Or use the helper:
-~/.claude/bin/shell-mode
+# Infrastructure management
+./bin/infra status          # Show service status
+./bin/infra health          # Health check all components
+./bin/infra start dashboard # Start dashboard
+
+# Or use aliases after init:
+is              # infra status
+ish             # infra health
+idstart         # infra start dashboard
 ```
 
 ## Tier-1380 OMEGA Skill
@@ -251,3 +257,36 @@ See `.agents/skills/tier1380-commit-flow/references/GOVERNANCE.md`
 
 - **[GOVERNANCE.md](.agents/skills/tier1380-commit-flow/references/GOVERNANCE.md)** - Complete governance rules
 - **[SLASH_CMDS.md](.agents/skills/tier1380-commit-flow/references/SLASH_CMDS.md)** - All slash commands
+
+---
+
+## Tier-1380 Infrastructure Skill
+
+Infrastructure management skill for service control, monitoring, and diagnostics.
+
+### Loading the Skill
+
+```
+/skill:tier1380-infra
+```
+
+### Quick Commands
+
+| Command | Description |
+|---------|-------------|
+| `infra status` | Show all services status |
+| `infra health` | Health check all components |
+| `infra context` | Show domain context |
+| `infra start dashboard` | Start dashboard server |
+| `infra stop dashboard` | Stop dashboard server |
+| `infra restart dashboard` | Restart with health check |
+| `infra diagnose` | Run diagnostic suite |
+| `infra emergency-stop` | Immediate shutdown |
+
+### Integration Points
+
+- **Dashboard**: http://localhost:3333
+- **Config**: domain-config.json5
+- **Logs**: apps/dashboard/logs/
+
+See `.agents/skills/tier1380-infra/SKILL.md` for complete documentation.

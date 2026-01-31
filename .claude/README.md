@@ -18,7 +18,7 @@
 - 🚨 **Live Tension Alerting** - Real-time anomaly detection with wrapAnsi visual alerts and webhook integration
 - 🔄 **CI Smoke Hooks** - Pre-commit/pre-push validation for JSON5, TypeScript, and tension thresholds
 - 🎯 **Advanced Bun Arsenal** - Sub-ms pipe magic, --smol mastery, and wrapAnsi visual domination
-- ⚡ **Bun [define] Constants** - 74 build-time constants for zero-overhead configuration ([Guide](DEFINED_CONSTANTS_GUIDE.md))
+- ⚡ **Infrastructure Management** (`infra`) - Complete service control, health monitoring, and diagnostics
 
 ## ✨ **What's New in v2.0**
 
@@ -136,7 +136,7 @@ r2-bunx/
 ├── 📚 docs/                     # 📖 Documentation Hub
 │   ├── CLI_COMMAND_MATRIX.md    # 🚀 Complete CLI commands with TypeScript types
 │   ├── DOCUMENTATION_INDEX.md   # 📋 Comprehensive documentation index
-│   ├── NAVIGATION.md             # 🧭 Documentation navigation guide
+│   ├── DOCUMENTATION_INDEX.md    # 📚 Documentation index and navigation
 │   ├── CDN_README.md            # 🌐 CDN documentation center
 │   ├── guides/                  # How-to guides (17 files)
 │   │   ├── getting-started.md   # Complete setup guide
@@ -225,7 +225,7 @@ Production-grade Chrome state management with zero-knowledge security.
 ./bin/fw shell test
 ```
 
-[📖 Full Documentation](CHROME_STATE_INTEGRATION_COMPLETE.md)
+[📖 Full Documentation](chrome-state-integration-complete.md)
 
 ---
 
@@ -285,7 +285,7 @@ git config core.hooksPath .githooks
 # - Test smoke
 ```
 
-[📋 Snippet Cheatsheet](OMEGA_SNIPPET_CHEATSHEET.md)
+[📋 Snippet Cheatsheet](omega-snippet-cheatsheet.md)
 
 ---
 
@@ -382,7 +382,7 @@ bun build ./server.ts --config bunfig.production.toml --outdir ./dist
 - 7 feature flags
 - HTTP/API limits, concurrency, retry config
 
-[📖 Complete Guide](DEFINED_CONSTANTS_GUIDE.md)
+[📖 API Documentation](docs/api/reference.md)
 
 ## 🚀 **Core Features & Tools**
 
@@ -620,13 +620,13 @@ Our documentation is professionally organized for easy navigation:
 
 **🏠 Main Documentation:**
 - **[📋 Documentation Index](docs/DOCUMENTATION_INDEX.md)** - Complete guide to all documentation
-- **[🧭 Navigation Guide](docs/guides/NAVIGATION.md)** - How to find and navigate documentation
+- **[📚 Documentation Index](docs/DOCUMENTATION_INDEX.md)** - Complete documentation index and navigation guide
 - **[🚀 CLI Command Matrix](docs/guides/CLI_COMMAND_MATRIX.md)** - Comprehensive CLI reference with types
 
 **🔧 User Guides:**
 - **[📖 Getting Started](docs/guides/getting-started.md)** - Installation and first steps
 - **[⚙️ Configuration](docs/guides/configuration.md)** - Environment setup
-- **[🔧 Bun Define Constants](DEFINED_CONSTANTS_GUIDE.md)** - 74 build-time constants for zero-overhead config
+- **[🔧 Infrastructure CLI](bin/infra)** - Service management, health checks, and diagnostics
 - **[🚀 Deployment](docs/guides/deployment.md)** - Production deployment
 - **[🏢 Enterprise](docs/guides/enterprise.md)** - Enterprise features
 

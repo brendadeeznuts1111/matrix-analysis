@@ -1,0 +1,25 @@
+{
+  "name": "team",
+  "version": "1.0.0",
+  "created": "2026-01-28T10:15:00.000Z",
+  "author": "cline",
+  "description": "Team collaboration profile with shared standards and staging-like settings",
+  "env": {
+    "MATRIX_PROJECT": "team-shared",
+    "MATRIX_REGISTRY": "@company",
+    "MATRIX_MONITORING": "true",
+    "MATRIX_LOG_LEVEL": "warn",
+    "MATRIX_DEPLOY_TARGET": "staging",
+    "NODE_ENV": "development",
+    "ESLINT_ENABLED": "true",
+    "PRETTIER_ENABLED": "true",
+    "STRICT_MODE": "true",
+    "TEAM_API_ENDPOINT": "https://staging-api.example.com",
+    "SHARED_REDIS": "${SHARED_REDIS_URL}",
+    "METRICS_ENABLED": "true",
+    "HEALTH_CHECK_PATH": "/health",
+    "SESSION_TIMEOUT": "7200000",
+    "AUDIT_LOGGING": "true",
+    "FEATURE_FLAGS": "team-beta,experimental-ui"
+  }
+}

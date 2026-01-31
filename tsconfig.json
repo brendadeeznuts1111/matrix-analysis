@@ -11,8 +11,9 @@
     "allowSyntheticDefaultImports": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "verbatimModuleSyntax": true
+    "verbatimModuleSyntax": true,
+    "allowImportingTsExtensions": true
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist"]
+  "include": ["src/**/*", ".claude/**/*", "tools/**/*", "cli/**/*", "mcp-bun-docs/**/*"],
+  "exclude": ["node_modules", "dist", "reports", "test"]
 }
