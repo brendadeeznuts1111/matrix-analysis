@@ -1,7 +1,7 @@
 #!/usr/bin/env bun
 /**
  * Broken Link Checker
- * 
+ *
  * Scans documentation for broken links and stale href pointers
  */
 
@@ -41,16 +41,39 @@ class LinkChecker {
   }
 
   async checkDirectory(dir: string = this.rootDir): Promise<void> {
-    const entries = await readdir(dir, { withFileTypes: true });
-    
-    for (const entry of entries) {
-      const fullPath = join(dir, entry.name);
-      
-      if (entry.isDirectory() && !entry.name.startsWith('.') && entry.name !== 'node_modules') {
-        await this.checkDirectory(fullPath);
-      } else if (entry.isFile() && this.isDocFile(entry.name)) {
-        await this.checkFile(fullPath);
+    try {
+      const entries = await readdir(dir, { withFileTypes: true });
+
+      for (const entry of entries) {
+        const fullPath = join(dir, entry.name);
+
+        // Skip system directories that might cause permission issues
+        if (entry.isDirectory() &&
+            (entry.name.startsWith('.') ||
+             entry.name === 'node_modules' ||
+             entry.name === 'Music' ||
+             entry.name === 'Movies' ||
+             entry.name === 'Pictures' ||
+             entry.name === 'Library' ||
+             entry.name === 'Applications')) {
+          continue;
+        }
+
+        if (entry.isDirectory()) {
+          await this.checkDirectory(fullPath);
+        } else if (entry.isFile() && this.isDocFile(entry.name)) {
+          await this.checkFile(fullPath);
+        }
       }
+    } catch (error) {
+      // Skip directories we can't read
+      if (error instanceof Error && error.message.includes('EPERM')) {
+        if (this.verbose) {
+          console.warn(`Warning: Skipping directory due to permissions: ${dir}`);
+        }
+        return;
+      }
+      throw error;
     }
   }
 
@@ -63,28 +86,28 @@ class LinkChecker {
     try {
       const content = await readFile(filePath, 'utf-8');
       const lines = content.split('\n');
-      
+
       // Check for markdown links [text](url)
       for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
         const lineNumber = i + 1;
-        
+
         // Find all markdown links
         const linkRegex = /\[([^\]]*)\]\(([^)]+)\)/g;
         let match;
-        
+
         while ((match = linkRegex.exec(line)) !== null) {
           const link = match[2];
           await this.checkLink(filePath, lineNumber, link);
         }
-        
+
         // Check for HTML href attributes
         const hrefRegex = /href="([^"]+)"/g;
         while ((match = hrefRegex.exec(line)) !== null) {
           const link = match[1];
           await this.checkLink(filePath, lineNumber, link);
         }
-        
+
         // Check for reference links [text]: url
         const refRegex = /^\s*\[([^\]]+)\]:\s*(.+)$/gm;
         while ((match = refRegex.exec(line)) !== null) {
@@ -99,12 +122,12 @@ class LinkChecker {
 
   private async checkLink(filePath: string, lineNumber: number, link: string): Promise<void> {
     const relativePath = relative(this.rootDir, filePath);
-    
+
     // Skip special links
     if (link.startsWith('#') || link.startsWith('mailto:') || link.startsWith('tel:')) {
       return;
     }
-    
+
     // Check anchor links
     if (link.includes('#')) {
       const [url, anchor] = link.split('#');
@@ -114,13 +137,13 @@ class LinkChecker {
         return;
       }
     }
-    
+
     // Check internal links
     if (link.startsWith('./') || link.startsWith('../') || link.startsWith('/')) {
       await this.checkInternalLink(filePath, lineNumber, link);
       return;
     }
-    
+
     // Check external links
     if (link.startsWith('http://') || link.startsWith('https://')) {
       if (this.checkExternal) {
@@ -137,7 +160,7 @@ class LinkChecker {
       }
       return;
     }
-    
+
     // Check file references
     if (!link.includes('://') && !link.startsWith('#')) {
       await this.checkFileReference(filePath, lineNumber, link);
@@ -147,7 +170,7 @@ class LinkChecker {
   private async checkInternalLink(filePath: string, lineNumber: number, link: string): Promise<void> {
     const relativePath = relative(this.rootDir, filePath);
     let targetPath: string;
-    
+
     if (link.startsWith('/')) {
       // Absolute path from root
       targetPath = join(this.rootDir, link.slice(1));
@@ -155,14 +178,14 @@ class LinkChecker {
       // Relative path
       targetPath = join(filePath, '..', link);
     }
-    
+
     try {
       const stats = await stat(targetPath);
       if (stats.isDirectory()) {
         // Check for index.md or README.md
         const indexPath = join(targetPath, 'index.md');
         const readmePath = join(targetPath, 'README.md');
-        
+
         try {
           await stat(indexPath);
           this.results.push({
@@ -216,10 +239,10 @@ class LinkChecker {
 
   private async checkInternalAnchor(filePath: string, lineNumber: number, anchor: string): Promise<void> {
     const relativePath = relative(this.rootDir, filePath);
-    
+
     try {
       const content = await readFile(filePath, 'utf-8');
-      
+
       // Look for heading anchors
       const headingRegex = new RegExp(`^#{1,6}\\s+.*${anchor.replace(/[-_]/g, '[-_]')}.*`, 'im');
       if (headingRegex.test(content)) {
@@ -232,7 +255,7 @@ class LinkChecker {
         });
         return;
       }
-      
+
       // Look for custom anchors
       const customAnchorRegex = new RegExp(`{#${anchor}}`, 'i');
       if (customAnchorRegex.test(content)) {
@@ -245,7 +268,7 @@ class LinkChecker {
         });
         return;
       }
-      
+
       this.results.push({
         file: relativePath,
         line: lineNumber,
@@ -268,14 +291,14 @@ class LinkChecker {
 
   private async checkExternalLink(filePath: string, lineNumber: number, link: string): Promise<void> {
     const relativePath = relative(this.rootDir, filePath);
-    
+
     try {
       // Extract hostname from URL
       const url = new URL(link);
-      
+
       // Check DNS resolution
       await dnsLookup(url.hostname);
-      
+
       // Note: We don't actually fetch the URL to avoid rate limits
       // In a real implementation, you might want to use fetch with timeout
       this.results.push({
@@ -300,7 +323,7 @@ class LinkChecker {
   private async checkFileReference(filePath: string, lineNumber: number, link: string): Promise<void> {
     const relativePath = relative(this.rootDir, filePath);
     const targetPath = join(filePath, '..', link);
-    
+
     try {
       await stat(targetPath);
       this.results.push({
@@ -329,42 +352,42 @@ class LinkChecker {
       warnings: 0,
       byType: {}
     };
-    
+
     for (const result of this.results) {
       stats.byType[result.type] = (stats.byType[result.type] || 0) + 1;
-      
+
       if (result.status === 'broken') {
         stats.broken++;
       } else if (result.status === 'warning') {
         stats.warnings++;
       }
     }
-    
+
     return stats;
   }
 
   printResults(): void {
     const stats = this.getStats();
-    
+
     console.log('\n🔗 Link Check Results');
     console.log('==================');
     console.log(`Total links checked: ${stats.total}`);
     console.log(`✅ OK: ${stats.total - stats.broken - stats.warnings}`);
     console.log(`⚠️  Warnings: ${stats.warnings}`);
     console.log(`❌ Broken: ${stats.broken}`);
-    
+
     console.log('\n📊 By Type:');
     for (const [type, count] of Object.entries(stats.byType)) {
       console.log(`  ${type}: ${count}`);
     }
-    
+
     if (this.verbose || stats.broken > 0 || stats.warnings > 0) {
       console.log('\n📋 Detailed Results:');
       console.log('-------------------');
-      
+
       const broken = this.results.filter(r => r.status === 'broken');
       const warnings = this.results.filter(r => r.status === 'warning');
-      
+
       if (broken.length > 0) {
         console.log('\n❌ Broken Links:');
         for (const result of broken) {
@@ -374,7 +397,7 @@ class LinkChecker {
           }
         }
       }
-      
+
       if (warnings.length > 0) {
         console.log('\n⚠️  Warnings:');
         for (const result of warnings) {
@@ -385,7 +408,7 @@ class LinkChecker {
         }
       }
     }
-    
+
     // Exit with error code if broken links found
     if (stats.broken > 0) {
       process.exit(1);
@@ -395,7 +418,7 @@ class LinkChecker {
   async exportResults(format: 'json' | 'csv' = 'json'): Promise<void> {
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     const filename = `link-check-results-${timestamp}.${format}`;
-    
+
     if (format === 'json') {
       await Bun.write(filename, JSON.stringify({
         timestamp: new Date().toISOString(),
@@ -405,14 +428,14 @@ class LinkChecker {
     } else {
       const csv = [
         'File,Line,Type,Link,Status,Error',
-        ...this.results.map(r => 
+        ...this.results.map(r =>
           `"${r.file}",${r.line},"${r.type}","${r.link}","${r.status}","${r.error || ''}"`
         )
       ].join('\n');
-      
+
       await Bun.write(filename, csv);
     }
-    
+
     console.log(`\n📄 Results exported to: ${filename}`);
   }
 }
@@ -424,10 +447,10 @@ async function main() {
   let verbose = false;
   let checkExternal = false;
   let exportFormat: 'json' | 'csv' | undefined;
-  
+
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
-    
+
     if (arg === '--verbose' || arg === '-v') {
       verbose = true;
     } else if (arg === '--external' || arg === '-e') {
@@ -438,16 +461,16 @@ async function main() {
       dir = arg;
     }
   }
-  
+
   console.log(`🔍 Checking links in: ${dir}`);
   if (checkExternal) {
     console.log('🌐 External link checking enabled');
   }
-  
+
   const checker = new LinkChecker(dir, verbose, checkExternal);
   await checker.checkDirectory();
   checker.printResults();
-  
+
   if (exportFormat) {
     await checker.exportResults(exportFormat);
   }
