@@ -97,6 +97,8 @@ bunfig.toml
 !.claude/tests/**
 !.claude/tools/
 !.claude/tools/**
+!.claude/core/
+!.claude/core/**
 .claude.json*
 .cline/
 .cloudflared/

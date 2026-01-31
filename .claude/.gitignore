@@ -74,7 +74,7 @@ data/
 docs/
 apps/
 tools/
-core/
+core/*
 cache/
 
 # ----------------------------------------------------------------------------
@@ -86,6 +86,8 @@ cache/
 !src/benchmarks/bunmark-markdown.ts
 !tools/demo/
 !tools/demo/markdown-demo.ts
+!core/team/
+!core/team/**
 
 # ----------------------------------------------------------------------------
 # TELEMETRY & METRICS (NDJSON, large data files)
