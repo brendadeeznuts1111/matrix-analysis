@@ -56,6 +56,7 @@ The local server runs on `http://localhost:3001` and provides the same endpoints
 ## 📁 Structure
 
 ```
+text
 benchmarks-combined/
 ├── core/           # Core test configuration benchmarks (Tier-1380)
 ├── utils/          # Mitata-based benchmark utilities
@@ -115,15 +116,18 @@ Bun v1.3.7+ performance improvements:
 ## 🎯 Key Results
 
 ### Buffer SIMD Performance
+
 - `indexOf (found)`: ~8.13 µs/iter
 - `includes (found)`: ~7.93 µs/iter
 - **Status**: ✅ SIMD optimized (up to 2x faster)
 
 ### CRC32 Hardware Acceleration
+
 - Throughput: ~9.7 GB/s
 - **Status**: ✅ Hardware accelerated (20x faster)
 
 ### Process Spawning
+
 - `Bun.spawnSync(['true'])`: ~1.28 ms/iter
 - **Status**: ✅ Fixed 30x slowdown on Linux ARM64
 
@@ -217,7 +221,7 @@ The benchmark suite supports three profiles:
 | **staging**     | Pre-production   | Production-like settings with debug info |
 | **production**  | Production       | Optimized, minimal output          |
 
-### CI/CD Integration
+### CI/CD Pipeline Integration
 
 ```yaml
 # GitHub Actions example
@@ -292,6 +296,7 @@ git commit -m "[INFRA][COMPONENT:BENCHMARK][TIER:500] Remove old benchmark direc
 ```
 
 ⚠️ **Important**: Only perform cleanup after:
+
 - All tests pass with the new structure
 - CI/CD pipelines have been updated
 - Team members have been notified
@@ -310,6 +315,7 @@ git commit -m "[INFRA][COMPONENT:BENCHMARK][TIER:500] Remove old benchmark direc
 ### Tag Usage
 
 Tags are used for:
+
 - **Categorization** - Organizing benchmarks by domain and purpose
 - **Discovery** - Finding relevant benchmarks quickly
 - **Filtering** - Filtering reports by specific tags
