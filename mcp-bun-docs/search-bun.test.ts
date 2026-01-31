@@ -13,6 +13,7 @@ import {
 	getDocEntry,
 	getReferenceUrl,
 	getCrossReferences,
+	suggestDocTerms,
 	BUN_GLOBALS,
 	BUN_GLOBALS_API_URL,
 	BUN_REFERENCE_LINKS,
@@ -24,6 +25,11 @@ import {
 	BUN_FEEDBACK_UPGRADE_FIRST,
 	BUN_TEST_REFERENCE_URL,
 	BUN_REPO_URL,
+	BUN_SHOP_URL,
+	BUN_BLOG_URL,
+	BUN_BLOG_RSS_URL,
+	BUN_GUIDES_URL,
+	BUN_CHANGELOG_RSS,
 	BUN_TYPES_REPO_URL,
 	BUN_TYPES_README_URL,
 	BUN_TYPES_AUTHORING_URL,
@@ -84,6 +90,21 @@ describe("SearchBun / lib", () => {
 			expect(BUN_TYPES_KEY_FILES).toContain("index.d.ts");
 			expect(BUN_TYPES_KEY_FILES).toContain("test.d.ts");
 			expect(BUN_TYPES_KEY_FILES).toContain("serve.d.ts");
+		});
+		test("should point BUN_SHOP_URL to shop.bun.com", () => {
+			expect(BUN_SHOP_URL).toBe("https://shop.bun.com/");
+		});
+		test("should point BUN_BLOG_URL to bun.sh/blog", () => {
+			expect(BUN_BLOG_URL).toBe("https://bun.sh/blog");
+		});
+		test("should point BUN_BLOG_RSS_URL to bun.sh/blog/rss.xml", () => {
+			expect(BUN_BLOG_RSS_URL).toBe("https://bun.sh/blog/rss.xml");
+		});
+		test("should point BUN_GUIDES_URL to bun.sh/guides", () => {
+			expect(BUN_GUIDES_URL).toBe("https://bun.sh/guides");
+		});
+		test("should point BUN_CHANGELOG_RSS to bun.com/rss.xml", () => {
+			expect(BUN_CHANGELOG_RSS).toBe("https://bun.com/rss.xml");
 		});
 
 		test.each([
@@ -268,13 +289,23 @@ describe("SearchBun / lib", () => {
 			expect(BUN_REFERENCE_KEYS).toContain("httpServer");
 			expect(BUN_REFERENCE_KEYS).toContain("bunTest");
 			expect(BUN_REFERENCE_KEYS).toContain("bunTypes");
-			expect(BUN_REFERENCE_LINKS.fileAPI).toBe(getReferenceUrl("fileAPI"));
+			expect(getReferenceUrl("fileAPI")).toEqual(BUN_REFERENCE_LINKS.fileAPI);
 			expect(getReferenceUrl("bunTest")).toBe(BUN_TEST_REFERENCE_URL);
 			expect(getReferenceUrl("bunTypes")).toBe(BUN_TYPES_REPO_URL);
 			expect(getReferenceUrl("bunTypesReadme")).toBe(BUN_TYPES_README_URL);
 			expect(BUN_REFERENCE_KEYS).toContain("bunApis");
 			expect(BUN_REFERENCE_KEYS).toContain("webApis");
 			expect(BUN_REFERENCE_KEYS).toContain("nodeApi");
+			expect(BUN_REFERENCE_KEYS).toContain("shop");
+			expect(BUN_REFERENCE_KEYS).toContain("blog");
+			expect(BUN_REFERENCE_KEYS).toContain("guides");
+			expect(BUN_REFERENCE_KEYS).toContain("blogRss");
+			expect(BUN_REFERENCE_KEYS).toContain("changelogRss");
+			expect(getReferenceUrl("shop")).toBe(BUN_SHOP_URL);
+			expect(getReferenceUrl("blog")).toBe(BUN_BLOG_URL);
+			expect(getReferenceUrl("guides")).toBe(BUN_GUIDES_URL);
+			expect(getReferenceUrl("blogRss")).toBe(BUN_BLOG_RSS_URL);
+			expect(getReferenceUrl("changelogRss")).toBe(BUN_CHANGELOG_RSS);
 		});
 	});
 
@@ -303,6 +334,24 @@ describe("SearchBun / lib", () => {
 		test("should return empty array for term with no relatedTerms", () => {
 			const xrefs = getCrossReferences("env");
 			expect(Array.isArray(xrefs)).toBe(true);
+		});
+	});
+
+	describe("suggestDocTerms", () => {
+		test("should return matches for partial query", () => {
+			const results = suggestDocTerms("spawn");
+			expect(results.length).toBeGreaterThan(0);
+			expect(results.map((r) => r.term)).toContain("spawn");
+			expect(results[0]).toHaveProperty("url");
+			expect(results[0]).toHaveProperty("stability");
+		});
+		test("should respect limit", () => {
+			const results = suggestDocTerms("Bun", 3);
+			expect(results.length).toBeLessThanOrEqual(3);
+		});
+		test("should return empty for empty query", () => {
+			expect(suggestDocTerms("")).toEqual([]);
+			expect(suggestDocTerms("   ")).toEqual([]);
 		});
 	});
 

@@ -9,6 +9,18 @@ export const BUN_DOCS_MIN_VERSION = "1.3.6";
 /** Official Bun changelog/release RSS: https://bun.com/rss.xml */
 export const BUN_CHANGELOG_RSS = "https://bun.com/rss.xml";
 
+/** Official Bun shop (merchandise). https://shop.bun.com */
+export const BUN_SHOP_URL = "https://shop.bun.com/";
+
+/** Bun blog (announcements, deep dives). https://bun.sh/blog */
+export const BUN_BLOG_URL = "https://bun.sh/blog";
+
+/** Bun blog RSS (optional #tag= for filtered feeds, e.g. #tag=sqlite). https://bun.sh/blog/rss.xml */
+export const BUN_BLOG_RSS_URL = "https://bun.sh/blog/rss.xml";
+
+/** Bun guides index (deployment, frameworks, utilities). https://bun.sh/guides */
+export const BUN_GUIDES_URL = "https://bun.sh/guides";
+
 /** Bun feedback/reporting: upgrade first, then search issues. https://bun.sh/docs/feedback */
 export const BUN_FEEDBACK_URL = "https://bun.sh/docs/feedback";
 
@@ -69,6 +81,16 @@ export const BUN_REFERENCE_LINKS = {
 	nodeApi: "https://bun.sh/docs/runtime/node-api",
 	apiIndex: "https://bun.sh/docs/api/index",
 	color: "https://bun.sh/docs/runtime/color",
+	/** Official merchandise shop */
+	shop: "https://shop.bun.com/",
+	/** Blog (announcements, deep dives) */
+	blog: "https://bun.sh/blog",
+	/** Blog RSS (use #tag= for filtered feeds) */
+	blogRss: "https://bun.sh/blog/rss.xml",
+	/** Changelog/release RSS */
+	changelogRss: "https://bun.com/rss.xml",
+	/** Guides index (deployment, frameworks, utilities) */
+	guides: "https://bun.sh/guides",
 } as const;
 
 /** Tier-1380 Matrix v2: traceability schema for ACP filtering & CI gating */
@@ -290,8 +312,8 @@ export const BUN_DOC_MAP: Record<string, string> = Object.fromEntries(BUN_DOC_EN
 
 /** Compare semver: returns true if a <= b */
 function semverLte(a: string, b: string): boolean {
-	const [am, ai, ap] = a.split(".").map(Number);
-	const [bm, bi, bp] = b.split(".").map(Number);
+	const [am = 0, ai = 0, ap = 0] = a.split(".").map(Number);
+	const [bm = 0, bi = 0, bp = 0] = b.split(".").map(Number);
 	if (am !== bm) return am < bm;
 	if (ai !== bi) return ai < bi;
 	return ap <= bp;
@@ -407,6 +429,27 @@ export function getCrossReferences(term: string): { term: string; url: string; p
 	return out.filter((x) => x.url);
 }
 
+/** Suggest curated terms by partial match (case-insensitive). Sorted by weight then term length. Limit default 10. */
+export function suggestDocTerms(
+	query: string,
+	limit = 10,
+): { term: string; path: string; url: string; stability: Stability }[] {
+	const q = query.trim().toLowerCase();
+	if (!q) return [];
+	const matches = BUN_DOC_ENTRIES.filter((e) => e.term.toLowerCase().includes(q))
+		.map((e) => ({
+			term: e.term,
+			path: e.path,
+			url: buildDocUrl(e.path),
+			stability: e.stability,
+			weight: SEARCH_WEIGHTS[e.term] ?? 1,
+			len: e.term.length,
+		}))
+		.sort((a, b) => b.weight - a.weight || a.len - b.len)
+		.slice(0, limit);
+	return matches.map(({ term, path, url, stability }) => ({ term, path, url, stability }));
+}
+
 export interface SearchResult {
 	title: string;
 	url: string;
@@ -512,15 +555,31 @@ export async function searchBunDocs(
 export class Tier1380Profiler {
 	async captureAndStream(scriptPath: string): Promise<void> {
 		// 1. Capture CPU profile in Markdown (LLM-parseable)
-		const cpuProc = Bun.spawn(["bun", "--cpu-prof-md", scriptPath]);
+		Bun.spawn(["bun", "--cpu-prof-md", scriptPath]);
 
 		// 2. Capture heap snapshot (grep-friendly)
 		const heapProc = Bun.spawn(["bun", "--heap-prof", scriptPath]);
 
-		// 3. Parse with JSONL for streaming telemetry
-		for await (const line of heapProc.stdout) {
-			const metrics = Bun.JSONL.parse(line.toString());
-			await this.threatIntelligenceFeed(metrics);
+		// 3. Parse with JSONL for streaming telemetry (ReadableStream via reader)
+		const reader = heapProc.stdout.getReader();
+		try {
+			const chunks: Uint8Array[] = [];
+			while (true) {
+				const { done, value } = await reader.read();
+				if (done) break;
+				if (value) chunks.push(value);
+			}
+			const text = new TextDecoder().decode(Bun.concatArrayBuffers(chunks));
+			for (const line of text.split("\n").filter(Boolean)) {
+				try {
+					const metrics = Bun.JSONL.parse(line);
+					await this.threatIntelligenceFeed(metrics);
+				} catch {
+					// Skip malformed lines
+				}
+			}
+		} finally {
+			reader.releaseLock();
 		}
 	}
 

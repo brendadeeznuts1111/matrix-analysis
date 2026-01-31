@@ -33,6 +33,11 @@ import {
 	BUN_DOCS_MIN_VERSION,
 	BUN_DOCS_BASE,
 	buildDocUrl,
+	BUN_SHOP_URL,
+	BUN_BLOG_URL,
+	BUN_BLOG_RSS_URL,
+	BUN_GUIDES_URL,
+	BUN_CHANGELOG_RSS,
 } from "../mcp-bun-docs/lib.ts";
 
 const args = process.argv.slice(2);
@@ -49,6 +54,10 @@ Usage:
   bun tools/bun-docs.ts globals          List Bun globals + API doc URL
   bun tools/bun-docs.ts xrefs <term>     Cross-references for term (related doc links)
   bun tools/bun-docs.ts feedback         Reporting issues: upgrade first, then search
+  bun tools/bun-docs.ts shop             Official Bun shop URL
+  bun tools/bun-docs.ts blog             Bun blog URL
+  bun tools/bun-docs.ts guides           Bun guides index URL
+  bun tools/bun-docs.ts rss              Changelog + blog RSS URLs
   bun tools/bun-docs.ts version          Print doc version constants
 
 Examples:
@@ -59,6 +68,8 @@ Examples:
   bun tools/bun-docs.ts globals
   bun tools/bun-docs.ts xrefs spawn
   bun tools/bun-docs.ts feedback
+  bun tools/bun-docs.ts shop
+  bun tools/bun-docs.ts rss
   bun run docs:search -- "fetch"
 `);
 }
@@ -159,6 +170,23 @@ async function main(): Promise<void> {
 		case "feedback": {
 			console.log(BUN_FEEDBACK_UPGRADE_FIRST);
 			console.log(`\nDocs: ${BUN_FEEDBACK_URL}`);
+			break;
+		}
+		case "shop": {
+			console.log(BUN_SHOP_URL);
+			break;
+		}
+		case "blog": {
+			console.log(BUN_BLOG_URL);
+			break;
+		}
+		case "guides": {
+			console.log(BUN_GUIDES_URL);
+			break;
+		}
+		case "rss": {
+			console.log("Changelog/releases:", BUN_CHANGELOG_RSS);
+			console.log("Blog (optional #tag= filter):", BUN_BLOG_RSS_URL);
 			break;
 		}
 		case "version": {

@@ -153,6 +153,11 @@ bun run docs:link -- [key]             # Reference URL or list keys
 bun run docs:terms -- --count=N        # List curated terms (optional limit)
 bun run docs:globals                   # Bun globals + API doc URL
 bun run docs:xrefs -- <term>           # Cross-references for term
+bun run docs:feedback                  # Upgrade-first / issue reporting
+bun run docs:shop                      # Official Bun shop URL
+bun run docs:blog                      # Bun blog URL
+bun run docs:guides                    # Bun guides index URL
+bun run docs:rss                       # Changelog + blog RSS URLs
 bun run bun-docs                       # CLI help
 
 # Shortcuts
