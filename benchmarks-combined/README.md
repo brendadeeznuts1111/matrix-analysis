@@ -94,7 +94,7 @@ Link checking runs automatically:
 - On pull requests
 - Weekly schedule for external links
 
-## �📁 Structure
+## � Structure
 
 ```text
 benchmarks-combined/
@@ -204,7 +204,7 @@ group("My Feature", () => {
 await run();
 ```
 
-### CI/CD Integration
+### CI/CD Environment Setup
 
 ```bash
 # Set for JSON output
