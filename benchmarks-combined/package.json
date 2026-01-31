@@ -36,7 +36,11 @@
     "test:ci": "bun test --reporter=verbose",
     "badges:generate": "bun scripts/badge-status.ts",
     "badges:server": "bun scripts/badge-server.ts",
-    "badges:update": "bun run badges:generate && git add reports/ && git commit -m 'chore: update badge status [skip ci]' || true"
+    "badges:update": "bun run badges:generate && git add reports/ && git commit -m 'chore: update badge status [skip ci]' || true",
+    "links:check": "bun scripts/check-links.ts",
+    "links:check:external": "bun scripts/check-links.ts --external",
+    "links:check:verbose": "bun scripts/check-links.ts --verbose",
+    "links:quick": "bun scripts/quick-link-check.ts"
   },
   "keywords": ["benchmark", "performance", "bun", "typescript", "mitata", "nolarose", "mcp", "config"],
   "author": {

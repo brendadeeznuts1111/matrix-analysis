@@ -53,7 +53,48 @@ bun run badges:update
 
 The local server runs on `http://localhost:3001` and provides the same endpoints.
 
-## 📁 Structure
+## � Link Checking
+
+The benchmark suite includes automated link checking to prevent stale pointers:
+
+### Quick Check (Internal Links Only)
+
+```bash
+# Fast check for broken internal links
+bun run links:quick
+
+# Check specific directory
+bun run links:quick ../docs
+```
+
+### Full Check (With Details)
+
+```bash
+# Check all links with detailed output
+bun run links:check:verbose
+
+# Check external links (slower)
+bun run links:check:external
+
+# Export results to JSON
+bun run links:check --export json
+```
+
+### Link Types Checked
+
+- **Internal Links** - File references and relative paths
+- **Anchor Links** - Section anchors within documents
+- **External Links** - HTTP/HTTPS URLs (optional)
+- **Reference Links** - Markdown reference-style links
+
+### CI/CD Integration
+
+Link checking runs automatically:
+- On every push to main
+- On pull requests
+- Weekly schedule for external links
+
+## �📁 Structure
 
 ```text
 benchmarks-combined/

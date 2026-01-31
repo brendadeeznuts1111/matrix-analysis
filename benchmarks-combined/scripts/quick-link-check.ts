@@ -1,0 +1,104 @@
+#!/usr/bin/env bun
+/**
+ * Quick Link Check
+ * 
+ * Fast check for internal links only
+ */
+
+import { readFileSync, readdirSync, statSync } from 'fs';
+import { join, relative, extname } from 'path';
+
+const rootDir = process.argv[2] || '.';
+const verbose = process.argv.includes('--verbose');
+
+let brokenCount = 0;
+let checkedCount = 0;
+
+function isDocFile(filename: string): boolean {
+  const ext = extname(filename).toLowerCase();
+  return ['.md', '.mdx'].includes(ext);
+}
+
+function checkFile(filePath: string): void {
+  const relativePath = relative(rootDir, filePath);
+  const content = readFileSync(filePath, 'utf-8');
+  const lines = content.split('\n');
+  
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const lineNumber = i + 1;
+    
+    // Check markdown links
+    const linkRegex = /\[([^\]]*)\]\(([^)]+)\)/g;
+    let match;
+    
+    while ((match = linkRegex.exec(line)) !== null) {
+      const link = match[2];
+      checkedCount++;
+      
+      // Skip external and special links
+      if (link.startsWith('http') || link.startsWith('#') || 
+          link.startsWith('mailto:') || link.startsWith('tel:')) {
+        continue;
+      }
+      
+      // Resolve the target path
+      let targetPath: string;
+      if (link.startsWith('/')) {
+        targetPath = join(rootDir, link.slice(1));
+      } else {
+        targetPath = join(filePath, '..', link);
+      }
+      
+      // Check if target exists
+      try {
+        const stats = statSync(targetPath);
+        if (stats.isDirectory()) {
+          // Check for index.md or README.md
+          try {
+            statSync(join(targetPath, 'index.md'));
+          } catch {
+            try {
+              statSync(join(targetPath, 'README.md'));
+            } catch {
+              console.log(`⚠️  ${relativePath}:${lineNumber} - Directory exists but no index.md/README.md: ${link}`);
+            }
+          }
+        }
+      } catch (error) {
+        console.log(`❌ ${relativePath}:${lineNumber} - Broken link: ${link}`);
+        brokenCount++;
+      }
+    }
+  }
+}
+
+function scanDirectory(dir: string): void {
+  const entries = readdirSync(dir, { withFileTypes: true });
+  
+  for (const entry of entries) {
+    const fullPath = join(dir, entry.name);
+    
+    if (entry.isDirectory() && !entry.name.startsWith('.') && 
+        entry.name !== 'node_modules' && entry.name !== 'reports') {
+      scanDirectory(fullPath);
+    } else if (entry.isFile() && isDocFile(entry.name)) {
+      checkFile(fullPath);
+    }
+  }
+}
+
+console.log(`🔍 Quick link check in: ${rootDir}`);
+scanDirectory(rootDir);
+
+console.log(`\n📊 Results:`);
+console.log(`  Total checked: ${checkedCount}`);
+console.log(`  Broken: ${brokenCount}`);
+console.log(`  OK: ${checkedCount - brokenCount}`);
+
+if (brokenCount > 0) {
+  console.log(`\n❌ Found ${brokenCount} broken links!`);
+  process.exit(1);
+} else {
+  console.log(`\n✅ All links OK!`);
+}
