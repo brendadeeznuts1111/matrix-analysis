@@ -55,8 +55,7 @@ The local server runs on `http://localhost:3001` and provides the same endpoints
 
 ## 📁 Structure
 
-```
-text
+```text
 benchmarks-combined/
 ├── core/           # Core test configuration benchmarks (Tier-1380)
 ├── utils/          # Mitata-based benchmark utilities
