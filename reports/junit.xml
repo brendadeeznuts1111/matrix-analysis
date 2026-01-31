@@ -1,26 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuites name="bun test" tests="9" assertions="12" failures="0" skipped="0" time="3.451031">
-  <testsuite name="tests/unit/test-process-manager.test.ts" file="tests/unit/test-process-manager.test.ts" tests="9" assertions="12" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-    <testsuite name="Test Process Manager" file="tests/unit/test-process-manager.test.ts" line="8" tests="9" assertions="12" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-      <testsuite name="Process Detection" file="tests/unit/test-process-manager.test.ts" line="40" tests="3" assertions="4" failures="0" skipped="0" time="0.401" hostname="Mac.attlocal.net">
-        <testcase name="should find test processes" classname="Process Detection &amp;gt; Test Process Manager" time="0.197325" file="tests/unit/test-process-manager.test.ts" line="41" assertions="2" />
-        <testcase name="should identify test processes correctly" classname="Process Detection &amp;gt; Test Process Manager" time="0.102099" file="tests/unit/test-process-manager.test.ts" line="54" assertions="1" />
-        <testcase name="should reject non-test processes" classname="Process Detection &amp;gt; Test Process Manager" time="0.102854" file="tests/unit/test-process-manager.test.ts" line="60" assertions="1" />
-      </testsuite>
-      <testsuite name="Process Termination" file="tests/unit/test-process-manager.test.ts" line="67" tests="2" assertions="2" failures="0" skipped="0" time="0.362" hostname="Mac.attlocal.net">
-        <testcase name="should gracefully terminate with SIGTERM" classname="Process Termination &amp;gt; Test Process Manager" time="0.164032" file="tests/unit/test-process-manager.test.ts" line="68" assertions="1" />
-        <testcase name="should immediately terminate with SIGKILL" classname="Process Termination &amp;gt; Test Process Manager" time="0.198268" file="tests/unit/test-process-manager.test.ts" line="88" assertions="1" />
-      </testsuite>
-      <testsuite name="Graceful Shutdown" file="tests/unit/test-process-manager.test.ts" line="109" tests="1" assertions="1" failures="0" skipped="0" time="0.237" hostname="Mac.attlocal.net">
-        <testcase name="should shutdown gracefully with timeout" classname="Graceful Shutdown &amp;gt; Test Process Manager" time="0.237842" file="tests/unit/test-process-manager.test.ts" line="110" assertions="1" />
-      </testsuite>
-      <testsuite name="Error Handling" file="tests/unit/test-process-manager.test.ts" line="128" tests="2" assertions="4" failures="0" skipped="0" time="2.213" hostname="Mac.attlocal.net">
-        <testcase name="should handle non-existent process" classname="Error Handling &amp;gt; Test Process Manager" time="2.107996" file="tests/unit/test-process-manager.test.ts" line="129" assertions="2" />
-        <testcase name="should handle invalid PID gracefully" classname="Error Handling &amp;gt; Test Process Manager" time="0.10618" file="tests/unit/test-process-manager.test.ts" line="147" assertions="2" />
-      </testsuite>
-      <testsuite name="Process Listing" file="tests/unit/test-process-manager.test.ts" line="157" tests="1" assertions="1" failures="0" skipped="0" time="0.214" hostname="Mac.attlocal.net">
-        <testcase name="should list processes without errors" classname="Process Listing &amp;gt; Test Process Manager" time="0.21445" file="tests/unit/test-process-manager.test.ts" line="158" assertions="1" />
-      </testsuite>
+<testsuites name="bun test" tests="5" assertions="10" failures="0" skipped="0" time="0.065493">
+  <testsuite name=".claude/tests/omega/pipeline.test.ts" file=".claude/tests/omega/pipeline.test.ts" tests="5" assertions="10" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+    <testsuite name="OMEGA Pipeline" file=".claude/tests/omega/pipeline.test.ts" line="6" tests="4" assertions="9" failures="0" skipped="0" time="0.031" hostname="Mac.attlocal.net">
+      <testcase name="parseVersion extracts components" classname="OMEGA Pipeline" time="0.000095" file=".claude/tests/omega/pipeline.test.ts" line="7" assertions="3" />
+      <testcase name="getVersion returns version" classname="OMEGA Pipeline" time="0.000387" file=".claude/tests/omega/pipeline.test.ts" line="14" assertions="2" />
+      <testcase name="deployCheck returns checks" classname="OMEGA Pipeline" time="0.031955" file=".claude/tests/omega/pipeline.test.ts" line="20" assertions="2" />
+      <testcase name="healthCheck returns status" classname="OMEGA Pipeline" time="0.000277" file=".claude/tests/omega/pipeline.test.ts" line="26" assertions="2" />
+    </testsuite>
+    <testsuite name="OMEGA CLI" file=".claude/tests/omega/pipeline.test.ts" line="33" tests="1" assertions="1" failures="0" skipped="0" time="0.018" hostname="Mac.attlocal.net">
+      <testcase name="CLI help works" classname="OMEGA CLI" time="0.018067" file=".claude/tests/omega/pipeline.test.ts" line="34" assertions="1" />
     </testsuite>
   </testsuite>
 </testsuites>
