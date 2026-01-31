@@ -10,7 +10,9 @@ import {
 	updateRole,
 } from "./TeamRegistry.ts";
 import {
+	EMAIL_DOMAIN,
 	enabledFlags,
+	generateMemberEmail,
 	getDemotedRole,
 	getPromotedRole,
 	getRolePermissions,
@@ -111,6 +113,7 @@ describe("hasPermission", () => {
 			role: "lead" as TeamRole,
 			tier: 1380,
 			joinedAt: new Date().toISOString(),
+			email: "lead@factory-wager.com",
 			permissions: getRolePermissions("lead"),
 		};
 		expect(hasPermission(team, "admin")).toBe(true);
@@ -124,6 +127,7 @@ describe("hasPermission", () => {
 			role: "contributor" as TeamRole,
 			tier: 500,
 			joinedAt: new Date().toISOString(),
+			email: "contrib@factory-wager.com",
 			permissions: getRolePermissions("contributor"),
 		};
 		expect(hasPermission(team, "admin")).toBe(false);
@@ -163,6 +167,22 @@ describe("enabledFlags", () => {
 		expect(enabled).toContain("read");
 		expect(enabled).not.toContain("admin");
 		expect(enabled).not.toContain("deploy");
+	});
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// generateMemberEmail() tests
+// ═══════════════════════════════════════════════════════════════════════════
+
+describe("generateMemberEmail", () => {
+	it("should generate email from profile name", () => {
+		expect(generateMemberEmail("dev")).toBe("dev@factory-wager.com");
+		expect(generateMemberEmail("alice")).toBe("alice@factory-wager.com");
+		expect(generateMemberEmail("test")).toBe("test@factory-wager.com");
+	});
+
+	it("should use the EMAIL_DOMAIN constant", () => {
+		expect(generateMemberEmail("bob")).toBe(`bob@${EMAIL_DOMAIN}`);
 	});
 });
 
@@ -207,6 +227,7 @@ describe("TeamRegistry", () => {
 		expect(result!.team!.id).toBe("engineering");
 		expect(result!.team!.role).toBe("developer");
 		expect(result!.team!.tier).toBe(950);
+		expect(result!.team!.email).toBe(`${TEST_PROFILE}@${EMAIL_DOMAIN}`);
 
 		// Permissions are now flags
 		const perms = result!.team!.permissions;
@@ -298,7 +319,7 @@ describe("TeamRegistry", () => {
 		expect(members.every((m) => m.team?.id === "engineering")).toBe(true);
 	});
 
-	it("should persist flag-based permissions to disk", async () => {
+	it("should persist flag-based permissions and email to disk", async () => {
 		await addMember(TEST_PROFILE, "ops", "lead");
 
 		// Re-read from disk
@@ -307,12 +328,30 @@ describe("TeamRegistry", () => {
 		expect(raw.team.id).toBe("ops");
 		expect(raw.team.role).toBe("lead");
 		expect(raw.team.tier).toBe(1380);
+		expect(raw.team.email).toBe(`${TEST_PROFILE}@${EMAIL_DOMAIN}`);
 
 		// Flags persisted as booleans
 		expect(raw.team.permissions.admin).toBe(true);
 		expect(raw.team.permissions.deploy).toBe(true);
 		expect(raw.team.permissions.manageTeam).toBe(true);
 		expect(raw.team.permissions.read).toBe(true);
+	});
+
+	it("should preserve email across role changes", async () => {
+		await addMember(TEST_PROFILE, "engineering", "contributor");
+		const originalEmail = `${TEST_PROFILE}@${EMAIL_DOMAIN}`;
+
+		// Promote: contributor -> developer
+		const promoted = await promoteMember(TEST_PROFILE);
+		expect(promoted!.team!.email).toBe(originalEmail);
+
+		// Update role directly: developer -> senior
+		const updated = await updateRole(TEST_PROFILE, "senior");
+		expect(updated!.team!.email).toBe(originalEmail);
+
+		// Demote: senior -> developer
+		const demoted = await demoteMember(TEST_PROFILE);
+		expect(demoted!.team!.email).toBe(originalEmail);
 	});
 
 	it("should support hasPermission() guard on loaded profiles", async () => {

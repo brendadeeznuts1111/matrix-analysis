@@ -95,6 +95,9 @@ export const TIER_PERMISSION_FLAGS: Record<number, PermissionFlags> = {
 	},
 };
 
+/** Cloudflare Email Routing domain for per-member emails */
+export const EMAIL_DOMAIN = "factory-wager.com";
+
 /** All-false baseline for unknown tiers */
 const NO_PERMISSIONS: PermissionFlags = {
 	admin: false,
@@ -113,6 +116,7 @@ export interface TeamInfo {
 	role: TeamRole;
 	tier: number;
 	joinedAt: string;
+	email: string;
 	permissions: PermissionFlags;
 }
 
@@ -139,6 +143,11 @@ export function hasPermission(
 /** Get list of enabled flag names (for display) */
 export function enabledFlags(permissions: PermissionFlags): string[] {
 	return PERMISSION_NAMES.filter((name) => permissions[name]);
+}
+
+/** Generate per-member Cloudflare email from profile name */
+export function generateMemberEmail(profileName: string): string {
+	return `${profileName}@${EMAIL_DOMAIN}`;
 }
 
 /** Get the next role up (promote). Returns null if already lead. */

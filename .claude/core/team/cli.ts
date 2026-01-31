@@ -89,6 +89,7 @@ export async function cmdTeamAdd(
 		`Added ${C.cyan}${profileName}${C.reset} to team ${C.cyan}${teamId}${C.reset} as ${C.bold}${role}${C.reset}`,
 	);
 	printKV("Tier", String(result.team!.tier));
+	printKV("Email", result.team!.email);
 	printKV("Permissions", enabledFlags(result.team!.permissions).join(", "));
 }
 
@@ -163,6 +164,7 @@ export async function cmdTeamShow(profileName: string): Promise<void> {
 		printKV("Team", profile.team.id);
 		printKV("Role", profile.team.role);
 		printKV("Tier", String(profile.team.tier));
+		printKV("Email", profile.team.email);
 		printKV("Joined", profile.team.joinedAt);
 		printKV("Permissions", enabledFlags(profile.team.permissions).join(", "));
 	} else {
@@ -194,11 +196,12 @@ export async function cmdTeamHierarchy(teamId?: string): Promise<void> {
 		const tableData = members.map((m) => ({
 			profile: m.name,
 			team: m.team!.id,
+			email: m.team!.email,
 			permissions: enabledFlags(m.team!.permissions).join(", "),
 		}));
 
 		console.log(
-			Bun.inspect.table(tableData, ["profile", "team", "permissions"]),
+			Bun.inspect.table(tableData, ["profile", "team", "email", "permissions"]),
 		);
 
 		total += members.length;
@@ -231,6 +234,7 @@ export async function cmdTerminalLaunch(profileName: string): Promise<void> {
 	const teamLabel = profile.team
 		? `Team: ${profile.team.id}  Role: ${profile.team.role}  Tier: ${profile.team.tier}`
 		: "No team assigned";
+	const emailLabel = profile.team ? `Email: ${profile.team.email}` : "";
 	const permsLabel = profile.team
 		? `Permissions: ${enabledFlags(profile.team.permissions).join(", ")}`
 		: "";
@@ -240,6 +244,7 @@ export async function cmdTerminalLaunch(profileName: string): Promise<void> {
 			`${C.bold}Tier-1380 Terminal${C.reset}`,
 			`Profile: ${profileName}`,
 			teamLabel,
+			emailLabel,
 			permsLabel,
 		]
 			.filter(Boolean)
@@ -258,6 +263,7 @@ export async function cmdTerminalLaunch(profileName: string): Promise<void> {
 		TIER1380_TEAM: profile.team?.id ?? "",
 		TIER1380_ROLE: profile.team?.role ?? "",
 		TIER1380_TIER: String(profile.team?.tier ?? ""),
+		TIER1380_EMAIL: profile.team?.email ?? "",
 	};
 
 	// Launch interactive shell inside Bun.Terminal

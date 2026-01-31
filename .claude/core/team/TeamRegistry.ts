@@ -9,6 +9,7 @@
  */
 
 import {
+	generateMemberEmail,
 	getDemotedRole,
 	getPromotedRole,
 	getRolePermissions,
@@ -82,6 +83,7 @@ export async function addMember(
 		role,
 		tier: getRoleTier(role),
 		joinedAt: new Date().toISOString(),
+		email: generateMemberEmail(profileName),
 		permissions: getRolePermissions(role),
 	};
 
