@@ -33,6 +33,9 @@ tmp/
 .tmp/
 *.tmp
 
+# Generated indexes
+.options.index
+
 # Cache and build directories
 .biome/
 .cache/

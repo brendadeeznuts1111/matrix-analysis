@@ -34,6 +34,36 @@ main().catch((err) => { console.error(err); process.exit(1); });
 
 > **Use Context7 MCP for detailed docs.** Below are essential patterns and gotchas only.
 
+### 📚 Official Documentation Links
+
+**Core APIs:**
+- [File API (deep dive)](https://bun.sh/docs/api/file-io) - File I/O, streams, BunFile
+- [HTTP Server](https://bun.sh/docs/api/http) - Bun.serve(), WebSockets, SSE
+- [Shell Scripting ($)](https://bun.sh/docs/runtime/shell) - Command execution, pipes
+- [Password Hashing](https://bun.sh/docs/api/hashing) - Argon2id, bcrypt, verify
+- [JSON5/JSONL](https://bun.sh/docs/api/utils#bun-json5-bun-jsonl) - Parse JSON variants
+- [Test Runner](https://bun.sh/docs/cli/test) - bun:test, matchers, mocks
+- [Full API Index](https://bun.sh/docs/api/index) - Complete API reference
+
+**Quick Access:**
+```bash
+# Search Bun docs via MCP
+# Use Context7 MCP server for detailed documentation
+```
+
+**Tier-1380 CLI quick ref:**
+```bash
+bun run tier1380 -- color init --team=<name> --profile=<name>
+bun run tier1380 -- color generate --wcag=aa --formats=all
+bun run tier1380 -- color deploy --env=production --scale=3
+bun run tier1380 -- color metrics --team=<name> --live
+bun run tier1380 -- colors deploy <team> --profile <name>
+bun run tier1380 -- terminal <team> <profile>
+bun run tier1380 -- dashboard --team=<name> --profile=<name>
+bun run t1380
+bun run tier1380:bench
+```
+
 ### Server
 
 ```typescript
@@ -176,6 +206,31 @@ await Bun.build({
   drop: ["console", "debugger"],      // Remove for production
 });
 ```
+
+### Bun.color (HSL/RGB/Hex conversion)
+
+```typescript
+// Basic conversions (input: string name, hex, number, [r,g,b], { r, g, b })
+Bun.color("red", "hex");           // "#ff0000" (lowercase)
+Bun.color("red", "HEX");           // "#FF0000" (uppercase)
+Bun.color("#FF0000", "hex");       // "#ff0000" (normalized)
+Bun.color(0xff0000, "hex");        // "#ff0000"
+Bun.color([255, 0, 0], "hex");     // "#ff0000"
+Bun.color([99, 71, 255], "hex");   // "#6347ff"
+
+// With alpha (hex8)
+Bun.color("rgba(255,0,0,0.5)", "hex8");   // "#ff000080"
+Bun.color([255, 0, 0, 128], "hex8");       // "#ff000080"
+Bun.color("rgba(255,0,0,0.5)", "HEX8");   // "#FF000080"
+
+// Common patterns
+Bun.color("hsl(120, 100%, 40%)", "hex");   // "#00cc00" (success green)
+Bun.color("rgb(255, 165, 0)", "hex");      // "#ffa500" (warning orange)
+Bun.color({ r: 255, g: 0, b: 0 }, "hex");  // "#ff0000" (error red)
+Bun.color(0x007acc, "hex");                // "#007acc" (info blue)
+```
+
+**Formats:** `hex` | `HEX` | `hex8` | `HEX8` | `number` | `rgb` | `rgba` | `hsl` | `ansi-16` | `ansi-256` | `ansi-16m`
 
 ### Utilities
 

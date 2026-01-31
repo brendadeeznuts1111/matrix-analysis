@@ -1,59 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuites name="bun test" tests="38" assertions="369" failures="1" skipped="0" time="0.107693">
-  <testsuite name=".claude/lib/__tests__/cli.test.ts" file=".claude/lib/__tests__/cli.test.ts" tests="38" assertions="369" failures="1" skipped="0" time="0" hostname="Mac.attlocal.net">
-    <testsuite name="HEX" file=".claude/lib/__tests__/cli.test.ts" line="4" tests="2" assertions="16" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-      <testcase name="has all color definitions as hex strings" classname="HEX" time="0.000952" file=".claude/lib/__tests__/cli.test.ts" line="5" assertions="8" />
-      <testcase name="has the expected palette" classname="HEX" time="0.000239" file=".claude/lib/__tests__/cli.test.ts" line="11" assertions="8" />
-    </testsuite>
-    <testsuite name="COLORS" file=".claude/lib/__tests__/cli.test.ts" line="23" tests="3" assertions="22" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-      <testcase name="has raw ANSI for attributes" classname="COLORS" time="0" file=".claude/lib/__tests__/cli.test.ts" line="24" assertions="3" />
-      <testcase name="generates 24-bit truecolor ANSI for all colors via Bun.color" classname="COLORS" time="0.000104" file=".claude/lib/__tests__/cli.test.ts" line="30" assertions="8" />
-      <testcase name="produces non-empty strings for all entries" classname="COLORS" time="0.000083" file=".claude/lib/__tests__/cli.test.ts" line="42" assertions="11" />
-    </testsuite>
-    <testsuite name="THEME" file=".claude/lib/__tests__/cli.test.ts" line="49" tests="1" assertions="7" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-      <testcase name="maps semantic names to COLORS" classname="THEME" time="0" file=".claude/lib/__tests__/cli.test.ts" line="50" assertions="7" />
-    </testsuite>
-    <testsuite name="fmt" file=".claude/lib/__tests__/cli.test.ts" line="61" tests="8" assertions="19" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-      <testcase name="ok() wraps with green check mark" classname="fmt" time="0.000057" file=".claude/lib/__tests__/cli.test.ts" line="62" assertions="4" />
-      <testcase name="fail() wraps with red cross" classname="fmt" time="0.000014" file=".claude/lib/__tests__/cli.test.ts" line="70" assertions="3" />
-      <testcase name="warn() wraps with yellow warning" classname="fmt" time="0.000008" file=".claude/lib/__tests__/cli.test.ts" line="77" assertions="3" />
-      <testcase name="info() wraps with blue info icon" classname="fmt" time="0.00002" file=".claude/lib/__tests__/cli.test.ts" line="84" assertions="3" />
-      <testcase name="bold() wraps with bold escape" classname="fmt" time="0.000004" file=".claude/lib/__tests__/cli.test.ts" line="91" assertions="1" />
-      <testcase name="dim() wraps with dim escape" classname="fmt" time="0" file=".claude/lib/__tests__/cli.test.ts" line="96" assertions="1" />
-      <testcase name="cmd() wraps with accent color" classname="fmt" time="0.000033" file=".claude/lib/__tests__/cli.test.ts" line="101" assertions="1" />
-      <testcase name="tag() wraps label in primary color brackets" classname="fmt" time="0" file=".claude/lib/__tests__/cli.test.ts" line="106" assertions="3" />
-    </testsuite>
-    <testsuite name="runCmd" file=".claude/lib/__tests__/cli.test.ts" line="114" tests="5" assertions="10" failures="0" skipped="0" time="0.034" hostname="Mac.attlocal.net">
-      <testcase name="runs a successful command" classname="runCmd" time="0.013409" file=".claude/lib/__tests__/cli.test.ts" line="115" assertions="3" />
-      <testcase name="captures stderr" classname="runCmd" time="0.010066" file=".claude/lib/__tests__/cli.test.ts" line="122" assertions="1" />
-      <testcase name="returns failure for non-zero exit" classname="runCmd" time="0.007777" file=".claude/lib/__tests__/cli.test.ts" line="127" assertions="2" />
-      <testcase name="handles command not found gracefully" classname="runCmd" time="0.001211" file=".claude/lib/__tests__/cli.test.ts" line="133" assertions="2" />
-      <testcase name="accepts cwd option" classname="runCmd" time="0.003198" file=".claude/lib/__tests__/cli.test.ts" line="139" assertions="2" />
-    </testsuite>
-    <testsuite name="jsc" file=".claude/lib/__tests__/cli.test.ts" line="147" tests="10" assertions="269" failures="0" skipped="0" time="0.001" hostname="Mac.attlocal.net">
-      <testcase name="heapStats() returns heap metrics with expected shape" classname="jsc" time="0.000873" file=".claude/lib/__tests__/cli.test.ts" line="148" assertions="5" />
-      <testcase name="heapStats().objectTypeCounts has string keys and number values" classname="jsc" time="0.00073" file=".claude/lib/__tests__/cli.test.ts" line="157" assertions="243" />
-      <testcase name="heapSize() returns a positive number" classname="jsc" time="0.000039" file=".claude/lib/__tests__/cli.test.ts" line="167" assertions="1" />
-      <testcase name="gc() returns before/after/freed metrics" classname="jsc" time="0.001491" file=".claude/lib/__tests__/cli.test.ts" line="171" assertions="4" />
-      <testcase name="describe() returns a string for various value types" classname="jsc" time="0.000233" file=".claude/lib/__tests__/cli.test.ts" line="179" assertions="5" />
-      <testcase name="sizeOf() returns positive bytes for objects" classname="jsc" time="0" file=".claude/lib/__tests__/cli.test.ts" line="187" assertions="3" />
-      <testcase name="memoryPressure() returns a non-negative number" classname="jsc" time="0.000066" file=".claude/lib/__tests__/cli.test.ts" line="193" assertions="2" />
-      <testcase name="optimize() accepts a function without throwing" classname="jsc" time="0.0007" file=".claude/lib/__tests__/cli.test.ts" line="199" assertions="1" />
-      <testcase name="compileInfo() returns JIT stats for a function" classname="jsc" time="0.000066" file=".claude/lib/__tests__/cli.test.ts" line="204" assertions="3" />
-      <testcase name="profile() returns profiling data for a function" classname="jsc" time="0.000752" file=".claude/lib/__tests__/cli.test.ts" line="214" assertions="2" />
-    </testsuite>
-    <testsuite name="transpiler" file=".claude/lib/__tests__/cli.test.ts" line="222" tests="9" assertions="26" failures="1" skipped="0" time="0.002" hostname="Mac.attlocal.net">
-      <testcase name="transformSync() compiles TSX to JS" classname="transpiler" time="0.002715" file=".claude/lib/__tests__/cli.test.ts" line="223" assertions="1">
-        <failure type="AssertionError" />
-      </testcase>
-      <testcase name="transformSync() strips TypeScript types" classname="transpiler" time="0.000136" file=".claude/lib/__tests__/cli.test.ts" line="231" assertions="2" />
-      <testcase name="transform() returns a Promise that resolves to JS" classname="transpiler" time="0.000216" file=".claude/lib/__tests__/cli.test.ts" line="237" assertions="2" />
-      <testcase name="scan() returns imports and exports" classname="transpiler" time="0.000254" file=".claude/lib/__tests__/cli.test.ts" line="243" assertions="4" />
-      <testcase name="scan() detects dynamic imports" classname="transpiler" time="0.000543" file=".claude/lib/__tests__/cli.test.ts" line="257" assertions="2" />
-      <testcase name="scanImports() returns only imports (no exports)" classname="transpiler" time="0.00079" file=".claude/lib/__tests__/cli.test.ts" line="265" assertions="3" />
-      <testcase name="scanImports() categorizes require vs import" classname="transpiler" time="0.00008" file=".claude/lib/__tests__/cli.test.ts" line="278" assertions="4" />
-      <testcase name="scanFile() reads and scans a real file" classname="transpiler" time="0.000373" file=".claude/lib/__tests__/cli.test.ts" line="292" assertions="5" />
-      <testcase name="transformFile() transpiles a real file" classname="transpiler" time="0.000164" file=".claude/lib/__tests__/cli.test.ts" line="301" assertions="3" />
+<testsuites name="bun test" tests="10" assertions="68" failures="0" skipped="0" time="0.177959">
+  <testsuite name=".claude/lib/__tests__/tier1380-integration.test.ts" file=".claude/lib/__tests__/tier1380-integration.test.ts" tests="10" assertions="68" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+    <testsuite name="Tier-1380 Integration" file=".claude/lib/__tests__/tier1380-integration.test.ts" line="50" tests="10" assertions="68" failures="0" skipped="0" time="0.022" hostname="Mac.attlocal.net">
+      <testcase name="generates team-specific ANSI from HEX" classname="Tier-1380 Integration" time="0.000962" file=".claude/lib/__tests__/tier1380-integration.test.ts" line="64" assertions="8" />
+      <testcase name="CLI formatting works with THEME" classname="Tier-1380 Integration" time="0.000162" file=".claude/lib/__tests__/tier1380-integration.test.ts" line="87" assertions="8" />
+      <testcase name="runCmd integrates with colored output" classname="Tier-1380 Integration" time="0.016947" file=".claude/lib/__tests__/tier1380-integration.test.ts" line="105" assertions="6" />
+      <testcase name="transpiler preserves color imports" classname="Tier-1380 Integration" time="0.003408" file=".claude/lib/__tests__/tier1380-integration.test.ts" line="121" assertions="5" />
+      <testcase name="validates RGBA array structure and bounds" classname="Tier-1380 Integration" time="0.000181" file=".claude/lib/__tests__/tier1380-integration.test.ts" line="145" assertions="7" />
+      <testcase name="generates consistent palettes for same team/profile" classname="Tier-1380 Integration" time="0.000797" file=".claude/lib/__tests__/tier1380-integration.test.ts" line="164" assertions="12" />
+      <testcase name="handles color format conversions correctly" classname="Tier-1380 Integration" time="0.001557" file=".claude/lib/__tests__/tier1380-integration.test.ts" line="189" assertions="7" />
+      <testcase name="supports terminal color detection and fallback" classname="Tier-1380 Integration" time="0.000079" file=".claude/lib/__tests__/tier1380-integration.test.ts" line="213" assertions="5" />
+      <testcase name="integrates with R2 storage and metrics" classname="Tier-1380 Integration" time="0.001186" file=".claude/lib/__tests__/tier1380-integration.test.ts" line="235" assertions="4" />
+      <testcase name="handles edge cases and error conditions" classname="Tier-1380 Integration" time="0.001065" file=".claude/lib/__tests__/tier1380-integration.test.ts" line="276" assertions="6" />
     </testsuite>
   </testsuite>
 </testsuites>

@@ -68,6 +68,13 @@ This is a comprehensive **Bun-native development workspace** featuring:
 │   ├── examples/enterprise/      # Demo scripts and examples
 │   ├── scripts/                  # Utility scripts (1200+ files)
 │   ├── core/                     # Core library modules
+│   │   ├── terminal/             # Profile-Terminal Binding Manager
+│   │   │   ├── ProfileTerminalBindingManager.ts  # Main manager
+│   │   │   ├── cli.ts            # CLI interface
+│   │   │   └── index.ts          # Module exports
+│   │   ├── session/              # Session management
+│   │   ├── rss/                  # RSS feed integration
+│   │   └── shared/               # Shared utilities
 │   ├── apps/                     # Application builds
 │   ├── matrix/                   # Matrix analysis modules
 │   └── packages/                 # Monorepo packages
@@ -120,6 +127,32 @@ bun run matrix:profile:show <name>     # Show profile details
 bun run matrix:profile:diff <a> <b>    # Compare two profiles
 bun run matrix:profile:create <name>   # Create new profile
 
+# Profile-Terminal Binding Manager (Tier-1380)
+bun run terminal:init                  # Initialize binding manager
+bun run terminal:status                # Display current status
+bun run terminal:bind <profile>        # Bind current directory to profile
+bun run terminal:unbind [path]         # Remove project binding
+bun run terminal:switch <profile>      # Switch to different profile
+bun run terminal:matrix                # Generate profile matrix
+bun run terminal:broadcast             # Broadcast matrix to RSS/MCP
+bun run terminal:list                  # List available profiles
+
+# Tier-1380 CLI (color | colors | terminal | dashboard)
+bun run tier1380 -- color init --team=<name> --profile=<name>    # Initialize color system
+bun run tier1380 -- color generate --wcag=aa --formats=all       # Enterprise palette
+bun run tier1380 -- color deploy --env=production --scale=3       # Deploy to production
+bun run tier1380 -- color metrics --team=<name> --live            # Monitor metrics
+bun run tier1380 -- colors deploy <team> --profile <name>         # Deploy colors for team
+bun run tier1380 -- terminal <team> <profile>                      # Launch colored terminal banner
+bun run tier1380 -- dashboard --team=<name> --profile=<name>      # Open metrics dashboard (localhost:3001)
+
+# Shortcuts
+bun run tbind <profile>                # Shortcut for terminal:bind
+bun run tstatus                        # Shortcut for terminal:status
+bun run tmatrix                        # Shortcut for terminal:matrix
+bun run tbroadcast                     # Shortcut for terminal:broadcast
+bun run t1380                          # Shortcut for tier1380
+
 # Enterprise CLI tools
 bun run bytes                          # Byte analysis CLI
 bun run jsonl                          # JSONL processing CLI
@@ -160,6 +193,14 @@ bun run migrate:verbose   # Verbose output
 # ARM64 benchmarks
 bun run benchmark
 bun run benchmark:output
+
+# Tier-1380 color (palette generation benchmark)
+bun run tier1380:bench   # color generate --wcag=aa --formats=all
+
+# Spawn performance monitoring
+bun run spawn:monitor    # Full validation + benchmark
+bun run spawn:check      # Quick system check
+bun run spawn:bench      # Extended benchmark (500 iterations)
 
 # Verification
 bun run verify:arm64
@@ -364,6 +405,74 @@ Profiles support `${VAR}` references that are resolved at activation time:
 
 ---
 
+## Profile-Terminal Binding Manager (Tier-1380)
+
+The ProfileTerminalBindingManager provides advanced profile and terminal management with per-project, per-path session handling.
+
+### Features
+
+- **Per-Project Profile Binding** - Automatically activate profiles based on project directory
+- **Per-Path Session Management** - Track and manage terminal sessions by working directory
+- **Terminal Lifecycle Management** - Register, activate, and cleanup terminal sessions
+- **RSS Feed Integration** - Publish matrix updates to RSS feeds for dashboard consumption
+- **MCP Server Notifications** - Real-time notifications via MCP protocol
+
+### Usage
+
+```typescript
+import { ProfileTerminalBindingManager } from "./.claude/core/terminal";
+
+const manager = new ProfileTerminalBindingManager();
+
+// Initialize with RSS and MCP adapters
+await manager.initialize({
+  rssFeed: new BunRSSFeedAdapter(),
+  mcpServer: new BunMCPServerAdapter(),
+});
+
+// Bind current directory to a profile
+manager.bindCurrentDirectory("dev", { autoActivate: true });
+
+// Switch profiles
+await manager.switchProfile("prod");
+
+// Broadcast matrix update
+await manager.broadcastMatrixUpdate();
+
+// Display status
+manager.displayStatus();
+```
+
+### Matrix Update Broadcasting
+
+The `broadcastMatrixUpdate()` method publishes to:
+
+1. **RSS Feed** (`~/.matrix/feeds/tier-1380-matrix.json`)
+   - Channel: `tier-1380-matrix`
+   - Content: Full profile-terminal matrix
+   - Checksum: Wyhash of content for integrity
+
+2. **MCP Server** (`~/.matrix/mcp/bun___profiles_matrix_realtime.json`)
+   - URI: `bun://profiles/matrix/realtime`
+   - Data: `{ profiles, terminals, bindings, col93Integrity, timestamp, checksum }`
+
+### Session Management
+
+```typescript
+// Create a session for current terminal
+const terminal = manager.terminalManager.activeTerminal;
+if (terminal) {
+  const session = manager.sessionManager.createSession(
+    terminal.id,
+    "user-123",
+    "admin",      // role
+    "1380"        // tier
+  );
+}
+```
+
+---
+
 ## Bun-Specific Patterns
 
 ### Cross-Runtime Guard
@@ -427,6 +536,7 @@ const { exitCode } = await $`cmd`.nothrow();  // Don't throw
 | `README.md` | Project overview and features |
 | `CLAUDE.md` | Bun API quick reference |
 | `docs/ROADMAP.md` | Development roadmap and progress |
+| `docs/SPAWN-OPTIMIZATION.md` | Bun spawn performance guide and validation |
 | `skills/README.md` | Skills registry documentation |
 | `skills/docs/dev-hq-cli.md` | Dev HQ CLI full documentation |
 | `docs/release-notes.md` | Bun runtime release notes |

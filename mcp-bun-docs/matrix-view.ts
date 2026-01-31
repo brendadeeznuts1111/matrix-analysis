@@ -18,6 +18,7 @@ import {
 	BUN_137_COMPLETE_MATRIX,
 	TIER_1380_COMPLIANCE,
 	TEST_CONFIG_MATRIX,
+	BUN_TEST_CLI_OPTIONS,
 	filterEntriesByVersion,
 	filterEntriesByStability,
 } from "./lib.ts";
@@ -123,6 +124,12 @@ console.log(Bun.inspect.table(TIER_1380_COMPLIANCE, ["Item", "Note", "Scope"]));
 
 console.log("\n═══ Tier-1380 Test Config Inheritance ═══\n");
 console.log(Bun.inspect.table(TEST_CONFIG_MATRIX, ["Section", "InheritsFrom", "KeyValues", "SecurityScope"]));
+
+/** Alias for BUN_TEST_CLI_OPTIONS (matrix-view export). */
+export const cliOptionsTable = BUN_TEST_CLI_OPTIONS;
+
+console.log("\n═══ bun test CLI Options (Name, Pattern, Version, Topic, Type, Example) ═══\n");
+console.log(Bun.inspect.table(cliOptionsTable, ["Name", "Pattern", "Version", "Topic", "Type", "Example"]));
 
 console.log("\n═══ URL Patterns ═══\n");
 console.log(Bun.inspect.table(patterns));

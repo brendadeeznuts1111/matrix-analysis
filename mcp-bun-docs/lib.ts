@@ -9,6 +9,18 @@ export const BUN_DOCS_MIN_VERSION = "1.3.6";
 /** Official Bun changelog/release RSS: https://bun.com/rss.xml */
 export const BUN_CHANGELOG_RSS = "https://bun.com/rss.xml";
 
+/** Quick reference links for deep-dive documentation */
+export const BUN_REFERENCE_LINKS = {
+	fileAPI: "https://bun.sh/docs/api/file-io",
+	httpServer: "https://bun.sh/docs/api/http",
+	shell: "https://bun.sh/docs/runtime/shell",
+	password: "https://bun.sh/docs/api/hashing",
+	json: "https://bun.sh/docs/api/utils#bun-json5-bun-jsonl",
+	test: "https://bun.sh/docs/cli/test",
+	apiIndex: "https://bun.sh/docs/api/index",
+	color: "https://bun.sh/docs/runtime/color",
+} as const;
+
 /** Tier-1380 Matrix v2: traceability schema for ACP filtering & CI gating */
 export type SemVer = `${number}.${number}.${number}`;
 export type Stability = "experimental" | "stable" | "deprecated";
@@ -81,6 +93,8 @@ export const BUN_DOC_ENTRIES: BunDocEntry[] = [
 	{ term: "buffer", path: "api/buffer", bunMinVersion: "1.0.0", stability: "stable", platforms: ["darwin", "linux", "win32"], security: SEC_IO, relatedTerms: ["Buffer.swap16", "Buffer.swap64"] },
 	{ term: "Buffer.swap16", path: "api/buffer", bunMinVersion: "1.3.8", stability: "stable", platforms: ["darwin", "linux", "win32"], security: { ...SEC_NET, notes: "Side-channel safe" }, perfProfile: { opsSec: 0, baseline: "1.8x (0.56µs vs 1.00µs) - 64KB swap" }, useCases: ["UTF-16 endianness", "Network protocols", "Binary serialization"], relatedTerms: ["Buffer.swap64"] },
 	{ term: "Buffer.swap64", path: "api/buffer", bunMinVersion: "1.3.8", stability: "stable", platforms: ["darwin", "linux", "win32"], security: { ...SEC_NET, notes: "Constant-time intrinsics" }, perfProfile: { opsSec: 0, baseline: "3.6x (0.56µs vs 2.02µs) - 64KB swap" }, useCases: ["64-bit hash reversal", "Redis protocol", "Native interop"], relatedTerms: ["Buffer.swap16"] },
+	{ term: "Buffer.indexOf", path: "api/buffer", bunMinVersion: "1.3.7", stability: "stable", platforms: ["darwin", "linux", "win32"], security: SEC_IO, perfProfile: { opsSec: 0, baseline: "up to 2x faster (SIMD)" }, implementation: "SIMD-optimized search", methods: ["indexOf", "includes"], useCases: ["Large buffer pattern search", "Single/multi-byte needles"], relatedTerms: ["Buffer.includes", "buffer"], category: "runtime" },
+	{ term: "Buffer.includes", path: "api/buffer", bunMinVersion: "1.3.7", stability: "stable", platforms: ["darwin", "linux", "win32"], security: SEC_IO, perfProfile: { opsSec: 0, baseline: "3.25s→1.42s (.includes false, 44KB)" }, implementation: "SIMD-optimized search", useCases: ["Pattern presence check", "Binary scanning"], relatedTerms: ["Buffer.indexOf", "buffer"], category: "runtime" },
 	// v1.3.7 Feature Matrix — Tier-1380 (spec-complete)
 	{ term: "S3File.presign", path: "api/s3", bunMinVersion: "1.3.7", stability: "stable", platforms: ["darwin", "linux", "win32"], security: { classification: "critical", notes: "Presigned URL expiration + contentDisposition injection protection", zeroTrustEnforced: true }, perfProfile: { opsSec: 0, baseline: "<0.1ms signature" }, newParams: ["contentDisposition", "type"], useCases: ["Secure downloads", "PDF reporting", "Attachment forcing"], relatedTerms: ["s3", "s3.file"], category: "storage" },
 	{ term: "node:inspector", path: "api/node-inspector", bunMinVersion: "1.3.7", stability: "stable", platforms: ["darwin", "linux"], security: { classification: "high", requiresRoot: false, notes: "CDP Profiler.enable gated by --inspect flag" }, perfProfile: { opsSec: 0, baseline: "<3% CPU impact" }, methods: ["Profiler.enable", "Profiler.start", "Profiler.stop", "setSamplingInterval"], relatedTerms: ["--inspect"], category: "runtime" },
@@ -96,6 +110,15 @@ export const BUN_DOC_ENTRIES: BunDocEntry[] = [
 	{ term: "Bun.JSONL", path: "api/jsonl", bunMinVersion: "1.3.7", stability: "stable", platforms: ["darwin", "linux", "win32"], security: SEC_IO, perfProfile: { opsSec: 0, baseline: "C++ JSC engine" }, methods: ["parse", "parseChunk"], relatedTerms: ["json", "Bun.JSON5"], category: "runtime" },
 	{ term: "--cpu-prof-md", path: "cli/cpu-prof", bunMinVersion: "1.3.7", stability: "stable", platforms: ["darwin", "linux"], security: SEC_IO, useCases: ["Markdown profiles", "GitHub/LLM compatible"], cliFlags: ["--cpu-prof-md"], relatedTerms: ["--heap-prof"], category: "cli" },
 	{ term: "--heap-prof", path: "cli/heap-prof", bunMinVersion: "1.3.7", stability: "stable", platforms: ["darwin", "linux", "win32"], security: SEC_IO, support: ["Chrome DevTools", "Markdown (CLI grep)"], cliFlags: ["--heap-prof"], relatedTerms: ["--cpu-prof-md"], category: "cli" },
+	// Reference documentation deep-dives
+	{ term: "File API", path: "api/file-io", bunMinVersion: "1.0.0", stability: "stable", platforms: ["darwin", "linux", "win32"], security: SEC_IO, useCases: ["File I/O", "Streams", "BunFile operations"], relatedTerms: ["Bun.file", "Bun.write", "file"], category: "storage" },
+	{ term: "HTTP Server patterns", path: "api/http", bunMinVersion: "1.0.0", stability: "stable", platforms: ["darwin", "linux", "win32"], security: SEC_NET, useCases: ["Bun.serve", "WebSockets", "SSE"], relatedTerms: ["serve", "Bun.serve", "fetch"], category: "network" },
+	{ term: "Shell scripting", path: "runtime/shell", bunMinVersion: "1.1.0", stability: "stable", platforms: ["darwin", "linux", "win32"], security: SEC_IO, useCases: ["Command execution", "Pipes", "Shell scripts"], relatedTerms: ["$", "spawn", "shell"], category: "runtime" },
+	{ term: "Password hashing", path: "api/hashing", bunMinVersion: "1.0.0", stability: "stable", platforms: ["darwin", "linux"], security: SEC_CRYPTO, useCases: ["Argon2id", "bcrypt", "Password verification"], relatedTerms: ["password", "hash", "Bun.password"], category: "runtime" },
+	{ term: "JSON5 parsing", path: "api/utils#bun-json5-bun-jsonl", bunMinVersion: "1.3.7", stability: "stable", platforms: ["darwin", "linux", "win32"], security: SEC_IO, useCases: ["JSON with comments", "Trailing commas", "JSONL streams"], relatedTerms: ["Bun.JSON5", "Bun.JSONL", "json"], category: "runtime" },
+	{ term: "Test runner guide", path: "cli/test", bunMinVersion: "1.0.0", stability: "stable", platforms: ["darwin", "linux", "win32"], security: SEC_IO, useCases: ["bun:test", "Matchers", "Mocks", "Snapshots"], relatedTerms: ["test", "bun:test", "bun test"], category: "cli" },
+	{ term: "API index", path: "api/index", bunMinVersion: "1.0.0", stability: "stable", platforms: ["darwin", "linux", "win32"], security: SEC_IO, useCases: ["Complete API reference", "All Bun APIs"], relatedTerms: ["documentation", "reference"], category: "runtime" },
+	{ term: "Bun.color", path: "runtime/color", bunMinVersion: "1.0.0", stability: "stable", platforms: ["darwin", "linux", "win32"], security: SEC_IO, useCases: ["HSL/RGB/Hex conversion", "hex/hex8/number/rgb/rgba/hsl", "ansi-16/ansi-256/ansi-16m"], relatedTerms: ["color", "hex", "ansi"], category: "runtime" },
 	{ term: "fetch.headerCasing", path: "api/fetch", bunMinVersion: "1.3.7", stability: "stable", platforms: ["darwin", "linux", "win32"], security: SEC_NET, useCases: ["Preserves original casing (RFC 7230)", "Authorization vs authorization fix"], relatedTerms: ["fetch"], category: "network" },
 	{ term: "S3File.write.contentEncoding", path: "api/s3", bunMinVersion: "1.3.7", stability: "stable", platforms: ["darwin", "linux", "win32"], security: SEC_NET, newParams: ["contentEncoding"], support: ["gzip", "br", "deflate"], useCases: ["Pre-compressed uploads", "Brotli static assets"], relatedTerms: ["s3", "S3File.presign"], category: "storage" },
 	{ term: "bun:ffi.envPaths", path: "api/ffi", bunMinVersion: "1.3.7", stability: "stable", platforms: ["darwin", "linux", "win32"], security: SEC_IO, support: ["C_INCLUDE_PATH", "LIBRARY_PATH"], useCases: ["NixOS/FHS non-standard paths"], relatedTerms: ["ffi"], category: "runtime" },
@@ -106,7 +129,31 @@ export const BUN_DOC_ENTRIES: BunDocEntry[] = [
 	{ term: "bun:bundle feature", path: "api/bundle", bunMinVersion: "1.3.5", stability: "stable", platforms: ["darwin", "linux", "win32"], security: { classification: "medium", notes: "Dead code elimination reduces attack surface" }, useCases: ["Platform builds", "A/B testing", "Paid tiers"], cliFlags: ["--feature"], relatedTerms: ["bun build"], category: "bundler" },
 	{ term: "pm pack", path: "pm/cli/pack", bunMinVersion: "1.3.8", stability: "stable", platforms: ["darwin", "linux", "win32"], security: { classification: "high", notes: "Re-reads package.json post-lifecycle" }, useCases: ["prepack", "prepare", "prepublishOnly", "clean-package"], relatedTerms: ["bun pm publish"], category: "cli" },
 	{ term: "Redis", path: "api/redis", bunMinVersion: "1.3.0", stability: "stable", platforms: ["darwin", "linux", "win32"], security: SEC_NET, perfProfile: { opsSec: 0, baseline: "7.9x ioredis" }, relatedTerms: ["Bun.sql", "postgres"], category: "storage" },
+	{ term: "Bun.spawnSync", path: "api/spawn", bunMinVersion: "1.3.8", stability: "stable", platforms: ["darwin", "linux", "win32"], security: SEC_IO, perfProfile: { opsSec: 0, baseline: "30x fix (13ms→0.4ms per 100 spawns) on Linux" }, implementation: "close_range() syscall; was iterating 65K FDs on older glibc", useCases: ["CI runners", "High ulimit Linux", "ARM64 servers"], relatedTerms: ["spawn", "Bun.spawn", "subprocess"], category: "runtime" },
 ];
+
+/** bun test CLI options — Name, Pattern (aliases), Version, Topic, Type, Example */
+export const BUN_TEST_CLI_OPTIONS = [
+	{ Name: "--test-name-pattern", Pattern: "--grep, -t", Version: "1.3.7", Topic: "Filter tests by name regex", Type: "string", Example: 'bun test -t "should handle"' },
+	{ Name: "--timeout", Pattern: "", Version: "1.0.0", Topic: "Per-test timeout (ms)", Type: "number", Example: "bun test --timeout 5000" },
+	{ Name: "--bail", Pattern: "", Version: "1.0.0", Topic: "Exit on first failure", Type: "boolean", Example: "bun test --bail" },
+	{ Name: "--preload", Pattern: "", Version: "1.0.0", Topic: "Preload script before tests", Type: "string[]", Example: "bun test --preload ./test-setup.ts" },
+	{ Name: "--root", Pattern: "", Version: "1.0.0", Topic: "Test discovery root dir", Type: "string", Example: "bun test --root src" },
+	{ Name: "--config", Pattern: "", Version: "1.3.6", Topic: "bunfig section (e.g. ci)", Type: "string", Example: "bun test --config=ci" },
+	{ Name: "--env-file", Pattern: "", Version: "1.0.0", Topic: "Load env from file", Type: "string", Example: "bun test --env-file=.env.test" },
+	{ Name: "--coverage", Pattern: "", Version: "1.0.0", Topic: "Enable code coverage", Type: "boolean", Example: "bun test --coverage" },
+];
+
+/** Render bun test CLI options as markdown table (BUN-TEST-001). */
+export function renderCliMatrix(): string {
+	const cols = ["Name", "Pattern", "Version", "Topic", "Type", "Example"];
+	let md = `| ${cols.join(" | ")} |\n`;
+	md += `|${cols.map(() => "------").join("|")}|\n`;
+	for (const row of BUN_TEST_CLI_OPTIONS) {
+		md += `| ${row.Name} | ${row.Pattern} | ${row.Version} | ${row.Topic} | ${row.Type} | \`${row.Example}\` |\n`;
+	}
+	return md;
+}
 
 /** Tier-1380 Test Config Inheritance — bunfig.toml hierarchy */
 export const TEST_CONFIG_MATRIX = [
@@ -171,6 +218,8 @@ export const BUN_137_COMPLETE_MATRIX = [
 	{ Category: "Bundler", Term: "bun:bundle feature", PerfFeature: "Dead code elimination", SecurityPlatform: "Attack surface ↓" },
 	{ Category: "PM", Term: "pm pack", PerfFeature: "Lifecycle re-read", SecurityPlatform: "clean-package compat" },
 	{ Category: "Storage", Term: "Redis", PerfFeature: "7.9x vs ioredis", SecurityPlatform: "Native client" },
+	{ Category: "Runtime", Term: "Bun.spawnSync", PerfFeature: "30x fix (~0.4ms/100 spawns) on Linux ARM64", SecurityPlatform: "close_range() vs 65K FD iteration" },
+	{ Category: "Runtime", Term: "Buffer.indexOf/includes", PerfFeature: "2x (SIMD), 3.25s→1.42s .includes false", SecurityPlatform: "Single + multi-byte patterns" },
 ];
 
 /** Tier-1380 Col 93 / GB9c / SecureDataRepository compliance notes */
@@ -243,6 +292,9 @@ export const SEARCH_WEIGHTS: Record<string, number> = {
 	"bun:bundle feature": 1.2,
 	"pm pack": 1.2,
 	Redis: 1.5,
+	"Bun.spawnSync": 1.5,
+	"Buffer.indexOf": 1.3,
+	"Buffer.includes": 1.3,
 };
 
 export function buildDocUrl(path: string): string {

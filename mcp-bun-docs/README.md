@@ -36,6 +36,12 @@ bun run matrix:rss --output=./feeds/bun-v1.3.7.xml
 # Secure test run
 bun run mcp:secure-test [ci|local|staging]
 
+# Bun test CLI options (BUN-TEST-001)
+bun run test:validate     # Validate options matrix, exit 1 on invalid
+bun run grep:options      # Ripgrep CLI options in mcp-bun-docs
+bun run grep:timeout      # Timeout-related options
+bun run index:options     # Build .options.index for rg -f queries
+
 # Examples
 bun run mcp:example:manifest          # Fetch & inspect manifest
 bun run mcp:example:search            # Search "fetch" (default)
