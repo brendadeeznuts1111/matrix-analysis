@@ -42,7 +42,7 @@ export async function linksCheck(options: LinkCheckOptions = {}): Promise<void> 
     }
   } catch (error) {
     console.error(fmt.fail(`Link check failed: ${error instanceof Error ? error.message : String(error)}`));
-    process.exit(EXIT_CODES.GENERIC_ERROR);
+    Bun.exit(EXIT_CODES.GENERIC_ERROR);
   }
 }
 
@@ -54,19 +54,20 @@ export async function linksQuick(directory: string = '.'): Promise<void> {
     const scriptPath = join(import.meta.dir, '../../benchmarks-combined/scripts/quick-link-check.ts');
     const absDirectory = resolve(directory);
     const process = Bun.spawn(['bun', scriptPath, absDirectory], {
-      cwd: process.cwd(),
+      cwd: import.meta.dir,
       stdout: 'inherit',
-      stderr: 'inherit'
+      stderr: 'inherit',
+      env: { ...process.env, FORCE_COLOR: '1' }
     });
 
     const result = await process.exited;
 
     if (result !== 0) {
       console.error(fmt.fail('Quick link check failed'));
-      process.exit(EXIT_CODES.GENERIC_ERROR);
+      Bun.exit(EXIT_CODES.GENERIC_ERROR);
     }
   } catch (error) {
     console.error(fmt.fail(`Quick link check failed: ${error instanceof Error ? error.message : String(error)}`));
-    process.exit(EXIT_CODES.GENERIC_ERROR);
+    Bun.exit(EXIT_CODES.GENERIC_ERROR);
   }
 }
