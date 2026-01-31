@@ -16,6 +16,11 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { z } from "zod";
 import {
 	searchBunDocs,
+	getDocEntry,
+	buildDocUrl,
+	getCrossReferences,
+	BUN_GLOBALS,
+	BUN_GLOBALS_API_URL,
 	BUN_DOC_ENTRIES,
 	BUN_DOC_MAP,
 	BUN_DOCS_BASE,
@@ -167,6 +172,57 @@ server.tool(
 			platform: args.platform,
 		});
 		return { content: [{ type: "text" as const, text }] };
+	},
+);
+
+server.tool(
+	"GetBunDocEntry",
+	"Resolve a curated Bun doc entry by term (e.g. spawn, Bun.serve). Returns path, version, stability, platforms, security. Use urlOnly to get just the doc URL.",
+	{
+		term: z.string().describe("Curated term (e.g. spawn, Bun.serve, S3File.presign)"),
+		urlOnly: z.boolean().optional().describe("If true, return only the doc URL"),
+	},
+	async (args) => {
+		const entry = getDocEntry(args.term);
+		if (!entry) {
+			return {
+				content: [{ type: "text" as const, text: `No curated entry for term: ${args.term}` }],
+				isError: true,
+			};
+		}
+		if (args.urlOnly) {
+			return { content: [{ type: "text" as const, text: buildDocUrl(entry.path) }] };
+		}
+		return {
+			content: [{ type: "text" as const, text: JSON.stringify({ ...entry, url: buildDocUrl(entry.path) }, null, 2) }],
+		};
+	},
+);
+
+server.tool(
+	"ListBunGlobals",
+	"List Bun top-level globals (Bun, $, fetch, Buffer, process, Bun.file, Bun.serve, …) with doc paths and the Bun.* API doc URL.",
+	{},
+	async () => {
+		const lines = BUN_GLOBALS.map((g) => `${g.name}\t${buildDocUrl(g.path)}\t${g.description}`);
+		const text = `Bun globals:\n${lines.map((l) => `  ${l}`).join("\n")}\n\nBun.* API: ${BUN_GLOBALS_API_URL}`;
+		return { content: [{ type: "text" as const, text }] };
+	},
+);
+
+server.tool(
+	"GetBunDocCrossReferences",
+	"Get cross-references for a Bun doc term: related doc entries with URLs (from relatedTerms on the curated entry).",
+	{ term: z.string().describe("Curated term (e.g. spawn, Bun.serve, buffer)") },
+	async (args) => {
+		const xrefs = getCrossReferences(args.term);
+		const entry = getDocEntry(args.term);
+		const out: { term: string; url?: string; crossReferences: { term: string; url: string }[] } = {
+			term: args.term,
+			crossReferences: xrefs.map((x) => ({ term: x.term, url: x.url })),
+		};
+		if (entry) out.url = buildDocUrl(entry.path);
+		return { content: [{ type: "text" as const, text: JSON.stringify(out, null, 2) }] };
 	},
 );
 

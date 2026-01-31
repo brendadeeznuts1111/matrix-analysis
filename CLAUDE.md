@@ -45,11 +45,17 @@ main().catch((err) => { console.error(err); process.exit(1); });
 - [Test Runner](https://bun.sh/docs/cli/test) - bun:test, matchers, mocks
 - [Full API Index](https://bun.sh/docs/api/index) - Complete API reference
 
-**Quick Access:**
+**Quick Access (mcp-bun-docs integration):**
 ```bash
-# Search Bun docs via MCP
-# Use Context7 MCP server for detailed documentation
+bun run docs:search -- "Bun.serve"   # searchBunDocs → markdown
+bun run docs:entry -- spawn --url    # getDocEntry → URL
+bun run docs:link -- fileAPI         # getReferenceUrl
+bun run docs:terms -- --count=20     # list curated terms
+bun run docs:globals                  # Bun globals + API doc URL
+bun run docs:xrefs -- <term>         # cross-references for term
+bun run bun-docs                     # CLI help
 ```
+MCP: `GetBunDocEntry`, `ListBunGlobals`, `GetBunDocCrossReferences`. Programmatic: `import { searchBunDocs, getDocEntry, getReferenceUrl, getCrossReferences, BUN_GLOBALS, BUN_REFERENCE_LINKS } from "./mcp-bun-docs/lib.ts";`
 
 **Tier-1380 CLI quick ref:**
 ```bash
@@ -195,6 +201,16 @@ await fetch("http://localhost/containers/json", { unix: "/var/run/docker.sock" }
 
 // Timeout
 await fetch(url, { signal: AbortSignal.timeout(5000) });
+
+// Headers: case preserved since v1.3.7 (RFC 7230 compliant)
+// "Authorization" stays "Authorization", not lowercased to "authorization"
+// Fixes compatibility with case-sensitive APIs (AWS, enterprise)
+await fetch(url, {
+  headers: {
+    "Authorization": `Bearer ${token}`,    // preserved
+    "X-Request-ID": crypto.randomUUID(),   // preserved
+  },
+});
 ```
 
 ### Build
@@ -243,6 +259,7 @@ await Bun.sleep(1000)
 Bun.which("node")                 // Find executable path
 Bun.escapeHTML(userInput)         // XSS prevention
 Bun.JSONL.parse(content)          // Parse newline-delimited JSON
+Bun.JSONL.parseChunk(chunk)       // Incremental NDJSON streaming (v1.3.7+)
 Bun.JSON5.parse(content)          // JSON with comments/trailing commas
 Bun.TOML.parse(content)          // Parse TOML config files
 Bun.peek(promise)                 // Read settled value without await (returns promise if pending)
@@ -312,10 +329,11 @@ Bun.resolveSync("zod", import.meta.dir)        // → full path
 
 // ── ANSI / text utilities ────────────────────────────────────────────
 // Bun.stringWidth(str, options?)
-//   options: { countAnsiEscapeCodes?: boolean } (default: true)
+//   options: { countAnsiEscapeCodes?: boolean } (default: false)
 //   Handles full Unicode + emoji + ZWJ + full-width + Indic conjuncts (GB9c)
-//   countAnsiEscapeCodes: true → counts escape bytes; false → visual width only
-//   GB9c fix: Devanagari conjuncts (क्ष) now correctly form single grapheme clusters
+//   false (default) → visual width only; true → counts ANSI escape bytes in width
+//   GB9c (v1.3.7): Unicode 16.0 Indic conjuncts (Consonant + Virama + Consonant)
+//   now segment as single grapheme clusters instead of breaking apart
 Bun.stringWidth("hello 🦊")                    // → 8 (correct visual width)
 Bun.stringWidth("क्ष")                           // → 2 (single cluster, GB9c)
 Bun.stringWidth(text, { countAnsiEscapeCodes: false })  // Col-89: use this for width checks
@@ -343,6 +361,23 @@ Bun.TOML.parse(await Bun.file("bunfig.toml").text())
 // Bun.peek.status(promise) → "fulfilled" | "rejected" | "pending"
 const val = Bun.peek(promise)                   // sync read if resolved
 Bun.peek.status(promise)                        // check without awaiting
+
+// ── Terminal (v1.3.7+) ──────────────────────────────────────────────
+// Bun.Terminal — PTY with await using for auto-close (zero resource leaks)
+{
+  await using term = new Bun.Terminal({
+    cols: 89,                              // match Col-89 enforcement
+    rows: 24,
+    data: (_, data) => process.stdout.write(data),
+  });
+  term.write("output\n");
+}  // auto-closed here
+
+// ── JSONL streaming (v1.3.7+) ───────────────────────────────────────
+// Bun.JSONL.parseChunk(chunk) — incremental NDJSON parsing for streams
+for await (const chunk of stream) {
+  const records = Bun.JSONL.parseChunk(chunk);  // partial lines buffered
+}
 ```
 
 **Runtime Utilities Reference:**
@@ -355,9 +390,9 @@ Bun.peek.status(promise)                        // check without awaiting
 | `Bun.nanoseconds()` | — | — | `() → number` (u64) | 0 – ~2^64 (~584yr) | ~1.0.0 | `expect(Bun.nanoseconds()).toBeGreaterThan(0)` | <0.001ms |
 | `Bun.deepEquals(a, b, strict?)` | `strict: false` | — | `(any, any, boolean?) → boolean` | circular refs ok; stack overflow ~1M+ depth | ~1.0.0 | `expect(Bun.deepEquals(a, b, true)).toBe(true)` | ~0.01ms shallow |
 | `Bun.concatArrayBuffers(bufs)` | — | — | `((ArrayBuffer \| TypedArray)[]) → ArrayBuffer` | total: ~2GB practical | ~1.0.0 | `expect(result.byteLength).toBe(a.byteLength + b.byteLength)` | <0.01ms small |
-| `Bun.stringWidth(str, opts?)` | `countAnsiEscapeCodes: false` | `{ countAnsiEscapeCodes?: boolean }` | `(string, object?) → number` | str: 0–~1M; returns 0–∞ | ~1.0.15 | `expect(Bun.stringWidth("hi")).toBe(2)` | <0.001ms |
+| `Bun.stringWidth(str, opts?)` | `countAnsiEscapeCodes: false` | `{ countAnsiEscapeCodes?: boolean }` | `(string, object?) → number` | str: 0–~1M; returns 0–∞ | ~1.0.15; GB9c fix 1.3.7 | `expect(Bun.stringWidth("hi")).toBe(2)` | ~6756x > `string-width` |
 | `Bun.stripANSI(text)` | — | — | `(string) → string` | — | ~1.0.15 | `expect(Bun.stripANSI("\x1b[31mhi\x1b[0m")).toBe("hi")` | 6–57x > `strip-ansi` |
-| `Bun.wrapAnsi(input, cols, opts?)` | `hard: false`, `wordWrap: true`, `trim: true`, `ambiguousIsNarrow: true` | `{ hard?: boolean, wordWrap?: boolean, trim?: boolean, ambiguousIsNarrow?: boolean }` | `(string, number, object?) → string` | `columns`: 1–∞ (20–120 typical) | ~1.1.x | `expect(Bun.stringWidth(Bun.wrapAnsi(s,40))).toBeLessThanOrEqual(40)` | > `wrap-ansi` |
+| `Bun.wrapAnsi(input, cols, opts?)` | `hard: false`, `wordWrap: true`, `trim: true`, `ambiguousIsNarrow: true` | `{ hard?: boolean, wordWrap?: boolean, trim?: boolean, ambiguousIsNarrow?: boolean }` | `(string, number, object?) → string` | `columns`: 1–∞ (20–120 typical) | ~1.1.x; perf 1.3.7 | `expect(Bun.stringWidth(Bun.wrapAnsi(s,40))).toBeLessThanOrEqual(40)` | 33–88x (685ns vs 25µs) |
 | `Bun.resolveSync(spec, root?)` | `root: process.cwd()` | — | `(string, string?) → string` | Throws if not found | ~1.0.0 | `expect(Bun.resolveSync("bun:test")).toContain("bun")` | <0.1ms |
 | `Bun.semver.satisfies(ver, range)` | — (both required) | — | `(string, string) → boolean` | Throws on invalid semver | ~1.0.0 | `expect(Bun.semver.satisfies("1.3.7",">=1.3.0")).toBe(true)` | <0.001ms |
 | `Bun.semver.order(v1, v2)` | — (both required) | — | `(string, string) → -1 \| 0 \| 1` | Throws on invalid semver | ~1.0.0 | `expect(Bun.semver.order("2.0.0","1.0.0")).toBe(1)` | <0.001ms |
@@ -366,6 +401,9 @@ Bun.peek.status(promise)                        // check without awaiting
 | `readableStreamToText(s)` | — | — | `(ReadableStream) → Promise<string>` | UTF-8 only | ~1.0.0 | `expect(await Bun.readableStreamToText(s)).toBe("hi")` | native fast path |
 | `readableStreamToJSON(s)` | — | — | `(ReadableStream) → Promise<object>` | Valid JSON only | ~1.0.0 | `expect(await Bun.readableStreamToJSON(s)).toEqual({ok:1})` | native fast path |
 | `readableStreamToBytes(s)` | — | — | `(ReadableStream) → Promise<Uint8Array>` | Binary safe | ~1.0.0 | `expect((await Bun.readableStreamToBytes(s)).length).toBeGreaterThan(0)` | native fast path |
+| `Bun.Terminal(opts)` | — | `{ cols?: number, rows?: number, data: (term, data) => void }` | `new Bun.Terminal(opts)` — supports `await using` | `cols`/`rows`: 1–∞ | 1.3.7 | `{ await using t = new Bun.Terminal({cols:80,rows:24,data:(_,d)=>{}}) }` | PTY native |
+| `Bun.JSONL.parseChunk(chunk)` | — | — | `(string \| Uint8Array) → any[]` | Buffers partial lines | 1.3.7 | `expect(Bun.JSONL.parseChunk('{"a":1}\n')).toEqual([{a:1}])` | streaming |
+| `Buffer.from(array)` | — | — | `(number[]) → Buffer` | — | 1.3.7 (50% faster) | `expect(Buffer.from([1,2,3]).length).toBe(3)` | JSC bulk copy |
 
 **Tier-1380 Hardened Defaults (Recommended Presets)**
 

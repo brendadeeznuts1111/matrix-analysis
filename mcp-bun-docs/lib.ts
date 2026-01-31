@@ -9,6 +9,41 @@ export const BUN_DOCS_MIN_VERSION = "1.3.6";
 /** Official Bun changelog/release RSS: https://bun.com/rss.xml */
 export const BUN_CHANGELOG_RSS = "https://bun.com/rss.xml";
 
+/** Bun feedback/reporting: upgrade first, then search issues. https://bun.sh/docs/feedback */
+export const BUN_FEEDBACK_URL = "https://bun.sh/docs/feedback";
+
+/** Short guidance for reporting issues (from official docs). */
+export const BUN_FEEDBACK_UPGRADE_FIRST =
+	"Upgrade first (bun upgrade, or bun upgrade --canary), then search/check issues and discussions before opening a new one.";
+
+/** bun:test API reference (describe, expect, test, mock, spyOn, etc.). https://bun.com/reference/bun/test */
+export const BUN_TEST_REFERENCE_URL = "https://bun.com/reference/bun/test";
+
+/** oven-sh/bun repository (main). https://github.com/oven-sh/bun */
+export const BUN_REPO_URL = "https://github.com/oven-sh/bun";
+
+/** Bun TypeScript types package in oven-sh/bun. https://github.com/oven-sh/bun/tree/main/packages/bun-types */
+export const BUN_TYPES_REPO_URL = "https://github.com/oven-sh/bun/tree/main/packages/bun-types";
+
+/** bun-types README (usage, npm install). https://github.com/oven-sh/bun/blob/main/packages/bun-types/README.md */
+export const BUN_TYPES_README_URL = "https://github.com/oven-sh/bun/blob/main/packages/bun-types/README.md";
+
+/** bun-types authoring guide for contributors. https://github.com/oven-sh/bun/blob/main/packages/bun-types/authoring.md */
+export const BUN_TYPES_AUTHORING_URL = "https://github.com/oven-sh/bun/blob/main/packages/bun-types/authoring.md";
+
+/** Key .d.ts files in bun-types (for tooling / deep links). */
+export const BUN_TYPES_KEY_FILES = [
+	"index.d.ts",
+	"bun.d.ts",
+	"globals.d.ts",
+	"test.d.ts",
+	"serve.d.ts",
+	"fetch.d.ts",
+	"sql.d.ts",
+	"s3.d.ts",
+	"shell.d.ts",
+] as const;
+
 /** Quick reference links for deep-dive documentation */
 export const BUN_REFERENCE_LINKS = {
 	fileAPI: "https://bun.sh/docs/api/file-io",
@@ -16,7 +51,22 @@ export const BUN_REFERENCE_LINKS = {
 	shell: "https://bun.sh/docs/runtime/shell",
 	password: "https://bun.sh/docs/api/hashing",
 	json: "https://bun.sh/docs/api/utils#bun-json5-bun-jsonl",
+	/** CLI test guide (bun test, --timeout, --bail, etc.) */
 	test: "https://bun.sh/docs/cli/test",
+	/** bun:test module API reference (describe, expect, test, mock, spyOn) */
+	bunTest: "https://bun.com/reference/bun/test",
+	/** oven-sh/bun repo — bun-types package (TypeScript definitions) */
+	bunTypes: "https://github.com/oven-sh/bun/tree/main/packages/bun-types",
+	/** bun-types README */
+	bunTypesReadme: "https://github.com/oven-sh/bun/blob/main/packages/bun-types/README.md",
+	/** bun-types authoring guide */
+	bunTypesAuthoring: "https://github.com/oven-sh/bun/blob/main/packages/bun-types/authoring.md",
+	/** Runtime: Bun APIs */
+	bunApis: "https://bun.sh/docs/runtime/bun-apis",
+	/** Runtime: Web APIs */
+	webApis: "https://bun.sh/docs/runtime/web-apis",
+	/** Runtime: Node-API */
+	nodeApi: "https://bun.sh/docs/runtime/node-api",
 	apiIndex: "https://bun.sh/docs/api/index",
 	color: "https://bun.sh/docs/runtime/color",
 } as const;
@@ -299,6 +349,62 @@ export const SEARCH_WEIGHTS: Record<string, number> = {
 
 export function buildDocUrl(path: string): string {
 	return path.startsWith("http") ? path : `${BUN_DOCS_BASE}/${path}`;
+}
+
+/** Resolve a curated doc entry by term (case-insensitive match, then exact). Returns null if not found. */
+export function getDocEntry(term: string): BunDocEntry | null {
+	const t = term.trim();
+	const lower = t.toLowerCase();
+	const exact = BUN_DOC_ENTRIES.find((e) => e.term === t);
+	if (exact) return exact;
+	return BUN_DOC_ENTRIES.find((e) => e.term.toLowerCase() === lower) ?? null;
+}
+
+/** Resolve a deep-dive reference URL by key (e.g. "fileAPI", "httpServer"). Returns URL string. */
+export function getReferenceUrl(key: keyof typeof BUN_REFERENCE_LINKS): string {
+	return BUN_REFERENCE_LINKS[key];
+}
+
+/** All reference link keys for iteration / tooling. */
+export const BUN_REFERENCE_KEYS = Object.keys(BUN_REFERENCE_LINKS) as (keyof typeof BUN_REFERENCE_LINKS)[];
+
+/** Bun top-level globals: name, doc path, short description. Cross-referenced with BUN_DOC_ENTRIES where applicable. */
+export interface BunGlobalEntry {
+	name: string;
+	path: string;
+	description: string;
+	/** Related global or API term */
+	related?: string[];
+}
+
+/** Top-level globals (Bun, $, fetch, Buffer, etc.) and their doc paths. API surface for Bun.* lives at api/globals. */
+export const BUN_GLOBALS: BunGlobalEntry[] = [
+	{ name: "Bun", path: "api/globals", description: "Bun namespace (version, env, sleep, which, peek, inspect, file, serve, …)", related: ["Bun.serve", "Bun.file", "Bun.inspect.table"] },
+	{ name: "$", path: "runtime/shell", description: "Shell script runner (Bun shell)", related: ["shell", "spawn"] },
+	{ name: "fetch", path: "guides/http/fetch", description: "Global fetch (undici-compatible)", related: ["Bun.serve", "Bun.file"] },
+	{ name: "Buffer", path: "api/buffer", description: "Node-compatible Buffer (swap16, swap64, indexOf, includes)", related: ["buffer", "Buffer.swap16"] },
+	{ name: "process", path: "api/env", description: "process.env, process.argv (Node compat)", related: ["env"] },
+	{ name: "Bun.file", path: "api/file-io", description: "BunFile factory", related: ["file", "Bun.write"] },
+	{ name: "Bun.serve", path: "api/http", description: "HTTP server", related: ["serve", "fetch"] },
+	{ name: "Bun.secrets", path: "api/secrets", description: "OS keychain get/set", related: ["secrets"] },
+	{ name: "Bun.password", path: "api/hashing", description: "Argon2id/bcrypt hash/verify", related: ["password", "hash"] },
+	{ name: "Bun.inspect", path: "api/util", description: "inspect(), table(), custom", related: ["inspect", "Bun.inspect.table"] },
+];
+
+/** URL for Bun globals API (Bun.* methods). */
+export const BUN_GLOBALS_API_URL = "https://bun.sh/docs/api/globals";
+
+/** Cross-reference: for a term return related doc entries with URLs. Uses relatedTerms on BunDocEntry. */
+export function getCrossReferences(term: string): { term: string; url: string; path: string }[] {
+	const entry = getDocEntry(term);
+	if (!entry || !entry.relatedTerms?.length) return [];
+	const out: { term: string; url: string; path: string }[] = [];
+	for (const t of entry.relatedTerms) {
+		const e = getDocEntry(t);
+		if (e) out.push({ term: e.term, path: e.path, url: buildDocUrl(e.path) });
+		else out.push({ term: t, path: BUN_DOC_MAP[t] ?? "", url: BUN_DOC_MAP[t] ? buildDocUrl(BUN_DOC_MAP[t]) : "" });
+	}
+	return out.filter((x) => x.url);
 }
 
 export interface SearchResult {

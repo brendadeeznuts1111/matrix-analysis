@@ -146,6 +146,15 @@ bun run tier1380 -- colors deploy <team> --profile <name>         # Deploy color
 bun run tier1380 -- terminal <team> <profile>                      # Launch colored terminal banner
 bun run tier1380 -- dashboard --team=<name> --profile=<name>      # Open metrics dashboard (localhost:3001)
 
+# Bun docs (mcp-bun-docs)
+bun run docs:search -- "<query>"       # Search Bun docs (markdown)
+bun run docs:entry -- <term> [--url]   # Curated entry (JSON or URL)
+bun run docs:link -- [key]             # Reference URL or list keys
+bun run docs:terms -- --count=N        # List curated terms (optional limit)
+bun run docs:globals                   # Bun globals + API doc URL
+bun run docs:xrefs -- <term>           # Cross-references for term
+bun run bun-docs                       # CLI help
+
 # Shortcuts
 bun run tbind <profile>                # Shortcut for terminal:bind
 bun run tstatus                        # Shortcut for terminal:status
@@ -540,6 +549,7 @@ const { exitCode } = await $`cmd`.nothrow();  // Don't throw
 | `skills/README.md` | Skills registry documentation |
 | `skills/docs/dev-hq-cli.md` | Dev HQ CLI full documentation |
 | `docs/release-notes.md` | Bun runtime release notes |
+| `mcp-bun-docs/lib.ts` | Bun docs search, curated entries, reference links (searchBunDocs, getDocEntry, BUN_REFERENCE_LINKS) |
 
 ---
 

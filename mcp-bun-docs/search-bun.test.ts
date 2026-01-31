@@ -10,9 +10,24 @@ import { describe, expect, test, spyOn, beforeEach, afterEach } from "bun:test";
 import {
 	searchBunDocs,
 	buildDocUrl,
+	getDocEntry,
+	getReferenceUrl,
+	getCrossReferences,
+	BUN_GLOBALS,
+	BUN_GLOBALS_API_URL,
+	BUN_REFERENCE_LINKS,
+	BUN_REFERENCE_KEYS,
 	BUN_DOC_MAP,
 	BUN_DOC_ENTRIES,
 	BUN_DOCS_BASE,
+	BUN_FEEDBACK_URL,
+	BUN_FEEDBACK_UPGRADE_FIRST,
+	BUN_TEST_REFERENCE_URL,
+	BUN_REPO_URL,
+	BUN_TYPES_REPO_URL,
+	BUN_TYPES_README_URL,
+	BUN_TYPES_AUTHORING_URL,
+	BUN_TYPES_KEY_FILES,
 	BUN_DOCS_MIN_VERSION,
 	BINARY_PERF_METRICS,
 	TEST_CONFIG_MATRIX,
@@ -44,6 +59,31 @@ describe("SearchBun / lib", () => {
 
 		test("should set BUN_DOCS_MIN_VERSION to 1.3.6", () => {
 			expect(BUN_DOCS_MIN_VERSION).toBe("1.3.6");
+		});
+		test("should point BUN_FEEDBACK_URL to bun.sh/docs/feedback", () => {
+			expect(BUN_FEEDBACK_URL).toBe("https://bun.sh/docs/feedback");
+		});
+		test("should include upgrade-first guidance in BUN_FEEDBACK_UPGRADE_FIRST", () => {
+			expect(BUN_FEEDBACK_UPGRADE_FIRST).toContain("bun upgrade");
+			expect(BUN_FEEDBACK_UPGRADE_FIRST).toContain("search/check issues");
+		});
+		test("should point BUN_TEST_REFERENCE_URL to bun.com/reference/bun/test", () => {
+			expect(BUN_TEST_REFERENCE_URL).toBe("https://bun.com/reference/bun/test");
+		});
+		test("should point BUN_REPO_URL to oven-sh/bun", () => {
+			expect(BUN_REPO_URL).toBe("https://github.com/oven-sh/bun");
+		});
+		test("should point BUN_TYPES_REPO_URL to bun-types package", () => {
+			expect(BUN_TYPES_REPO_URL).toBe("https://github.com/oven-sh/bun/tree/main/packages/bun-types");
+		});
+		test("should point BUN_TYPES_README_URL and BUN_TYPES_AUTHORING_URL to blob paths", () => {
+			expect(BUN_TYPES_README_URL).toContain("bun-types/README.md");
+			expect(BUN_TYPES_AUTHORING_URL).toContain("bun-types/authoring.md");
+		});
+		test("should list key bun-types .d.ts files", () => {
+			expect(BUN_TYPES_KEY_FILES).toContain("index.d.ts");
+			expect(BUN_TYPES_KEY_FILES).toContain("test.d.ts");
+			expect(BUN_TYPES_KEY_FILES).toContain("serve.d.ts");
 		});
 
 		test.each([
@@ -199,6 +239,70 @@ describe("SearchBun / lib", () => {
 	describe("bun test entry", () => {
 		test("should map bun test to test path", () => {
 			expect(BUN_DOC_MAP["bun test"]).toBe("test");
+		});
+	});
+
+	describe("getDocEntry", () => {
+		test("should return entry for exact term", () => {
+			const e = getDocEntry("spawn");
+			expect(e).not.toBeNull();
+			expect(e!.term).toBe("spawn");
+			expect(e!.path).toBe("api/spawn");
+		});
+		test("should return entry for case-insensitive term", () => {
+			const e = getDocEntry("SPAWN");
+			expect(e).not.toBeNull();
+			expect(e!.term).toBe("spawn");
+		});
+		test("should return null for unknown term", () => {
+			expect(getDocEntry("xyznonexistent")).toBeNull();
+		});
+	});
+
+	describe("getReferenceUrl / BUN_REFERENCE_KEYS", () => {
+		test("should return URL for fileAPI", () => {
+			expect(getReferenceUrl("fileAPI")).toBe("https://bun.sh/docs/api/file-io");
+		});
+		test("should list all reference keys", () => {
+			expect(BUN_REFERENCE_KEYS).toContain("fileAPI");
+			expect(BUN_REFERENCE_KEYS).toContain("httpServer");
+			expect(BUN_REFERENCE_KEYS).toContain("bunTest");
+			expect(BUN_REFERENCE_KEYS).toContain("bunTypes");
+			expect(BUN_REFERENCE_LINKS.fileAPI).toBe(getReferenceUrl("fileAPI"));
+			expect(getReferenceUrl("bunTest")).toBe(BUN_TEST_REFERENCE_URL);
+			expect(getReferenceUrl("bunTypes")).toBe(BUN_TYPES_REPO_URL);
+			expect(getReferenceUrl("bunTypesReadme")).toBe(BUN_TYPES_README_URL);
+			expect(BUN_REFERENCE_KEYS).toContain("bunApis");
+			expect(BUN_REFERENCE_KEYS).toContain("webApis");
+			expect(BUN_REFERENCE_KEYS).toContain("nodeApi");
+		});
+	});
+
+	describe("BUN_GLOBALS / getCrossReferences", () => {
+		test("should include Bun, $, fetch, Buffer in BUN_GLOBALS", () => {
+			const names = BUN_GLOBALS.map((g) => g.name);
+			expect(names).toContain("Bun");
+			expect(names).toContain("$");
+			expect(names).toContain("fetch");
+			expect(names).toContain("Buffer");
+		});
+		test("should point BUN_GLOBALS_API_URL to api/globals", () => {
+			expect(BUN_GLOBALS_API_URL).toBe("https://bun.sh/docs/api/globals");
+		});
+		test("should return cross-refs for spawn (subprocess, shell)", () => {
+			const xrefs = getCrossReferences("spawn");
+			expect(xrefs.length).toBeGreaterThan(0);
+			expect(xrefs.map((x) => x.term)).toContain("subprocess");
+			expect(xrefs.map((x) => x.term)).toContain("shell");
+		});
+		test("should return cross-refs for Bun.serve (serve, fetch)", () => {
+			const xrefs = getCrossReferences("Bun.serve");
+			expect(xrefs.map((x) => x.term)).toContain("serve");
+			expect(xrefs.map((x) => x.term)).toContain("fetch");
+		});
+		test("should return empty array for term with no relatedTerms", () => {
+			const xrefs = getCrossReferences("env");
+			expect(Array.isArray(xrefs)).toBe(true);
 		});
 	});
 
