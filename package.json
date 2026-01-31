@@ -119,6 +119,7 @@
     "test:claude": "bun test .claude",
     "test:src": "bun test src",
     "test:commands": "bun test ./src/__tests__/commands/",
+    "test:safe": "bun scripts/test-safe.ts",
     "test:grep": "bun test --test-name-pattern",
     "test:tz": "TZ=${TZ:-UTC} bun test",
     "test:coverage": "bun test --coverage",
