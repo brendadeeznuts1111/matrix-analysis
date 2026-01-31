@@ -21,6 +21,7 @@ interface ProcessInfo {
   command: string;
   args: string[];
   isTest: boolean;
+  startTime?: number; // Track when we first saw the process
 }
 
 class TestProcessManager {
@@ -36,6 +37,9 @@ class TestProcessManager {
         return false;
       }
 
+      // Record the start time before sending signal
+      const signalTime = Date.now();
+
       console.log(`🔪 Sending ${signal} to process ${pid} (${procInfo.command})`);
 
       // Send the signal
@@ -47,7 +51,18 @@ class TestProcessManager {
 
         // Check if process still exists
         const stillExists = this.getProcessInfo(pid);
+
+        // Additional check: verify it's the same process by checking start time
         if (stillExists) {
+          // On Unix systems, we can check the process start time via ps
+          const isSameProcess = await this.verifySameProcess(pid, procInfo.startTime);
+
+          if (!isSameProcess) {
+            console.log(`⚠️  PID ${pid} was reused by another process`);
+            console.log(`   Original process likely terminated successfully`);
+            return true;
+          }
+
           console.log(`⚠️  Process ${pid} still running after SIGTERM`);
           console.log(`💡 Use SIGKILL for immediate termination: kill -SIGKILL ${pid}`);
           return false;
@@ -67,13 +82,55 @@ class TestProcessManager {
   }
 
   /**
+   * Verify that a process with the same PID is actually the same process
+   * by checking the start time
+   */
+  private static async verifySameProcess(pid: number, originalStartTime?: number): Promise<boolean> {
+    if (!originalStartTime) return true; // Can't verify without original start time
+
+    try {
+      // Get process start time (platform-specific)
+      let currentStartTime: number | undefined;
+
+      if (process.platform === 'darwin') {
+        // macOS: use ps -o lstart
+        const output = execSync(`ps -p ${pid} -o lstart=`, { encoding: 'utf8' }).trim();
+        if (output) {
+          currentStartTime = new Date(output).getTime();
+        }
+      } else if (process.platform === 'linux') {
+        // Linux: read from /proc/[pid]/stat
+        const stat = execSync(`cat /proc/${pid}/stat 2>/dev/null`, { encoding: 'utf8' }).trim();
+        if (stat) {
+          // The 22nd field in stat is the start time in clock ticks
+          const parts = stat.split(' ');
+          if (parts.length >= 22) {
+            const startTicks = parseInt(parts[21]);
+            // Convert to milliseconds (sysconf(_SC_CLK_TCK) is usually 100)
+            currentStartTime = startTicks * 10;
+          }
+        }
+      }
+
+      // If we can't determine the current start time, assume it's the same process
+      if (!currentStartTime) return true;
+
+      // Allow for small time differences (within 100ms)
+      return Math.abs(currentStartTime - originalStartTime) < 100;
+    } catch {
+      // If we can't verify, assume it's not the same process
+      return false;
+    }
+  }
+
+  /**
    * Get process info safely
    */
   private static getProcessInfo(pid: number): ProcessInfo | null {
     try {
       // Use platform-specific method for better reliability
       if (process.platform === 'darwin') {
-        const output = execSync(`ps -p ${pid} -o pid,ppid,command`, { encoding: 'utf8' });
+        const output = execSync(`ps -p ${pid} -o pid,ppid,lstart,command`, { encoding: 'utf8' });
         const lines = output.split('\n').slice(1);
 
         for (const line of lines) {
@@ -82,29 +139,47 @@ class TestProcessManager {
           const parts = line.trim().split(/\s+/);
           const procPid = parseInt(parts[0]);
           const procPpid = parseInt(parts[1]);
-          const command = parts.slice(2).join(' ');
+
+          // The start time can be multiple words, so find where command starts
+          const dateParts = [];
+          let commandStart = 2;
+          for (let i = 2; i < parts.length; i++) {
+            // Check if this looks like a time (HH:MM:SS)
+            if (/^\d{2}:\d{2}:\d{2}$/.test(parts[i])) {
+              dateParts.push(...parts.slice(2, i + 1));
+              commandStart = i + 1;
+              break;
+            }
+          }
+
+          const startTimeStr = dateParts.join(' ');
+          const command = parts.slice(commandStart).join(' ');
+          const startTime = startTimeStr ? new Date(startTimeStr).getTime() : undefined;
 
           if (procPid === pid) {
             return {
               pid: procPid,
               ppid: procPpid,
               command,
-              args: parts.slice(2),
-              isTest: this.isTestProcess(command)
+              args: parts.slice(commandStart),
+              isTest: this.isTestProcess(command),
+              startTime
             };
           }
         }
       } else if (process.platform === 'linux') {
-        const output = execSync(`ps -p ${pid} -o pid,ppid,cmd --no-headers`, { encoding: 'utf8' });
+        const output = execSync(`ps -p ${pid} -o pid,ppid,etimes,cmd --no-headers`, { encoding: 'utf8' });
         const parts = output.trim().split(/\s+/);
 
-        if (parts.length >= 3 && parseInt(parts[0]) === pid) {
+        if (parts.length >= 4 && parseInt(parts[0]) === pid) {
+          const startTime = Date.now() - (parseInt(parts[2]) * 1000); // etimes is seconds since start
           return {
             pid: parseInt(parts[0]),
             ppid: parseInt(parts[1]),
-            command: parts.slice(2).join(' '),
-            args: parts.slice(2),
-            isTest: this.isTestProcess(parts.slice(2).join(' '))
+            command: parts.slice(3).join(' '),
+            args: parts.slice(3),
+            isTest: this.isTestProcess(parts.slice(3).join(' ')),
+            startTime
           };
         }
       }

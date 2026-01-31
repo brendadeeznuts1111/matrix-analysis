@@ -48,6 +48,7 @@ class TestOrganizer {
   private configPath: string;
   private runningDependencies: Set<string> = new Set();
   private executedGroups: Set<string> = new Set();
+  private dependencyLocks: Map<string, Promise<boolean>> = new Map();
 
   constructor(configPath: string = 'test-organizer.config.json') {
     this.configPath = configPath;
@@ -223,6 +224,23 @@ class TestOrganizer {
   }
 
   /**
+   * Execute a dependency with proper locking
+   */
+  private async executeDependency(dep: string, options: TestOptions): Promise<boolean> {
+    // Add to running dependencies for circular dependency detection
+    this.runningDependencies.add(dep);
+
+    try {
+      console.log(`   Running dependency: ${dep}`);
+      const result = await this.runGroup(dep, options);
+      return result;
+    } finally {
+      // Always remove from running dependencies, even if failed
+      this.runningDependencies.delete(dep);
+    }
+  }
+
+  /**
    * Run tests for a specific group
    */
   async runGroup(groupName: string, options: TestOptions = {}): Promise<boolean> {
@@ -246,7 +264,7 @@ class TestOrganizer {
       return true;
     }
 
-    // Check dependencies
+    // Check dependencies with mutex locks
     if (group.dependencies) {
       console.log(`🔍 Checking dependencies for ${group.name}...`);
 
@@ -256,16 +274,33 @@ class TestOrganizer {
           return false;
         }
 
-        // Prevent concurrent execution of same dependency
+        // Check if dependency is already being executed
+        if (this.dependencyLocks.has(dep)) {
+          console.log(`⏳ Waiting for dependency '${dep}' to complete...`);
+          const depResult = await this.dependencyLocks.get(dep)!;
+          if (!depResult) {
+            console.error(`❌ Dependency '${dep}' failed`);
+            return false;
+          }
+          continue;
+        }
+
+        // Check for circular dependencies
         if (this.runningDependencies.has(dep)) {
           console.error(`❌ Circular dependency detected: ${groupName} → ${dep}`);
+          console.error(`   Current path: ${Array.from(this.runningDependencies).join(' → ')} → ${dep}`);
           return false;
         }
 
-        this.runningDependencies.add(dep);
-        console.log(`   Running dependency: ${dep}`);
-        const depSuccess = await this.runGroup(dep, options);
-        this.runningDependencies.delete(dep);
+        // Create and store the dependency execution promise
+        const depPromise = this.executeDependency(dep, options);
+        this.dependencyLocks.set(dep, depPromise);
+
+        // Wait for dependency to complete
+        const depSuccess = await depPromise;
+
+        // Clean up the lock
+        this.dependencyLocks.delete(dep);
 
         if (!depSuccess) {
           console.error(`❌ Dependency '${dep}' failed`);
@@ -334,8 +369,38 @@ class TestOrganizer {
       return true;
     }
 
-    // Add test patterns
-    args.push(...sanitizedPatterns);
+    // Add test patterns with proper path format
+    // Bun test needs explicit paths for globs
+    const expandedPatterns: string[] = [];
+    for (const pattern of sanitizedPatterns) {
+      if (pattern.includes('**')) {
+        // Expand globs manually for bun test
+        try {
+          const globPattern = pattern.startsWith('./') ? pattern.slice(2) : pattern;
+          const glob = new Bun.Glob(globPattern);
+
+          // Use for await...of with proper error handling
+          for await (const file of glob.scan('.')) {
+            // Validate the file path to prevent injection
+            if (file && typeof file === 'string' && !file.includes('\0')) {
+              expandedPatterns.push(`./${file}`);
+            }
+          }
+        } catch (error: any) {
+          console.error(`⚠️  Failed to expand pattern '${pattern}': ${error.message}`);
+          // Continue with other patterns instead of failing completely
+        }
+      } else {
+        expandedPatterns.push(pattern.startsWith('./') ? pattern : `./${pattern}`);
+      }
+    }
+
+    if (expandedPatterns.length === 0) {
+      console.log(`⚠️  No test files found for group '${groupName}'`);
+      return true;
+    }
+
+    args.push(...expandedPatterns);
 
     // Prepare environment with validation
     const env: Record<string, string> = {
