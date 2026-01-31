@@ -87,11 +87,25 @@ class CIDetector {
 
   /**
    * Refresh environment and clear cache
+   *
+   * CRITICAL FOR TEST RELIABILITY: This method prevents flaky test behavior by resetting
+   * cached CI detection results. Without calling this method after environment changes,
+   * subsequent detect() or detectSync() calls would return stale cached data.
+   *
+   * Important notes:
+   * - Does NOT re-detect the environment - only resets internal state
+   * - MUST call detect() or detectSync() afterward to get updated results
+   * - Essential in test suites where process.env is mutated between tests
+   * - cacheMutex = Promise.resolve() ensures pending async detection completes
+   *   before new detection begins, preventing race conditions
+   *
+   * @param env Optional custom environment object (defaults to process.env)
    */
   refreshEnvironment(env?: Record<string, string | undefined>): void {
     this.env = env || process.env;
     this.cachedResult = null;
     this.cacheTimestamp = 0;
+    this.cacheMutex = Promise.resolve();
   }
 
   /**

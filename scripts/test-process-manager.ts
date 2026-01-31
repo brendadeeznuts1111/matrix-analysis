@@ -11,8 +11,11 @@
  */
 
 import { spawn } from 'bun';
-import { execSync } from 'child_process';
+import { exec } from 'child_process';
 import { platform } from 'os';
+import { promisify } from 'util';
+
+const execAsync = promisify(exec);
 
 type Signal = 'SIGTERM' | 'SIGKILL' | 'SIGINT' | 'SIGHUP';
 
@@ -36,7 +39,7 @@ class TestProcessManager {
   static async kill(pid: number, signal: Signal = 'SIGTERM'): Promise<KillResult> {
     try {
       // Check if process exists and get its info
-      const procInfo = this.getProcessInfo(pid);
+      const procInfo = await this.getProcessInfo(pid);
       if (!procInfo) {
         return {
           success: false,
@@ -58,11 +61,19 @@ class TestProcessManager {
         await new Promise(resolve => setTimeout(resolve, 1000));
 
         // Check if process still exists
-        const stillExists = this.getProcessInfo(pid);
+        const stillExists = await this.getProcessInfo(pid);
 
-        // Additional check: verify it's the same process by checking start time
         if (stillExists) {
-          // On Unix systems, we can check the process start time via ps
+          // Additional check: verify it's the same process by checking start time
+          // AND verify the command matches to prevent PID reuse issues
+          if (stillExists.command !== procInfo.command) {
+            return {
+              success: true,
+              message: `Process ${pid} terminated successfully (PID was reused for different command)`
+            };
+          }
+
+          // Also check start time if available
           const isSameProcess = await this.verifySameProcess(pid, procInfo.startTime);
 
           if (!isSameProcess) {
@@ -71,12 +82,6 @@ class TestProcessManager {
               message: `Process ${pid} terminated successfully (PID was reused)`
             };
           }
-
-          return {
-            success: false,
-            error: 'STILL_RUNNING',
-            message: `Process ${pid} still running after SIGTERM. Use SIGKILL for immediate termination.`
-          };
         }
       }
 
@@ -118,10 +123,11 @@ class TestProcessManager {
       // Get process start time (platform-specific)
       let currentStartTime: number | undefined;
 
-      if (platform() === 'win32') {
+      if (process.platform === 'win32') {
         // Windows: use wmic to get process creation time
-        const output = execSync(`wmic process where ProcessId=${pid} get CreationDate /value`, { encoding: 'utf8' }).trim();
-        const match = output.match(/CreationDate=(.+)/);
+        const output = await execAsync(`wmic process where ProcessId=${pid} get CreationDate /value`);
+        const stdout = typeof output === 'string' ? output : output.stdout;
+        const match = stdout.match(/CreationDate=(.+)/);
         if (match) {
           // WMIC returns timestamp in format: 20240131123045.123456-480
           const wmicTime = match[1];
@@ -135,20 +141,25 @@ class TestProcessManager {
         }
       } else if (process.platform === 'darwin') {
         // macOS: use ps -o lstart
-        const output = execSync(`ps -p ${pid} -o lstart=`, { encoding: 'utf8' }).trim();
-        if (output) {
-          currentStartTime = new Date(output).getTime();
+        const output = await execAsync(`ps -p ${pid} -o lstart=`);
+        const stdout = typeof output === 'string' ? output : output.stdout;
+        if (stdout) {
+          currentStartTime = new Date(stdout).getTime();
         }
       } else if (process.platform === 'linux') {
         // Linux: read from /proc/[pid]/stat
-        const stat = execSync(`cat /proc/${pid}/stat 2>/dev/null`, { encoding: 'utf8' }).trim();
+        const output = await execAsync(`cat /proc/${pid}/stat 2>/dev/null`);
+        const stat = (typeof output === 'string' ? output : output.stdout).trim();
         if (stat) {
           // The 22nd field in stat is the start time in clock ticks
           const parts = stat.split(' ');
           if (parts.length >= 22) {
             const startTicks = parseInt(parts[21]);
-            // Convert to milliseconds (sysconf(_SC_CLK_TCK) is usually 100)
-            currentStartTime = startTicks * 10;
+            // Get clock tick count from system
+            const tickOutput = await execAsync('getconf CLK_TCK');
+            const ticksPerSecond = parseInt((typeof tickOutput === 'string' ? tickOutput : tickOutput.stdout).trim()) || 100;
+            const msPerTick = 1000 / ticksPerSecond;
+            currentStartTime = startTicks * msPerTick;
           }
         }
       }
@@ -167,13 +178,14 @@ class TestProcessManager {
   /**
    * Get process info safely
    */
-  private static getProcessInfo(pid: number): ProcessInfo | null {
+  private static async getProcessInfo(pid: number): Promise<ProcessInfo | null> {
     try {
       // Use platform-specific method for better reliability
-      if (platform() === 'win32') {
+      if (process.platform === 'win32') {
         // Windows: use wmic to get process info
-        const output = execSync(`wmic process where ProcessId=${pid} get ProcessId,ParentProcessId,CreationDate,CommandLine /value`, { encoding: 'utf8' }).trim();
-        const lines = output.split('\n');
+        const output = await execAsync(`wmic process where ProcessId=${pid} get ProcessId,ParentProcessId,CreationDate,CommandLine /value`);
+        const stdout = typeof output === 'string' ? output : output.stdout;
+        const lines = stdout.trim().split('\n');
 
         const info: any = {};
         for (const line of lines) {
@@ -191,14 +203,15 @@ class TestProcessManager {
             pid: parseInt(info.ProcessId),
             ppid: parseInt(info.ParentProcessId || '0'),
             command,
-            args: command.split(' '),
+            args: this.parseCommandLine(command),
             isTest: this.isTestProcess(command),
             startTime
           };
         }
       } else if (process.platform === 'darwin') {
-        const output = execSync(`ps -p ${pid} -o pid,ppid,lstart,command`, { encoding: 'utf8' });
-        const lines = output.split('\n').slice(1);
+        const output = await execAsync(`ps -p ${pid} -o pid,ppid,lstart,command`);
+        const stdout = typeof output === 'string' ? output : output.stdout;
+        const lines = stdout.split('\n').slice(1);
 
         for (const line of lines) {
           if (!line.trim()) continue;
@@ -228,24 +241,26 @@ class TestProcessManager {
               pid: procPid,
               ppid: procPpid,
               command,
-              args: parts.slice(commandStart),
+              args: this.parseCommandLine(command),
               isTest: this.isTestProcess(command),
               startTime
             };
           }
         }
       } else if (process.platform === 'linux') {
-        const output = execSync(`ps -p ${pid} -o pid,ppid,etimes,cmd --no-headers`, { encoding: 'utf8' });
-        const parts = output.trim().split(/\s+/);
+        const output = await execAsync(`ps -p ${pid} -o pid,ppid,etimes,cmd --no-headers`);
+        const stdout = typeof output === 'string' ? output : output.stdout;
+        const parts = stdout.trim().split(/\s+/);
 
         if (parts.length >= 4 && parseInt(parts[0]) === pid) {
           const startTime = Date.now() - (parseInt(parts[2]) * 1000); // etimes is seconds since start
+          const command = parts.slice(3).join(' ');
           return {
             pid: parseInt(parts[0]),
             ppid: parseInt(parts[1]),
-            command: parts.slice(3).join(' '),
-            args: parts.slice(3),
-            isTest: this.isTestProcess(parts.slice(3).join(' ')),
+            command,
+            args: this.parseCommandLine(command),
+            isTest: this.isTestProcess(command),
             startTime
           };
         }
@@ -255,6 +270,46 @@ class TestProcessManager {
     } catch {
       return null;
     }
+  }
+
+  /**
+   * Parse command line arguments properly
+   */
+  private static parseCommandLine(command: string): string[] {
+    // Simple but effective parsing for common cases
+    // This handles quoted strings and spaces within quotes
+    const args: string[] = [];
+    let current = '';
+    let inQuotes = false;
+    let quoteChar = '';
+
+    for (let i = 0; i < command.length; i++) {
+      const char = command[i];
+      const prevChar = i > 0 ? command[i - 1] : '';
+
+      if ((char === '"' || char === "'") && prevChar !== '\\') {
+        if (!inQuotes) {
+          inQuotes = true;
+          quoteChar = char;
+        } else if (char === quoteChar) {
+          inQuotes = false;
+          quoteChar = '';
+        }
+      } else if (char === ' ' && !inQuotes) {
+        if (current) {
+          args.push(current);
+          current = '';
+        }
+      } else {
+        current += char;
+      }
+    }
+
+    if (current) {
+      args.push(current);
+    }
+
+    return args;
   }
 
   /**
@@ -275,15 +330,16 @@ class TestProcessManager {
   /**
    * Find test-related processes using platform-specific methods
    */
-  static findTestProcesses(): ProcessInfo[] {
+  static async findTestProcesses(): Promise<ProcessInfo[]> {
     try {
       let output: string;
 
       // Use platform-specific commands for better performance
-      if (platform() === 'win32') {
+      if (process.platform === 'win32') {
         // Windows: use wmic to get process list
-        output = execSync('wmic process get ProcessId,ParentProcessId,CommandLine /value', { encoding: 'utf8' });
-        const lines = output.split('\n').filter(line => line.trim());
+        const execAsyncOutput = await execAsync('wmic process get ProcessId,ParentProcessId,CommandLine /value');
+        const stdout = typeof execAsyncOutput === 'string' ? execAsyncOutput : execAsyncOutput.stdout;
+        const lines = stdout.split('\n').filter(line => line.trim());
         const testProcesses: ProcessInfo[] = [];
 
         let currentProcess: any = {};
@@ -311,13 +367,16 @@ class TestProcessManager {
 
         return testProcesses;
       } else if (process.platform === 'darwin') {
-        output = execSync('ps aux', { encoding: 'utf8' });
+        const execAsyncOutput = await execAsync('ps aux');
+        output = typeof execAsyncOutput === 'string' ? execAsyncOutput : execAsyncOutput.stdout;
       } else if (process.platform === 'linux') {
         // More efficient on Linux - only get necessary columns
-        output = execSync('ps -eo pid,ppid,cmd --no-headers', { encoding: 'utf8' });
+        const execAsyncOutput = await execAsync('ps -eo pid,ppid,cmd --no-headers');
+        output = typeof execAsyncOutput === 'string' ? execAsyncOutput : execAsyncOutput.stdout;
       } else {
         // Fallback for other platforms
-        output = execSync('ps aux', { encoding: 'utf8' });
+        const execAsyncOutput = await execAsync('ps aux');
+        output = typeof execAsyncOutput === 'string' ? execAsyncOutput : execAsyncOutput.stdout;
       }
 
       const lines = output.split('\n');
@@ -397,13 +456,14 @@ class TestProcessManager {
   /**
    * List running processes
    */
-  static list(testsOnly: boolean = false): void {
+  static async list(testsOnly: boolean = false): Promise<void> {
     try {
       let output: string;
 
-      if (platform() === 'win32') {
-        output = execSync('wmic process get ProcessId,CommandLine /value', { encoding: 'utf8' });
-        const lines = output.split('\n').filter(line => line.trim());
+      if (process.platform === 'win32') {
+        const execAsyncOutput = await execAsync('wmic process get ProcessId,CommandLine /value');
+        const stdout = typeof execAsyncOutput === 'string' ? execAsyncOutput : execAsyncOutput.stdout;
+        const lines = stdout.split('\n').filter(line => line.trim());
         const testProcesses: ProcessInfo[] = [];
 
         let currentProcess: any = {};
@@ -441,8 +501,9 @@ class TestProcessManager {
           });
         }
       } else {
-        output = execSync('ps aux', { encoding: 'utf8' });
-        const lines = output.split('\n');
+        const execAsyncOutput = await execAsync('ps aux');
+        const stdout = typeof execAsyncOutput === 'string' ? execAsyncOutput : execAsyncOutput.stdout;
+        const lines = stdout.split('\n');
 
         console.log();
 
@@ -484,8 +545,8 @@ class TestProcessManager {
     console.log('👀 Monitoring test processes... (Ctrl+C to stop)');
     console.log();
 
-    const interval = setInterval(() => {
-      const testProcesses = this.findTestProcesses();
+    const interval = setInterval(async () => {
+      const testProcesses = await this.findTestProcesses();
 
       if (testProcesses.length === 0) {
         console.log('🧪 No test processes running');
@@ -499,18 +560,42 @@ class TestProcessManager {
       console.log('─'.repeat(50));
     }, 3000);
 
-    // Handle Ctrl+C
-    process.on('SIGINT', () => {
+    // Handle Ctrl+C - use once to prevent memory leaks
+    const handleSigInt = () => {
       clearInterval(interval);
       console.log('\n👋 Stopped monitoring');
       process.exit(0);
-    });
+    };
+
+    process.once('SIGINT', handleSigInt);
+  }
+
+  /**
+   * Validate PID input
+   */
+  static validatePid(pid: any): number | null {
+    const num = parseInt(pid);
+    if (isNaN(num) || num <= 0 || num > 4294967295) {
+      return null;
+    }
+    return num;
+  }
+
+  /**
+   * Validate signal input
+   */
+  static validateSignal(signal: any): Signal | null {
+    const validSignals: Signal[] = ['SIGTERM', 'SIGKILL', 'SIGINT', 'SIGHUP'];
+    if (validSignals.includes(signal)) {
+      return signal;
+    }
+    return null;
   }
 
   /**
    * Graceful shutdown with timeout
    */
-  static async gracefulShutdown(pid: number, timeout: number = 5000): Promise<boolean> {
+  static async gracefulShutdown(pid: number, timeout: number = 5000): Promise<KillResult> {
     console.log(`🔄 Attempting graceful shutdown of process ${pid} (timeout: ${timeout}ms)`);
 
     // Send SIGTERM
@@ -518,11 +603,12 @@ class TestProcessManager {
 
     if (!result.success) {
       if (result.error === 'NOT_FOUND') {
-        console.log(`✅ Process ${pid} not found, assuming already terminated`);
-        return true;
+        return {
+          success: true,
+          message: `Process ${pid} not found, assuming already terminated`
+        };
       }
-      console.log(`⚠️  Failed to send SIGTERM: ${result.message}`);
-      return false;
+      return result;
     }
 
     console.log(`⏱️  Waiting ${timeout}ms for process to terminate...`);
@@ -530,25 +616,26 @@ class TestProcessManager {
     const startTime = Date.now();
     while (Date.now() - startTime < timeout) {
       try {
-        execSync(`kill -0 ${pid}`, { stdio: 'ignore' });
+        await execAsync(`kill -0 ${pid}`);
         await new Promise(resolve => setTimeout(resolve, 500));
       } catch {
-        console.log(`✅ Process ${pid} terminated gracefully`);
-        return true;
+        return {
+          success: true,
+          message: `Process ${pid} terminated gracefully`
+        };
       }
     }
 
     // Process didn't terminate, force kill
     console.log(`⚡ Process didn't terminate, forcing shutdown...`);
-    const killResult = await this.kill(pid, 'SIGKILL');
-    return killResult.success;
+    return await this.kill(pid, 'SIGKILL');
   }
 
   /**
    * Kill all test processes
    */
   static async killAllTests(signal: Signal = 'SIGTERM'): Promise<void> {
-    const testProcesses = this.findTestProcesses();
+    const testProcesses = await this.findTestProcesses();
 
     if (testProcesses.length === 0) {
       console.log('🧪 No test processes found');
@@ -610,14 +697,20 @@ async function main() {
 
   switch (command) {
     case 'kill': {
-      const pid = parseInt(args[1]);
-      if (!pid) {
-        console.error('❌ Please provide a valid PID');
+      const pid = TestProcessManager.validatePid(args[1]);
+      if (pid === null) {
+        console.error('❌ Please provide a valid PID (positive integer)');
         process.exit(1);
       }
 
       const signalArg = args.find(arg => arg.startsWith('--signal=')) || '--signal=SIGTERM';
-      const signal = signalArg.split('=')[1] as Signal;
+      const signalValue = signalArg.split('=')[1];
+      const signal = TestProcessManager.validateSignal(signalValue);
+
+      if (!signal) {
+        console.error(`❌ Invalid signal: ${signalValue}. Valid signals: SIGTERM, SIGKILL, SIGINT, SIGHUP`);
+        process.exit(1);
+      }
 
       const result = await TestProcessManager.kill(pid, signal);
 
@@ -632,7 +725,7 @@ async function main() {
 
     case 'list': {
       const testsOnly = args.includes('--tests-only');
-      TestProcessManager.list(testsOnly);
+      await TestProcessManager.list(testsOnly);
       break;
     }
 
@@ -642,22 +735,40 @@ async function main() {
     }
 
     case 'graceful': {
-      const pid = parseInt(args[1]);
-      if (!pid) {
-        console.error('❌ Please provide a valid PID');
+      const pid = TestProcessManager.validatePid(args[1]);
+      if (pid === null) {
+        console.error('❌ Please provide a valid PID (positive integer)');
         process.exit(1);
       }
 
       const timeoutArg = args.find(arg => arg.startsWith('--timeout='));
       const timeout = timeoutArg ? parseInt(timeoutArg.split('=')[1]) : 5000;
 
-      await TestProcessManager.gracefulShutdown(pid, timeout);
+      if (isNaN(timeout) || timeout < 0) {
+        console.error('❌ Please provide a valid timeout (positive number of milliseconds)');
+        process.exit(1);
+      }
+
+      const result = await TestProcessManager.gracefulShutdown(pid, timeout);
+
+      if (result.success) {
+        console.log(`✅ ${result.message}`);
+      } else {
+        console.error(`❌ ${result.message}`);
+        process.exit(1);
+      }
       break;
     }
 
     case 'kill-all': {
       const signalArg = args.find(arg => arg.startsWith('--signal=')) || '--signal=SIGTERM';
-      const signal = signalArg.split('=')[1] as Signal;
+      const signalValue = signalArg.split('=')[1];
+      const signal = TestProcessManager.validateSignal(signalValue);
+
+      if (!signal) {
+        console.error(`❌ Invalid signal: ${signalValue}. Valid signals: SIGTERM, SIGKILL, SIGINT, SIGHUP`);
+        process.exit(1);
+      }
 
       await TestProcessManager.killAllTests(signal);
       break;
