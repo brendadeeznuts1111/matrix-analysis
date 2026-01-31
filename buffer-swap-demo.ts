@@ -35,7 +35,7 @@ try {
   console.log('✅ swap64() is available in this Bun version');
 } catch (error: any) {
   console.log('❌ swap64() is not available:', error.message);
-  console.log('💡 Buffer.swap64 requires Bun v1.3.8 or later');
+  console.log('💡 Buffer.swap64 requires Bun v1.3.7 or later');
 }
 
 // Show Bun version
