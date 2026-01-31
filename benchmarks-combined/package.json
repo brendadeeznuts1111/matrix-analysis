@@ -1,0 +1,30 @@
+{
+  "name": "nolarose-benchmarks",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Unified benchmark suite for Nolarose MCP Config workspace",
+  "dependencies": {
+    "mitata": "^1.0.34",
+    "benchmark": "^2.1.4"
+  },
+  "scripts": {
+    "start": "bun run-all.ts",
+    "utils": "cd utils && bun run all",
+    "utils:json": "cd utils && BENCHMARK_RUNNER=1 bun run all",
+    "performance": "bun performance/*.ts",
+    "core": "bun core/*.ts",
+    "skills": "bun skills/*.ts",
+    "all": "bun run-all.ts",
+    "all:json": "BENCHMARK_RUNNER=1 bun run-all.ts",
+    "crc32": "cd utils && bun crc32-bench-mitata.ts",
+    "spawn": "cd utils && bun spawn-bench-mitata.ts",
+    "archive": "cd utils && bun archive-bench-mitata.ts",
+    "buffer": "bun performance/buffer-simd-benchmark.ts",
+    "hash": "bun performance/bun-hash-benchmark.ts",
+    "config": "bun core/test-config-bench.ts",
+    "report": "bun skills/perf-optimizations.bench.ts"
+  },
+  "keywords": ["benchmark", "performance", "bun", "typescript", "mitata"],
+  "author": "Nolarose",
+  "license": "MIT"
+}

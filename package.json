@@ -172,7 +172,14 @@
     "omega:dashboard": "bun examples/omega-master-demo.ts --dashboard",
     "benchmark:spawn": "bun benchmarks/spawn-benchmark.ts",
     "benchmark:hash": "bun benchmarks/bun-hash-benchmark.ts",
-    "benchmark:all": "bun benchmarks/spawn-benchmark.ts && bun benchmarks/bun-hash-benchmark.ts"
+    "benchmark:all": "bun benchmarks/spawn-benchmark.ts && bun benchmarks/bun-hash-benchmark.ts",
+    "bench": "cd benchmarks-combined && bun run all",
+    "bench:json": "cd benchmarks-combined && BENCHMARK_RUNNER=1 bun run all",
+    "bench:utils": "cd benchmarks-combined && bun run utils",
+    "bench:performance": "cd benchmarks-combined && bun run performance",
+    "bench:core": "cd benchmarks-combined && bun run core",
+    "bench:skills": "cd benchmarks-combined && bun run skills",
+    "bench:report": "cd benchmarks-combined && bun run start"
   },
   "dependencies": {
     "@modelcontextprotocol/server-filesystem": "latest",
