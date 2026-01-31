@@ -25,34 +25,36 @@ interface ProcessInfo {
 
 class TestProcessManager {
   /**
-   * Kill a process with specified signal
+   * Kill a process with specified signal using process tree tracking
    */
   static async kill(pid: number, signal: Signal = 'SIGTERM'): Promise<boolean> {
     try {
-      // Check if process exists
-      execSync(`kill -0 ${pid}`, { stdio: 'ignore' });
+      // Check if process exists and get its info
+      const procInfo = this.getProcessInfo(pid);
+      if (!procInfo) {
+        console.log(`❌ Process ${pid} not found`);
+        return false;
+      }
 
-      console.log(`🔪 Sending ${signal} to process ${pid}`);
+      console.log(`🔪 Sending ${signal} to process ${pid} (${procInfo.command})`);
 
       // Send the signal
       process.kill(pid, signal);
 
-      // Wait a moment and check if process is still running
+      // Wait and verify termination
       if (signal === 'SIGTERM') {
         await new Promise(resolve => setTimeout(resolve, 1000));
 
-        try {
-          execSync(`kill -0 ${pid}`, { stdio: 'ignore' });
+        // Check if process still exists
+        const stillExists = this.getProcessInfo(pid);
+        if (stillExists) {
           console.log(`⚠️  Process ${pid} still running after SIGTERM`);
           console.log(`💡 Use SIGKILL for immediate termination: kill -SIGKILL ${pid}`);
           return false;
-        } catch {
-          console.log(`✅ Process ${pid} terminated gracefully`);
-          return true;
         }
       }
 
-      console.log(`✅ Signal ${signal} sent to process ${pid}`);
+      console.log(`✅ Process ${pid} terminated successfully`);
       return true;
     } catch (error: any) {
       if (error.code === 'ESRCH') {
@@ -65,22 +67,98 @@ class TestProcessManager {
   }
 
   /**
-   * Find test-related processes
+   * Get process info safely
+   */
+  private static getProcessInfo(pid: number): ProcessInfo | null {
+    try {
+      // Use platform-specific method for better reliability
+      if (process.platform === 'darwin') {
+        const output = execSync(`ps -p ${pid} -o pid,ppid,command`, { encoding: 'utf8' });
+        const lines = output.split('\n').slice(1);
+
+        for (const line of lines) {
+          if (!line.trim()) continue;
+
+          const parts = line.trim().split(/\s+/);
+          const procPid = parseInt(parts[0]);
+          const procPpid = parseInt(parts[1]);
+          const command = parts.slice(2).join(' ');
+
+          if (procPid === pid) {
+            return {
+              pid: procPid,
+              ppid: procPpid,
+              command,
+              args: parts.slice(2),
+              isTest: this.isTestProcess(command)
+            };
+          }
+        }
+      } else if (process.platform === 'linux') {
+        const output = execSync(`ps -p ${pid} -o pid,ppid,cmd --no-headers`, { encoding: 'utf8' });
+        const parts = output.trim().split(/\s+/);
+
+        if (parts.length >= 3 && parseInt(parts[0]) === pid) {
+          return {
+            pid: parseInt(parts[0]),
+            ppid: parseInt(parts[1]),
+            command: parts.slice(2).join(' '),
+            args: parts.slice(2),
+            isTest: this.isTestProcess(parts.slice(2).join(' '))
+          };
+        }
+      }
+
+      return null;
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Find test-related processes using platform-specific methods
    */
   static findTestProcesses(): ProcessInfo[] {
     try {
-      const output = execSync('ps aux', { encoding: 'utf8' });
-      const lines = output.split('\n').slice(1); // Skip header
+      let output: string;
 
+      // Use platform-specific commands for better performance
+      if (process.platform === 'darwin') {
+        output = execSync('ps aux', { encoding: 'utf8' });
+      } else if (process.platform === 'linux') {
+        // More efficient on Linux - only get necessary columns
+        output = execSync('ps -eo pid,ppid,cmd --no-headers', { encoding: 'utf8' });
+      } else {
+        // Fallback for other platforms
+        output = execSync('ps aux', { encoding: 'utf8' });
+      }
+
+      const lines = output.split('\n');
       const testProcesses: ProcessInfo[] = [];
 
       for (const line of lines) {
         if (!line.trim()) continue;
 
-        const parts = line.trim().split(/\s+/);
-        const pid = parseInt(parts[1]);
-        const ppid = parseInt(parts[2]);
-        const command = parts.slice(10).join(' ');
+        let parts: string[];
+
+        if (process.platform === 'linux' && !line.includes('USER')) {
+          // Linux simplified format
+          parts = line.trim().split(/\s+/);
+        } else {
+          // Standard ps aux format (macOS and others)
+          parts = line.trim().split(/\s+/);
+          if (parts.length < 11) continue;
+          parts = parts.slice(1); // Skip USER column for ps aux
+        }
+
+        if (parts.length < 3) continue;
+
+        const pid = parseInt(parts[0]);
+        const ppid = parseInt(parts[1]);
+        const command = parts.slice(2).join(' ');
+
+        // Skip if not a valid PID
+        if (isNaN(pid) || isNaN(ppid)) continue;
 
         // Check if it's a test process
         const isTest = this.isTestProcess(command);
@@ -90,15 +168,15 @@ class TestProcessManager {
             pid,
             ppid,
             command,
-            args: parts.slice(10),
+            args: parts.slice(2),
             isTest
           });
         }
       }
 
       return testProcesses;
-    } catch (error) {
-      console.error('❌ Failed to list processes:', error);
+    } catch (error: any) {
+      console.error(`❌ Failed to list processes: ${error.message}`);
       return [];
     }
   }

@@ -1,9 +1,9 @@
 #!/usr/bin/env bun
 /**
  * CI Environment Detector
- * 
+ *
  * Detects various CI/CD environments and provides appropriate configurations.
- * 
+ *
  * Supported CI platforms:
  * - GitHub Actions
  * - GitLab CI
@@ -39,25 +39,38 @@ interface CIEnvironment {
 class CIDetector {
   private static instance: CIDetector;
   private env: Record<string, string | undefined>;
-  
+  private cachedResult: CIEnvironment | null = null;
+
   constructor(env: Record<string, string | undefined> = process.env) {
     this.env = env;
   }
-  
+
   static getInstance(env?: Record<string, string | undefined>): CIDetector {
     if (!CIDetector.instance) {
       CIDetector.instance = new CIDetector(env);
     }
     return CIDetector.instance;
   }
-  
+
+  /**
+   * Refresh environment and clear cache
+   */
+  refreshEnvironment(env?: Record<string, string | undefined>): void {
+    this.env = env || process.env;
+    this.cachedResult = null;
+  }
+
   /**
    * Detect the current CI environment
    */
   detect(): CIEnvironment {
+    if (this.cachedResult) {
+      return this.cachedResult;
+    }
+
     const ci = this.detectCIPlatform();
-    
-    return {
+
+    this.cachedResult = {
       name: ci.name,
       isCI: ci.isCI,
       isGitHubActions: ci.name === 'GitHub Actions',
@@ -72,8 +85,10 @@ class CIDetector {
         format: ci.name === 'GitHub Actions' ? 'github' : 'generic'
       }
     };
+
+    return this.cachedResult;
   }
-  
+
   /**
    * Detect which CI platform we're running on
    */
@@ -82,75 +97,75 @@ class CIDetector {
     if (this.env.GITHUB_ACTIONS) {
       return { name: 'GitHub Actions', isCI: true };
     }
-    
+
     // GitLab CI
     if (this.env.GITLAB_CI) {
       return { name: 'GitLab CI', isCI: true };
     }
-    
+
     // CircleCI
     if (this.env.CIRCLECI) {
       return { name: 'CircleCI', isCI: true };
     }
-    
+
     // Travis CI
     if (this.env.TRAVIS) {
       return { name: 'Travis CI', isCI: true };
     }
-    
+
     // Jenkins
     if (this.env.JENKINS_URL) {
       return { name: 'Jenkins', isCI: true };
     }
-    
+
     // Azure Pipelines
     if (this.env.TF_BUILD) {
       return { name: 'Azure Pipelines', isCI: true };
     }
-    
+
     // Bitbucket Pipelines
     if (this.env.BITBUCKET_BUILD_NUMBER) {
       return { name: 'Bitbucket Pipelines', isCI: true };
     }
-    
+
     // AppVeyor
     if (this.env.APPVEYOR) {
       return { name: 'AppVeyor', isCI: true };
     }
-    
+
     // Buildkite
     if (this.env.BUILDKITE) {
       return { name: 'Buildkite', isCI: true };
     }
-    
+
     // Codeship
     if (this.env.CI_NAME === 'codeship') {
       return { name: 'Codeship', isCI: true };
     }
-    
+
     // Drone CI
     if (this.env.DRONE) {
       return { name: 'Drone CI', isCI: true };
     }
-    
+
     // Semaphore
     if (this.env.SEMAPHORE) {
       return { name: 'Semaphore', isCI: true };
     }
-    
+
     // Wercker
     if (this.env.WERCKER) {
       return { name: 'Wercker', isCI: true };
     }
-    
+
     // Generic CI detection
     if (this.env.CI) {
       return { name: 'Unknown CI', isCI: true };
     }
-    
+
     return { name: 'Local', isCI: false };
   }
-  
+
   /**
    * Check if we're in a pull request
    */
@@ -159,35 +174,35 @@ class CIDetector {
     if (this.env.GITHUB_EVENT_NAME === 'pull_request') {
       return true;
     }
-    
+
     // GitLab CI
     if (this.env.CI_MERGE_REQUEST_ID) {
       return true;
     }
-    
+
     // CircleCI
     if (this.env.CIRCLE_PULL_REQUEST) {
       return true;
     }
-    
+
     // Travis CI
     if (this.env.TRAVIS_PULL_REQUEST !== 'false') {
       return true;
     }
-    
+
     // AppVeyor
     if (this.env.APPVEYOR_PULL_REQUEST_NUMBER) {
       return true;
     }
-    
+
     // Buildkite
     if (this.env.BUILDKITE_PULL_REQUEST) {
       return true;
     }
-    
+
     return false;
   }
-  
+
   /**
    * Get the current branch name
    */
@@ -196,109 +211,82 @@ class CIDetector {
     if (this.env.GITHUB_REF_NAME) {
       return this.env.GITHUB_REF_NAME;
     }
-    
+
     // GitLab CI
     if (this.env.CI_COMMIT_REF_NAME) {
       return this.env.CI_COMMIT_REF_NAME;
     }
-    
+
     // CircleCI
     if (this.env.CIRCLE_BRANCH) {
       return this.env.CIRCLE_BRANCH;
     }
-    
+
     // Travis CI
     if (this.env.TRAVIS_BRANCH) {
       return this.env.TRAVIS_BRANCH;
     }
-    
+
     // Jenkins
     if (this.env.GIT_BRANCH) {
       return this.env.GIT_BRANCH;
     }
-    
+
     // Bitbucket Pipelines
     if (this.env.BITBUCKET_BRANCH) {
       return this.env.BITBUCKET_BRANCH;
     }
-    
+
     // AppVeyor
     if (this.env.APPVEYOR_REPO_BRANCH) {
       return this.env.APPVEYOR_REPO_BRANCH;
     }
-    
+
     return undefined;
   }
-  
+
   /**
-   * Get the current tag
+   * Get tag name with consistent error handling
    */
   private getTag(): string | undefined {
-    // GitHub Actions
-    if (this.env.GITHUB_REF_TYPE === 'tag' && this.env.GITHUB_REF_NAME) {
-      return this.env.GITHUB_REF_NAME;
-    }
-    
-    // GitLab CI
-    if (this.env.CI_COMMIT_TAG) {
-      return this.env.CI_COMMIT_TAG;
-    }
-    
-    // Travis CI
-    if (this.env.TRAVIS_TAG) {
-      return this.env.TRAVIS_TAG;
-    }
-    
-    // AppVeyor
-    if (this.env.APPVEYOR_REPO_TAG_NAME) {
-      return this.env.APPVEYOR_REPO_TAG_NAME;
-    }
-    
-    return undefined;
+    return this.env.GITHUB_REF?.replace('refs/tags/', '') ||
+           this.env.CI_COMMIT_TAG ||
+           this.env.TRAVIS_TAG ||
+           undefined;
   }
-  
+
   /**
-   * Get the commit SHA
+   * Get commit hash with consistent error handling
    */
   private getCommit(): string | undefined {
-    // GitHub Actions
-    if (this.env.GITHUB_SHA) {
-      return this.env.GITHUB_SHA;
-    }
-    
-    // GitLab CI
-    if (this.env.CI_COMMIT_SHA) {
-      return this.env.CI_COMMIT_SHA;
-    }
-    
-    // CircleCI
-    if (this.env.CIRCLE_SHA1) {
-      return this.env.CIRCLE_SHA1;
-    }
-    
-    // Travis CI
+    return this.env.GITHUB_SHA ||
+           this.env.CI_COMMIT_SHA ||
+           this.env.CIRCLE_SHA1 ||
+           this.env.TRAVIS_COMMIT ||
+           this.env.COMMIT ||
+           undefined;
     if (this.env.TRAVIS_COMMIT) {
       return this.env.TRAVIS_COMMIT;
     }
-    
+
     // Jenkins
     if (this.env.GIT_COMMIT) {
       return this.env.GIT_COMMIT;
     }
-    
+
     // Bitbucket Pipelines
     if (this.env.BITBUCKET_COMMIT) {
       return this.env.BITBUCKET_COMMIT;
     }
-    
+
     // AppVeyor
     if (this.env.APPVEYOR_REPO_COMMIT) {
       return this.env.APPVEYOR_REPO_COMMIT;
     }
-    
+
     return undefined;
   }
-  
+
   /**
    * Get the build number
    */
@@ -307,50 +295,50 @@ class CIDetector {
     if (this.env.GITHUB_RUN_NUMBER) {
       return this.env.GITHUB_RUN_NUMBER;
     }
-    
+
     // GitLab CI
     if (this.env.CI_JOB_ID) {
       return this.env.CI_JOB_ID;
     }
-    
+
     // CircleCI
     if (this.env.CIRCLE_BUILD_NUM) {
       return this.env.CIRCLE_BUILD_NUM;
     }
-    
+
     // Travis CI
     if (this.env.TRAVIS_BUILD_NUMBER) {
       return this.env.TRAVIS_BUILD_NUMBER;
     }
-    
+
     // Jenkins
     if (this.env.BUILD_NUMBER) {
       return this.env.BUILD_NUMBER;
     }
-    
+
     // Azure Pipelines
     if (this.env.BUILD_BUILDID) {
       return this.env.BUILD_BUILDID;
     }
-    
+
     // Bitbucket Pipelines
     if (this.env.BITBUCKET_BUILD_NUMBER) {
       return this.env.BITBUCKET_BUILD_NUMBER;
     }
-    
+
     // AppVeyor
     if (this.env.APPVEYOR_BUILD_NUMBER) {
       return this.env.APPVEYOR_BUILD_NUMBER;
     }
-    
+
     // Buildkite
     if (this.env.BUILDKITE_BUILD_NUMBER) {
       return this.env.BUILDKITE_BUILD_NUMBER;
     }
-    
+
     return undefined;
   }
-  
+
   /**
    * Get the build URL
    */
@@ -359,35 +347,35 @@ class CIDetector {
     if (this.env.GITHUB_SERVER_URL && this.env.GITHUB_REPOSITORY && this.env.GITHUB_RUN_ID) {
       return `${this.env.GITHUB_SERVER_URL}/${this.env.GITHUB_REPOSITORY}/actions/runs/${this.env.GITHUB_RUN_ID}`;
     }
-    
+
     // GitLab CI
     if (this.env.CI_PROJECT_URL && this.env.CI_JOB_ID) {
       return `${this.env.CI_PROJECT_URL}/-/jobs/${this.env.CI_JOB_ID}`;
     }
-    
+
     // CircleCI
     if (this.env.CIRCLE_BUILD_URL) {
       return this.env.CIRCLE_BUILD_URL;
     }
-    
+
     // Travis CI
     if (this.env.TRAVIS_BUILD_WEB_URL) {
       return this.env.TRAVIS_BUILD_WEB_URL;
     }
-    
+
     // Jenkins
     if (this.env.BUILD_URL) {
       return this.env.BUILD_URL;
     }
-    
+
     // Azure Pipelines
     if (this.env.SYSTEM_TEAMFOUNDATIONSERVERURI && this.env.SYSTEM_TEAMPROJECT && this.env.BUILD_BUILDID) {
       return `${this.env.SYSTEM_TEAMFOUNDATIONSERVERURI}/${this.env.SYSTEM_TEAMPROJECT}/_build/results?buildId=${this.env.BUILD_BUILDID}`;
     }
-    
+
     return undefined;
   }
-  
+
   /**
    * Determine if we should emit annotations
    */
@@ -396,11 +384,11 @@ class CIDetector {
     if (this.env.GITHUB_ACTIONS) {
       return true;
     }
-    
+
     // Other CI platforms might need explicit configuration
     return this.env.CI_ANNOTATIONS === 'true' || this.env.ENABLE_ANNOTATIONS === 'true';
   }
-  
+
   /**
    * Emit a GitHub Actions annotation
    */
@@ -411,67 +399,67 @@ class CIDetector {
     title?: string;
   }): void {
     const ci = this.detect();
-    
+
     if (!ci.annotations.enabled) {
       return;
     }
-    
+
     if (ci.annotations.format === 'github') {
       let annotation = `::${type} `;
-      
+
       if (options?.title) {
         annotation += `title=${options.title},`;
       }
-      
+
       if (options?.file) {
         annotation += `file=${options.file},`;
       }
-      
+
       if (options?.line) {
         annotation += `line=${options.line},`;
       }
-      
+
       if (options?.col) {
         annotation += `col=${options.col},`;
       }
-      
+
       // Remove trailing comma
       annotation = annotation.replace(/,$/, '');
-      
+
       console.log(`${annotation}::${message}`);
     } else {
       // Generic annotation format
       console.log(`[${type.toUpperCase()}] ${message}`);
-      
+
       if (options?.file) {
         console.log(`  File: ${options.file}${options.line ? `:${options.line}` : ''}`);
       }
-      
+
       if (options?.title) {
         console.log(`  Title: ${options.title}`);
       }
     }
   }
-  
+
   /**
    * Emit a group annotation (GitHub Actions only)
    */
   startGroup(name: string): void {
     const ci = this.detect();
-    
+
     if (ci.isGitHubActions) {
       console.log(`::group::${name}`);
     } else {
       console.log(`--- ${name} ---`);
     }
   }
-  
+
   /**
    * End a group annotation (GitHub Actions only)
    */
   endGroup(): void {
     const ci = this.detect();
-    
+
     if (ci.isGitHubActions) {
       console.log('::endgroup::');
     } else {

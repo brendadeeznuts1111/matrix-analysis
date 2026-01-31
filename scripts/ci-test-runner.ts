@@ -21,6 +21,20 @@ interface TestResult {
   coverage?: number;
 }
 
+interface ParsedTestOutput {
+  passed: number;
+  failed: number;
+  total: number;
+  coverage?: number;
+}
+
+interface TestExecutionResult {
+  passed: boolean;
+  failed: number;
+  total: number;
+  coverage?: number;
+}
+
 class CITestRunner {
   private ci: ReturnType<CIDetector['detect']>;
   private config: ReturnType<typeof testConfig.getConfig>;
@@ -69,9 +83,18 @@ class CITestRunner {
     const startTime = Date.now();
 
     // Run tests
-    const result = await this.executeTest(args);
+    const parsedResult = await this.executeTest(args);
 
     const duration = Date.now() - startTime;
+
+    // Convert to TestResult format
+    const result: TestResult = {
+      passed: parsedResult.passed,
+      failed: parsedResult.failed,
+      total: parsedResult.total,
+      duration,
+      coverage: parsedResult.coverage
+    };
 
     // Emit end annotation
     if (this.ci.isGitHubActions) {
@@ -79,14 +102,14 @@ class CITestRunner {
     }
 
     // Print results
-    this.printResults({ ...result, duration });
+    this.printResults(result);
 
     // Emit annotations for failures
     if (!result.passed && this.ci.annotations.enabled) {
       this.emitFailureAnnotations(result);
     }
 
-    return { ...result, duration };
+    return result;
   }
 
   /**
@@ -129,26 +152,86 @@ class CITestRunner {
   }
 
   /**
-   * Execute the test command
+   * Execute tests and parse output
    */
-  private async executeTest(args: string[]): Promise<Omit<TestResult, 'duration'>> {
+  private async executeTest(args: string[]): Promise<TestExecutionResult> {
     const proc = spawn({
       cmd: ['bun', ...args],
-      stdout: 'inherit',
-      stderr: 'inherit',
-      env: process.env
+      stdout: 'pipe',
+      stderr: 'pipe'
     });
+
+    let stdout = '';
+    let stderr = '';
+
+    // Collect output
+    if (proc.stdout) {
+      for await (const chunk of proc.stdout) {
+        stdout += new TextDecoder().decode(chunk);
+      }
+    }
+
+    if (proc.stderr) {
+      for await (const chunk of proc.stderr) {
+        stderr += new TextDecoder().decode(chunk);
+      }
+    }
 
     const exitCode = await proc.exited;
 
-    // Parse results from output (simplified)
-    // In a real implementation, you'd parse the actual test output
+    // Parse the output
+    const parsed = this.parseTestOutput(stdout + stderr);
+
+    // If parsing failed, use fallback values
+    if (parsed.total === 0) {
+      return {
+        passed: exitCode === 0,
+        failed: exitCode === 0 ? 0 : 1,
+        total: 1
+      };
+    }
+
     return {
-      passed: exitCode === 0,
-      failed: exitCode === 0 ? 0 : 1, // Simplified
-      total: 1, // Simplified
-      coverage: this.config.coverage ? 85 : undefined // Simplified
+      passed: parsed.failed === 0,
+      failed: parsed.failed,
+      total: parsed.total,
+      coverage: parsed.coverage
     };
+  }
+
+  /**
+   * Parse test output to extract metrics
+   */
+  private parseTestOutput(output: string): ParsedTestOutput {
+    const result: ParsedTestOutput = {
+      passed: 0,
+      failed: 0,
+      total: 0
+    };
+
+    // Parse test summary
+    const summaryMatch = output.match(/(\d+) pass(?:ed)?[\s,]*(\d+) fail(?:ed)?/i);
+    if (summaryMatch) {
+      result.passed = parseInt(summaryMatch[1]);
+      result.failed = parseInt(summaryMatch[2]);
+      result.total = result.passed + result.failed;
+    } else {
+      // Try alternative format
+      const altMatch = output.match(/Ran (\d+) tests?[^\d]* (\d+) fail/);
+      if (altMatch) {
+        result.total = parseInt(altMatch[1]);
+        result.failed = parseInt(altMatch[2]);
+        result.passed = result.total - result.failed;
+      }
+    }
+
+    // Parse coverage if available
+    const coverageMatch = output.match(/coverage:?\s*(\d+)%/i);
+    if (coverageMatch) {
+      result.coverage = parseInt(coverageMatch[1]);
+    }
+
+    return result;
   }
 
   /**
@@ -164,30 +247,38 @@ class CITestRunner {
   /**
    * Print test results
    */
-  private printResults(result: TestResult): void {
+  private printResults(results: TestResult): void {
     console.log();
     console.log('📊 Test Results:');
-    console.log(`   Status: ${result.passed ? '✅ PASSED' : '❌ FAILED'}`);
-    console.log(`   Duration: ${(result.duration / 1000).toFixed(2)}s`);
+    console.log('══════════════════════════════════════════════════════════════════════════════');
 
-    if (result.coverage) {
-      console.log(`   Coverage: ${result.coverage}%`);
+    const status = results.passed ? '✅ PASSED' : '❌ FAILED';
+    const statusColor = results.passed ? '\x1b[32m' : '\x1b[31m';
+    const reset = '\x1b[0m';
+
+    console.log(`   Status: ${statusColor}${status}${reset}`);
+    console.log(`   Total:  ${results.total} tests`);
+    console.log(`   Passed: ${results.passed} tests`);
+    console.log(`   Failed: ${results.failed} tests`);
+    console.log(`   Time:   ${(results.duration / 1000).toFixed(2)}s`);
+
+    if (results.coverage !== undefined) {
+      const coverageColor = results.coverage >= 80 ? '\x1b[32m' :
+                           results.coverage >= 60 ? '\x1b[33m' : '\x1b[31m';
+      console.log(`   Coverage: ${coverageColor}${results.coverage}%${reset}`);
     }
 
-    if (this.ci.buildUrl) {
-      console.log(`   Build URL: ${this.ci.buildUrl}`);
-    }
-
+    console.log('══════════════════════════════════════════════════════════════════════════════');
     console.log();
 
     // Emit GitHub Actions summary
     if (this.ci.isGitHubActions) {
       console.log('## Test Summary');
-      console.log(`- **Status**: ${result.passed ? '✅ Passed' : '❌ Failed'}`);
-      console.log(`- **Duration**: ${(result.duration / 1000).toFixed(2)}s`);
+      console.log(`- **Status**: ${results.passed ? '✅ Passed' : '❌ Failed'}`);
+      console.log(`- **Duration**: ${(results.duration / 1000).toFixed(2)}s`);
 
-      if (result.coverage) {
-        console.log(`- **Coverage**: ${result.coverage}%`);
+      if (results.coverage) {
+        console.log(`- **Coverage**: ${results.coverage}%`);
       }
 
       if (this.ci.branch) {
