@@ -137,9 +137,7 @@ describe('Test Process Manager - Integration Tests', () => {
       if (result.success) {
         expect(true).toBe(true);
       } else {
-        if (result.error) {
-          expect(result.error).toBe('NOT_FOUND');
-        }
+        expect(result.error).toBe('NOT_FOUND');
       }
     });
 
