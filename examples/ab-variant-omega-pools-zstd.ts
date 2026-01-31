@@ -32,18 +32,10 @@ import {
 } from "./ab-variant-cookies.ts";
 import { getOrCreatePool } from "./ab-variant-omega-pools.ts";
 
+import type { ABSnapshotState } from "./ab-variant-types.ts";
+
 declare const AB_VARIANT_SNAPSHOT: string | undefined;
 declare const STRICT_COL89: string | undefined;
-
-// ── Types ────────────────────────────────────────────────────────────────────
-
-interface ABSnapshotState {
-  variant: string;
-  poolSize: number;
-  cookies: [string, string][];
-  timestamp: number;
-  sessionId?: string;
-}
 
 // ── SQLite Setup ──────────────────────────────────────────────────────────────
 

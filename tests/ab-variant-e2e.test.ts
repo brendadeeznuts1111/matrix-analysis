@@ -329,8 +329,9 @@ describe("API Server A/B Integration", () => {
   const wsUrl = `ws://127.0.0.1:${port}/api/ab/status`;
 
   // In-memory metrics + WS subscriber sets for the test server
-  const abEventSubs = new Set<any>();
-  const abMetricSubs = new Set<any>();
+  type WS = { send(msg: string): void; data: { protocol: string } };
+  const abEventSubs = new Set<WS>();
+  const abMetricSubs = new Set<WS>();
   const abMetrics = {
     impressions: 0,
     variants: {} as Record<string, number>,
@@ -348,7 +349,7 @@ describe("API Server A/B Integration", () => {
     }
   }
 
-  function broadcastABEvent(event: any) {
+  function broadcastABEvent(event: Record<string, unknown>) {
     const msg = JSON.stringify(event);
     for (const ws of abEventSubs) {
       ws.send(msg);
@@ -455,7 +456,7 @@ describe("API Server A/B Integration", () => {
       },
 
       websocket: {
-        open(ws: any) {
+        open(ws: WS) {
           const { protocol } = ws.data;
           if (protocol === "ab-metrics") {
             abMetricSubs.add(ws);
@@ -464,15 +465,15 @@ describe("API Server A/B Integration", () => {
           }
           ws.send(JSON.stringify({ type: "connected", protocol }));
         },
-        message(ws: any, message: any) {
+        message(ws: WS, message: string | Buffer) {
           try {
-            const msg = JSON.parse(message);
+            const msg = JSON.parse(String(message));
             if (msg.type === "ping") {
               ws.send(JSON.stringify({ type: "pong", ts: Date.now() }));
             }
           } catch {}
         },
-        close(ws: any) {
+        close(ws: WS) {
           abEventSubs.delete(ws);
           abMetricSubs.delete(ws);
         },
