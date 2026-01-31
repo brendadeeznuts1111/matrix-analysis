@@ -57,7 +57,7 @@ jobs:
       - name: Run matrix analysis (Unix)
         if: runner.os != 'Windows'
         run: |
-          bun run ~/.claude/scripts/lockfile-matrix.ts . --json > /dev/null || true
+          bun run ~/.claude/scripts/test-matrix.ts . --json > /dev/null || true
           echo "Matrix analysis completed on ${{ matrix.os }}"
 
       - name: Run matrix analysis (Windows)
@@ -122,7 +122,7 @@ jobs:
             --warmup 2 \
             --runs 5 \
             --export-json benchmark.json \
-            "bun run ~/.claude/scripts/lockfile-matrix.ts . --json" \
+            "bun run ~/.claude/scripts/test-matrix.ts . --json" \
             || true
 
           if [ -f benchmark.json ]; then
