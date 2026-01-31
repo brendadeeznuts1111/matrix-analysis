@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuites name="bun test" tests="6" assertions="15" failures="0" skipped="0" time="0.124865">
+<testsuites name="bun test" tests="6" assertions="15" failures="0" skipped="0" time="0.127421">
   <testsuite name="src/__tests__/smoke/critical-path.test.ts" file="src/__tests__/smoke/critical-path.test.ts" tests="6" assertions="15" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
     <testsuite name="🚀 Smoke Tests - Group: smoke" file="src/__tests__/smoke/critical-path.test.ts" line="17" tests="6" assertions="15" failures="0" skipped="0" time="0.117" hostname="Mac.attlocal.net">
-      <testcase name="should verify Bun runtime is available" classname="🚀 Smoke Tests - Group: smoke" time="0.000002" file="src/__tests__/smoke/critical-path.test.ts" line="29" assertions="2" />
-      <testcase name="should verify test environment variables are set" classname="🚀 Smoke Tests - Group: smoke" time="0.000021" file="src/__tests__/smoke/critical-path.test.ts" line="34" assertions="5" />
-      <testcase name="should verify critical modules can be imported" classname="🚀 Smoke Tests - Group: smoke" time="0.002344" file="src/__tests__/smoke/critical-path.test.ts" line="42" assertions="3" />
-      <testcase name="should verify configuration files exist" classname="🚀 Smoke Tests - Group: smoke" time="0.000159" file="src/__tests__/smoke/critical-path.test.ts" line="50" assertions="3" />
-      <testcase name="should verify test organizer can list groups" classname="🚀 Smoke Tests - Group: smoke" time="0.014945" file="src/__tests__/smoke/critical-path.test.ts" line="62" assertions="1" />
-      <testcase name="should have fast execution time" classname="🚀 Smoke Tests - Group: smoke" time="0.101415" file="src/__tests__/smoke/critical-path.test.ts" line="76" assertions="1" />
+      <testcase name="should verify Bun runtime is available" classname="🚀 Smoke Tests - Group: smoke" time="0.000011" file="src/__tests__/smoke/critical-path.test.ts" line="29" assertions="2" />
+      <testcase name="should verify test environment variables are set" classname="🚀 Smoke Tests - Group: smoke" time="0.000066" file="src/__tests__/smoke/critical-path.test.ts" line="34" assertions="5" />
+      <testcase name="should verify critical modules can be imported" classname="🚀 Smoke Tests - Group: smoke" time="0.002244" file="src/__tests__/smoke/critical-path.test.ts" line="42" assertions="3" />
+      <testcase name="should verify configuration files exist" classname="🚀 Smoke Tests - Group: smoke" time="0.000132" file="src/__tests__/smoke/critical-path.test.ts" line="50" assertions="3" />
+      <testcase name="should verify test organizer can list groups" classname="🚀 Smoke Tests - Group: smoke" time="0.014401" file="src/__tests__/smoke/critical-path.test.ts" line="62" assertions="1" />
+      <testcase name="should have fast execution time" classname="🚀 Smoke Tests - Group: smoke" time="0.101567" file="src/__tests__/smoke/critical-path.test.ts" line="76" assertions="1" />
     </testsuite>
   </testsuite>
 </testsuites>

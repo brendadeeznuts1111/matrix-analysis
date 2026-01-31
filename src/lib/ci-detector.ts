@@ -37,15 +37,47 @@ interface CIEnvironment {
 }
 
 class CIDetector {
-  private static instance: CIDetector;
+  private static instance: CIDetector | null = null;
+  private static initializing: boolean = false;
+  private static initPromise: Promise<CIDetector> | null = null;
   private env: Record<string, string | undefined>;
   private cachedResult: CIEnvironment | null = null;
+  private cacheTimestamp: number = 0;
+  private readonly CACHE_TTL = 60000; // 1 minute cache TTL
 
   constructor(env: Record<string, string | undefined> = process.env) {
     this.env = env;
   }
 
-  static getInstance(env?: Record<string, string | undefined>): CIDetector {
+  static async getInstance(env?: Record<string, string | undefined>): Promise<CIDetector> {
+    // If instance already exists, return it
+    if (CIDetector.instance) {
+      return CIDetector.instance;
+    }
+
+    // If initialization is in progress, wait for it
+    if (CIDetector.initializing && CIDetector.initPromise) {
+      return CIDetector.initPromise;
+    }
+
+    // Start initialization
+    CIDetector.initializing = true;
+    CIDetector.initPromise = new Promise((resolve) => {
+      // Create instance in next tick to ensure atomicity
+      setTimeout(() => {
+        if (!CIDetector.instance) {
+          CIDetector.instance = new CIDetector(env);
+        }
+        CIDetector.initializing = false;
+        CIDetector.initPromise = null;
+        resolve(CIDetector.instance);
+      }, 0);
+    });
+
+    return CIDetector.initPromise;
+  }
+
+  static getInstanceSync(env?: Record<string, string | undefined>): CIDetector {
     if (!CIDetector.instance) {
       CIDetector.instance = new CIDetector(env);
     }
@@ -58,13 +90,16 @@ class CIDetector {
   refreshEnvironment(env?: Record<string, string | undefined>): void {
     this.env = env || process.env;
     this.cachedResult = null;
+    this.cacheTimestamp = 0;
   }
 
   /**
    * Detect the current CI environment
    */
   detect(): CIEnvironment {
-    if (this.cachedResult) {
+    // Check if cache is still valid
+    const now = Date.now();
+    if (this.cachedResult && (now - this.cacheTimestamp) < this.CACHE_TTL) {
       return this.cachedResult;
     }
 
@@ -85,6 +120,9 @@ class CIDetector {
         format: ci.name === 'GitHub Actions' ? 'github' : 'generic'
       }
     };
+
+    // Update cache timestamp
+    this.cacheTimestamp = now;
 
     return this.cachedResult;
   }

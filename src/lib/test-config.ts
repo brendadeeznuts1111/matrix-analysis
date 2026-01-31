@@ -2,17 +2,17 @@ import { CIDetector } from './ci-detector';
 
 /**
  * CI-aware test configuration
- * 
+ *
  * Automatically adjusts test behavior based on the CI environment.
  */
 
 export class TestConfig {
   private ci: ReturnType<CIDetector['detect']>;
-  
+
   constructor() {
-    this.ci = CIDetector.getInstance().detect();
+    this.ci = CIDetector.getInstanceSync().detect();
   }
-  
+
   /**
    * Get test timeout based on environment
    */
@@ -21,11 +21,11 @@ export class TestConfig {
       // CI environments might need longer timeouts
       return 30000; // 30 seconds
     }
-    
+
     // Local development - faster feedback
     return 10000; // 10 seconds
   }
-  
+
   /**
    * Get retry count for flaky tests
    */
@@ -34,11 +34,11 @@ export class TestConfig {
       // Retry flaky tests in CI
       return 2;
     }
-    
+
     // No retries locally for faster feedback
     return 0;
   }
-  
+
   /**
    * Get concurrency settings
    */
@@ -47,11 +47,11 @@ export class TestConfig {
       // Limit concurrency in CI to avoid resource issues
       return 4;
     }
-    
+
     // Use all available cores locally
     return require('os').cpus().length;
   }
-  
+
   /**
    * Determine if coverage should be enabled
    */
@@ -60,21 +60,21 @@ export class TestConfig {
       // Always enable coverage in CI
       return true;
     }
-    
+
     // Enable coverage locally only if explicitly requested
     return process.env.COVERAGE === 'true';
   }
-  
+
   /**
    * Get reporter configuration
    */
   getReporter(): string[] {
     const reporters: string[] = [];
-    
+
     if (this.ci.isCI) {
       // Use verbose reporter in CI for better debugging
       reporters.push('verbose');
-      
+
       // Add JUnit reporter for CI integration
       if (this.ci.isGitHubActions) {
         reporters.push('junit');
@@ -83,16 +83,16 @@ export class TestConfig {
       // Use default reporter locally
       reporters.push('default');
     }
-    
+
     return reporters;
   }
-  
+
   /**
    * Get test patterns based on environment
    */
   getTestPatterns(): string[] {
     const patterns: string[] = ['src', '.claude'];
-    
+
     if (this.ci.isPR) {
       // In PRs, focus on changed files
       const changedFiles = this.getChangedFiles();
@@ -100,10 +100,10 @@ export class TestConfig {
         patterns.push(...changedFiles.filter(f => f.includes('.test.') || f.includes('.spec.')));
       }
     }
-    
+
     return patterns;
   }
-  
+
   /**
    * Get changed files (simplified implementation)
    */
@@ -112,7 +112,7 @@ export class TestConfig {
     // In a real scenario, you'd use git commands or CI-specific APIs
     return [];
   }
-  
+
   /**
    * Configure test environment variables
    */
@@ -121,24 +121,24 @@ export class TestConfig {
       // CI-specific environment setup
       process.env.NODE_ENV = 'test';
       process.env.CI = 'true';
-      
+
       // Disable animations and color output in CI
       process.env.FORCE_COLOR = '0';
       process.env.NO_COLOR = '1';
-      
+
       // Configure Bun for CI
       if (this.ci.isGitHubActions) {
         // Bun automatically emits GitHub Actions annotations
         process.env.BUN_GITHUB_ACTIONS_ANNOTATIONS = '1';
       }
     }
-    
+
     // Apply frozen lockfile in CI
     if (this.ci.isCI) {
       process.env.BUN_FROZEN_LOCKFILE = '1';
     }
   }
-  
+
   /**
    * Emit CI-specific annotations
    */
@@ -147,20 +147,20 @@ export class TestConfig {
       console.log(`::group::Running tests in ${testFile}`);
     }
   }
-  
+
   emitTestEnd(testFile: string, passed: boolean, duration: number): void {
     if (this.ci.isGitHubActions) {
       console.log(`::endgroup::`);
-      
+
       if (!passed) {
-        CIDetector.getInstance().emitAnnotation('error', 'Tests failed', {
+        CIDetector.getInstanceSync().emitAnnotation('error', 'Tests failed', {
           file: testFile,
           title: 'Test Failure'
         });
       }
     }
   }
-  
+
   /**
    * Get the full configuration object
    */

@@ -15,6 +15,10 @@ import { execSync } from 'child_process';
 
 type Signal = 'SIGTERM' | 'SIGKILL' | 'SIGINT' | 'SIGHUP';
 
+type KillResult =
+  | { success: true; message: string }
+  | { success: false; error: 'NOT_FOUND' | 'PERMISSION_DENIED' | 'STILL_RUNNING' | 'UNKNOWN'; message: string };
+
 interface ProcessInfo {
   pid: number;
   ppid: number;
@@ -28,13 +32,16 @@ class TestProcessManager {
   /**
    * Kill a process with specified signal using process tree tracking
    */
-  static async kill(pid: number, signal: Signal = 'SIGTERM'): Promise<boolean> {
+  static async kill(pid: number, signal: Signal = 'SIGTERM'): Promise<KillResult> {
     try {
       // Check if process exists and get its info
       const procInfo = this.getProcessInfo(pid);
       if (!procInfo) {
-        console.log(`❌ Process ${pid} not found`);
-        return false;
+        return {
+          success: false,
+          error: 'NOT_FOUND',
+          message: `Process ${pid} not found`
+        };
       }
 
       // Record the start time before sending signal
@@ -58,26 +65,44 @@ class TestProcessManager {
           const isSameProcess = await this.verifySameProcess(pid, procInfo.startTime);
 
           if (!isSameProcess) {
-            console.log(`⚠️  PID ${pid} was reused by another process`);
-            console.log(`   Original process likely terminated successfully`);
-            return true;
+            return {
+              success: true,
+              message: `Process ${pid} terminated successfully (PID was reused)`
+            };
           }
 
-          console.log(`⚠️  Process ${pid} still running after SIGTERM`);
-          console.log(`💡 Use SIGKILL for immediate termination: kill -SIGKILL ${pid}`);
-          return false;
+          return {
+            success: false,
+            error: 'STILL_RUNNING',
+            message: `Process ${pid} still running after SIGTERM. Use SIGKILL for immediate termination.`
+          };
         }
       }
 
-      console.log(`✅ Process ${pid} terminated successfully`);
-      return true;
+      return {
+        success: true,
+        message: `Process ${pid} terminated successfully`
+      };
     } catch (error: any) {
       if (error.code === 'ESRCH') {
-        console.log(`❌ Process ${pid} not found`);
+        return {
+          success: false,
+          error: 'NOT_FOUND',
+          message: `Process ${pid} not found`
+        };
+      } else if (error.code === 'EPERM') {
+        return {
+          success: false,
+          error: 'PERMISSION_DENIED',
+          message: `Permission denied when trying to kill process ${pid}`
+        };
       } else {
-        console.log(`❌ Failed to kill process ${pid}: ${error.message}`);
+        return {
+          success: false,
+          error: 'UNKNOWN',
+          message: `Failed to kill process ${pid}: ${error.message}`
+        };
       }
-      return false;
     }
   }
 
@@ -355,28 +380,34 @@ class TestProcessManager {
     console.log(`🔄 Attempting graceful shutdown of process ${pid} (timeout: ${timeout}ms)`);
 
     // Send SIGTERM
-    const terminated = await this.kill(pid, 'SIGTERM');
+    const result = await this.kill(pid, 'SIGTERM');
 
-    if (!terminated) {
-      console.log(`⏱️  Waiting ${timeout}ms for process to terminate...`);
-
-      const startTime = Date.now();
-      while (Date.now() - startTime < timeout) {
-        try {
-          execSync(`kill -0 ${pid}`, { stdio: 'ignore' });
-          await new Promise(resolve => setTimeout(resolve, 500));
-        } catch {
-          console.log(`✅ Process ${pid} terminated gracefully`);
-          return true;
-        }
+    if (!result.success) {
+      if (result.error === 'NOT_FOUND') {
+        console.log(`✅ Process ${pid} not found, assuming already terminated`);
+        return true;
       }
-
-      // Process didn't terminate, force kill
-      console.log(`⚡ Process didn't terminate, forcing shutdown...`);
-      return this.kill(pid, 'SIGKILL');
+      console.log(`⚠️  Failed to send SIGTERM: ${result.message}`);
+      return false;
     }
 
-    return true;
+    console.log(`⏱️  Waiting ${timeout}ms for process to terminate...`);
+
+    const startTime = Date.now();
+    while (Date.now() - startTime < timeout) {
+      try {
+        execSync(`kill -0 ${pid}`, { stdio: 'ignore' });
+        await new Promise(resolve => setTimeout(resolve, 500));
+      } catch {
+        console.log(`✅ Process ${pid} terminated gracefully`);
+        return true;
+      }
+    }
+
+    // Process didn't terminate, force kill
+    console.log(`⚡ Process didn't terminate, forcing shutdown...`);
+    const killResult = await this.kill(pid, 'SIGKILL');
+    return killResult.success;
   }
 
   /**
@@ -454,7 +485,14 @@ async function main() {
       const signalArg = args.find(arg => arg.startsWith('--signal=')) || '--signal=SIGTERM';
       const signal = signalArg.split('=')[1] as Signal;
 
-      await TestProcessManager.kill(pid, signal);
+      const result = await TestProcessManager.kill(pid, signal);
+
+      if (result.success) {
+        console.log(`✅ ${result.message}`);
+      } else {
+        console.error(`❌ ${result.message}`);
+        process.exit(1);
+      }
       break;
     }
 

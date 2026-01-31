@@ -5,6 +5,7 @@ This guide explains how the test suite automatically detects and adapts to diffe
 ## 🎯 Overview
 
 The CI detection system automatically:
+
 - Detects the current CI/CD platform
 - Adjusts test configuration for optimal performance
 - Emits platform-specific annotations
@@ -88,13 +89,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Bun
         uses: oven-sh/setup-bun@v1
-        
+
       - name: Install dependencies
         run: bun install --frozen-lockfile
-        
+
       - name: Run tests
         run: bun run test:ci-runner
 ```
@@ -173,7 +174,7 @@ import { CIDetector } from './src/lib/ci-detector';
 import { testConfig } from './src/lib/test-config';
 
 // Detect CI environment
-const ci = CIDetector.getInstance().detect();
+const ci = CIDetector.getInstanceSync().detect();
 console.log(`Running in: ${ci.name}`);
 
 // Get CI-aware configuration
@@ -182,7 +183,7 @@ console.log(`Timeout: ${config.timeout}ms`);
 
 // Emit annotations
 if (ci.annotations.enabled) {
-  CIDetector.getInstance().emitAnnotation('error', 'Something failed', {
+  CIDetector.getInstanceSync().emitAnnotation('error', 'Something failed', {
     file: 'test.ts',
     line: 42
   });

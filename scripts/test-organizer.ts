@@ -224,6 +224,30 @@ class TestOrganizer {
   }
 
   /**
+   * Check if an environment variable key is sensitive
+   */
+  private isSensitiveKey(key: string): boolean {
+    const sensitivePatterns = [
+      /password/i,
+      /secret/i,
+      /token/i,
+      /key/i,
+      /auth/i,
+      /credential/i,
+      /private/i,
+      /api[_-]?key/i,
+      /access[_-]?token/i,
+      /refresh[_-]?token/i,
+      /session[_-]?secret/i,
+      /client[_-]?secret/i,
+      /signing[_-]?key/i,
+      /encryption[_-]?key/i,
+    ];
+
+    return sensitivePatterns.some(pattern => pattern.test(key));
+  }
+
+  /**
    * Execute a dependency with proper locking
    */
   private async executeDependency(dep: string, options: TestOptions): Promise<boolean> {
@@ -329,9 +353,14 @@ class TestOrganizer {
       args.push('--max-concurrency=1');
     }
 
-    // Add retry
+    // Add retry with validation
     if (this.config.retryCount > 0) {
-      args.push(`--rerun-each=${this.config.retryCount + 1}`);
+      // Ensure retry count is reasonable
+      const validRetryCount = Math.min(Math.max(this.config.retryCount, 0), 10);
+      if (validRetryCount !== this.config.retryCount) {
+        console.warn(`⚠️  Invalid retry count ${this.config.retryCount}, using ${validRetryCount}`);
+      }
+      args.push(`--rerun-each=${validRetryCount + 1}`);
     }
 
     // Add coverage
@@ -354,20 +383,56 @@ class TestOrganizer {
       args.push(`--bail=${options.bail}`);
     }
 
-    // Sanitize patterns
+    // Sanitize test patterns to prevent command injection
     const sanitizedPatterns = group.patterns.map(pattern => {
-      // Prevent command injection
-      if (pattern.includes('..') || pattern.includes(';') || pattern.includes('&&')) {
-        console.warn(`⚠️  Skipping potentially unsafe pattern: ${pattern}`);
+      if (!pattern || typeof pattern !== 'string') {
+        console.warn(`⚠️  Invalid pattern: ${pattern}`);
         return null;
       }
-      return pattern;
-    }).filter(Boolean) as string[];
 
-    if (sanitizedPatterns.length === 0) {
-      console.log(`⚠️  No valid patterns for group '${groupName}'`);
-      return true;
-    }
+      // Remove dangerous characters and patterns
+      let sanitized = pattern.trim();
+
+      // Prevent path traversal
+      if (sanitized.includes('..')) {
+        console.warn(`⚠️  Path traversal detected in pattern: ${pattern}`);
+        return null;
+      }
+
+      // Prevent command injection
+      const dangerousChars = /[;&|`$(){}[\]<>"'\\]/;
+      if (dangerousChars.test(sanitized)) {
+        console.warn(`⚠️  Dangerous characters detected in pattern: ${pattern}`);
+        return null;
+      }
+
+      // Prevent shell command patterns
+      const dangerousPatterns = [
+        /\$\{[^}]*\}/,    // Variable expansion
+        /`[^`]*`/,        // Backtick execution
+        /\$\(.*?\)/,      // Command substitution
+        /<<\s*\w+/,       // Here documents
+        />>?\s*\/dev\//,   // Device redirects
+        /\s*\|\s*/,       // Pipes
+        /\s*&&\s*/,       // Command chaining
+        /\s*\|\|\s*/,     // OR commands
+      ];
+
+      for (const pattern of dangerousPatterns) {
+        if (pattern.test(sanitized)) {
+          console.warn(`⚠️  Dangerous pattern detected: ${pattern}`);
+          return null;
+        }
+      }
+
+      // Validate file extension
+      if (!sanitized.endsWith('.test.ts') && !sanitized.endsWith('.spec.ts') && !sanitized.includes('**')) {
+        console.warn(`⚠️  Invalid test file pattern: ${pattern}`);
+        return null;
+      }
+
+      return sanitized;
+    }).filter(Boolean) as string[];
 
     // Add test patterns with proper path format
     // Bun test needs explicit paths for globs
@@ -416,10 +481,52 @@ class TestOrganizer {
     for (const [key, value] of Object.entries(env)) {
       if (typeof value !== 'string') {
         delete env[key];
-      } else {
-        // Remove potentially dangerous values
-        env[key] = value.replace(/[\r\n\t]/g, '').trim();
+        continue;
       }
+
+      // Remove potentially dangerous characters and patterns
+      let sanitized = value;
+
+      // Remove control characters (except tab which we'll handle separately)
+      sanitized = sanitized.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
+
+      // Remove line breaks and excessive whitespace
+      sanitized = sanitized.replace(/[\r\n]/g, ' ').replace(/\t+/g, ' ').trim();
+
+      // Prevent command injection patterns
+      const dangerousPatterns = [
+        /[;&|`$(){}[\]]/,  // Shell metacharacters
+        /\$\{[^}]*\}/,    // Variable expansion
+        /`[^`]*`/,        // Backtick execution
+        /\$\(.*?\)/,      // Command substitution
+        /<<\s*\w+/,       // Here documents
+        />>?\s*\/dev\//,   // Redirects to devices
+      ];
+
+      for (const pattern of dangerousPatterns) {
+        if (pattern.test(sanitized)) {
+          console.warn(`⚠️  Detected potentially dangerous pattern in ${key}, removing it`);
+          sanitized = '';
+          break;
+        }
+      }
+
+      // Length validation to prevent buffer overflow
+      if (sanitized.length > 32768) {
+        console.warn(`⚠️  Environment variable ${key} too long, truncating`);
+        sanitized = sanitized.substring(0, 32768);
+      }
+
+      // Validate specific sensitive variables
+      if (this.isSensitiveKey(key)) {
+        // For sensitive keys, ensure they don't contain suspicious patterns
+        if (sanitized.includes('${') || sanitized.includes('`') || sanitized.includes('$(')) {
+          console.warn(`⚠️  Detected suspicious pattern in sensitive variable ${key}, clearing it`);
+          sanitized = '';
+        }
+      }
+
+      env[key] = sanitized;
     }
 
     console.log(`   Command: bun ${args.join(' ')}`);

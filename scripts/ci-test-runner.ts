@@ -40,7 +40,7 @@ class CITestRunner {
   private config: ReturnType<typeof testConfig.getConfig>;
 
   constructor() {
-    this.ci = CIDetector.getInstance().detect();
+    this.ci = CIDetector.getInstanceSync().detect();
     this.config = testConfig.getConfig();
 
     // Configure environment
@@ -77,7 +77,7 @@ class CITestRunner {
 
     // Emit start annotation
     if (this.ci.isGitHubActions) {
-      CIDetector.getInstance().startGroup('Test Execution');
+      CIDetector.getInstanceSync().startGroup('Test Execution');
     }
 
     const startTime = Date.now();
@@ -98,7 +98,7 @@ class CITestRunner {
 
     // Emit end annotation
     if (this.ci.isGitHubActions) {
-      CIDetector.getInstance().endGroup();
+      CIDetector.getInstanceSync().endGroup();
     }
 
     // Print results
@@ -209,29 +209,116 @@ class CITestRunner {
       total: 0
     };
 
-    // Parse test summary
-    const summaryMatch = output.match(/(\d+) pass(?:ed)?[\s,]*(\d+) fail(?:ed)?/i);
-    if (summaryMatch) {
-      result.passed = parseInt(summaryMatch[1]);
-      result.failed = parseInt(summaryMatch[2]);
-      result.total = result.passed + result.failed;
-    } else {
-      // Try alternative format
-      const altMatch = output.match(/Ran (\d+) tests?[^\d]* (\d+) fail/);
-      if (altMatch) {
-        result.total = parseInt(altMatch[1]);
-        result.failed = parseInt(altMatch[2]);
-        result.passed = result.total - result.failed;
-      }
-    }
+    try {
+      // Parse test summary - handle various formats
+      const patterns = [
+        /(\d+)\s+pass(?:ed)?[\s,]*(\d+)\s+fail(?:ed)?/i,
+        /(\d+)\s+fail(?:ed)?[\s,]*(\d+)\s+pass(?:ed)?/i,
+        /pass(?:ed)?:\s*(\d+)[\s,]*fail(?:ed)?:\s*(\d+)/i,
+        /fail(?:ed)?:\s*(\d+)[\s,]*pass(?:ed)?:\s*(\d+)/i
+      ];
 
-    // Parse coverage if available
-    const coverageMatch = output.match(/coverage:?\s*(\d+)%/i);
-    if (coverageMatch) {
-      result.coverage = parseInt(coverageMatch[1]);
+      let matched = false;
+      for (const pattern of patterns) {
+        const match = output.match(pattern);
+        if (match) {
+          const passed = this.safeParseInt(match[1]);
+          const failed = this.safeParseInt(match[2]);
+
+          // Check which is which based on pattern order
+          if (pattern.source.includes('pass.*fail')) {
+            result.passed = passed;
+            result.failed = failed;
+          } else {
+            result.failed = passed;
+            result.passed = failed;
+          }
+
+          result.total = result.passed + result.failed;
+          matched = true;
+          break;
+        }
+      }
+
+      // Try alternative format if no match
+      if (!matched) {
+        const altMatch = output.match(/Ran\s+(\d+)\s+tests?[^\d]*(\d+)\s+fail/);
+        if (altMatch) {
+          result.total = this.safeParseInt(altMatch[1]);
+          result.failed = this.safeParseInt(altMatch[2]);
+          result.passed = Math.max(0, result.total - result.failed);
+          matched = true;
+        }
+      }
+
+      // Last resort: count "✓" and "✗" symbols
+      if (!matched) {
+        const passMatches = output.match(/✓/g) || [];
+        const failMatches = output.match(/✗/g) || [];
+        result.passed = passMatches.length;
+        result.failed = failMatches.length;
+        result.total = result.passed + result.failed;
+      }
+
+      // Parse coverage if available
+      const coveragePatterns = [
+        /coverage:?\s*(\d+)%/i,
+        /Coverage:\s*(\d+(?:\.\d+)?)/,
+        /(\d+(?:\.\d+)?)%\s*coverage/i
+      ];
+
+      for (const pattern of coveragePatterns) {
+        const match = output.match(pattern);
+        if (match) {
+          const coverage = parseFloat(match[1]);
+          if (!isNaN(coverage) && isFinite(coverage)) {
+            result.coverage = Math.floor(coverage);
+            break;
+          }
+        }
+      }
+
+      // Validate results
+      if (result.total < 0 || result.passed < 0 || result.failed < 0) {
+        console.warn('⚠️  Invalid test counts detected, using defaults');
+        return { passed: 0, failed: 0, total: 0 };
+      }
+
+      if (result.passed + result.failed !== result.total) {
+        console.warn('⚠️  Test count mismatch, adjusting totals');
+        result.total = result.passed + result.failed;
+      }
+
+    } catch (error) {
+      console.warn('⚠️  Failed to parse test output:', error instanceof Error ? error.message : 'Unknown error');
+      return { passed: 0, failed: 0, total: 0 };
     }
 
     return result;
+  }
+
+  /**
+   * Safely parse integer with bounds checking
+   */
+  private safeParseInt(value: string): number {
+    const parsed = parseInt(value, 10);
+
+    if (isNaN(parsed) || !isFinite(parsed)) {
+      return 0;
+    }
+
+    // Ensure within safe integer range
+    if (parsed > Number.MAX_SAFE_INTEGER) {
+      console.warn(`⚠️  Number too large: ${value}, capping at MAX_SAFE_INTEGER`);
+      return Number.MAX_SAFE_INTEGER;
+    }
+
+    if (parsed < Number.MIN_SAFE_INTEGER) {
+      console.warn(`⚠️  Number too small: ${value}, capping at MIN_SAFE_INTEGER`);
+      return Number.MIN_SAFE_INTEGER;
+    }
+
+    return parsed;
   }
 
   /**
@@ -299,7 +386,7 @@ class CITestRunner {
       return;
     }
 
-    const detector = CIDetector.getInstance();
+    const detector = CIDetector.getInstanceSync();
 
     detector.emitAnnotation('error', `${result.failed} test(s) failed`, {
       title: 'Test Failure'
