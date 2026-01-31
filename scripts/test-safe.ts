@@ -15,5 +15,8 @@ const process = spawn('bun', args, {
 });
 
 process.on('exit', (code) => {
-  process.exit(code || 0);
+  // Use Bun.exit instead of process.exit
+  if (code && code !== 0) {
+    Bun.exit(code);
+  }
 });
