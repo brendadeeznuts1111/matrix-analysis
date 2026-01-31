@@ -10,7 +10,7 @@ export class TestConfig {
   private ci: ReturnType<CIDetector['detect']>;
 
   constructor() {
-    this.ci = CIDetector.getInstanceSync().detect();
+    this.ci = CIDetector.getInstanceSync().detectSync();
   }
 
   /**

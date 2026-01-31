@@ -27,7 +27,7 @@
 | `mcp_servers/` | MCP/ACP servers, skill search, matrix dashboard | AI Infrastructure |
 | `core/` | Shared utilities, error handling, storage, terminal | Foundation |
 | `lib/` | Database pools, exit codes, low-level utilities | System |
-| `bin/` | CLI tools: `omega`, `infra`, `kimi-shell`, `tier1380` | Commands |
+| `bin/` | CLI tools: `omega`, `infra`, `kimi-shell`, `kimi-session`, `kimi-notify`, `kimi-workspace` | Commands |
 
 ---
 
@@ -530,6 +530,147 @@ infra start dashboard # Start dashboard
 infra diagnose        # Run diagnostics
 ```
 
+---
+
+## 🐚 Shell Integration v7.0
+
+Complete shell integration with 100+ aliases, session management, notifications, and workspace switching.
+
+### Quick Setup
+```bash
+# One-time automated setup (recommended)
+./bin/kimi-shell-setup
+
+# Or manual initialization
+source <(./bin/kimi-shell init)
+```
+
+### Core Components
+
+| Component | Path | Purpose |
+|-----------|------|---------|
+| `kimi-shell` | `./bin/kimi-shell` | Shell initialization (v7.0) |
+| `kimi-shell-setup` | `./bin/kimi-shell-setup` | Automated setup wizard |
+| `kimi-session` | `./bin/kimi-session` | Session save/load |
+| `kimi-notify` | `./bin/kimi-notify` | Desktop notifications |
+| `kimi-workspace` | `./bin/kimi-workspace` | Workspace management |
+| `infra` | `./bin/infra` | Service management |
+| `cmd` | `./bin/cmd` | Unified command system |
+
+### Essential Aliases
+
+```bash
+# Core
+k, ks           # kimi, kimi --shell
+
+# Infrastructure (is, ish, idstart...)
+is              # infra status
+ish             # infra health
+idstart         # infra start dashboard
+idstop          # infra stop dashboard
+
+# Unified Commands
+c               # cmd (unified command system)
+cstatus         # cmd infra status
+chealth         # cmd infra health
+cpm             # cmd pm
+cskill          # cmd skill
+
+# Session Management (v7.0)
+kss <name>      # Save session
+ksl <name>      # Load session  
+ksls            # List sessions
+ksd <name>      # Delete session
+
+# Notifications (v7.0)
+knotify         # Send notification
+knwatch <cmd>   # Watch command
+knsuccess       # Success notification
+knerror         # Error notification
+
+# Workspaces (v7.0)
+w, wl           # Workspace list
+ws <name>       # Switch workspace
+wn <name>       # New workspace
+
+# Navigation
+ocd-dashboard   # cd apps/dashboard
+ocd-matrix      # cd matrix
+ocd-chrome      # cd chrome-state
+```
+
+### Session Management
+
+Save and restore complete shell sessions:
+
+```bash
+# Save current session
+kss feature-x --notes "Working on feature X"
+
+# List all sessions
+ksls
+
+# Load session (restores dir, env, aliases)
+eval "$(ksl feature-x --exec)"
+
+# Export for backup
+kimi-session export feature-x -o ~/backups/feature-x.json
+```
+
+### Notifications
+
+Desktop notifications for long-running commands:
+
+```bash
+# Send notification
+knotify "Build Complete" "Your project is ready"
+
+# Watch command (notifies if > 10s)
+knwatch bun run build
+
+# Auto-notify for slow commands
+eval "$(kimi-notify setup --auto --threshold 30)"
+```
+
+Supports: macOS (osascript), Linux (notify-send), WSL
+
+### Workspace Management
+
+```bash
+# Create workspaces
+wn main                  # Current directory
+wn chrome ./chrome-state # Specific path
+
+# Switch between projects
+wl                       # List workspaces
+ws main                  # Switch to main
+ws chrome                # Switch to chrome
+
+# Each workspace remembers:
+# - Directory path
+# - Environment variables
+# - Startup commands
+```
+
+### Unified Command System
+
+```bash
+# Interactive FZF mode
+cmd -i
+
+# Chain commands
+cmd -c "pm audit; infra health"
+
+# Parallel execution
+cmd -c "pm audit; skill list" -p
+
+# JSON output
+cmd -f json skill list
+
+# Replay history
+cmd self replay 5
+```
+
 ### Matrix Operations
 ```bash
 # Column CLI
@@ -577,4 +718,4 @@ bun run matrix:doctor         # Check health
 
 ---
 
-*Generated: 2026-01-31 | Tier-1380 OMEGA v1380.0.0*
+*Generated: 2026-01-31 | Tier-1380 OMEGA v1380.0.0 | Shell Integration v7.0*

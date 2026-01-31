@@ -12,6 +12,7 @@
 
 import { spawn } from 'bun';
 import { execSync } from 'child_process';
+import { platform } from 'os';
 
 type Signal = 'SIGTERM' | 'SIGKILL' | 'SIGINT' | 'SIGHUP';
 
@@ -117,7 +118,22 @@ class TestProcessManager {
       // Get process start time (platform-specific)
       let currentStartTime: number | undefined;
 
-      if (process.platform === 'darwin') {
+      if (platform() === 'win32') {
+        // Windows: use wmic to get process creation time
+        const output = execSync(`wmic process where ProcessId=${pid} get CreationDate /value`, { encoding: 'utf8' }).trim();
+        const match = output.match(/CreationDate=(.+)/);
+        if (match) {
+          // WMIC returns timestamp in format: 20240131123045.123456-480
+          const wmicTime = match[1];
+          const year = parseInt(wmicTime.substring(0, 4));
+          const month = parseInt(wmicTime.substring(4, 6)) - 1; // JS months are 0-indexed
+          const day = parseInt(wmicTime.substring(6, 8));
+          const hour = parseInt(wmicTime.substring(8, 10));
+          const minute = parseInt(wmicTime.substring(10, 12));
+          const second = parseInt(wmicTime.substring(12, 14));
+          currentStartTime = new Date(year, month, day, hour, minute, second).getTime();
+        }
+      } else if (process.platform === 'darwin') {
         // macOS: use ps -o lstart
         const output = execSync(`ps -p ${pid} -o lstart=`, { encoding: 'utf8' }).trim();
         if (output) {
@@ -154,7 +170,33 @@ class TestProcessManager {
   private static getProcessInfo(pid: number): ProcessInfo | null {
     try {
       // Use platform-specific method for better reliability
-      if (process.platform === 'darwin') {
+      if (platform() === 'win32') {
+        // Windows: use wmic to get process info
+        const output = execSync(`wmic process where ProcessId=${pid} get ProcessId,ParentProcessId,CreationDate,CommandLine /value`, { encoding: 'utf8' }).trim();
+        const lines = output.split('\n');
+
+        const info: any = {};
+        for (const line of lines) {
+          const match = line.match(/(.+)=(.+)/);
+          if (match) {
+            info[match[1]] = match[2];
+          }
+        }
+
+        if (info.ProcessId && parseInt(info.ProcessId) === pid) {
+          const startTime = info.CreationDate ? this.parseWMICDate(info.CreationDate).getTime() : undefined;
+          const command = info.CommandLine || '';
+
+          return {
+            pid: parseInt(info.ProcessId),
+            ppid: parseInt(info.ParentProcessId || '0'),
+            command,
+            args: command.split(' '),
+            isTest: this.isTestProcess(command),
+            startTime
+          };
+        }
+      } else if (process.platform === 'darwin') {
         const output = execSync(`ps -p ${pid} -o pid,ppid,lstart,command`, { encoding: 'utf8' });
         const lines = output.split('\n').slice(1);
 
@@ -216,6 +258,21 @@ class TestProcessManager {
   }
 
   /**
+   * Parse WMIC date format to JavaScript Date
+   */
+  private static parseWMICDate(wmicDate: string): Date {
+    // WMIC returns timestamp in format: 20240131123045.123456-480
+    const year = parseInt(wmicDate.substring(0, 4));
+    const month = parseInt(wmicDate.substring(4, 6)) - 1; // JS months are 0-indexed
+    const day = parseInt(wmicDate.substring(6, 8));
+    const hour = parseInt(wmicDate.substring(8, 10));
+    const minute = parseInt(wmicDate.substring(10, 12));
+    const second = parseInt(wmicDate.substring(12, 14));
+
+    return new Date(year, month, day, hour, minute, second);
+  }
+
+  /**
    * Find test-related processes using platform-specific methods
    */
   static findTestProcesses(): ProcessInfo[] {
@@ -223,7 +280,37 @@ class TestProcessManager {
       let output: string;
 
       // Use platform-specific commands for better performance
-      if (process.platform === 'darwin') {
+      if (platform() === 'win32') {
+        // Windows: use wmic to get process list
+        output = execSync('wmic process get ProcessId,ParentProcessId,CommandLine /value', { encoding: 'utf8' });
+        const lines = output.split('\n').filter(line => line.trim());
+        const testProcesses: ProcessInfo[] = [];
+
+        let currentProcess: any = {};
+        for (const line of lines) {
+          if (line.includes('=')) {
+            const [key, value] = line.split('=');
+            currentProcess[key] = value;
+          } else {
+            // Empty line indicates end of process entry
+            if (currentProcess.ProcessId && currentProcess.CommandLine) {
+              const command = currentProcess.CommandLine;
+              if (this.isTestProcess(command)) {
+                testProcesses.push({
+                  pid: parseInt(currentProcess.ProcessId),
+                  ppid: parseInt(currentProcess.ParentProcessId || '0'),
+                  command,
+                  args: command.split(' '),
+                  isTest: true
+                });
+              }
+            }
+            currentProcess = {};
+          }
+        }
+
+        return testProcesses;
+      } else if (process.platform === 'darwin') {
         output = execSync('ps aux', { encoding: 'utf8' });
       } else if (process.platform === 'linux') {
         // More efficient on Linux - only get necessary columns
@@ -294,12 +381,17 @@ class TestProcessManager {
       'jest',
       'vitest',
       'mocha',
-      'jasmine'
+      'ava',
+      'tap',
+      'node.*test',
+      'test.*js',
+      'test.*ts'
     ];
 
-    return testPatterns.some(pattern =>
-      new RegExp(pattern).test(command.toLowerCase())
-    );
+    return testPatterns.some(pattern => {
+      const regex = new RegExp(pattern, 'i');
+      return regex.test(command);
+    });
   }
 
   /**
@@ -307,35 +399,77 @@ class TestProcessManager {
    */
   static list(testsOnly: boolean = false): void {
     try {
-      const output = execSync('ps aux', { encoding: 'utf8' });
-      const lines = output.split('\n').slice(1); // Skip header
+      let output: string;
 
-      console.log('📋 Running Processes:');
-      console.log();
+      if (platform() === 'win32') {
+        output = execSync('wmic process get ProcessId,CommandLine /value', { encoding: 'utf8' });
+        const lines = output.split('\n').filter(line => line.trim());
+        const testProcesses: ProcessInfo[] = [];
 
-      let foundAny = false;
-
-      for (const line of lines) {
-        if (!line.trim()) continue;
-
-        const parts = line.trim().split(/\s+/);
-        const pid = parts[1];
-        const command = parts.slice(10).join(' ');
-
-        const isTest = this.isTestProcess(command);
-
-        if (!testsOnly || isTest) {
-          const icon = isTest ? '🧪' : '📄';
-          console.log(`${icon} PID: ${pid.padEnd(8)} ${command}`);
-          foundAny = true;
+        let currentProcess: any = {};
+        for (const line of lines) {
+          if (line.includes('=')) {
+            const [key, value] = line.split('=');
+            currentProcess[key] = value;
+          } else {
+            // Empty line indicates end of process entry
+            if (currentProcess.ProcessId && currentProcess.CommandLine) {
+              const command = currentProcess.CommandLine;
+              if (this.isTestProcess(command)) {
+                testProcesses.push({
+                  pid: parseInt(currentProcess.ProcessId),
+                  ppid: parseInt(currentProcess.ParentProcessId || '0'),
+                  command,
+                  args: command.split(' '),
+                  isTest: true
+                });
+              }
+            }
+            currentProcess = {};
+          }
         }
-      }
 
-      if (!foundAny) {
         if (testsOnly) {
-          console.log('🧪 No test processes found');
+          console.log('🧪 Test Processes:');
+          testProcesses.forEach(p => {
+            console.log(`   PID ${p.pid}: ${p.command}`);
+          });
         } else {
-          console.log('📄 No processes found');
+          console.log('📄 All Processes:');
+          testProcesses.forEach(p => {
+            console.log(`   PID ${p.pid}: ${p.command}`);
+          });
+        }
+      } else {
+        output = execSync('ps aux', { encoding: 'utf8' });
+        const lines = output.split('\n');
+
+        console.log();
+
+        let foundAny = false;
+
+        for (const line of lines) {
+          if (!line.trim()) continue;
+
+          const parts = line.trim().split(/\s+/);
+          const pid = parts[1];
+          const command = parts.slice(10).join(' ');
+
+          const isTest = this.isTestProcess(command);
+
+          if (!testsOnly || isTest) {
+            const icon = isTest ? '🧪' : '📄';
+            console.log(`${icon} PID: ${pid.padEnd(8)} ${command}`);
+            foundAny = true;
+          }
+        }
+
+        if (!foundAny) {
+          if (testsOnly) {
+            console.log('🧪 No test processes found');
+          } else {
+            console.log('📄 No processes found');
+          }
         }
       }
     } catch (error) {

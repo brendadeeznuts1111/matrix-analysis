@@ -44,6 +44,7 @@ class CIDetector {
   private cachedResult: CIEnvironment | null = null;
   private cacheTimestamp: number = 0;
   private readonly CACHE_TTL = 60000; // 1 minute cache TTL
+  private cacheMutex: Promise<void> = Promise.resolve();
 
   constructor(env: Record<string, string | undefined> = process.env) {
     this.env = env;
@@ -96,13 +97,64 @@ class CIDetector {
   /**
    * Detect the current CI environment
    */
-  detect(): CIEnvironment {
+  async detect(): Promise<CIEnvironment> {
+    // Acquire cache mutex lock
+    await this.cacheMutex;
+
+    // Release function for the mutex
+    const releaseMutex = () => {
+      this.cacheMutex = this.cacheMutex.then(() => {}, () => {});
+    };
+
+    try {
+      // Check if cache is still valid
+      const now = Date.now();
+      if (this.cachedResult && (now - this.cacheTimestamp) < this.CACHE_TTL) {
+        releaseMutex();
+        return this.cachedResult;
+      }
+
+      // Generate new result
+      const ci = this.detectCIPlatform();
+
+      this.cachedResult = {
+        name: ci.name,
+        isCI: ci.isCI,
+        isGitHubActions: ci.name === 'GitHub Actions',
+        isPR: this.isPullRequest(),
+        branch: this.getBranch(),
+        tag: this.getTag(),
+        commit: this.getCommit(),
+        buildNumber: this.getBuildNumber(),
+        buildUrl: this.getBuildUrl(),
+        annotations: {
+          enabled: this.shouldEmitAnnotations(),
+          format: ci.name === 'GitHub Actions' ? 'github' : 'generic'
+        }
+      };
+
+      // Update cache timestamp
+      this.cacheTimestamp = now;
+
+      releaseMutex();
+      return this.cachedResult;
+    } catch (error) {
+      releaseMutex();
+      throw error;
+    }
+  }
+
+  /**
+   * Synchronous detect method (for backward compatibility)
+   */
+  detectSync(): CIEnvironment {
     // Check if cache is still valid
     const now = Date.now();
     if (this.cachedResult && (now - this.cacheTimestamp) < this.CACHE_TTL) {
       return this.cachedResult;
     }
 
+    // Generate new result synchronously
     const ci = this.detectCIPlatform();
 
     this.cachedResult = {
@@ -302,27 +354,10 @@ class CIDetector {
            this.env.CIRCLE_SHA1 ||
            this.env.TRAVIS_COMMIT ||
            this.env.COMMIT ||
+           this.env.GIT_COMMIT ||
+           this.env.BITBUCKET_COMMIT ||
+           this.env.APPVEYOR_REPO_COMMIT ||
            undefined;
-    if (this.env.TRAVIS_COMMIT) {
-      return this.env.TRAVIS_COMMIT;
-    }
-
-    // Jenkins
-    if (this.env.GIT_COMMIT) {
-      return this.env.GIT_COMMIT;
-    }
-
-    // Bitbucket Pipelines
-    if (this.env.BITBUCKET_COMMIT) {
-      return this.env.BITBUCKET_COMMIT;
-    }
-
-    // AppVeyor
-    if (this.env.APPVEYOR_REPO_COMMIT) {
-      return this.env.APPVEYOR_REPO_COMMIT;
-    }
-
-    return undefined;
   }
 
   /**
@@ -436,7 +471,7 @@ class CIDetector {
     col?: number;
     title?: string;
   }): void {
-    const ci = this.detect();
+    const ci = this.detectSync();
 
     if (!ci.annotations.enabled) {
       return;
@@ -483,7 +518,7 @@ class CIDetector {
    * Emit a group annotation (GitHub Actions only)
    */
   startGroup(name: string): void {
-    const ci = this.detect();
+    const ci = this.detectSync();
 
     if (ci.isGitHubActions) {
       console.log(`::group::${name}`);
@@ -496,7 +531,7 @@ class CIDetector {
    * End a group annotation (GitHub Actions only)
    */
   endGroup(): void {
-    const ci = this.detect();
+    const ci = this.detectSync();
 
     if (ci.isGitHubActions) {
       console.log('::endgroup::');

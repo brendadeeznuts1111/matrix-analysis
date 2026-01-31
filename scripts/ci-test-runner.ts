@@ -40,7 +40,7 @@ class CITestRunner {
   private config: ReturnType<typeof testConfig.getConfig>;
 
   constructor() {
-    this.ci = CIDetector.getInstanceSync().detect();
+    this.ci = CIDetector.getInstanceSync().detectSync();
     this.config = testConfig.getConfig();
 
     // Configure environment
