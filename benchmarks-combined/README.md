@@ -160,11 +160,11 @@ bun run hash       # Hash performance test
 
 The benchmark suite supports three profiles:
 
-| Profile | Environment | Description |
-|---------|-------------|-------------|
+| Profile    | Environment      | Description                        |
+|------------|-----------------|------------------------------------|
 | **development** | Local development | Full debugging and verbose output |
-| **staging** | Pre-production | Production-like settings with debug info |
-| **production** | Production | Optimized, minimal output |
+| **staging**     | Pre-production   | Production-like settings with debug info |
+| **production**  | Production       | Optimized, minimal output          |
 
 ### CI/CD Integration
 
@@ -191,12 +191,12 @@ The benchmark suite supports three profiles:
 
 ### Domain Endpoints
 
-| Service | URL | Purpose |
-|---------|-----|---------|
-| **Production** | https://factory-wager.com | Main application |
-| **Staging** | https://staging.factory-wager.com | Pre-production testing |
-| **API** | https://api.factory-wager.com | REST API endpoints |
-| **Metrics** | https://metrics.factory-wager.com | Performance metrics |
+| Service     | URL                                    | Purpose               |
+|-------------|----------------------------------------|-----------------------|
+| **Production** | <https://factory-wager.com>           | Main application      |
+| **Staging**     | <https://staging.factory-wager.com>   | Pre-production testing |
+| **API**         | <https://api.factory-wager.com>       | REST API endpoints    |
+| **Metrics**     | <https://metrics.factory-wager.com>   | Performance metrics   |
 
 ## �🧹 Cleanup (After Migration)
 
