@@ -155,8 +155,7 @@ docs/tablformating/
 dotfiles/
 go/
 skills/
-test/
-
+/test/
 # Project directories (if not meant to be tracked)
 Projects/
 

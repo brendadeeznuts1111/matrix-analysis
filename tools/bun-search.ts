@@ -1,39 +1,41 @@
 #!/usr/bin/env bun
-// Bun Package Search Tool
-// Usage: bun run bun-search.ts <query>
+/**
+ * Bun Package Search Tool
+ * Searches the npm registry for packages
+ */
+
 import { EXIT_CODES } from "../.claude/lib/exit-codes.ts";
+import { defineCommand, fmt } from "../.claude/lib/cli.ts";
 
-const query = Bun.argv.slice(2).join(" ");
+defineCommand({
+	name: "bun-search",
+	description: "Search the npm registry for packages",
+	usage: "bun tools/bun-search.ts <query>",
+	options: {},
+	async run(_values, positionals) {
+		const query = positionals.join(" ");
 
-if (!query) {
-  console.error("Usage: bun run bun-search.ts <package-name>");
-  process.exit(EXIT_CODES.USAGE_ERROR);
-}
+		if (!query) {
+			console.error(fmt.fail("No search query provided"));
+			console.error("Usage: bun tools/bun-search.ts <package-name>");
+			process.exit(EXIT_CODES.USAGE_ERROR);
+		}
 
-// Search npm registry using npm's API
-const searchPackages = async (q: string) => {
-  const url = `https://registry.npmjs.org/-/v1/search?text=${encodeURIComponent(q)}&size=20`;
-  
-  try {
-    const res = await fetch(url);
-    const data = await res.json();
-    
-    console.log(`\n🔍 Search results for "${q}":\n`);
-    
-    for (const pkg of data.objects || []) {
-      const p = pkg.package;
-      console.log(`📦 ${p.name}@${p.version}`);
-      console.log(`   ${p.description?.slice(0, 80) || "No description"}${p.description?.length > 80 ? "..." : ""}`);
-      console.log(`   ⬇️  Weekly downloads: ${pkg.downloads?.weekly?.toLocaleString() || "N/A"}`);
-      console.log(`   🔗 https://www.npmjs.com/package/${p.name}\n`);
-    }
-    
-    console.log(`Found ${data.total} packages total`);
-    
-  } catch (err) {
-    console.error("Search failed:", err);
-    process.exit(EXIT_CODES.USAGE_ERROR);
-  }
-};
+		const url = `https://registry.npmjs.org/-/v1/search?text=${encodeURIComponent(query)}&size=20`;
 
-searchPackages(query);
+		const res = await fetch(url);
+		const data = await res.json();
+
+		console.log(`\nSearch results for "${query}":\n`);
+
+		for (const pkg of data.objects || []) {
+			const p = pkg.package;
+			console.log(`  ${p.name}@${p.version}`);
+			console.log(`   ${p.description?.slice(0, 80) || "No description"}${p.description?.length > 80 ? "..." : ""}`);
+			console.log(`   Downloads: ${pkg.downloads?.weekly?.toLocaleString() || "N/A"}/week`);
+			console.log(`   https://www.npmjs.com/package/${p.name}\n`);
+		}
+
+		console.log(`Found ${data.total} packages total`);
+	},
+});

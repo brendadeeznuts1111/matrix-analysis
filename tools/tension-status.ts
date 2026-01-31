@@ -5,6 +5,16 @@
  */
 
 import { $ } from "bun";
+import { fmt, jsc } from "../.claude/lib/cli.ts";
+import { EXIT_CODES } from "../.claude/lib/exit-codes.ts";
+
+// ── --help ──────────────────────────────────────────────────────────────────
+if (Bun.argv.includes("--help") || Bun.argv.includes("-h")) {
+	console.log(`\n${fmt.bold("tension-status")} — Health dashboard with Bun-native checks\n`);
+	console.log(`${fmt.bold("Usage:")} bun tools/tension-status.ts\n`);
+	console.log("Runs all checks and outputs a status table. No flags required.");
+	process.exit(EXIT_CODES.SUCCESS);
+}
 
 interface CheckRow {
   check: string;
@@ -261,17 +271,56 @@ for (const knob of ENV_KNOBS) {
   });
 }
 
-// ── GC + Post-GC Memory ────────────────────────────────────────────────────
-Bun.gc(true);
-const postGC = process.memoryUsage();
-const postHeapMB = (postGC.heapUsed / 1024 / 1024).toFixed(1);
-const postRssMB = (postGC.rss / 1024 / 1024).toFixed(1);
-rows.push({
-  check: "Perf: Post-GC Mem",
-  pattern: "Bun.gc(true); memoryUsage()",
-  result: `heap ${postHeapMB}MB / rss ${postRssMB}MB`,
-  count: parseInt(postRssMB, 10),
-});
+// ── JSC Heap Stats ────────────────────────────────────────────────────────
+try {
+  const heap = jsc.heapStats();
+  rows.push({
+    check: "JSC: Heap",
+    pattern: "jsc.heapStats()",
+    result: `${(heap.heapSize / 1024 / 1024).toFixed(1)}MB / ${(heap.heapCapacity / 1024 / 1024).toFixed(1)}MB cap`,
+    count: heap.objectCount,
+  });
+  // Top 3 object types by count
+  const topTypes = Object.entries(heap.objectTypeCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 3)
+    .map(([t, n]) => `${t}(${n})`)
+    .join(", ");
+  rows.push({
+    check: "JSC: Top Objects",
+    pattern: "heapStats().objectTypeCounts",
+    result: topTypes || "N/A",
+    count: heap.objectCount,
+  });
+} catch {
+  rows.push({ check: "JSC: Heap", pattern: "jsc.heapStats()", result: "SKIP", count: 0 });
+}
+
+// ── JSC GC Efficiency ─────────────────────────────────────────────────────
+try {
+  const gc = jsc.gc();
+  rows.push({
+    check: "JSC: GC",
+    pattern: "jsc.gc()",
+    result: `freed ${gc.freedMB}MB (${(gc.before / 1024 / 1024).toFixed(1)} → ${(gc.after / 1024 / 1024).toFixed(1)}MB)`,
+    count: gc.freedBytes,
+  });
+} catch {
+  rows.push({ check: "JSC: GC", pattern: "jsc.gc()", result: "SKIP", count: 0 });
+}
+
+// ── JSC Memory Pressure ───────────────────────────────────────────────────
+try {
+  const pressure = jsc.memoryPressure();
+  rows.push({
+    check: "JSC: Mem Pressure",
+    pattern: "jsc.memoryPressure()",
+    result: `${pressure.toFixed(1)}% of available`,
+    count: Math.round(pressure),
+  });
+} catch {
+  rows.push({ check: "JSC: Mem Pressure", pattern: "jsc.memoryPressure()", result: "SKIP", count: 0 });
+}
 
 // ── Output ──────────────────────────────────────────────────────────────────
 console.log("Tension-Field-God Status\n");

@@ -1,71 +1,42 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuites name="bun test" tests="34" assertions="58" failures="0" skipped="0" time="0.037047">
-  <testsuite name="mcp-bun-docs/search-bun.test.ts" file="mcp-bun-docs/search-bun.test.ts" tests="34" assertions="58" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-    <testsuite name="SearchBun / lib" file="mcp-bun-docs/search-bun.test.ts" line="29" tests="34" assertions="58" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-      <testsuite name="constants" file="mcp-bun-docs/search-bun.test.ts" line="40" tests="6" assertions="6" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-        <testcase name="should point BUN_DOCS_BASE to bun.com" classname="constants &amp;gt; SearchBun / lib" time="0.000694" file="mcp-bun-docs/search-bun.test.ts" line="41" assertions="1" />
-        <testcase name="should set BUN_DOCS_MIN_VERSION to 1.3.6" classname="constants &amp;gt; SearchBun / lib" time="0" file="mcp-bun-docs/search-bun.test.ts" line="45" assertions="1" />
-        <testcase name="should map BUN_DOC_MAP fetch to guides/http/fetch" classname="constants &amp;gt; SearchBun / lib" time="0" file="mcp-bun-docs/search-bun.test.ts" line="54" assertions="1" />
-        <testcase name="should map BUN_DOC_MAP serve to api/http" classname="constants &amp;gt; SearchBun / lib" time="0" file="mcp-bun-docs/search-bun.test.ts" line="54" assertions="1" />
-        <testcase name="should map BUN_DOC_MAP sqlite to api/sqlite" classname="constants &amp;gt; SearchBun / lib" time="0" file="mcp-bun-docs/search-bun.test.ts" line="54" assertions="1" />
-        <testcase name="should map BUN_DOC_MAP mcp to mcp" classname="constants &amp;gt; SearchBun / lib" time="0" file="mcp-bun-docs/search-bun.test.ts" line="54" assertions="1" />
-      </testsuite>
-      <testsuite name="buildDocUrl" file="mcp-bun-docs/search-bun.test.ts" line="59" tests="3" assertions="3" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-        <testcase name="should append path for relative api/http" classname="buildDocUrl &amp;gt; SearchBun / lib" time="0.000219" file="mcp-bun-docs/search-bun.test.ts" line="63" assertions="1" />
-        <testcase name="should append path for relative guides/http/fetch" classname="buildDocUrl &amp;gt; SearchBun / lib" time="0" file="mcp-bun-docs/search-bun.test.ts" line="63" assertions="1" />
-        <testcase name="should return absolute URL as-is" classname="buildDocUrl &amp;gt; SearchBun / lib" time="0.000103" file="mcp-bun-docs/search-bun.test.ts" line="67" assertions="1" />
-      </testsuite>
-      <testsuite name="searchBunDocs" file="mcp-bun-docs/search-bun.test.ts" line="73" tests="7" assertions="13" failures="0" skipped="0" time="0.003" hostname="Mac.attlocal.net">
-        <testcase name="should return markdown for known term fetch" classname="searchBunDocs &amp;gt; SearchBun / lib" time="0.003043" file="mcp-bun-docs/search-bun.test.ts" line="75" assertions="4" />
-        <testcase name="should return markdown for known term serve" classname="searchBunDocs &amp;gt; SearchBun / lib" time="0.000523" file="mcp-bun-docs/search-bun.test.ts" line="84" assertions="1" />
-        <testcase name="should map postgres to api/sql not sqlite" classname="searchBunDocs &amp;gt; SearchBun / lib" time="0.000154" file="mcp-bun-docs/search-bun.test.ts" line="90" assertions="2" />
-        <testcase name="should return fallback for unknown term" classname="searchBunDocs &amp;gt; SearchBun / lib" time="0.000142" file="mcp-bun-docs/search-bun.test.ts" line="97" assertions="3" />
-        <testcase name="should accept empty opts" classname="searchBunDocs &amp;gt; SearchBun / lib" time="0.000275" file="mcp-bun-docs/search-bun.test.ts" line="105" assertions="1" />
-        <testcase name="should trim query before search" classname="searchBunDocs &amp;gt; SearchBun / lib" time="0.000194" file="mcp-bun-docs/search-bun.test.ts" line="111" assertions="1" />
-        <testcase name="should exclude mcp when bunVersion filters too-new APIs" classname="searchBunDocs &amp;gt; SearchBun / lib" time="0.000564" file="mcp-bun-docs/search-bun.test.ts" line="117" assertions="1" />
-      </testsuite>
-      <testsuite name="BUN_DOC_ENTRIES" file="mcp-bun-docs/search-bun.test.ts" line="124" tests="1" assertions="6" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-        <testcase name="should have Tier-1380 schema fields" classname="BUN_DOC_ENTRIES &amp;gt; SearchBun / lib" time="0.000157" file="mcp-bun-docs/search-bun.test.ts" line="125" assertions="6" />
-      </testsuite>
-      <testsuite name="filterEntriesByVersion" file="mcp-bun-docs/search-bun.test.ts" line="136" tests="1" assertions="3" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-        <testcase name="should hide APIs requiring newer runtime" classname="filterEntriesByVersion &amp;gt; SearchBun / lib" time="0.000278" file="mcp-bun-docs/search-bun.test.ts" line="137" assertions="3" />
-      </testsuite>
-      <testsuite name="filterEntriesByStability" file="mcp-bun-docs/search-bun.test.ts" line="145" tests="2" assertions="4" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-        <testcase name="should exclude experimental for prod" classname="filterEntriesByStability &amp;gt; SearchBun / lib" time="0.000247" file="mcp-bun-docs/search-bun.test.ts" line="146" assertions="2" />
-        <testcase name="should exclude Bun.inspect.table from prod-safe" classname="filterEntriesByStability &amp;gt; SearchBun / lib" time="0.000177" file="mcp-bun-docs/search-bun.test.ts" line="152" assertions="2" />
-      </testsuite>
-      <testsuite name="filterEntriesByPlatform" file="mcp-bun-docs/search-bun.test.ts" line="159" tests="1" assertions="2" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-        <testcase name="should exclude darwin+linux-only on win32" classname="filterEntriesByPlatform &amp;gt; SearchBun / lib" time="0.000148" file="mcp-bun-docs/search-bun.test.ts" line="160" assertions="2" />
-      </testsuite>
-      <testsuite name="BINARY_PERF_METRICS" file="mcp-bun-docs/search-bun.test.ts" line="167" tests="1" assertions="4" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-        <testcase name="should include Buffer.swap16 and Buffer.swap64" classname="BINARY_PERF_METRICS &amp;gt; SearchBun / lib" time="0.00004" file="mcp-bun-docs/search-bun.test.ts" line="168" assertions="4" />
-      </testsuite>
-      <testsuite name="BUN_DOC_MAP buffer ops" file="mcp-bun-docs/search-bun.test.ts" line="176" tests="2" assertions="2" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-        <testcase name="should map Buffer.swap16 to api/buffer" classname="BUN_DOC_MAP buffer ops &amp;gt; SearchBun / lib" time="0.000008" file="mcp-bun-docs/search-bun.test.ts" line="180" assertions="1" />
-        <testcase name="should map Buffer.swap64 to api/buffer" classname="BUN_DOC_MAP buffer ops &amp;gt; SearchBun / lib" time="0.000004" file="mcp-bun-docs/search-bun.test.ts" line="180" assertions="1" />
-      </testsuite>
-      <testsuite name="TEST_CONFIG_MATRIX" file="mcp-bun-docs/search-bun.test.ts" line="185" tests="2" assertions="4" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-        <testcase name="should have install inheritance row" classname="TEST_CONFIG_MATRIX &amp;gt; SearchBun / lib" time="0.00001" file="mcp-bun-docs/search-bun.test.ts" line="186" assertions="2" />
-        <testcase name="should have [test.ci] profile" classname="TEST_CONFIG_MATRIX &amp;gt; SearchBun / lib" time="0.000091" file="mcp-bun-docs/search-bun.test.ts" line="192" assertions="2" />
-      </testsuite>
-      <testsuite name="bun test entry" file="mcp-bun-docs/search-bun.test.ts" line="199" tests="1" assertions="1" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-        <testcase name="should map bun test to test path" classname="bun test entry &amp;gt; SearchBun / lib" time="0.000041" file="mcp-bun-docs/search-bun.test.ts" line="200" assertions="1" />
-      </testsuite>
-      <testsuite name="TIER_1380_COMPLIANCE" file="mcp-bun-docs/search-bun.test.ts" line="205" tests="1" assertions="2" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-        <testcase name="should document Transpiler.replMode Col 93 and maxHeaders" classname="TIER_1380_COMPLIANCE &amp;gt; SearchBun / lib" time="0.000018" file="mcp-bun-docs/search-bun.test.ts" line="206" assertions="2" />
-      </testsuite>
-      <testsuite name="BUN_137_FEATURE_MATRIX" file="mcp-bun-docs/search-bun.test.ts" line="213" tests="2" assertions="3" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-        <testcase name="should include S3.presign and String.isWellFormed" classname="BUN_137_FEATURE_MATRIX &amp;gt; SearchBun / lib" time="0.000018" file="mcp-bun-docs/search-bun.test.ts" line="214" assertions="2" />
-        <testcase name="should have 7 v1.3.7 features" classname="BUN_137_FEATURE_MATRIX &amp;gt; SearchBun / lib" time="0.000004" file="mcp-bun-docs/search-bun.test.ts" line="219" assertions="1" />
-      </testsuite>
-      <testsuite name="BUN_137_COMPLETE_MATRIX" file="mcp-bun-docs/search-bun.test.ts" line="224" tests="2" assertions="3" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-        <testcase name="should include Buffer.from and Bun.wrapAnsi" classname="BUN_137_COMPLETE_MATRIX &amp;gt; SearchBun / lib" time="0.000009" file="mcp-bun-docs/search-bun.test.ts" line="225" assertions="2" />
-        <testcase name="should have 20 complete matrix rows (v1.3.7 catalog)" classname="BUN_137_COMPLETE_MATRIX &amp;gt; SearchBun / lib" time="0.000307" file="mcp-bun-docs/search-bun.test.ts" line="230" assertions="1" />
-      </testsuite>
-      <testsuite name="v1.3.7 BUN_DOC_ENTRIES" file="mcp-bun-docs/search-bun.test.ts" line="235" tests="2" assertions="2" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-        <testcase name="should map S3File.presign to api/s3" classname="v1.3.7 BUN_DOC_ENTRIES &amp;gt; SearchBun / lib" time="0.000011" file="mcp-bun-docs/search-bun.test.ts" line="236" assertions="1" />
-        <testcase name="should map node:inspector to api/node-inspector" classname="v1.3.7 BUN_DOC_ENTRIES &amp;gt; SearchBun / lib" time="0.000014" file="mcp-bun-docs/search-bun.test.ts" line="239" assertions="1" />
-      </testsuite>
+<testsuites name="bun test" tests="27" assertions="72" failures="0" skipped="0" time="0.202206">
+  <testsuite name=".claude/core/terminal/ProfileTerminalBindingManager.test.ts" file=".claude/core/terminal/ProfileTerminalBindingManager.test.ts" tests="27" assertions="72" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+    <testsuite name="TerminalManager" file=".claude/core/terminal/ProfileTerminalBindingManager.test.ts" line="49" tests="8" assertions="18" failures="0" skipped="0" time="0.125" hostname="Mac.attlocal.net">
+      <testcase name="should register a new terminal" classname="TerminalManager" time="0.025032" file=".claude/core/terminal/ProfileTerminalBindingManager.test.ts" line="56" assertions="4" />
+      <testcase name="should track active terminal" classname="TerminalManager" time="0.017479" file=".claude/core/terminal/ProfileTerminalBindingManager.test.ts" line="65" assertions="2" />
+      <testcase name="should update terminal profile" classname="TerminalManager" time="0.014396" file=".claude/core/terminal/ProfileTerminalBindingManager.test.ts" line="72" assertions="2" />
+      <testcase name="should return false for non-existent terminal" classname="TerminalManager" time="0.000027" file=".claude/core/terminal/ProfileTerminalBindingManager.test.ts" line="81" assertions="1" />
+      <testcase name="should get terminals by profile" classname="TerminalManager" time="0.0345" file=".claude/core/terminal/ProfileTerminalBindingManager.test.ts" line="86" assertions="2" />
+      <testcase name="should unregister terminal" classname="TerminalManager" time="0.013275" file=".claude/core/terminal/ProfileTerminalBindingManager.test.ts" line="97" assertions="2" />
+      <testcase name="should generate terminal matrix" classname="TerminalManager" time="0.0116" file=".claude/core/terminal/ProfileTerminalBindingManager.test.ts" line="106" assertions="3" />
+      <testcase name="should cleanup stale terminals" classname="TerminalManager" time="0.011044" file=".claude/core/terminal/ProfileTerminalBindingManager.test.ts" line="116" assertions="2" />
+    </testsuite>
+    <testsuite name="ProfileManager" file=".claude/core/terminal/ProfileTerminalBindingManager.test.ts" line="132" tests="8" assertions="19" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+      <testcase name="should set active profile" classname="ProfileManager" time="0.000088" file=".claude/core/terminal/ProfileTerminalBindingManager.test.ts" line="139" assertions="3" />
+      <testcase name="should return false for non-existent profile" classname="ProfileManager" time="0.000019" file=".claude/core/terminal/ProfileTerminalBindingManager.test.ts" line="155" assertions="1" />
+      <testcase name="should bind profile to project" classname="ProfileManager" time="0.000027" file=".claude/core/terminal/ProfileTerminalBindingManager.test.ts" line="160" assertions="4" />
+      <testcase name="should get project binding" classname="ProfileManager" time="0.000027" file=".claude/core/terminal/ProfileTerminalBindingManager.test.ts" line="169" assertions="2" />
+      <testcase name="should return null for unbound project" classname="ProfileManager" time="0.000018" file=".claude/core/terminal/ProfileTerminalBindingManager.test.ts" line="178" assertions="1" />
+      <testcase name="should unbind project" classname="ProfileManager" time="0.000016" file=".claude/core/terminal/ProfileTerminalBindingManager.test.ts" line="183" assertions="2" />
+      <testcase name="should add path mappings sorted by priority" classname="ProfileManager" time="0.000123" file=".claude/core/terminal/ProfileTerminalBindingManager.test.ts" line="192" assertions="1" />
+      <testcase name="should generate profile matrix" classname="ProfileManager" time="0.00005" file=".claude/core/terminal/ProfileTerminalBindingManager.test.ts" line="211" assertions="5" />
+    </testsuite>
+    <testsuite name="SessionManager" file=".claude/core/terminal/ProfileTerminalBindingManager.test.ts" line="237" tests="4" assertions="11" failures="0" skipped="0" time="0.012" hostname="Mac.attlocal.net">
+      <testcase name="should create session for terminal" classname="SessionManager" time="0.000361" file=".claude/core/terminal/ProfileTerminalBindingManager.test.ts" line="244" assertions="4" />
+      <testcase name="should get terminal session" classname="SessionManager" time="0.000113" file=".claude/core/terminal/ProfileTerminalBindingManager.test.ts" line="253" assertions="2" />
+      <testcase name="should touch session to update activity" classname="SessionManager" time="0.012733" file=".claude/core/terminal/ProfileTerminalBindingManager.test.ts" line="262" assertions="2" />
+      <testcase name="should end session" classname="SessionManager" time="0.000164" file=".claude/core/terminal/ProfileTerminalBindingManager.test.ts" line="275" assertions="3" />
+    </testsuite>
+    <testsuite name="ProfileTerminalBindingManager" file=".claude/core/terminal/ProfileTerminalBindingManager.test.ts" line="290" tests="6" assertions="17" failures="0" skipped="0" time="0.004" hostname="Mac.attlocal.net">
+      <testcase name="should initialize with RSS and MCP adapters" classname="ProfileTerminalBindingManager" time="0.004204" file=".claude/core/terminal/ProfileTerminalBindingManager.test.ts" line="306" assertions="1" />
+      <testcase name="should bind current directory" classname="ProfileTerminalBindingManager" time="0.000359" file=".claude/core/terminal/ProfileTerminalBindingManager.test.ts" line="312" assertions="2" />
+      <testcase name="should switch profile" classname="ProfileTerminalBindingManager" time="0.000755" file=".claude/core/terminal/ProfileTerminalBindingManager.test.ts" line="329" assertions="2" />
+      <testcase name="should generate profile matrix" classname="ProfileTerminalBindingManager" time="0.000357" file=".claude/core/terminal/ProfileTerminalBindingManager.test.ts" line="346" assertions="3" />
+      <testcase name="should broadcast matrix update" classname="ProfileTerminalBindingManager" time="0.000353" file=".claude/core/terminal/ProfileTerminalBindingManager.test.ts" line="356" assertions="5" />
+      <testcase name="should get stats" classname="ProfileTerminalBindingManager" time="0.000378" file=".claude/core/terminal/ProfileTerminalBindingManager.test.ts" line="368" assertions="4" />
+    </testsuite>
+    <testsuite name="Integration" file=".claude/core/terminal/ProfileTerminalBindingManager.test.ts" line="384" tests="1" assertions="7" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+      <testcase name="should handle full workflow" classname="Integration" time="0.000347" file=".claude/core/terminal/ProfileTerminalBindingManager.test.ts" line="385" assertions="7" />
     </testsuite>
   </testsuite>
 </testsuites>

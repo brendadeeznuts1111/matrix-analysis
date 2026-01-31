@@ -1,0 +1,22 @@
+{
+    "app_id": 20001731,
+    "os_name": "mac",
+    "os_version": "10_15_7",
+    "device_model": "Macintosh",
+    "language": "en-US",
+    "platform": "web",
+    "sdk_version": "5.1.12_tob",
+    "sdk_lib": "js",
+    "timezone": -6,
+    "tz_offset": 21600,
+    "resolution": "3840x2160",
+    "browser": "Chrome",
+    "browser_version": "144.0.0.0",
+    "referrer": "",
+    "referrer_host": "",
+    "width": 3840,
+    "height": 2160,
+    "screen_width": 3840,
+    "screen_height": 2160,
+    "custom": "{\"msh_web_to_path\":\"/share/19c114fb-0802-83c6-8000-0000a99007c5\",\"msh_web_from_path\":null,\"msh_web_host\":\"https://www.kimi.com\",\"msh_web_release\":\"1ba2cf7\",\"msh_web_release_date\":\"2026-01-30 23:13:39\",\"msh_locale\":\"en-US\"}"
+}

@@ -1,3 +1,5 @@
+import { COLORS } from "../../.claude/lib/cli.ts";
+
 const SENSITIVE_PATTERNS = [
   "SECRET",
   "PASSWORD",
@@ -24,17 +26,17 @@ export function maskValue(key: string, value: string): string {
 
 export function printValidation(passed: boolean, errors: string[] = [], warnings: string[] = []): void {
   if (passed) {
-    console.log("\x1b[32m✓ Validation: PASSED\x1b[0m");
+    console.log(`${COLORS.green}✓ Validation: PASSED${COLORS.reset}`);
   } else {
-    console.log("\x1b[31m✗ Validation: FAILED\x1b[0m");
+    console.log(`${COLORS.red}✗ Validation: FAILED${COLORS.reset}`);
   }
 
   for (const error of errors) {
-    console.log(`  \x1b[31m✗ ${error}\x1b[0m`);
+    console.log(`  ${COLORS.red}✗ ${error}${COLORS.reset}`);
   }
 
   for (const warning of warnings) {
-    console.log(`  \x1b[33m⚠ ${warning}\x1b[0m`);
+    console.log(`  ${COLORS.yellow}⚠ ${warning}${COLORS.reset}`);
   }
 }
 
@@ -85,13 +87,13 @@ export function printEnvChanges(
 
     if (change.isChanged && change.oldValue !== undefined) {
       const maskedOld = maskValue(change.key, change.oldValue);
-      line += ` \x1b[33m(was: ${maskedOld})\x1b[0m`;
+      line += ` ${COLORS.yellow}(was: ${maskedOld})${COLORS.reset}`;
     } else if (change.isNew) {
-      line += " \x1b[32m(new)\x1b[0m";
+      line += ` ${COLORS.green}(new)${COLORS.reset}`;
     }
 
     if (isSensitiveKey(change.key)) {
-      line += " \x1b[90m(masked)\x1b[0m";
+      line += ` ${COLORS.dim}(masked)${COLORS.reset}`;
     }
 
     console.log(line);
@@ -123,7 +125,7 @@ export function detectConflicts(
 export function printConflicts(conflicts: Conflict[]): void {
   if (conflicts.length === 0) return;
 
-  console.log(`\n\x1b[33m⚠ Conflicts detected (${conflicts.length}):\x1b[0m`);
+  console.log(`\n${COLORS.yellow}⚠ Conflicts detected (${conflicts.length}):${COLORS.reset}`);
 
   for (const conflict of conflicts) {
     const maskedCurrent = maskValue(conflict.key, conflict.currentValue);

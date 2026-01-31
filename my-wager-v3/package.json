@@ -22,7 +22,7 @@
     "test:smoke": "bun scripts/test-workflows.ts smoke",
     "build": "bun build ./src/index.ts --outdir ./dist --target bun",
     "tension:compute": "bun -e 'import { TensionField } from \"./src/tension-field/core.ts\"; console.log(await TensionField.compute(\"demo-game-001\"))'",
-    "dashboard": "bun serve ./tension-dashboard --port 3000 --websocket",
+    "dashboard-old": "bun serve ./tension-dashboard --port 3000 --websocket",
     "matrix:cols": "bun matrix/column-standards-all.ts",
     "anomaly:detect": "bun src/tension-field/anomaly-detector.ts",
     "visualizer": "bun src/tension-field/visualizer.ts",
@@ -72,7 +72,17 @@
     "tension:bench": "bun scripts/tension-quick.ts benchmark",
     "tension:memory": "bun scripts/tension-quick.ts memory-snapshot",
     "tension:health": "bun scripts/tension-quick.ts health-check",
-    "tension:status": "bun scripts/tension-quick.ts status"
+    "tension:status": "bun scripts/tension-quick.ts status",
+    "matrix": "bun cli/bun-matrix.ts",
+    "matrix:show": "bun cli/bun-matrix.ts show",
+    "matrix:check": "bun cli/bun-matrix.ts check",
+    "matrix:breaking": "bun cli/bun-matrix.ts breaking",
+    "matrix:sync": "bun cli/bun-matrix.ts sync",
+    "matrix:server": "bun mcp-servers/bun-matrix-server.ts",
+    "dashboard": "bun dashboard-server.ts",
+    "dashboard:omega": "bun apps/dashboard/DashboardServer.ts",
+    "dashboard:build": "PATH=\"/Users/nolarose/.bun/bin:$PATH\" bun build --define GIT_SHA='\"$(git rev-parse HEAD)\"' ./apps/dashboard/DashboardServer.ts --outfile ./dist/omega-server.js",
+    "dashboard:prod": "PATH=\"/Users/nolarose/.bun/bin:$PATH\" bun run --smol ./dist/omega-server.js"
   },
   "dependencies": {
     "@types/react": "19.2.10",

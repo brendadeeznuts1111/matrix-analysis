@@ -1,4 +1,5 @@
 #!/usr/bin/env bun
+import { parseArgs } from "util";
 import { profileCreate } from "./commands/profileCreate";
 import { profileDiff } from "./commands/profileDiff";
 import { profileExport } from "./commands/profileExport";
@@ -6,91 +7,13 @@ import { profileList } from "./commands/profileList";
 import { profileShow } from "./commands/profileShow";
 import { profileUse } from "./commands/profileUse";
 import { EXIT_CODES } from "../.claude/lib/exit-codes.ts";
-
-interface ParsedArgs {
-	command: string;
-	positional: string[];
-	validateRules: boolean;
-	dryRun: boolean;
-	environment?: string;
-	force: boolean;
-	from?: string;
-	output?: string;
-	description?: string;
-	resolve: boolean;
-	quote: boolean;
-	showUnchanged: boolean;
-}
-
-function parseArgs(args: string[]): ParsedArgs {
-	const result: ParsedArgs = {
-		command: "",
-		positional: [],
-		validateRules: false,
-		dryRun: false,
-		force: false,
-		resolve: false,
-		quote: false,
-		showUnchanged: false,
-	};
-
-	let i = 0;
-	while (i < args.length) {
-		const arg = args[i];
-
-		if (arg === "--help" || arg === "-h") {
-			result.command = "help";
-		} else if (arg === "--validate-rules") {
-			result.validateRules = true;
-		} else if (arg === "--dry-run") {
-			result.dryRun = true;
-		} else if (arg === "--force" || arg === "-f") {
-			result.force = true;
-		} else if (arg === "--resolve" || arg === "-r") {
-			result.resolve = true;
-		} else if (arg === "--quote" || arg === "-q") {
-			result.quote = true;
-		} else if (arg === "--all" || arg === "-a") {
-			result.showUnchanged = true;
-		} else if (arg === "--environment" || arg === "-e") {
-			i++;
-			result.environment = args[i];
-		} else if (arg.startsWith("--environment=")) {
-			result.environment = arg.slice("--environment=".length);
-		} else if (arg === "--from") {
-			i++;
-			result.from = args[i];
-		} else if (arg.startsWith("--from=")) {
-			result.from = arg.slice("--from=".length);
-		} else if (arg === "--output" || arg === "-o") {
-			i++;
-			result.output = args[i];
-		} else if (arg.startsWith("--output=")) {
-			result.output = arg.slice("--output=".length);
-		} else if (arg === "--description" || arg === "-d") {
-			i++;
-			result.description = args[i];
-		} else if (arg.startsWith("--description=")) {
-			result.description = arg.slice("--description=".length);
-		} else if (!arg.startsWith("-")) {
-			if (!result.command) {
-				result.command = arg;
-			} else {
-				result.positional.push(arg);
-			}
-		}
-
-		i++;
-	}
-
-	return result;
-}
+import { fmt } from "../.claude/lib/cli.ts";
 
 function printUsage(): void {
 	console.log(`
-\x1b[1mUsage:\x1b[0m bun run matrix:profile:<command> [options]
+${fmt.bold("Usage:")} bun run matrix:profile:<command> [options]
 
-\x1b[1mCommands:\x1b[0m
+${fmt.bold("Commands:")}
   profile:use <name>            Activate an environment profile
   profile:list                  List available profiles
   profile:show <name>           Show profile details
@@ -98,27 +21,27 @@ function printUsage(): void {
   profile:create <name>         Create a new profile
   profile:export <name>         Export profile to .env format
 
-\x1b[1mOptions for profile:use:\x1b[0m
+${fmt.bold("Options for profile:use:")}
   --validate-rules       Validate profile before applying
   --dry-run              Preview changes without applying
   --environment, -e      Override NODE_ENV value
   --force, -f            Apply despite conflicts or warnings
 
-\x1b[1mOptions for profile:diff:\x1b[0m
+${fmt.bold("Options for profile:diff:")}
   --all, -a              Show unchanged variables too
 
-\x1b[1mOptions for profile:create:\x1b[0m
+${fmt.bold("Options for profile:create:")}
   --from <profile>       Base new profile on existing one
   --environment, -e      Set NODE_ENV value
   --description, -d      Set profile description
   --force, -f            Overwrite if exists
 
-\x1b[1mOptions for profile:export:\x1b[0m
+${fmt.bold("Options for profile:export:")}
   --output, -o <file>    Write to file instead of stdout
   --resolve, -r          Resolve \${VAR} references
   --quote, -q            Always quote values
 
-\x1b[1mExamples:\x1b[0m
+${fmt.bold("Examples:")}
   bun run matrix:profile:use dev --dry-run
   bun run matrix:profile:diff dev prod
   bun run matrix:profile:create staging --from=dev
@@ -129,29 +52,48 @@ function printUsage(): void {
 
 async function main(): Promise<void> {
 	const args = Bun.argv.slice(2);
-	const parsed = parseArgs(args);
 
-	if (
-		!parsed.command ||
-		parsed.command === "help" ||
-		parsed.command === "--help"
-	) {
+	// Extract the command (first non-flag arg)
+	const commandIndex = args.findIndex((a) => !a.startsWith("-"));
+	const command = commandIndex >= 0 ? args[commandIndex] : "";
+	const restArgs = args.filter((_, i) => i !== commandIndex);
+
+	// Show help if no command or --help
+	if (!command || command === "help" || args.includes("--help") || args.includes("-h")) {
 		printUsage();
 		process.exit(EXIT_CODES.SUCCESS);
 	}
 
-	switch (parsed.command) {
+	const { values, positionals } = parseArgs({
+		args: restArgs,
+		options: {
+			"validate-rules": { type: "boolean", default: false },
+			"dry-run": { type: "boolean", default: false },
+			environment: { type: "string", short: "e" },
+			force: { type: "boolean", short: "f", default: false },
+			from: { type: "string" },
+			output: { type: "string", short: "o" },
+			description: { type: "string", short: "d" },
+			resolve: { type: "boolean", short: "r", default: false },
+			quote: { type: "boolean", short: "q", default: false },
+			all: { type: "boolean", short: "a", default: false },
+		},
+		allowPositionals: true,
+		strict: false,
+	});
+
+	switch (command) {
 		case "profile:use":
-			if (parsed.positional.length < 1) {
-				console.error("\x1b[31mError: Profile name is required\x1b[0m");
+			if (positionals.length < 1) {
+				console.error(fmt.fail("Profile name is required"));
 				console.error("Usage: bun run matrix:profile:use <name> [options]");
 				process.exit(EXIT_CODES.USAGE_ERROR);
 			}
-			await profileUse(parsed.positional[0], {
-				validateRules: parsed.validateRules,
-				dryRun: parsed.dryRun,
-				environment: parsed.environment,
-				force: parsed.force,
+			await profileUse(positionals[0], {
+				validateRules: !!values["validate-rules"],
+				dryRun: !!values["dry-run"],
+				environment: values["environment"] as string | undefined,
+				force: !!values["force"],
 			});
 			break;
 
@@ -160,54 +102,54 @@ async function main(): Promise<void> {
 			break;
 
 		case "profile:show":
-			if (parsed.positional.length < 1) {
-				console.error("\x1b[31mError: Profile name is required\x1b[0m");
+			if (positionals.length < 1) {
+				console.error(fmt.fail("Profile name is required"));
 				console.error("Usage: bun run matrix:profile:show <name>");
 				process.exit(EXIT_CODES.USAGE_ERROR);
 			}
-			await profileShow(parsed.positional[0]);
+			await profileShow(positionals[0]);
 			break;
 
 		case "profile:diff":
-			if (parsed.positional.length < 2) {
-				console.error("\x1b[31mError: Two profile names are required\x1b[0m");
+			if (positionals.length < 2) {
+				console.error(fmt.fail("Two profile names are required"));
 				console.error("Usage: bun run matrix:profile:diff <left> <right>");
 				process.exit(EXIT_CODES.USAGE_ERROR);
 			}
-			await profileDiff(parsed.positional[0], parsed.positional[1], {
-				showUnchanged: parsed.showUnchanged,
+			await profileDiff(positionals[0], positionals[1], {
+				showUnchanged: !!values["all"],
 			});
 			break;
 
 		case "profile:create":
-			if (parsed.positional.length < 1) {
-				console.error("\x1b[31mError: Profile name is required\x1b[0m");
+			if (positionals.length < 1) {
+				console.error(fmt.fail("Profile name is required"));
 				console.error("Usage: bun run matrix:profile:create <name> [options]");
 				process.exit(EXIT_CODES.USAGE_ERROR);
 			}
-			await profileCreate(parsed.positional[0], {
-				from: parsed.from,
-				env: parsed.environment,
-				description: parsed.description,
-				force: parsed.force,
+			await profileCreate(positionals[0], {
+				from: values["from"] as string | undefined,
+				env: values["environment"] as string | undefined,
+				description: values["description"] as string | undefined,
+				force: !!values["force"],
 			});
 			break;
 
 		case "profile:export":
-			if (parsed.positional.length < 1) {
-				console.error("\x1b[31mError: Profile name is required\x1b[0m");
+			if (positionals.length < 1) {
+				console.error(fmt.fail("Profile name is required"));
 				console.error("Usage: bun run matrix:profile:export <name> [options]");
 				process.exit(EXIT_CODES.USAGE_ERROR);
 			}
-			await profileExport(parsed.positional[0], {
-				output: parsed.output,
-				resolve: parsed.resolve,
-				quote: parsed.quote,
+			await profileExport(positionals[0], {
+				output: values["output"] as string | undefined,
+				resolve: !!values["resolve"],
+				quote: !!values["quote"],
 			});
 			break;
 
 		default:
-			console.error(`\x1b[31mUnknown command: ${parsed.command}\x1b[0m`);
+			console.error(fmt.fail(`Unknown command: ${command}`));
 			printUsage();
 			process.exit(EXIT_CODES.USAGE_ERROR);
 	}

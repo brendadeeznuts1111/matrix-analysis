@@ -132,6 +132,20 @@ server.resource(
 	}),
 );
 
+// Tier-1380 ACP: CPU & Heap profiling (Markdown)
+server.resource(
+	"bun-profiles-cpu-heap-md",
+	"bun://profiles/cpu-heap-md",
+	{ description: "CPU & Heap Profiling (Markdown) — --cpu-prof-md, --heap-prof" },
+	async () => {
+		const res = MATRIX_ACP_RESOURCES.find((r) => r.uri === "bun://profiles/cpu-heap-md");
+		const text = res && "content" in res && typeof res.content === "string" ? res.content : "";
+		return {
+			contents: [{ uri: "bun://profiles/cpu-heap-md", mimeType: "text/markdown", text }],
+		};
+	},
+);
+
 server.tool(
 	"SearchBun",
 	"Search across the Bun knowledge base to find relevant information, code examples, API references, and guides.",
