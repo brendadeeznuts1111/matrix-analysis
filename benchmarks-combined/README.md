@@ -1,6 +1,57 @@
 # Nolarose Unified Benchmark Suite
 
+[![Benchmark Status](https://img.shields.io/badge/dynamic/json?label=Benchmark%20Status&query=status&url=https://metrics.factory-wager.com/api/benchmarks/status)](https://metrics.factory-wager.com/benchmarks)
+[![Performance](https://img.shields.io/badge/dynamic/json?label=Performance&query=score&url=https://metrics.factory-wager.com/api/benchmarks/performance)](https://metrics.factory-wager.com/benchmarks)
+[![Coverage](https://img.shields.io/badge/dynamic/json?label=Coverage&query=coverage&url=https://metrics.factory-wager.com/api/benchmarks/coverage)](https://metrics.factory-wager.com/benchmarks)
+[![Last Run](https://img.shields.io/badge/dynamic/json?label=Last%20Run&query=timestamp&url=https://metrics.factory-wager.com/api/benchmarks/last-run)](https://metrics.factory-wager.com/benchmarks)
+
+[![Tier](https://img.shields.io/badge/Tier-1380-purple)](https://factory-wager.com)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![Bun Version](https://img.shields.io/badge/Bun-%3E%3D1.3.6-black)](https://bun.sh)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.7+-blue)](https://www.typescriptlang.org/)
+
 A comprehensive benchmark suite combining performance tests, utilities, and optimization measurements for the Nolarose MCP Config workspace.
+
+## 🏆 Status Badges
+
+The badges above are dynamically updated based on benchmark results:
+
+- **Benchmark Status** - Overall health of the benchmark suite
+- **Performance** - Current performance score (0-100)
+- **Coverage** - Test coverage percentage
+- **Last Run** - Time since last benchmark execution
+
+### Badge API
+
+The badges are powered by JSON endpoints that can be queried:
+
+```bash
+# Get current status
+curl https://metrics.factory-wager.com/api/benchmarks/status
+
+# Get performance score
+curl https://metrics.factory-wager.com/api/benchmarks/performance
+
+# Get all metrics
+curl https://metrics.factory-wager.com/api/benchmarks/all
+```
+
+### Local Badge Server
+
+For development, you can run a local badge server:
+
+```bash
+# Generate badge data
+bun run badges:generate
+
+# Start local server
+bun run badges:server
+
+# Update badges (generates and commits)
+bun run badges:update
+```
+
+The local server runs on `http://localhost:3001` and provides the same endpoints.
 
 ## 📁 Structure
 

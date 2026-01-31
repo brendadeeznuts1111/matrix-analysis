@@ -33,7 +33,10 @@
     "config": "bun core/test-config-bench.ts",
     "report": "bun skills/perf-optimizations.bench.ts",
     "test": "bun test **/*.test.ts",
-    "test:ci": "bun test --reporter=verbose"
+    "test:ci": "bun test --reporter=verbose",
+    "badges:generate": "bun scripts/badge-status.ts",
+    "badges:server": "bun scripts/badge-server.ts",
+    "badges:update": "bun run badges:generate && git add reports/ && git commit -m 'chore: update badge status [skip ci]' || true"
   },
   "keywords": ["benchmark", "performance", "bun", "typescript", "mitata", "nolarose", "mcp", "config"],
   "author": {
