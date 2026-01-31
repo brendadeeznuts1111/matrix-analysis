@@ -94,16 +94,16 @@
 
 ### Documentation
 
-4. `/docs/REFACTORING_SUMMARY.md` - Detailed change documentation
-5. `/docs/profiles/testing-performance.md` - Profile usage guide
+1. `/docs/REFACTORING_SUMMARY.md` - Detailed change documentation
+2. `/docs/profiles/testing-performance.md` - Profile usage guide
 
 ### Supporting Files
 
-6. `/scripts/profile-integration.ts` - CI-aware profile selection
-7. `/scripts/test-with-profile.ts` - Automatic profile application
-8. `/src/lib/ci-detector.ts` - Added documentation
-9. `/package.json` - New testing scripts
-10. `/reports/junit.xml` - Updated test reports
+1. `/scripts/profile-integration.ts` - CI-aware profile selection
+2. `/scripts/test-with-profile.ts` - Automatic profile application
+3. `/src/lib/ci-detector.ts` - Added documentation
+4. `/package.json` - New testing scripts
+5. `/reports/junit.xml` - Updated test reports
 
 ---
 
