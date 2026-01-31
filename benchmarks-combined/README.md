@@ -133,7 +133,72 @@ bun run all:json
 - `mitata@^1.0.34` - Modern benchmark runner
 - `benchmark@^2.1.4` - Legacy benchmark support
 
-## 🧹 Cleanup (After Migration)
+## � Testing
+
+### Running Benchmarks
+
+```bash
+# Run all benchmarks
+bun run all
+
+# Run with JSON output for CI/CD
+BENCHMARK_RUNNER=1 bun run all:json
+
+# Run specific categories
+bun run core       # Core configuration benchmarks
+bun run utils      # Utility benchmarks
+bun run performance # Performance benchmarks
+bun run skills     # Skills registry benchmarks
+
+# Run individual benchmarks
+bun run crc32      # CRC32 performance test
+bun run spawn      # Process spawning test
+bun run hash       # Hash performance test
+```
+
+### Test Profiles
+
+The benchmark suite supports three profiles:
+
+| Profile | Environment | Description |
+|---------|-------------|-------------|
+| **development** | Local development | Full debugging and verbose output |
+| **staging** | Pre-production | Production-like settings with debug info |
+| **production** | Production | Optimized, minimal output |
+
+### CI/CD Integration
+
+```yaml
+# GitHub Actions example
+- name: Run Benchmarks
+  run: |
+    cd benchmarks-combined
+    BENCHMARK_RUNNER=1 bun run all:json > benchmark-results.json
+
+- name: Upload Results
+  uses: actions/upload-artifact@v3
+  with:
+    name: benchmark-results
+    path: benchmarks-combined/benchmark-results.json
+```
+
+### Performance Targets
+
+- **Config Load**: <1ms (Tier-1380 compliance)
+- **Security Scan**: <5ms (threat detection)
+- **Inheritance**: <2ms (12-dimensional)
+- **Validation**: <3ms (zero-trust)
+
+### Domain Endpoints
+
+| Service | URL | Purpose |
+|---------|-----|---------|
+| **Production** | https://factory-wager.com | Main application |
+| **Staging** | https://staging.factory-wager.com | Pre-production testing |
+| **API** | https://api.factory-wager.com | REST API endpoints |
+| **Metrics** | https://metrics.factory-wager.com | Performance metrics |
+
+## �🧹 Cleanup (After Migration)
 
 Once you've verified the new benchmark suite works correctly, you can remove the old directories:
 
