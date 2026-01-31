@@ -59,22 +59,22 @@ export async function profileDiff(
   const changed = diffs.filter((d) => d.status === "changed");
 
   if (added.length === 0 && removed.length === 0 && changed.length === 0) {
-    console.log(fmt.success("Profiles are identical"));
+    console.log(fmt.ok("Profiles are identical"));
     return;
   }
 
   // Summary
   const parts: string[] = [];
-  if (added.length > 0) parts.push(`${fmt.success('+')}${added.length} added`);
+  if (added.length > 0) parts.push(`${fmt.ok('+')}${added.length} added`);
   if (removed.length > 0) parts.push(`${fmt.fail('-')}${removed.length} removed`);
   if (changed.length > 0) parts.push(`${fmt.warn('~')}${changed.length} changed`);
   console.log(parts.join("  ") + "\n");
 
   // Details
   if (added.length > 0) {
-    console.log(fmt.success(`── Added in ${rightName} ──`));
+    console.log(fmt.ok(`── Added in ${rightName} ──`));
     for (const d of added) {
-      console.log(`  ${fmt.success('+')} ${d.key} = ${maskValue(d.key, d.right!)}`);
+      console.log(`  ${fmt.ok('+')} ${d.key} = ${maskValue(d.key, d.right!)}`);
     }
     console.log();
   }
