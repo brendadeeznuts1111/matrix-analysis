@@ -64,6 +64,9 @@ bun run mcp:example:search "Bun.serve" # Search custom term
 | `docs:blog` | `bun run docs:blog` | Bun blog URL |
 | `docs:guides` | `bun run docs:guides` | Bun guides index URL |
 | `docs:rss` | `bun run docs:rss` | Changelog + blog RSS URLs |
+| `docs:repo` | `bun run docs:repo` | oven-sh/bun repo + releases URLs |
+| `docs:deps` | `bun run docs:deps` | Package manager + add dependency URLs |
+| `docs:compat` | `bun run docs:compat` | Node.js compatibility doc URL |
 | `docs:version` | `bun run docs:version` | Doc version constants |
 
 ## Tools
@@ -78,7 +81,7 @@ bun run mcp:example:search "Bun.serve" # Search custom term
 | **GetBunFeedback** | Feedback/upgrade-first guidance and docs URL. |
 | **GetBunTypesInfo** | oven-sh/bun-types: repo, README, authoring, key .d.ts file URLs. |
 | **SuggestBunDocTerms** | Partial-match term suggestions (typeahead). Options: query, limit (default 10). |
-| **GetBunLinks** | Shop, blog, guides index, and RSS feeds (changelog + blog; blog supports #tag= filter). |
+| **GetBunLinks** | Shop, blog, guides, RSS; repo (main + releases); dependencies (pm, install/add); Node.js compatibility. |
 
 ### SearchBun options
 
@@ -122,14 +125,43 @@ bun run mcp:example:search "Bun.serve" # Search custom term
 | `bun://docs/reference-links` | All reference link keys and URLs (JSON). |
 | `bun://docs/feedback` | Feedback/upgrade-first guidance (text). |
 | `bun://docs/bun-types` | oven-sh/bun-types: repo, README, authoring, key file URLs (JSON). |
-| `bun://docs/links` | Shop, blog, guides, RSS feeds (changelog + blog) (JSON). |
+| `bun://docs/links` | Shop, blog, guides, RSS; repo; dependencies; Node.js compatibility (JSON). |
+
+## RSS parser (Tier-1380 hardened, Bun-safe)
+
+- **`mcp-bun-docs/rss.ts`**: `parseRSS(url, options?)` → `{ feed, audit }`; `parseRSSLegacy(url)` → feed only. **`safeRSSPreview(input, options?)`** — Col-89 compliant, XSS-safe title/preview: ANSI strip, GB9c-aware width, word-boundary truncation, optional `onViolation` audit hook. Types: `RSSFeed`, `RSSItem`, `RSSFeedAudit`, `ParseRSSOptions`, `SafeRSSPreviewOptions`, `SafeRSSPreviewViolation`.
+- **Hardening**: User-Agent always set; `AbortSignal.timeout(10000)` on fetch; try/catch + parsererror check; optional file cache (ETag / If-Modified-Since) via `cacheDir`; `onAudit(fetchTimeMs, sizeBytes, parseTimeMs)` for logging.
+- **Callers**: Escape displayed content with `Bun.escapeHTML`; enforce Col-89 with `Bun.stringWidth` + `Bun.wrapAnsi`.
+- **Example**: `bun run rss:parse` — parses `BUN_CHANGELOG_RSS`, logs audit to stderr, prints latest 3 items Col-89 safe.
+
+## Base URL (standardized)
+
+- **`BUN_BASE_URL` (https://bun.com)**: Single canonical base for docs, reference, guides, blog, RSS. All doc URLs are derived from it so the codebase is not confusing.
+- **`BUN_INSTALL_SCRIPT_URL` (https://bun.sh/install)**: Only bun.sh URL — canonical in official install instructions (`curl -fsSL https://bun.sh/install | bash`).
+- **`BUN_URL_CONFIG`**: Object with `base`, `docs`, `reference`, `changelogRSS`, `blogRss`, `installScript`, `globalsAPI` for dashboard/audit.
+- **`getUrlCanonicalizationAuditEvent()`**: Returns `{ event: "URL_CANONICALIZATION_COMPLETE", ts, bun_version?, col89_safe, details, glyph }` for `auditRepo.append()`; details are Col-89 safe (Bun.escapeHTML when in Bun).
+- **`getRssCanonicalizationAuditEvent()`**: Async. Returns `{ event: "RSS_CANONICALIZATION_LOCKED", ts, bun_version?, col89_safe, details, feed_preview_width?, glyph }`; fetches unified feed and computes width of first 200 chars. Use for Tier-1380 RSS checkpoint audit.
+- **Col-89 (doc link preview)**: `COL89_MAX = 89`, `getDocLinkWidth(url)` (uses `Bun.stringWidth(url, { countAnsiEscapeCodes: false })`), `assertCol89(text, context?)` to width-check generated doc links.
+- **Blog RSS (investigation)**: There is **no separate /blog/rss.xml** — both `bun.com/blog/rss.xml` and `bun.sh/blog/rss.xml` return 404. The official feed is **BUN_CHANGELOG_RSS** (`bun.com/rss.xml` / `bun.sh/rss.xml`, 200 application/xml). Blog HTML on bun.com/blog links only to `bun.com/rss.xml`. So `BUN_BLOG_RSS_URL` is set to `BUN_CHANGELOG_RSS`; use it for blog/changelog.
+
+### Dashboard / audit usage
+
+```ts
+import { BUN_URL_CONFIG, getUrlCanonicalizationAuditEvent } from "mcp-bun-docs/lib.ts";
+
+// In dashboard startup or auditRepo.append wrapper
+const urlConfig = BUN_URL_CONFIG; // base, docs, reference, changelogRSS, blogRss, installScript, globalsAPI
+
+const ev = getUrlCanonicalizationAuditEvent();
+await auditRepo.append(ev);
+```
 
 ## Reference links, feedback, bun-types
 
 - **Reference links**: Use `ListBunReferenceLinks` or resource `bun://docs/reference-links` for fileAPI, httpServer, shell, test, bunTest, bunTypes, bunApis, webApis, nodeApi, etc.
 - **Feedback**: Use `GetBunFeedback` or resource `bun://docs/feedback` for "upgrade first, then search issues" and docs URL.
 - **bun-types**: Use `GetBunTypesInfo` or resource `bun://docs/bun-types` for oven-sh/bun TypeScript definitions (README, authoring, key .d.ts files).
-- **Shop, blog, guides, RSS**: Use `GetBunLinks` or resource `bun://docs/links` for shop, blog, guides index, and RSS feeds (changelog + blog).
+- **Shop, blog, guides, RSS, repo, deps, compat**: Use `GetBunLinks` or resource `bun://docs/links` for shop, blog, guides, RSS, repo (main + releases), dependencies (pm, install/add), and Node.js compatibility.
 
 ## Cursor / Claude Integration
 
