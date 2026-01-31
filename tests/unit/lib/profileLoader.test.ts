@@ -4,7 +4,7 @@ import {
   resolveSecretRefs,
   getUnresolvedRefs,
   listProfiles,
-} from "../../lib/profileLoader";
+} from "../../../src/lib/profileLoader";
 import { createTestProfileDir, type TestProfileDir } from "../helpers";
 
 describe("profileLoader", () => {

@@ -23,6 +23,16 @@ const DEFAULT_ROOTS = ["src", "mcp-bun-docs", "tools", ".claude/core"];
 const DEFAULT_LIMIT = 25;
 const GLOB_PATTERN = "**/*.{ts,tsx}";
 
+/** Lazy-load mcp-bun-docs for xref (optional dependency). */
+async function getDocResolver(): Promise<{ getDocEntry: (term: string) => { path: string } | null; buildDocUrl: (path: string) => string } | null> {
+	try {
+		const lib = await import("../mcp-bun-docs/lib.ts");
+		return { getDocEntry: lib.getDocEntry, buildDocUrl: lib.buildDocUrl };
+	} catch {
+		return null;
+	}
+}
+
 type Format = "table" | "json" | "tree" | "dot";
 
 interface AnalyzeConfig {
@@ -32,7 +42,7 @@ interface AnalyzeConfig {
 	complexity?: { threshold?: number };
 }
 
-async function loadConfig(): Promise<AnalyzeConfig> {
+export async function loadConfig(): Promise<AnalyzeConfig> {
 	const cwd = process.cwd();
 	let config: AnalyzeConfig = {};
 	try {
@@ -78,7 +88,7 @@ async function loadConfig(): Promise<AnalyzeConfig> {
 }
 
 /** Simple glob match: double-star-slash prefix = path contains rest; single-star prefix = path ends with rest. */
-function matchesIgnore(path: string, patterns: string[]): boolean {
+export function matchesIgnore(path: string, patterns: string[]): boolean {
 	for (const p of patterns) {
 		const t = p.trim();
 		if (!t) continue;
@@ -93,7 +103,7 @@ function matchesIgnore(path: string, patterns: string[]): boolean {
 	return false;
 }
 
-function parseArgs(argv: string[], config: AnalyzeConfig = {}): {
+export function parseArgs(argv: string[], config: AnalyzeConfig = {}): {
 	cmd: string;
 	rest: string[];
 	roots: string[];
@@ -107,7 +117,7 @@ function parseArgs(argv: string[], config: AnalyzeConfig = {}): {
 	const rest = argv.slice(2);
 	let cmd = rest[0] ?? "";
 
-	const knownCommands = ["scan", "types", "props", "deps", "classes", "strength", "complexity", "rename", "polish", "coverage"];
+	const knownCommands = ["scan", "types", "props", "deps", "classes", "strength", "complexity", "rename", "polish", "coverage", "xref"];
 	const benchMode = rest.includes("--bench");
 	const coverageMode = rest.includes("--coverage") && (cmd === "" || cmd === "scan" || !knownCommands.includes(cmd));
 	const explicitHelp = cmd === "-h" || cmd === "--help";
@@ -203,6 +213,7 @@ Usage:
   bun tools/analyze.ts strength [--weakest] [--penalize-lines]  Strength (--penalize-lines = discount huge files)
   bun tools/analyze.ts rename <Old> <New> [--auto] Rename symbol (default: dry-run)
   bun tools/analyze.ts polish [--fix-imports]      Remove unused imports (default: dry-run)
+  bun tools/analyze.ts xref <term>                 Resolve term to Bun doc URL (mcp-bun-docs)
   bun tools/analyze.ts coverage [--roots=dir1,dir2] [--] [test args]
                                 Run bun test --coverage (--roots limits to those dirs)
   bun tools/analyze.ts --coverage [--roots=...]   Same as 'coverage'
@@ -242,7 +253,7 @@ interface ScanRow {
 	exports?: number;
 }
 
-async function runScan(opts: ReturnType<typeof parseArgs>): Promise<void> {
+export async function runScan(opts: ReturnType<typeof parseArgs>): Promise<void> {
 	const glob = new Bun.Glob(GLOB_PATTERN);
 	const rows: ScanRow[] = [];
 	const roots = opts.all ? ["."] : opts.roots;
@@ -287,7 +298,7 @@ async function runScan(opts: ReturnType<typeof parseArgs>): Promise<void> {
 }
 
 /** Extract property/member names from type body (interface/class/type alias). Heuristic. */
-function extractProps(text: string, kind: "interface" | "type" | "class"): string[] {
+export function extractProps(text: string, kind: "interface" | "type" | "class"): string[] {
 	const props: string[] = [];
 	if (kind === "interface" || kind === "type") {
 		const keyMatch = text.match(/\b(\w+)\s*[?:]/g);
@@ -330,7 +341,7 @@ const KIND_VALUES = ["interface", "type", "class", "enum"] as const;
 type KindFilter = (typeof KIND_VALUES)[number] | null;
 
 /** Extract enum member names from body (Name, or Name = value). */
-function extractEnumMembers(body: string): string[] {
+export function extractEnumMembers(body: string): string[] {
 	const names: string[] = [];
 	const re = /(\w+)\s*(?:=\s*[^,}\n]+)?[,}]/g;
 	let match;
@@ -338,7 +349,7 @@ function extractEnumMembers(body: string): string[] {
 	return [...new Set(names)].slice(0, 20);
 }
 
-async function runTypes(opts: ReturnType<typeof parseArgs>): Promise<void> {
+export async function runTypes(opts: ReturnType<typeof parseArgs>): Promise<void> {
 	const withProps = opts.rest.includes("--props") || opts.cmd === "props";
 	const kindArg = opts.rest.find((a) => a.startsWith("--kind="));
 	const kindFilter: KindFilter = kindArg && KIND_VALUES.includes(kindArg.slice("--kind=".length) as KindFilter)
@@ -405,12 +416,30 @@ async function runTypes(opts: ReturnType<typeof parseArgs>): Promise<void> {
 	}
 
 	const filtered = kindFilter ? types.filter((t) => t.kind === kindFilter) : types;
-	const slice = filtered.slice(0, opts.limit);
+	let slice = filtered.slice(0, opts.limit) as { name: string; file: string; kind: string; props?: string; docUrl?: string }[];
+	if (opts.rest.includes("--xref")) {
+		const resolver = await getDocResolver();
+		if (resolver) {
+			const xrefList: { term: string; url: string }[] = [];
+			for (const row of slice) {
+				const entry = resolver.getDocEntry(row.name);
+				if (entry) {
+					row.docUrl = resolver.buildDocUrl(entry.path);
+					xrefList.push({ term: row.name, url: row.docUrl });
+				}
+			}
+			if (opts.format === "json") {
+				console.log(JSON.stringify({ total: filtered.length, kind: kindFilter ?? "all", types: slice, xref: xrefList }, null, 2));
+				return;
+			}
+		}
+	}
 	if (opts.format === "json") {
 		console.log(JSON.stringify({ total: filtered.length, kind: kindFilter ?? "all", types: slice }, null, 2));
 		return;
 	}
-	const cols = withProps ? ["name", "kind", "props", "file"] : ["name", "kind", "file"];
+	let cols: string[] = withProps ? ["name", "kind", "props", "file"] : ["name", "kind", "file"];
+	if (slice.some((r) => r.docUrl)) cols = [...cols, "docUrl"];
 	if (withProps && opts.format !== "json") {
 		slice.forEach((r) => {
 			if (r.props && r.props.length > 52) r.props = r.props.slice(0, 49) + "…";
@@ -473,7 +502,7 @@ function findCycles(edges: Map<string, string[]>): string[][] {
 	return cycles;
 }
 
-async function runDeps(opts: ReturnType<typeof parseArgs>): Promise<void> {
+export async function runDeps(opts: ReturnType<typeof parseArgs>): Promise<void> {
 	const circular = opts.rest.includes("--circular");
 	const glob = new Bun.Glob(GLOB_PATTERN);
 	const roots = opts.all ? ["."] : opts.roots;
@@ -559,7 +588,7 @@ async function runDeps(opts: ReturnType<typeof parseArgs>): Promise<void> {
 	}
 }
 
-function approxComplexity(text: string): number {
+export function approxComplexity(text: string): number {
 	let c = 1;
 	const tokens = ["if", "else", "for", "while", "switch", "case", "catch", "\\?", "&&", "\\|\\|", "\\?\\.", "\\?\\?"];
 	for (const t of tokens) {
@@ -570,7 +599,7 @@ function approxComplexity(text: string): number {
 	return c;
 }
 
-async function runComplexity(opts: ReturnType<typeof parseArgs>, config: AnalyzeConfig): Promise<void> {
+export async function runComplexity(opts: ReturnType<typeof parseArgs>, config: AnalyzeConfig): Promise<void> {
 	const thresholdArg = opts.rest.find((a) => a.startsWith("--threshold="));
 	const threshold = thresholdArg ? Math.max(1, Number.parseInt(thresholdArg.slice("--threshold=".length), 10) || 10) : (config.complexity?.threshold ?? 10);
 	const glob = new Bun.Glob(GLOB_PATTERN);
@@ -603,7 +632,7 @@ async function runComplexity(opts: ReturnType<typeof parseArgs>, config: Analyze
 	console.log("\nFiles at or above threshold:", rows.length);
 }
 
-async function runClasses(opts: ReturnType<typeof parseArgs>): Promise<void> {
+export async function runClasses(opts: ReturnType<typeof parseArgs>): Promise<void> {
 	// G1: --inheritance = alias for "show tree" when format is table/json
 	const useTree = opts.rest.includes("--inheritance") && (opts.format === "table" || opts.format === "json");
 	const effectiveFormat = useTree ? "tree" : opts.format;
@@ -675,20 +704,38 @@ async function runClasses(opts: ReturnType<typeof parseArgs>): Promise<void> {
 		return;
 	}
 
-	const slice = classList.slice(0, opts.limit);
+	let sliceWithXref = classList.slice(0, opts.limit) as { name: string; extends: string; file: string; docUrl?: string }[];
+	if (opts.rest.includes("--xref")) {
+		const resolver = await getDocResolver();
+		if (resolver) {
+			const xrefList: { term: string; url: string }[] = [];
+			for (const row of sliceWithXref) {
+				const entry = resolver.getDocEntry(row.name);
+				if (entry) {
+					row.docUrl = resolver.buildDocUrl(entry.path);
+					xrefList.push({ term: row.name, url: row.docUrl });
+				}
+			}
+			if (effectiveFormat === "json") {
+				console.log(JSON.stringify({ total: classList.length, classes: sliceWithXref, xref: xrefList }, null, 2));
+				return;
+			}
+		}
+	}
 	if (effectiveFormat === "json") {
-		console.log(JSON.stringify({ total: classList.length, classes: slice }, null, 2));
+		console.log(JSON.stringify({ total: classList.length, classes: sliceWithXref }, null, 2));
 		return;
 	}
+	const classCols = sliceWithXref.some((r) => r.docUrl) ? (["name", "extends", "file", "docUrl"] as const) : (["name", "extends", "file"] as const);
 	console.log("📊 Classes (top " + opts.limit + ")\n");
-	console.log(Bun.inspect.table(slice, ["name", "extends", "file"], { colors: process.stdout.isTTY }));
+	console.log(Bun.inspect.table(sliceWithXref, classCols, { colors: process.stdout.isTTY }));
 	console.log("\nTotal classes:", classList.length);
 }
 
 /** G2: Optional line penalty — files over LINE_PENALTY_THRESHOLD get score scaled down. */
 const LINE_PENALTY_THRESHOLD = 500;
 
-async function runStrength(opts: ReturnType<typeof parseArgs>): Promise<void> {
+export async function runStrength(opts: ReturnType<typeof parseArgs>): Promise<void> {
 	const weakest = opts.rest.includes("--weakest");
 	const penalizeLines = opts.rest.includes("--penalize-lines");
 	const glob = new Bun.Glob(GLOB_PATTERN);
@@ -726,7 +773,7 @@ async function runStrength(opts: ReturnType<typeof parseArgs>): Promise<void> {
 	console.log("\nTotal files:", rows.length);
 }
 
-async function runRename(opts: ReturnType<typeof parseArgs>): Promise<void> {
+export async function runRename(opts: ReturnType<typeof parseArgs>): Promise<void> {
 	const rest = opts.rest.filter((a) => !a.startsWith("--"));
 	const oldName = rest[0];
 	const newName = rest[1];
@@ -810,7 +857,7 @@ function anyBindingUsed(bindings: string[], text: string): boolean {
 	return false;
 }
 
-async function runPolish(opts: ReturnType<typeof parseArgs>): Promise<void> {
+export async function runPolish(opts: ReturnType<typeof parseArgs>): Promise<void> {
 	const dryRun = !opts.rest.includes("--auto") && !opts.rest.includes("--fix-imports");
 	const glob = new Bun.Glob(GLOB_PATTERN);
 	const roots = opts.all ? ["."] : opts.roots;
@@ -866,6 +913,31 @@ async function runPolish(opts: ReturnType<typeof parseArgs>): Promise<void> {
 		return;
 	}
 	console.log("Removed " + changes.length + " unused import(s).");
+}
+
+/** 4.2: Subcommand xref — resolve term to Bun doc URL via mcp-bun-docs. */
+export async function runXref(opts: ReturnType<typeof parseArgs>): Promise<void> {
+	const term = opts.rest.filter((a) => !a.startsWith("--"))[0];
+	if (!term) {
+		console.error("Usage: bun tools/analyze.ts xref <term>");
+		process.exit(1);
+	}
+	const resolver = await getDocResolver();
+	if (!resolver) {
+		console.error("xref: mcp-bun-docs not available");
+		process.exit(1);
+	}
+	const entry = resolver.getDocEntry(term);
+	if (opts.format === "json") {
+		const xref = entry ? [{ term, url: resolver.buildDocUrl(entry.path) }] : [];
+		console.log(JSON.stringify({ term, xref }, null, 2));
+		return;
+	}
+	if (!entry) {
+		console.log("No doc entry for: " + term);
+		return;
+	}
+	console.log(resolver.buildDocUrl(entry.path));
 }
 
 const BENCH_COMMANDS = ["scan", "types", "deps", "complexity", "classes", "strength"] as const;
@@ -964,6 +1036,9 @@ async function main(): Promise<void> {
 			break;
 		case "polish":
 			await runPolish(opts);
+			break;
+		case "xref":
+			await runXref(opts);
 			break;
 		case "coverage":
 			await runCoverage(opts);

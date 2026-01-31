@@ -1,13 +1,300 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuites name="bun test" tests="6" assertions="15" failures="0" skipped="0" time="0.127421">
-  <testsuite name="src/__tests__/smoke/critical-path.test.ts" file="src/__tests__/smoke/critical-path.test.ts" tests="6" assertions="15" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-    <testsuite name="🚀 Smoke Tests - Group: smoke" file="src/__tests__/smoke/critical-path.test.ts" line="17" tests="6" assertions="15" failures="0" skipped="0" time="0.117" hostname="Mac.attlocal.net">
-      <testcase name="should verify Bun runtime is available" classname="🚀 Smoke Tests - Group: smoke" time="0.000011" file="src/__tests__/smoke/critical-path.test.ts" line="29" assertions="2" />
-      <testcase name="should verify test environment variables are set" classname="🚀 Smoke Tests - Group: smoke" time="0.000066" file="src/__tests__/smoke/critical-path.test.ts" line="34" assertions="5" />
-      <testcase name="should verify critical modules can be imported" classname="🚀 Smoke Tests - Group: smoke" time="0.002244" file="src/__tests__/smoke/critical-path.test.ts" line="42" assertions="3" />
-      <testcase name="should verify configuration files exist" classname="🚀 Smoke Tests - Group: smoke" time="0.000132" file="src/__tests__/smoke/critical-path.test.ts" line="50" assertions="3" />
-      <testcase name="should verify test organizer can list groups" classname="🚀 Smoke Tests - Group: smoke" time="0.014401" file="src/__tests__/smoke/critical-path.test.ts" line="62" assertions="1" />
-      <testcase name="should have fast execution time" classname="🚀 Smoke Tests - Group: smoke" time="0.101567" file="src/__tests__/smoke/critical-path.test.ts" line="76" assertions="1" />
+<testsuites name="bun test" tests="133" assertions="207" failures="30" skipped="0" time="1.39782">
+  <testsuite name="tests/unit/test-config.test.ts" file="tests/unit/test-config.test.ts" tests="10" assertions="29" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+    <testcase name="should get timeout based on environment" classname="" time="0" file="tests/unit/test-config.test.ts" line="11" assertions="2" />
+    <testcase name="should get retry count" classname="" time="0.000088" file="tests/unit/test-config.test.ts" line="19" assertions="2" />
+    <testcase name="should get concurrency settings" classname="" time="0.000094" file="tests/unit/test-config.test.ts" line="27" assertions="2" />
+    <testcase name="should determine if coverage should be enabled" classname="" time="0.000035" file="tests/unit/test-config.test.ts" line="35" assertions="1" />
+    <testcase name="should get reporter configuration" classname="" time="0.000037" file="tests/unit/test-config.test.ts" line="42" assertions="2" />
+    <testcase name="should get test patterns" classname="" time="0.000057" file="tests/unit/test-config.test.ts" line="50" assertions="2" />
+    <testcase name="should configure environment variables" classname="" time="0.000016" file="tests/unit/test-config.test.ts" line="58" assertions="1" />
+    <testcase name="should emit test start annotation" classname="" time="0.000031" file="tests/unit/test-config.test.ts" line="65" assertions="1" />
+    <testcase name="should emit test end annotation" classname="" time="0.000013" file="tests/unit/test-config.test.ts" line="72" assertions="1" />
+    <testcase name="should get full configuration" classname="" time="0.000019" file="tests/unit/test-config.test.ts" line="79" assertions="15" />
+  </testsuite>
+  <testsuite name="tests/unit/ci-detector.test.ts" file="tests/unit/ci-detector.test.ts" tests="9" assertions="9" failures="5" skipped="0" time="0" hostname="Mac.attlocal.net">
+    <testcase name="should detect GitHub Actions environment" classname="" time="0.000365" file="tests/unit/ci-detector.test.ts" line="11" assertions="1">
+      <failure type="AssertionError" />
+    </testcase>
+    <testcase name="should detect GitLab CI environment" classname="" time="0.000095" file="tests/unit/ci-detector.test.ts" line="31" assertions="1">
+      <failure type="AssertionError" />
+    </testcase>
+    <testcase name="should detect local environment" classname="" time="0.000041" file="tests/unit/ci-detector.test.ts" line="50" assertions="1">
+      <failure type="AssertionError" />
+    </testcase>
+    <testcase name="should detect pull request" classname="" time="0.000003" file="tests/unit/ci-detector.test.ts" line="59" assertions="1" />
+    <testcase name="should get branch name" classname="" time="0.000074" file="tests/unit/ci-detector.test.ts" line="77" assertions="1">
+      <failure type="AssertionError" />
+    </testcase>
+    <testcase name="should get commit hash" classname="" time="0.000054" file="tests/unit/ci-detector.test.ts" line="95" assertions="1">
+      <failure type="AssertionError" />
+    </testcase>
+    <testcase name="should emit annotation" classname="" time="0.000006" file="tests/unit/ci-detector.test.ts" line="113" assertions="1" />
+    <testcase name="should handle singleton pattern" classname="" time="0.000081" file="tests/unit/ci-detector.test.ts" line="127" assertions="1" />
+    <testcase name="should refresh environment" classname="" time="0.000022" file="tests/unit/ci-detector.test.ts" line="134" assertions="1" />
+  </testsuite>
+  <testsuite name="tests/unit/test-process-manager.test.ts" file="tests/unit/test-process-manager.test.ts" tests="9" assertions="12" failures="5" skipped="0" time="0" hostname="Mac.attlocal.net">
+    <testsuite name="Test Process Manager" file="tests/unit/test-process-manager.test.ts" line="8" tests="9" assertions="12" failures="5" skipped="0" time="0" hostname="Mac.attlocal.net">
+      <testsuite name="Process Detection" file="tests/unit/test-process-manager.test.ts" line="40" tests="3" assertions="4" failures="1" skipped="0" time="0.366" hostname="Mac.attlocal.net">
+        <testcase name="should find test processes" classname="Process Detection &amp;gt; Test Process Manager" time="0.164603" file="tests/unit/test-process-manager.test.ts" line="41" assertions="2">
+          <failure type="AssertionError" />
+        </testcase>
+        <testcase name="should identify test processes correctly" classname="Process Detection &amp;gt; Test Process Manager" time="0.101741" file="tests/unit/test-process-manager.test.ts" line="52" assertions="1" />
+        <testcase name="should reject non-test processes" classname="Process Detection &amp;gt; Test Process Manager" time="0.101309" file="tests/unit/test-process-manager.test.ts" line="58" assertions="1" />
+      </testsuite>
+      <testsuite name="Process Termination" file="tests/unit/test-process-manager.test.ts" line="65" tests="2" assertions="2" failures="2" skipped="0" time="0.21" hostname="Mac.attlocal.net">
+        <testcase name="should gracefully terminate with SIGTERM" classname="Process Termination &amp;gt; Test Process Manager" time="0.105899" file="tests/unit/test-process-manager.test.ts" line="66" assertions="1">
+          <failure type="AssertionError" />
+        </testcase>
+        <testcase name="should immediately terminate with SIGKILL" classname="Process Termination &amp;gt; Test Process Manager" time="0.105943" file="tests/unit/test-process-manager.test.ts" line="82" assertions="1">
+          <failure type="AssertionError" />
+        </testcase>
+      </testsuite>
+      <testsuite name="Graceful Shutdown" file="tests/unit/test-process-manager.test.ts" line="99" tests="1" assertions="2" failures="0" skipped="0" time="0.104" hostname="Mac.attlocal.net">
+        <testcase name="should shutdown gracefully with timeout" classname="Graceful Shutdown &amp;gt; Test Process Manager" time="0.104816" file="tests/unit/test-process-manager.test.ts" line="100" assertions="2" />
+      </testsuite>
+      <testsuite name="Error Handling" file="tests/unit/test-process-manager.test.ts" line="114" tests="2" assertions="2" failures="2" skipped="0" time="0.214" hostname="Mac.attlocal.net">
+        <testcase name="should handle non-existent process" classname="Error Handling &amp;gt; Test Process Manager" time="0.105513" file="tests/unit/test-process-manager.test.ts" line="115" assertions="1">
+          <failure type="AssertionError" />
+        </testcase>
+        <testcase name="should handle invalid PID gracefully" classname="Error Handling &amp;gt; Test Process Manager" time="0.109233" file="tests/unit/test-process-manager.test.ts" line="121" assertions="1">
+          <failure type="AssertionError" />
+        </testcase>
+      </testsuite>
+      <testsuite name="Process Listing" file="tests/unit/test-process-manager.test.ts" line="128" tests="1" assertions="2" failures="0" skipped="0" time="0.216" hostname="Mac.attlocal.net">
+        <testcase name="should list processes without errors" classname="Process Listing &amp;gt; Test Process Manager" time="0.216756" file="tests/unit/test-process-manager.test.ts" line="129" assertions="2" />
+      </testsuite>
+    </testsuite>
+  </testsuite>
+  <testsuite name="tests/unit/ci-detection.test.ts" file="tests/unit/ci-detection.test.ts" tests="20" assertions="10" failures="16" skipped="0" time="0" hostname="Mac.attlocal.net">
+    <testsuite name="CI Detection" file="tests/unit/ci-detection.test.ts" line="5" tests="12" assertions="0" failures="12" skipped="0" time="0" hostname="Mac.attlocal.net">
+      <testsuite name="Environment Detection" file="tests/unit/ci-detection.test.ts" line="20" tests="4" assertions="0" failures="4" skipped="0" time="0" hostname="Mac.attlocal.net">
+        <testcase name="should detect local environment" classname="Environment Detection &amp;gt; CI Detection" time="0.000306" file="tests/unit/ci-detection.test.ts" line="21" assertions="0">
+          <failure type="AssertionError" />
+        </testcase>
+        <testcase name="should detect GitHub Actions" classname="Environment Detection &amp;gt; CI Detection" time="0.000053" file="tests/unit/ci-detection.test.ts" line="34" assertions="0">
+          <failure type="AssertionError" />
+        </testcase>
+        <testcase name="should detect GitLab CI" classname="Environment Detection &amp;gt; CI Detection" time="0.000029" file="tests/unit/ci-detection.test.ts" line="52" assertions="0">
+          <failure type="AssertionError" />
+        </testcase>
+        <testcase name="should detect generic CI" classname="Environment Detection &amp;gt; CI Detection" time="0.000055" file="tests/unit/ci-detection.test.ts" line="68" assertions="0">
+          <failure type="AssertionError" />
+        </testcase>
+      </testsuite>
+      <testsuite name="Pull Request Detection" file="tests/unit/ci-detection.test.ts" line="79" tests="3" assertions="0" failures="3" skipped="0" time="0" hostname="Mac.attlocal.net">
+        <testcase name="should detect GitHub pull request" classname="Pull Request Detection &amp;gt; CI Detection" time="0.000037" file="tests/unit/ci-detection.test.ts" line="80" assertions="0">
+          <failure type="AssertionError" />
+        </testcase>
+        <testcase name="should detect GitLab merge request" classname="Pull Request Detection &amp;gt; CI Detection" time="0.000008" file="tests/unit/ci-detection.test.ts" line="89" assertions="0">
+          <failure type="AssertionError" />
+        </testcase>
+        <testcase name="should not detect PR on main branch" classname="Pull Request Detection &amp;gt; CI Detection" time="0.000029" file="tests/unit/ci-detection.test.ts" line="98" assertions="0">
+          <failure type="AssertionError" />
+        </testcase>
+      </testsuite>
+      <testsuite name="Tag Detection" file="tests/unit/ci-detection.test.ts" line="109" tests="2" assertions="0" failures="2" skipped="0" time="0" hostname="Mac.attlocal.net">
+        <testcase name="should detect GitHub tag" classname="Tag Detection &amp;gt; CI Detection" time="0.000054" file="tests/unit/ci-detection.test.ts" line="110" assertions="0">
+          <failure type="AssertionError" />
+        </testcase>
+        <testcase name="should detect GitLab tag" classname="Tag Detection &amp;gt; CI Detection" time="0.000004" file="tests/unit/ci-detection.test.ts" line="120" assertions="0">
+          <failure type="AssertionError" />
+        </testcase>
+      </testsuite>
+      <testsuite name="Annotations" file="tests/unit/ci-detection.test.ts" line="130" tests="3" assertions="0" failures="3" skipped="0" time="0" hostname="Mac.attlocal.net">
+        <testcase name="should emit GitHub Actions annotations" classname="Annotations &amp;gt; CI Detection" time="0.000031" file="tests/unit/ci-detection.test.ts" line="131" assertions="0">
+          <failure type="AssertionError" />
+        </testcase>
+        <testcase name="should emit generic annotations" classname="Annotations &amp;gt; CI Detection" time="0.000078" file="tests/unit/ci-detection.test.ts" line="151" assertions="0">
+          <failure type="AssertionError" />
+        </testcase>
+        <testcase name="should handle groups" classname="Annotations &amp;gt; CI Detection" time="0.000045" file="tests/unit/ci-detection.test.ts" line="168" assertions="0">
+          <failure type="AssertionError" />
+        </testcase>
+      </testsuite>
+    </testsuite>
+    <testsuite name="Test Configuration" file="tests/unit/ci-detection.test.ts" line="186" tests="8" assertions="10" failures="4" skipped="0" time="0" hostname="Mac.attlocal.net">
+      <testsuite name="CI Configuration" file="tests/unit/ci-detection.test.ts" line="197" tests="6" assertions="6" failures="3" skipped="0" time="0" hostname="Mac.attlocal.net">
+        <testcase name="should use CI-specific timeouts" classname="CI Configuration &amp;gt; Test Configuration" time="0.000065" file="tests/unit/ci-detection.test.ts" line="198" assertions="1">
+          <failure type="AssertionError" />
+        </testcase>
+        <testcase name="should use local timeouts" classname="CI Configuration &amp;gt; Test Configuration" time="0.000011" file="tests/unit/ci-detection.test.ts" line="206" assertions="1" />
+        <testcase name="should enable coverage in CI" classname="CI Configuration &amp;gt; Test Configuration" time="0.00002" file="tests/unit/ci-detection.test.ts" line="214" assertions="1" />
+        <testcase name="should disable coverage locally by default" classname="CI Configuration &amp;gt; Test Configuration" time="0.000032" file="tests/unit/ci-detection.test.ts" line="220" assertions="1">
+          <failure type="AssertionError" />
+        </testcase>
+        <testcase name="should limit concurrency in CI" classname="CI Configuration &amp;gt; Test Configuration" time="0.000153" file="tests/unit/ci-detection.test.ts" line="227" assertions="1">
+          <failure type="AssertionError" />
+        </testcase>
+        <testcase name="should use all cores locally" classname="CI Configuration &amp;gt; Test Configuration" time="0.000013" file="tests/unit/ci-detection.test.ts" line="235" assertions="1" />
+      </testsuite>
+      <testsuite name="Environment Configuration" file="tests/unit/ci-detection.test.ts" line="244" tests="2" assertions="4" failures="1" skipped="0" time="0" hostname="Mac.attlocal.net">
+        <testcase name="should configure CI environment variables" classname="Environment Configuration &amp;gt; Test Configuration" time="0.000036" file="tests/unit/ci-detection.test.ts" line="245" assertions="3" />
+        <testcase name="should configure GitHub Actions annotations" classname="Environment Configuration &amp;gt; Test Configuration" time="0.000022" file="tests/unit/ci-detection.test.ts" line="257" assertions="1">
+          <failure type="AssertionError" />
+        </testcase>
+      </testsuite>
+    </testsuite>
+  </testsuite>
+  <testsuite name="tests/unit/test-organizer-example.test.ts" file="tests/unit/test-organizer-example.test.ts" tests="6" assertions="5" failures="2" skipped="0" time="0" hostname="Mac.attlocal.net">
+    <testsuite name="Test Group: unknown" file="tests/unit/test-organizer-example.test.ts" line="9" tests="6" assertions="5" failures="2" skipped="0" time="0" hostname="Mac.attlocal.net">
+      <testsuite name="Environment Variables" file="tests/unit/test-organizer-example.test.ts" line="21" tests="4" assertions="4" failures="2" skipped="0" time="0" hostname="Mac.attlocal.net">
+        <testcase name="should have TEST_GROUP set" classname="Environment Variables &amp;gt; Test Group: unknown" time="0.000084" file="tests/unit/test-organizer-example.test.ts" line="22" assertions="1">
+          <failure type="AssertionError" />
+        </testcase>
+        <testcase name="should have valid TEST_PRIORITY" classname="Environment Variables &amp;gt; Test Group: unknown" time="0.000006" file="tests/unit/test-organizer-example.test.ts" line="26" assertions="1" />
+        <testcase name="should have TEST_TAGS array" classname="Environment Variables &amp;gt; Test Group: unknown" time="0.000022" file="tests/unit/test-organizer-example.test.ts" line="30" assertions="1" />
+        <testcase name="should have TEST_MODE set" classname="Environment Variables &amp;gt; Test Group: unknown" time="0.00001" file="tests/unit/test-organizer-example.test.ts" line="34" assertions="1">
+          <failure type="AssertionError" />
+        </testcase>
+      </testsuite>
+      <testsuite name="Priority-based Behavior" file="tests/unit/test-organizer-example.test.ts" line="112" tests="1" assertions="1" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+        <testcase name="should adjust timeout based on priority" classname="Priority-based Behavior &amp;gt; Test Group: unknown" time="0.000015" file="tests/unit/test-organizer-example.test.ts" line="113" assertions="1" />
+      </testsuite>
+      <testsuite name="Parallel Execution" file="tests/unit/test-organizer-example.test.ts" line="127" tests="1" assertions="0" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+        <testcase name="should respect parallel configuration" classname="Parallel Execution &amp;gt; Test Group: unknown" time="0.000012" file="tests/unit/test-organizer-example.test.ts" line="128" assertions="0" />
+      </testsuite>
+    </testsuite>
+  </testsuite>
+  <testsuite name="tests/unit/network-control.test.ts" file="tests/unit/network-control.test.ts" tests="11" assertions="17" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+    <testsuite name="Network Control Tests" file="tests/unit/network-control.test.ts" line="3" tests="11" assertions="17" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+      <testsuite name="Environment Variables" file="tests/unit/network-control.test.ts" line="17" tests="3" assertions="3" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+        <testcase name="should detect CI mode" classname="Environment Variables &amp;gt; Network Control Tests" time="0.000064" file="tests/unit/network-control.test.ts" line="18" assertions="1" />
+        <testcase name="should detect offline preference" classname="Environment Variables &amp;gt; Network Control Tests" time="0.000039" file="tests/unit/network-control.test.ts" line="23" assertions="1" />
+        <testcase name="should detect install disabled" classname="Environment Variables &amp;gt; Network Control Tests" time="0.000019" file="tests/unit/network-control.test.ts" line="28" assertions="1" />
+      </testsuite>
+      <testsuite name="Network Control Flags" file="tests/unit/network-control.test.ts" line="34" tests="3" assertions="3" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+        <testcase name="should validate prefer-offline flag" classname="Network Control Flags &amp;gt; Network Control Tests" time="0.000026" file="tests/unit/network-control.test.ts" line="35" assertions="1" />
+        <testcase name="should validate frozen-lockfile flag" classname="Network Control Flags &amp;gt; Network Control Tests" time="0.00002" file="tests/unit/network-control.test.ts" line="40" assertions="1" />
+        <testcase name="should combine multiple flags" classname="Network Control Flags &amp;gt; Network Control Tests" time="0.000012" file="tests/unit/network-control.test.ts" line="45" assertions="1" />
+      </testsuite>
+      <testsuite name="Configuration Scenarios" file="tests/unit/network-control.test.ts" line="51" tests="3" assertions="9" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+        <testcase name="should handle offline mode configuration" classname="Configuration Scenarios &amp;gt; Network Control Tests" time="0.000015" file="tests/unit/network-control.test.ts" line="52" assertions="3" />
+        <testcase name="should handle frozen lockfile configuration" classname="Configuration Scenarios &amp;gt; Network Control Tests" time="0.000022" file="tests/unit/network-control.test.ts" line="64" assertions="2" />
+        <testcase name="should handle isolated mode configuration" classname="Configuration Scenarios &amp;gt; Network Control Tests" time="0.000025" file="tests/unit/network-control.test.ts" line="75" assertions="4" />
+      </testsuite>
+      <testsuite name="Command Building" file="tests/unit/network-control.test.ts" line="93" tests="2" assertions="2" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+        <testcase name="should build test command with flags" classname="Command Building &amp;gt; Network Control Tests" time="0.000017" file="tests/unit/network-control.test.ts" line="94" assertions="1" />
+        <testcase name="should handle empty flags" classname="Command Building &amp;gt; Network Control Tests" time="0.000013" file="tests/unit/network-control.test.ts" line="104" assertions="1" />
+      </testsuite>
+    </testsuite>
+  </testsuite>
+  <testsuite name="tests/unit/inheritance.test.ts" file="tests/unit/inheritance.test.ts" tests="4" assertions="3" failures="1" skipped="0" time="0" hostname="Mac.attlocal.net">
+    <testsuite name="Configuration Inheritance Tests" file="tests/unit/inheritance.test.ts" line="8" tests="1" assertions="1" failures="1" skipped="0" time="0" hostname="Mac.attlocal.net">
+      <testcase name="(unnamed)" classname="Configuration Inheritance Tests" time="0.000029" file="tests/unit/inheritance.test.ts" assertions="1">
+        <failure type="AssertionError" />
+      </testcase>
+    </testsuite>
+    <testsuite name="Inheritance Feature Flags" file="tests/unit/inheritance.test.ts" line="54" tests="3" assertions="2" failures="0" skipped="0" time="0.101" hostname="Mac.attlocal.net">
+      <testcase name="should respect smol mode when inherited" classname="Inheritance Feature Flags" time="0.000014" file="tests/unit/inheritance.test.ts" line="55" assertions="0" />
+      <testcase name="should inherit timeout settings" classname="Inheritance Feature Flags" time="0.101237" file="tests/unit/inheritance.test.ts" line="66" assertions="2" />
+      <testcase name="should handle coverage inheritance" classname="Inheritance Feature Flags" time="0.000052" file="tests/unit/inheritance.test.ts" line="76" assertions="0" />
+    </testsuite>
+  </testsuite>
+  <testsuite name="tests/unit/smoke/critical-path.test.ts" file="tests/unit/smoke/critical-path.test.ts" tests="6" assertions="11" failures="1" skipped="0" time="0" hostname="Mac.attlocal.net">
+    <testsuite name="🚀 Smoke Tests - Group: unknown" file="tests/unit/smoke/critical-path.test.ts" line="17" tests="6" assertions="11" failures="1" skipped="0" time="0.115" hostname="Mac.attlocal.net">
+      <testcase name="should verify Bun runtime is available" classname="🚀 Smoke Tests - Group: unknown" time="0" file="tests/unit/smoke/critical-path.test.ts" line="29" assertions="2" />
+      <testcase name="should verify test environment variables are set" classname="🚀 Smoke Tests - Group: unknown" time="0.000131" file="tests/unit/smoke/critical-path.test.ts" line="34" assertions="1">
+        <failure type="AssertionError" />
+      </testcase>
+      <testcase name="should verify critical modules can be imported" classname="🚀 Smoke Tests - Group: unknown" time="0.000005" file="tests/unit/smoke/critical-path.test.ts" line="42" assertions="3" />
+      <testcase name="should verify configuration files exist" classname="🚀 Smoke Tests - Group: unknown" time="0.000118" file="tests/unit/smoke/critical-path.test.ts" line="50" assertions="3" />
+      <testcase name="should verify test organizer can list groups" classname="🚀 Smoke Tests - Group: unknown" time="0.014586" file="tests/unit/smoke/critical-path.test.ts" line="62" assertions="1" />
+      <testcase name="should have fast execution time" classname="🚀 Smoke Tests - Group: unknown" time="0.101042" file="tests/unit/smoke/critical-path.test.ts" line="76" assertions="1" />
+    </testsuite>
+  </testsuite>
+  <testsuite name="tests/unit/lib/profileLoader.test.ts" file="tests/unit/lib/profileLoader.test.ts" tests="9" assertions="18" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+    <testsuite name="profileLoader" file="tests/unit/lib/profileLoader.test.ts" line="10" tests="9" assertions="18" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+      <testsuite name="loadProfile" file="tests/unit/lib/profileLoader.test.ts" line="28" tests="2" assertions="5" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+        <testcase name="loads existing profile" classname="loadProfile &amp;gt; profileLoader" time="0.000835" file="tests/unit/lib/profileLoader.test.ts" line="29" assertions="4" />
+        <testcase name="returns null for non-existent profile" classname="loadProfile &amp;gt; profileLoader" time="0.000377" file="tests/unit/lib/profileLoader.test.ts" line="37" assertions="1" />
+      </testsuite>
+      <testsuite name="listProfiles" file="tests/unit/lib/profileLoader.test.ts" line="43" tests="2" assertions="4" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+        <testcase name="returns array of profile names" classname="listProfiles &amp;gt; profileLoader" time="0.000614" file="tests/unit/lib/profileLoader.test.ts" line="44" assertions="3" />
+        <testcase name="returns sorted names" classname="listProfiles &amp;gt; profileLoader" time="0.000362" file="tests/unit/lib/profileLoader.test.ts" line="51" assertions="1" />
+      </testsuite>
+      <testsuite name="resolveSecretRefs" file="tests/unit/lib/profileLoader.test.ts" line="57" tests="3" assertions="5" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+        <testcase name="resolves existing environment variables" classname="resolveSecretRefs &amp;gt; profileLoader" time="0.000327" file="tests/unit/lib/profileLoader.test.ts" line="58" assertions="2" />
+        <testcase name="keeps unresolved refs as-is" classname="resolveSecretRefs &amp;gt; profileLoader" time="0.000365" file="tests/unit/lib/profileLoader.test.ts" line="70" assertions="1" />
+        <testcase name="handles multiple refs in one value" classname="resolveSecretRefs &amp;gt; profileLoader" time="0.000332" file="tests/unit/lib/profileLoader.test.ts" line="79" assertions="2" />
+      </testsuite>
+      <testsuite name="getUnresolvedRefs" file="tests/unit/lib/profileLoader.test.ts" line="90" tests="2" assertions="4" failures="0" skipped="0" time="0.001" hostname="Mac.attlocal.net">
+        <testcase name="returns list of unresolved references" classname="getUnresolvedRefs &amp;gt; profileLoader" time="0.001038" file="tests/unit/lib/profileLoader.test.ts" line="91" assertions="3" />
+        <testcase name="returns empty array when all refs resolved" classname="getUnresolvedRefs &amp;gt; profileLoader" time="0.000381" file="tests/unit/lib/profileLoader.test.ts" line="104" assertions="1" />
+      </testsuite>
+    </testsuite>
+  </testsuite>
+  <testsuite name="tests/unit/commands/profileUse.test.ts" file="tests/unit/commands/profileUse.test.ts" tests="12" assertions="19" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+    <testsuite name="profileUse" file="tests/unit/commands/profileUse.test.ts" line="6" tests="12" assertions="19" failures="0" skipped="0" time="0.001" hostname="Mac.attlocal.net">
+      <testcase name="prints export statements for valid profile" classname="profileUse" time="0.001148" file="tests/unit/commands/profileUse.test.ts" line="12" assertions="3" />
+      <testcase name="exits NOT_FOUND for missing profile" classname="profileUse" time="0.000213" file="tests/unit/commands/profileUse.test.ts" line="29" assertions="2" />
+      <testcase name="dry-run shows &apos;Would set&apos; preview" classname="profileUse" time="0.000613" file="tests/unit/commands/profileUse.test.ts" line="42" assertions="1" />
+      <testcase name="validation exits VALIDATION_ERROR on bad profile" classname="profileUse" time="0.000417" file="tests/unit/commands/profileUse.test.ts" line="56" assertions="2" />
+      <testcase name="warns on unresolved refs during validation" classname="profileUse" time="0.000323" file="tests/unit/commands/profileUse.test.ts" line="75" assertions="1" />
+      <testcase name="--environment overrides NODE_ENV" classname="profileUse" time="0.000274" file="tests/unit/commands/profileUse.test.ts" line="93" assertions="1" />
+      <testcase name="adds MATRIX_PROFILE_NAME and MATRIX_PROFILE_VERSION meta vars" classname="profileUse" time="0.000247" file="tests/unit/commands/profileUse.test.ts" line="109" assertions="2" />
+      <testcase name="resolves ${VAR} references in export" classname="profileUse" time="0.000247" file="tests/unit/commands/profileUse.test.ts" line="126" assertions="2" />
+      <testcase name="dry-run does not print export statements" classname="profileUse" time="0.000277" file="tests/unit/commands/profileUse.test.ts" line="142" assertions="2" />
+      <testcase name="prints eval hint after dry-run" classname="profileUse" time="0.000232" file="tests/unit/commands/profileUse.test.ts" line="157" assertions="1" />
+      <testcase name="validation passes for well-formed profile" classname="profileUse" time="0.000242" file="tests/unit/commands/profileUse.test.ts" line="171" assertions="1" />
+      <testcase name="force flag allows continuing with validation warnings" classname="profileUse" time="0.000267" file="tests/unit/commands/profileUse.test.ts" line="187" assertions="1" />
+    </testsuite>
+  </testsuite>
+  <testsuite name="tests/unit/commands/profileCreate.test.ts" file="tests/unit/commands/profileCreate.test.ts" tests="9" assertions="20" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+    <testsuite name="profileCreate" file="tests/unit/commands/profileCreate.test.ts" line="7" tests="9" assertions="20" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+      <testcase name="creates new JSON file with defaults" classname="profileCreate" time="0.000464" file="tests/unit/commands/profileCreate.test.ts" line="13" assertions="5" />
+      <testcase name="applies custom description" classname="profileCreate" time="0.000765" file="tests/unit/commands/profileCreate.test.ts" line="28" assertions="1" />
+      <testcase name="overrides NODE_ENV with --env option" classname="profileCreate" time="0.000289" file="tests/unit/commands/profileCreate.test.ts" line="38" assertions="1" />
+      <testcase name="copies from existing profile with --from" classname="profileCreate" time="0.000413" file="tests/unit/commands/profileCreate.test.ts" line="46" assertions="4" />
+      <testcase name="exits NOT_FOUND when --from source is missing" classname="profileCreate" time="0.000236" file="tests/unit/commands/profileCreate.test.ts" line="64" assertions="2" />
+      <testcase name="exits CONFLICT_ERROR when profile exists without --force" classname="profileCreate" time="0.000277" file="tests/unit/commands/profileCreate.test.ts" line="74" assertions="2" />
+      <testcase name="overwrites existing profile with --force" classname="profileCreate" time="0.00029" file="tests/unit/commands/profileCreate.test.ts" line="88" assertions="2" />
+      <testcase name="sets created timestamp" classname="profileCreate" time="0.000549" file="tests/unit/commands/profileCreate.test.ts" line="106" assertions="2" />
+      <testcase name="reports variable count after creation" classname="profileCreate" time="0.00021" file="tests/unit/commands/profileCreate.test.ts" line="115" assertions="1" />
+    </testsuite>
+  </testsuite>
+  <testsuite name="tests/unit/commands/profileList.test.ts" file="tests/unit/commands/profileList.test.ts" tests="5" assertions="7" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+    <testsuite name="profileList" file="tests/unit/commands/profileList.test.ts" line="5" tests="5" assertions="7" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+      <testcase name="lists profiles from directory" classname="profileList" time="0.000499" file="tests/unit/commands/profileList.test.ts" line="11" assertions="2" />
+      <testcase name="shows &apos;No profiles found&apos; for empty directory" classname="profileList" time="0.000132" file="tests/unit/commands/profileList.test.ts" line="26" assertions="1" />
+      <testcase name="displays version and NODE_ENV for each profile" classname="profileList" time="0.000251" file="tests/unit/commands/profileList.test.ts" line="33" assertions="2" />
+      <testcase name="truncates descriptions longer than 50 chars" classname="profileList" time="0.000313" file="tests/unit/commands/profileList.test.ts" line="46" assertions="1" />
+      <testcase name="handles profiles with missing optional fields" classname="profileList" time="0.00028" file="tests/unit/commands/profileList.test.ts" line="59" assertions="1" />
+    </testsuite>
+  </testsuite>
+  <testsuite name="tests/unit/commands/profileShow.test.ts" file="tests/unit/commands/profileShow.test.ts" tests="6" assertions="11" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+    <testsuite name="profileShow" file="tests/unit/commands/profileShow.test.ts" line="6" tests="6" assertions="11" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+      <testcase name="displays name, version, and env vars" classname="profileShow" time="0.000391" file="tests/unit/commands/profileShow.test.ts" line="12" assertions="2" />
+      <testcase name="shows optional author and description" classname="profileShow" time="0.000236" file="tests/unit/commands/profileShow.test.ts" line="25" assertions="2" />
+      <testcase name="masks sensitive values" classname="profileShow" time="0.000232" file="tests/unit/commands/profileShow.test.ts" line="39" assertions="2" />
+      <testcase name="exits NOT_FOUND for missing profile" classname="profileShow" time="0.000145" file="tests/unit/commands/profileShow.test.ts" line="51" assertions="2" />
+      <testcase name="shows created timestamp when available" classname="profileShow" time="0.000239" file="tests/unit/commands/profileShow.test.ts" line="61" assertions="1" />
+      <testcase name="sorts env vars alphabetically in table" classname="profileShow" time="0.000287" file="tests/unit/commands/profileShow.test.ts" line="73" assertions="2" />
+    </testsuite>
+  </testsuite>
+  <testsuite name="tests/unit/commands/profileDiff.test.ts" file="tests/unit/commands/profileDiff.test.ts" tests="8" assertions="17" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+    <testsuite name="profileDiff" file="tests/unit/commands/profileDiff.test.ts" line="6" tests="8" assertions="17" failures="0" skipped="0" time="0.001" hostname="Mac.attlocal.net">
+      <testcase name="shows changed, added, and removed keys" classname="profileDiff" time="0.001018" file="tests/unit/commands/profileDiff.test.ts" line="12" assertions="3" />
+      <testcase name="shows &apos;Profiles are identical&apos; when equal" classname="profileDiff" time="0.000388" file="tests/unit/commands/profileDiff.test.ts" line="28" assertions="1" />
+      <testcase name="masks sensitive values in diff output" classname="profileDiff" time="0.000353" file="tests/unit/commands/profileDiff.test.ts" line="42" assertions="3" />
+      <testcase name="exits NOT_FOUND when left profile is missing" classname="profileDiff" time="0.000327" file="tests/unit/commands/profileDiff.test.ts" line="58" assertions="2" />
+      <testcase name="exits NOT_FOUND when right profile is missing" classname="profileDiff" time="0.000274" file="tests/unit/commands/profileDiff.test.ts" line="72" assertions="2" />
+      <testcase name="includes unchanged keys with showUnchanged option" classname="profileDiff" time="0.000335" file="tests/unit/commands/profileDiff.test.ts" line="86" assertions="1" />
+      <testcase name="displays comparison header with profile names" classname="profileDiff" time="0.000329" file="tests/unit/commands/profileDiff.test.ts" line="100" assertions="2" />
+      <testcase name="shows summary counts for each change type" classname="profileDiff" time="0.000376" file="tests/unit/commands/profileDiff.test.ts" line="115" assertions="3" />
+    </testsuite>
+  </testsuite>
+  <testsuite name="tests/unit/commands/profileExport.test.ts" file="tests/unit/commands/profileExport.test.ts" tests="9" assertions="19" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+    <testsuite name="profileExport" file="tests/unit/commands/profileExport.test.ts" line="7" tests="9" assertions="19" failures="0" skipped="0" time="0.005" hostname="Mac.attlocal.net">
+      <testcase name="writes .env format to stdout" classname="profileExport" time="0.000422" file="tests/unit/commands/profileExport.test.ts" line="13" assertions="3" />
+      <testcase name="includes header comments" classname="profileExport" time="0.000242" file="tests/unit/commands/profileExport.test.ts" line="31" assertions="2" />
+      <testcase name="async cleanup at the very end" classname="profileExport" time="0.005559" file="tests/unit/commands/profileExport.test.ts" line="44" assertions="2" />
+      <testcase name="auto-quotes values with spaces" classname="profileExport" time="0.000417" file="tests/unit/commands/profileExport.test.ts" line="64" assertions="2" />
+      <testcase name="forces quoting with --quote flag" classname="profileExport" time="0.000253" file="tests/unit/commands/profileExport.test.ts" line="76" assertions="1" />
+      <testcase name="resolves ${VAR} references with --resolve" classname="profileExport" time="0.00025" file="tests/unit/commands/profileExport.test.ts" line="87" assertions="2" />
+      <testcase name="writes to file with --output" classname="profileExport" time="0.000356" file="tests/unit/commands/profileExport.test.ts" line="99" assertions="3" />
+      <testcase name="exits NOT_FOUND for missing profile" classname="profileExport" time="0.000162" file="tests/unit/commands/profileExport.test.ts" line="115" assertions="2" />
+      <testcase name="sorts keys alphabetically" classname="profileExport" time="0.00026" file="tests/unit/commands/profileExport.test.ts" line="125" assertions="2" />
     </testsuite>
   </testsuite>
 </testsuites>

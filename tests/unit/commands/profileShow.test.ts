@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from "bun:test";
 import { CommandTestContext, ExitError } from "../helpers";
-import { profileShow } from "../../commands/profileShow";
+import { profileShow } from "../../../src/commands/profileShow";
 import { EXIT_CODES } from "../../../.claude/lib/exit-codes.ts";
 
 describe("profileShow", () => {

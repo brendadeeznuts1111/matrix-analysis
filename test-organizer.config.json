@@ -20,7 +20,8 @@
       "name": "Unit Tests",
       "description": "Fast, isolated unit tests",
       "patterns": [
-        "src/__tests__/unit/**/*.test.ts",
+        "tests/unit/**/*.test.ts",
+        "src/__tests__/**/*.test.ts",
         "src/**/*.test.ts",
         "src/**/*.spec.ts"
       ],
@@ -37,8 +38,8 @@
       "name": "Integration Tests",
       "description": "Tests that integrate multiple components",
       "patterns": [
-        "src/__tests__/integration/**/*.test.ts",
-        "tests/integration/**/*.test.ts"
+        "tests/integration/**/*.test.ts",
+        "src/__tests__/integration/**/*.test.ts"
       ],
       "priority": "medium",
       "tags": ["integration", "api"],
@@ -54,8 +55,8 @@
       "name": "Network Tests",
       "description": "Tests that require network access",
       "patterns": [
-        "src/__tests__/network/**/*.test.ts",
-        "tests/network/**/*.test.ts"
+        "tests/network/**/*.test.ts",
+        "src/__tests__/network/**/*.test.ts"
       ],
       "priority": "medium",
       "tags": ["network", "external"],
@@ -91,8 +92,8 @@
       "name": "Performance Tests",
       "description": "Performance and benchmark tests",
       "patterns": [
-        "src/__tests__/performance/**/*.test.ts",
-        "tests/performance/**/*.test.ts"
+        "tests/performance/**/*.test.ts",
+        "src/__tests__/performance/**/*.test.ts"
       ],
       "priority": "low",
       "tags": ["performance", "benchmark", "slow"],
@@ -109,8 +110,8 @@
       "name": "Security Tests",
       "description": "Security and vulnerability tests",
       "patterns": [
-        "src/__tests__/security/**/*.test.ts",
-        "tests/security/**/*.test.ts"
+        "tests/security/**/*.test.ts",
+        "src/__tests__/security/**/*.test.ts"
       ],
       "priority": "high",
       "tags": ["security", "audit"],
@@ -128,7 +129,8 @@
       "description": "Full application flow tests",
       "patterns": [
         "tests/e2e/**/*.test.ts",
-        "tests/acceptance/**/*.test.ts"
+        "tests/acceptance/**/*.test.ts",
+        "src/__tests__/e2e/**/*.test.ts"
       ],
       "priority": "low",
       "tags": ["e2e", "slow", "browser"],

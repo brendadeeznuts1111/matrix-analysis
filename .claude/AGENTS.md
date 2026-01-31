@@ -554,6 +554,10 @@ source <(./bin/kimi-shell init)
 | `kimi-session` | `./bin/kimi-session` | Session save/load |
 | `kimi-notify` | `./bin/kimi-notify` | Desktop notifications |
 | `kimi-workspace` | `./bin/kimi-workspace` | Workspace management |
+| `kimi-agent-loop` | `./bin/kimi-agent-loop` | Agent workflow automation |
+| `kimi-cloudflare` | `./bin/kimi-cloudflare` | Cloudflare & domain management |
+| `kimi-deploy` | `./bin/kimi-deploy` | Deployment automation |
+| `kimi-secrets` | `./bin/kimi-secrets` | Secrets management |
 | `infra` | `./bin/infra` | Service management |
 | `cmd` | `./bin/cmd` | Unified command system |
 
@@ -592,6 +596,34 @@ knerror         # Error notification
 w, wl           # Workspace list
 ws <name>       # Switch workspace
 wn <name>       # New workspace
+
+# Agent Loops (v7.0)
+kal <name>      # Start agent loop
+kals            # List loops
+kalstop <id>    # Stop loop
+kalresume <id>  # Resume loop
+
+# Cloudflare (v7.0)
+kcf-r2          # R2 bucket operations
+kcf-kv          # KV namespace operations
+kcf-cdn         # CDN status
+kcf-domain      # Domain info
+kcf-deploy      # Deploy worker
+kcf-logs        # Worker logs
+
+# Deployment (v7.0)
+kdeploy-staging   # Deploy to staging
+kdeploy-prod      # Deploy to production
+kdeploy-pipeline  # Run full pipeline
+kdeploy-status    # Show deploy status
+kdeploy-history   # Show deploy history
+kdeploy-check     # Run pre-deploy checks
+kdeploy-rollback  # Rollback deployment
+
+# Secrets (v7.0)
+ksec-list         # List secrets
+ksec-staging      # List staging secrets
+ksec-prod         # List production secrets
 
 # Navigation
 ocd-dashboard   # cd apps/dashboard
@@ -652,6 +684,40 @@ ws chrome                # Switch to chrome
 # - Startup commands
 ```
 
+### Agent Loop Management (v7.0)
+
+Automated agent workflow execution with checkpointing and recovery:
+
+```bash
+# Start a new agent loop
+kal "code-review" "Review all TypeScript files for errors"
+kal "refactor" "Refactor codebase" --checkpoint 5
+
+# Check loop status
+kals                    # All loops
+kals <loop-id>          # Specific loop with checkpoints
+
+# Control running loops
+kalstop <id>            # Stop loop
+kalpause <id>           # Pause loop
+kalresume <id>          # Resume from last checkpoint
+kalwatch <id>           # Watch progress in real-time
+
+# View metrics
+kalmetrics              # Aggregate statistics
+```
+
+**Features:**
+- **Checkpointing**: Automatic state saves every N steps
+- **Recovery**: Resume interrupted loops from last checkpoint
+- **Self-monitoring**: Built-in metrics and health tracking
+- **Hooks**: Pre/post execution and checkpoint hooks
+
+**Configuration:**
+- Config file: `config/kimi-tier1380-config.toml`
+- State dir: `~/.kimi/agent-state/`
+- Checkpoints: `~/.kimi/agent-state/checkpoints/`
+
 ### Unified Command System
 
 ```bash
@@ -679,6 +745,134 @@ bun run matrix:search <term>  # Search columns
 bun run matrix:validate       # Validate standards
 bun run matrix:doctor         # Check health
 ```
+
+### Cloudflare & Domain Management (v7.0)
+
+Integrated Cloudflare infrastructure management:
+
+```bash
+# R2 Bucket Operations
+kcf-r2 list                              # List all buckets
+kcf-r2 list fw-artifacts                 # List objects in bucket
+kcf-r2 upload fw-artifacts ./app.zip     # Upload file
+kcf-r2 download fw-artifacts app.zip     # Download file
+
+# KV Namespace Management
+kcf-kv list                              # List KV namespaces
+kcf-kv list OMEGA_REGISTRY               # List keys in namespace
+kcf-kv get OMEGA_REGISTRY version:current # Get key value
+kcf-kv put OMEGA_REGISTRY key value      # Set key value
+
+# Worker Deployment
+kcf-deploy omega staging                 # Deploy to staging
+kcf-deploy omega production              # Deploy to production
+kcf-logs omega-staging                   # Stream worker logs
+
+# CDN & Domain
+kcf-cdn                                  # Check CDN status
+kcf-domain                               # Show domain info
+kcf-health                               # Check domain health
+kcf-health mcp                           # Check MCP endpoint
+kcf-health acp                           # Check ACP endpoint
+```
+
+**Configuration:**
+- Domain config: `domain-config.json5`
+- Wrangler configs: `config/wrangler*.toml`
+- Pipeline: `config/pipeline.ts`
+
+### Deployment Automation (v7.0)
+
+Comprehensive deployment pipeline with automated checks and rollback:
+
+```bash
+# Quick Deployments
+kdeploy-staging                   # Deploy to staging
+kdeploy-prod                      # Deploy to production
+kdeploy-staging --dry-run         # Dry run (no actual deploy)
+kdeploy-prod --skip-checks       # Skip pre-deploy checks
+
+# Full Pipeline (checks → staging → e2e → production)
+kdeploy-pipeline
+
+# Deployment Status & History
+kdeploy-status                    # Show current deployment status
+kdeploy-history                   # Show all deployments
+kdeploy-history staging          # Show staging deployments only
+
+# Pre-deploy Checks
+kdeploy-check                     # Run checks without deploying
+
+# Rollback
+kdeploy-rollback staging         # Rollback staging
+kdeploy-rollback production      # Rollback production
+```
+
+**Pre-Deploy Checks (all must pass):**
+- Git status (working directory clean)
+- Bun version (1.3.x required)
+- TypeScript compilation
+- Unit tests
+- Lint (Biome)
+- Domain config validation
+- Wrangler authentication
+
+**Deployment History:**
+- Stored in: `~/.kimi/deploy-history/`
+- Keeps last 10 deployments per environment
+- Tracks: version, commit, status, duration
+
+### Secrets Management (v7.0)
+
+Secure secrets management for Cloudflare Workers:
+
+```bash
+# List secrets
+ksec-list                         # List global secrets
+ksec-staging                      # List staging secrets
+ksec-prod                         # List production secrets
+
+# Set/Get secrets
+kimi-secrets set API_KEY abc123 staging
+kimi-secrets get API_KEY staging
+kimi-secrets delete OLD_KEY production --force
+
+# Bulk operations
+kimi-secrets import ./secrets.json staging
+kimi-secrets export ./backup.json production
+
+# Sync between environments
+kimi-secrets sync staging production
+
+# Audit log
+kimi-secrets audit 100            # Show last 100 entries
+```
+
+**Security Features:**
+- Secret values are never displayed after creation
+- All actions logged to `~/.kimi/logs/secrets.log`
+- Export only includes names (not values)
+- Requires `--force` for destructive operations
+
+### Kimi CLI Configuration
+
+Tier-1380 optimized configuration for long-running agent workflows:
+
+```bash
+# Use Tier-1380 config
+kimi --config-file config/kimi-tier1380-config.toml
+
+# Or set as default
+cp config/kimi-tier1380-config.toml ~/.kimi/configs/
+kimi --config-file ~/.kimi/configs/kimi-tier1380-config.toml
+```
+
+**Key Settings:**
+- `max_steps_per_turn = 250` - Higher for complex operations
+- `max_retries_per_step = 15` - More retries for network ops
+- `max_ralph_iterations = -1` - Unlimited for long workflows
+- `enable_agent_loops = true` - Enable agent loop automation
+- `agent_checkpoint_interval = 10` - Auto-save every 10 steps
 
 ---
 

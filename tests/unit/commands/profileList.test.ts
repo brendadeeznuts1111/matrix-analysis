@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from "bun:test";
 import { CommandTestContext } from "../helpers";
-import { profileList } from "../../commands/profileList";
+import { profileList } from "../../../src/commands/profileList";
 
 describe("profileList", () => {
   const ctx = new CommandTestContext({ skipExit: true });

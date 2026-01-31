@@ -1,7 +1,7 @@
-import { describe, it, expect, beforeEach, afterEach } from "bun:test";
+import { describe, it, expect, beforeEach, afterEach, onTestFinished } from "bun:test";
 import { join } from "node:path";
 import { CommandTestContext, ExitError } from "../helpers";
-import { profileExport } from "../../commands/profileExport";
+import { profileExport } from "../../../src/commands/profileExport";
 import { EXIT_CODES } from "../../../.claude/lib/exit-codes.ts";
 
 describe("profileExport", () => {
@@ -11,6 +11,11 @@ describe("profileExport", () => {
   afterEach(() => ctx.teardown());
 
   it("writes .env format to stdout", async () => {
+    onTestFinished(() => {
+      // Verify cleanup state after afterEach has run
+      expect(ctx.console.stdout.length).toBeGreaterThan(0);
+    });
+
     await ctx.profileDir.addProfile("dev", {
       version: "1.0.0",
       env: { NODE_ENV: "development", PORT: "3000" },
@@ -34,6 +39,26 @@ describe("profileExport", () => {
     const output = ctx.console.stdout.join("");
     expect(output).toContain("# Generated from profile: dev");
     expect(output).toContain("# Version: 2.0.0");
+  });
+
+  it.serial("async cleanup at the very end", async () => {
+    let cleanupCalled = false;
+    onTestFinished(async () => {
+      // This runs after afterEach teardown
+      await new Promise((r) => setTimeout(r, 5));
+      cleanupCalled = true;
+    });
+
+    await ctx.profileDir.addProfile("cleanup-test", {
+      version: "3.0.0",
+      env: { NODE_ENV: "test" },
+    });
+
+    await profileExport("cleanup-test", {});
+
+    const output = ctx.console.stdout.join("");
+    expect(output).toContain("# Generated from profile: cleanup-test");
+    expect(output).toContain("# Version: 3.0.0");
   });
 
   it("auto-quotes values with spaces", async () => {

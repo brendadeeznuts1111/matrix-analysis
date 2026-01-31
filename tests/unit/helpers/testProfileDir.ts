@@ -2,8 +2,8 @@ import { mkdtemp, rm } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { spyOn, mock } from "bun:test";
-import type { Profile } from "../../lib/profileLoader";
-import * as profileLoader from "../../lib/profileLoader";
+import type { Profile } from "../../../src/lib/profileLoader";
+import * as profileLoader from "../../../src/lib/profileLoader";
 import { makeProfile } from "./fixtures";
 
 export interface TestProfileDir {

@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from "bun:test";
 import { join } from "node:path";
 import { CommandTestContext, ExitError } from "../helpers";
-import { profileCreate } from "../../commands/profileCreate";
+import { profileCreate } from "../../../src/commands/profileCreate";
 import { EXIT_CODES } from "../../../.claude/lib/exit-codes.ts";
 
 describe("profileCreate", () => {
