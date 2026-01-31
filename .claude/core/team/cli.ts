@@ -215,8 +215,10 @@ export async function cmdTeamHierarchy(teamId?: string): Promise<void> {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Auto-Themed Terminal Launcher
+// Auto-Themed Terminal Launcher (AsyncLocalStorage + Bun.Terminal)
 // ═══════════════════════════════════════════════════════════════════════════
+
+import { launchProfileTerminal } from "./profile-terminal.ts";
 
 export async function cmdTerminalLaunch(profileName: string): Promise<void> {
 	const profile = await getMember(profileName);
@@ -255,50 +257,21 @@ export async function cmdTerminalLaunch(profileName: string): Promise<void> {
 	console.log(banner);
 	console.log();
 
-	// Export profile env vars to the shell
-	const envVars: Record<string, string> = {
-		...(process.env as Record<string, string>),
-		...profile.env,
-		TIER1380_PROFILE: profileName,
-		TIER1380_TEAM: profile.team?.id ?? "",
-		TIER1380_ROLE: profile.team?.role ?? "",
-		TIER1380_TIER: String(profile.team?.tier ?? ""),
-		TIER1380_EMAIL: profile.team?.email ?? "",
-	};
+	// Use AsyncLocalStorage-based terminal launcher
+	// Bun v1.3.7+ ensures Terminal callbacks fire correctly inside AsyncLocalStorage.run()
+	const result = await launchProfileTerminal({
+		profileName,
+		teamId: profile.team?.id ?? "",
+		role: (profile.team?.role ?? "member") as import("./types.ts").TeamRole,
+		email: profile.team?.email ?? "",
+		env: profile.env,
+		enableR2Streaming: false, // CLI mode - no R2 streaming
+	});
 
-	// Launch interactive shell inside Bun.Terminal
-	const shell = Bun.env.SHELL ?? "/bin/zsh";
-
-	{
-		await using terminal = new Bun.Terminal({
-			cols: 89,
-			rows: 24,
-			data: (_term: unknown, data: Uint8Array) => {
-				process.stdout.write(data);
-			},
-		});
-
-		const proc = Bun.spawn([shell, "-l"], {
-			stdin: terminal,
-			stdout: terminal,
-			stderr: terminal,
-			env: envVars,
-		});
-
-		// Forward stdin to PTY
-		if (process.stdin.isTTY) {
-			process.stdin.setRawMode(true);
-			process.stdin.on("data", (data: Buffer) => {
-				terminal.write(data);
-			});
-		}
-
-		await proc.exited;
-
-		if (process.stdin.isTTY) {
-			process.stdin.setRawMode(false);
-		}
-	}
+	console.log();
+	printOk(
+		`Session complete (${result.duration}ms, ${result.bytesStreamed} bytes)`,
+	);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

@@ -1,33 +1,118 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuites name="bun test" tests="21" assertions="53" failures="0" skipped="0" time="0.02381">
-  <testsuite name=".claude/src/system/version/version-system.test.ts" file=".claude/src/system/version/version-system.test.ts" tests="21" assertions="53" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-    <testsuite name="VERSION_SYSTEM" file=".claude/src/system/version/version-system.test.ts" line="11" tests="21" assertions="53" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-      <testsuite name="VersionSystem Core" file=".claude/src/system/version/version-system.test.ts" line="12" tests="16" assertions="44" failures="0" skipped="0" time="0.001" hostname="Mac.attlocal.net">
-        <testcase name="should parse valid semver" classname="VersionSystem Core &amp;gt; VERSION_SYSTEM" time="0.001285" file=".claude/src/system/version/version-system.test.ts" line="13" assertions="1" />
-        <testcase name="should parse semver with prerelease" classname="VersionSystem Core &amp;gt; VERSION_SYSTEM" time="0.000015" file=".claude/src/system/version/version-system.test.ts" line="24" assertions="1" />
-        <testcase name="should parse semver with build" classname="VersionSystem Core &amp;gt; VERSION_SYSTEM" time="0.000018" file=".claude/src/system/version/version-system.test.ts" line="35" assertions="1" />
-        <testcase name="should parse semver with prerelease and build" classname="VersionSystem Core &amp;gt; VERSION_SYSTEM" time="0" file=".claude/src/system/version/version-system.test.ts" line="46" assertions="1" />
-        <testcase name="should handle v prefix" classname="VersionSystem Core &amp;gt; VERSION_SYSTEM" time="0.000018" file=".claude/src/system/version/version-system.test.ts" line="57" assertions="1" />
-        <testcase name="should return null for invalid semver" classname="VersionSystem Core &amp;gt; VERSION_SYSTEM" time="0.000022" file=".claude/src/system/version/version-system.test.ts" line="68" assertions="3" />
-        <testcase name="should compare versions correctly" classname="VersionSystem Core &amp;gt; VERSION_SYSTEM" time="0.000045" file=".claude/src/system/version/version-system.test.ts" line="74" assertions="4" />
-        <testcase name="should satisfy caret ranges" classname="VersionSystem Core &amp;gt; VERSION_SYSTEM" time="0.000107" file=".claude/src/system/version/version-system.test.ts" line="87" assertions="4" />
-        <testcase name="should satisfy tilde ranges" classname="VersionSystem Core &amp;gt; VERSION_SYSTEM" time="0.000035" file=".claude/src/system/version/version-system.test.ts" line="102" assertions="2" />
-        <testcase name="should satisfy greater/less ranges" classname="VersionSystem Core &amp;gt; VERSION_SYSTEM" time="0.000031" file=".claude/src/system/version/version-system.test.ts" line="111" assertions="5" />
-        <testcase name="should bump versions correctly" classname="VersionSystem Core &amp;gt; VERSION_SYSTEM" time="0.000101" file=".claude/src/system/version/version-system.test.ts" line="129" assertions="4" />
-        <testcase name="should bump prerelease versions" classname="VersionSystem Core &amp;gt; VERSION_SYSTEM" time="0" file=".claude/src/system/version/version-system.test.ts" line="144" assertions="1" />
-        <testcase name="should validate semver" classname="VersionSystem Core &amp;gt; VERSION_SYSTEM" time="0.000056" file=".claude/src/system/version/version-system.test.ts" line="153" assertions="4" />
-        <testcase name="should format version" classname="VersionSystem Core &amp;gt; VERSION_SYSTEM" time="0.000034" file=".claude/src/system/version/version-system.test.ts" line="160" assertions="2" />
-        <testcase name="should get runtime info" classname="VersionSystem Core &amp;gt; VERSION_SYSTEM" time="0.00005" file=".claude/src/system/version/version-system.test.ts" line="174" assertions="6" />
-        <testcase name="should check compatibility" classname="VersionSystem Core &amp;gt; VERSION_SYSTEM" time="0" file=".claude/src/system/version/version-system.test.ts" line="184" assertions="4" />
+<testsuites name="bun test" tests="74" assertions="169" failures="0" skipped="0" time="0.012034">
+  <testsuite name="mcp-bun-docs/search-bun.test.ts" file="mcp-bun-docs/search-bun.test.ts" tests="74" assertions="169" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+    <testsuite name="SearchBun / lib" file="mcp-bun-docs/search-bun.test.ts" line="64" tests="74" assertions="169" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+      <testsuite name="constants" file="mcp-bun-docs/search-bun.test.ts" line="75" tests="33" assertions="58" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+        <testcase name="should set BUN_BASE_URL to https://bun.com (canonical base)" classname="constants &amp;gt; SearchBun / lib" time="0.000087" file="mcp-bun-docs/search-bun.test.ts" line="76" assertions="1" />
+        <testcase name="should set BUN_INSTALL_SCRIPT_URL to bun.sh/install (only bun.sh exception)" classname="constants &amp;gt; SearchBun / lib" time="0" file="mcp-bun-docs/search-bun.test.ts" line="79" assertions="1" />
+        <testcase name="should derive BUN_DOCS_BASE from BUN_BASE_URL" classname="constants &amp;gt; SearchBun / lib" time="0" file="mcp-bun-docs/search-bun.test.ts" line="82" assertions="1" />
+        <testcase name="should set BUN_DOCS_MIN_VERSION to 1.3.6" classname="constants &amp;gt; SearchBun / lib" time="0" file="mcp-bun-docs/search-bun.test.ts" line="86" assertions="1" />
+        <testcase name="should derive BUN_FEEDBACK_URL from BUN_BASE_URL" classname="constants &amp;gt; SearchBun / lib" time="0" file="mcp-bun-docs/search-bun.test.ts" line="89" assertions="1" />
+        <testcase name="should include upgrade-first guidance in BUN_FEEDBACK_UPGRADE_FIRST" classname="constants &amp;gt; SearchBun / lib" time="0" file="mcp-bun-docs/search-bun.test.ts" line="92" assertions="2" />
+        <testcase name="should point BUN_TEST_REFERENCE_URL to bun.com/reference/bun/test" classname="constants &amp;gt; SearchBun / lib" time="0" file="mcp-bun-docs/search-bun.test.ts" line="96" assertions="1" />
+        <testcase name="should point BUN_REPO_URL to oven-sh/bun" classname="constants &amp;gt; SearchBun / lib" time="0" file="mcp-bun-docs/search-bun.test.ts" line="99" assertions="1" />
+        <testcase name="should point BUN_TYPES_REPO_URL to bun-types package" classname="constants &amp;gt; SearchBun / lib" time="0" file="mcp-bun-docs/search-bun.test.ts" line="102" assertions="1" />
+        <testcase name="should point BUN_TYPES_README_URL and BUN_TYPES_AUTHORING_URL to blob paths" classname="constants &amp;gt; SearchBun / lib" time="0" file="mcp-bun-docs/search-bun.test.ts" line="105" assertions="2" />
+        <testcase name="should list key bun-types .d.ts files" classname="constants &amp;gt; SearchBun / lib" time="0" file="mcp-bun-docs/search-bun.test.ts" line="109" assertions="3" />
+        <testcase name="should point BUN_SHOP_URL to shop.bun.com (subdomain)" classname="constants &amp;gt; SearchBun / lib" time="0" file="mcp-bun-docs/search-bun.test.ts" line="114" assertions="1" />
+        <testcase name="should derive BUN_BLOG_URL from BUN_BASE_URL" classname="constants &amp;gt; SearchBun / lib" time="0" file="mcp-bun-docs/search-bun.test.ts" line="117" assertions="1" />
+        <testcase name="should set BUN_BLOG_RSS_URL to changelog feed (no separate /blog/rss.xml)" classname="constants &amp;gt; SearchBun / lib" time="0" file="mcp-bun-docs/search-bun.test.ts" line="120" assertions="2" />
+        <testcase name="should derive BUN_GUIDES_URL from BUN_BASE_URL" classname="constants &amp;gt; SearchBun / lib" time="0" file="mcp-bun-docs/search-bun.test.ts" line="124" assertions="1" />
+        <testcase name="should point BUN_CHANGELOG_RSS to bun.com/rss.xml" classname="constants &amp;gt; SearchBun / lib" time="0" file="mcp-bun-docs/search-bun.test.ts" line="127" assertions="1" />
+        <testcase name="should point BUN_REPO_RELEASES_URL to oven-sh/bun/releases" classname="constants &amp;gt; SearchBun / lib" time="0" file="mcp-bun-docs/search-bun.test.ts" line="130" assertions="1" />
+        <testcase name="should derive BUN_PM_URL from BUN_BASE_URL" classname="constants &amp;gt; SearchBun / lib" time="0" file="mcp-bun-docs/search-bun.test.ts" line="133" assertions="1" />
+        <testcase name="should derive BUN_INSTALL_ADD_URL from BUN_BASE_URL" classname="constants &amp;gt; SearchBun / lib" time="0" file="mcp-bun-docs/search-bun.test.ts" line="136" assertions="2" />
+        <testcase name="should derive BUN_NODE_COMPAT_URL from BUN_BASE_URL" classname="constants &amp;gt; SearchBun / lib" time="0" file="mcp-bun-docs/search-bun.test.ts" line="140" assertions="2" />
+        <testcase name="should derive BUN_REFERENCE_URL from BUN_BASE_URL" classname="constants &amp;gt; SearchBun / lib" time="0" file="mcp-bun-docs/search-bun.test.ts" line="144" assertions="1" />
+        <testcase name="should expose BUN_URL_CONFIG with base, docs, reference, changelogRSS, installScript, globalsAPI" classname="constants &amp;gt; SearchBun / lib" time="0" file="mcp-bun-docs/search-bun.test.ts" line="147" assertions="8" />
+        <testcase name="should return URL_CANONICALIZATION_COMPLETE audit event with col89_safe and glyph" classname="constants &amp;gt; SearchBun / lib" time="0.000256" file="mcp-bun-docs/search-bun.test.ts" line="157" assertions="5" />
+        <testcase name="getRssCanonicalizationAuditEvent returns RSS_CANONICALIZATION_LOCKED with details and glyph" classname="constants &amp;gt; SearchBun / lib" time="0.000122" file="mcp-bun-docs/search-bun.test.ts" line="165" assertions="6" />
+        <testcase name="getLatestBunReleaseTitleFromRss returns first item title from RSS" classname="constants &amp;gt; SearchBun / lib" time="0.000072" file="mcp-bun-docs/search-bun.test.ts" line="174" assertions="1" />
+        <testcase name="getLatestBunReleaseTitleFromRss returns null on fetch failure" classname="constants &amp;gt; SearchBun / lib" time="0.000112" file="mcp-bun-docs/search-bun.test.ts" line="180" assertions="1" />
+        <testcase name="COL89_MAX is 89" classname="constants &amp;gt; SearchBun / lib" time="0.000006" file="mcp-bun-docs/search-bun.test.ts" line="185" assertions="1" />
+        <testcase name="getDocLinkWidth returns width under 89 for typical doc link" classname="constants &amp;gt; SearchBun / lib" time="0.000024" file="mcp-bun-docs/search-bun.test.ts" line="188" assertions="2" />
+        <testcase name="assertCol89 returns true for short link, false for over-89" classname="constants &amp;gt; SearchBun / lib" time="0.000024" file="mcp-bun-docs/search-bun.test.ts" line="194" assertions="2" />
+        <testcase name="should map BUN_DOC_MAP fetch to guides/http/fetch" classname="constants &amp;gt; SearchBun / lib" time="0" file="mcp-bun-docs/search-bun.test.ts" line="205" assertions="1" />
+        <testcase name="should map BUN_DOC_MAP serve to api/http" classname="constants &amp;gt; SearchBun / lib" time="0" file="mcp-bun-docs/search-bun.test.ts" line="205" assertions="1" />
+        <testcase name="should map BUN_DOC_MAP sqlite to api/sqlite" classname="constants &amp;gt; SearchBun / lib" time="0" file="mcp-bun-docs/search-bun.test.ts" line="205" assertions="1" />
+        <testcase name="should map BUN_DOC_MAP mcp to mcp" classname="constants &amp;gt; SearchBun / lib" time="0.000001" file="mcp-bun-docs/search-bun.test.ts" line="205" assertions="1" />
       </testsuite>
-      <testsuite name="VersionSystem Singleton" file=".claude/src/system/version/version-system.test.ts" line="193" tests="2" assertions="2" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-        <testcase name="should return same instance" classname="VersionSystem Singleton &amp;gt; VERSION_SYSTEM" time="0" file=".claude/src/system/version/version-system.test.ts" line="194" assertions="1" />
-        <testcase name="should cache parsed versions" classname="VersionSystem Singleton &amp;gt; VERSION_SYSTEM" time="0" file=".claude/src/system/version/version-system.test.ts" line="200" assertions="1" />
+      <testsuite name="buildDocUrl" file="mcp-bun-docs/search-bun.test.ts" line="210" tests="3" assertions="3" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+        <testcase name="should append path for relative api/http" classname="buildDocUrl &amp;gt; SearchBun / lib" time="0.000021" file="mcp-bun-docs/search-bun.test.ts" line="214" assertions="1" />
+        <testcase name="should append path for relative guides/http/fetch" classname="buildDocUrl &amp;gt; SearchBun / lib" time="0" file="mcp-bun-docs/search-bun.test.ts" line="214" assertions="1" />
+        <testcase name="should return absolute URL as-is" classname="buildDocUrl &amp;gt; SearchBun / lib" time="0.000009" file="mcp-bun-docs/search-bun.test.ts" line="218" assertions="1" />
       </testsuite>
-      <testsuite name="Version Comparison Edge Cases" file=".claude/src/system/version/version-system.test.ts" line="215" tests="3" assertions="7" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-        <testcase name="should handle prerelease comparison" classname="Version Comparison Edge Cases &amp;gt; VERSION_SYSTEM" time="0.000408" file=".claude/src/system/version/version-system.test.ts" line="216" assertions="3" />
-        <testcase name="should handle canary versions" classname="Version Comparison Edge Cases &amp;gt; VERSION_SYSTEM" time="0.000011" file=".claude/src/system/version/version-system.test.ts" line="233" assertions="2" />
-        <testcase name="should handle nightly versions" classname="Version Comparison Edge Cases &amp;gt; VERSION_SYSTEM" time="0.000018" file=".claude/src/system/version/version-system.test.ts" line="239" assertions="2" />
+      <testsuite name="searchBunDocs" file="mcp-bun-docs/search-bun.test.ts" line="224" tests="7" assertions="13" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+        <testcase name="should return markdown for known term fetch" classname="searchBunDocs &amp;gt; SearchBun / lib" time="0.000343" file="mcp-bun-docs/search-bun.test.ts" line="226" assertions="4" />
+        <testcase name="should return markdown for known term serve" classname="searchBunDocs &amp;gt; SearchBun / lib" time="0" file="mcp-bun-docs/search-bun.test.ts" line="235" assertions="1" />
+        <testcase name="should map postgres to api/sql not sqlite" classname="searchBunDocs &amp;gt; SearchBun / lib" time="0" file="mcp-bun-docs/search-bun.test.ts" line="241" assertions="2" />
+        <testcase name="should return fallback for unknown term" classname="searchBunDocs &amp;gt; SearchBun / lib" time="0" file="mcp-bun-docs/search-bun.test.ts" line="248" assertions="3" />
+        <testcase name="should accept empty opts" classname="searchBunDocs &amp;gt; SearchBun / lib" time="0.000199" file="mcp-bun-docs/search-bun.test.ts" line="256" assertions="1" />
+        <testcase name="should trim query before search" classname="searchBunDocs &amp;gt; SearchBun / lib" time="0" file="mcp-bun-docs/search-bun.test.ts" line="262" assertions="1" />
+        <testcase name="should exclude mcp when bunVersion filters too-new APIs" classname="searchBunDocs &amp;gt; SearchBun / lib" time="0" file="mcp-bun-docs/search-bun.test.ts" line="268" assertions="1" />
+      </testsuite>
+      <testsuite name="BUN_DOC_ENTRIES" file="mcp-bun-docs/search-bun.test.ts" line="275" tests="1" assertions="6" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+        <testcase name="should have Tier-1380 schema fields" classname="BUN_DOC_ENTRIES &amp;gt; SearchBun / lib" time="0" file="mcp-bun-docs/search-bun.test.ts" line="276" assertions="6" />
+      </testsuite>
+      <testsuite name="filterEntriesByVersion" file="mcp-bun-docs/search-bun.test.ts" line="287" tests="1" assertions="3" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+        <testcase name="should hide APIs requiring newer runtime" classname="filterEntriesByVersion &amp;gt; SearchBun / lib" time="0" file="mcp-bun-docs/search-bun.test.ts" line="288" assertions="3" />
+      </testsuite>
+      <testsuite name="filterEntriesByStability" file="mcp-bun-docs/search-bun.test.ts" line="296" tests="2" assertions="4" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+        <testcase name="should exclude experimental for prod" classname="filterEntriesByStability &amp;gt; SearchBun / lib" time="0.00053" file="mcp-bun-docs/search-bun.test.ts" line="297" assertions="2" />
+        <testcase name="should exclude Bun.inspect.table from prod-safe" classname="filterEntriesByStability &amp;gt; SearchBun / lib" time="0.000144" file="mcp-bun-docs/search-bun.test.ts" line="303" assertions="2" />
+      </testsuite>
+      <testsuite name="filterEntriesByPlatform" file="mcp-bun-docs/search-bun.test.ts" line="310" tests="1" assertions="2" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+        <testcase name="should exclude darwin+linux-only on win32" classname="filterEntriesByPlatform &amp;gt; SearchBun / lib" time="0.000039" file="mcp-bun-docs/search-bun.test.ts" line="311" assertions="2" />
+      </testsuite>
+      <testsuite name="BINARY_PERF_METRICS" file="mcp-bun-docs/search-bun.test.ts" line="318" tests="1" assertions="4" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+        <testcase name="should include Buffer.swap16 and Buffer.swap64" classname="BINARY_PERF_METRICS &amp;gt; SearchBun / lib" time="0.00002" file="mcp-bun-docs/search-bun.test.ts" line="319" assertions="4" />
+      </testsuite>
+      <testsuite name="BUN_DOC_MAP buffer ops" file="mcp-bun-docs/search-bun.test.ts" line="327" tests="2" assertions="2" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+        <testcase name="should map Buffer.swap16 to api/buffer" classname="BUN_DOC_MAP buffer ops &amp;gt; SearchBun / lib" time="0" file="mcp-bun-docs/search-bun.test.ts" line="331" assertions="1" />
+        <testcase name="should map Buffer.swap64 to api/buffer" classname="BUN_DOC_MAP buffer ops &amp;gt; SearchBun / lib" time="0" file="mcp-bun-docs/search-bun.test.ts" line="331" assertions="1" />
+      </testsuite>
+      <testsuite name="TEST_CONFIG_MATRIX" file="mcp-bun-docs/search-bun.test.ts" line="336" tests="2" assertions="4" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+        <testcase name="should have install inheritance row" classname="TEST_CONFIG_MATRIX &amp;gt; SearchBun / lib" time="0" file="mcp-bun-docs/search-bun.test.ts" line="337" assertions="2" />
+        <testcase name="should have [test.ci] profile" classname="TEST_CONFIG_MATRIX &amp;gt; SearchBun / lib" time="0" file="mcp-bun-docs/search-bun.test.ts" line="343" assertions="2" />
+      </testsuite>
+      <testsuite name="bun test entry" file="mcp-bun-docs/search-bun.test.ts" line="350" tests="1" assertions="1" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+        <testcase name="should map bun test to test path" classname="bun test entry &amp;gt; SearchBun / lib" time="0" file="mcp-bun-docs/search-bun.test.ts" line="351" assertions="1" />
+      </testsuite>
+      <testsuite name="getDocEntry" file="mcp-bun-docs/search-bun.test.ts" line="356" tests="3" assertions="6" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+        <testcase name="should return entry for exact term" classname="getDocEntry &amp;gt; SearchBun / lib" time="0" file="mcp-bun-docs/search-bun.test.ts" line="357" assertions="3" />
+        <testcase name="should return entry for case-insensitive term" classname="getDocEntry &amp;gt; SearchBun / lib" time="0" file="mcp-bun-docs/search-bun.test.ts" line="363" assertions="2" />
+        <testcase name="should return null for unknown term" classname="getDocEntry &amp;gt; SearchBun / lib" time="0" file="mcp-bun-docs/search-bun.test.ts" line="368" assertions="1" />
+      </testsuite>
+      <testsuite name="getReferenceUrl / BUN_REFERENCE_KEYS" file="mcp-bun-docs/search-bun.test.ts" line="373" tests="2" assertions="35" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+        <testcase name="should return URL for fileAPI" classname="getReferenceUrl / BUN_REFERENCE_KEYS &amp;gt; SearchBun / lib" time="0" file="mcp-bun-docs/search-bun.test.ts" line="374" assertions="1" />
+        <testcase name="should list all reference keys" classname="getReferenceUrl / BUN_REFERENCE_KEYS &amp;gt; SearchBun / lib" time="0" file="mcp-bun-docs/search-bun.test.ts" line="377" assertions="34" />
+      </testsuite>
+      <testsuite name="BUN_GLOBALS / getCrossReferences" file="mcp-bun-docs/search-bun.test.ts" line="415" tests="5" assertions="11" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+        <testcase name="should include Bun, $, fetch, Buffer in BUN_GLOBALS" classname="BUN_GLOBALS / getCrossReferences &amp;gt; SearchBun / lib" time="0" file="mcp-bun-docs/search-bun.test.ts" line="416" assertions="4" />
+        <testcase name="should derive BUN_GLOBALS_API_URL from BUN_BASE_URL" classname="BUN_GLOBALS / getCrossReferences &amp;gt; SearchBun / lib" time="0" file="mcp-bun-docs/search-bun.test.ts" line="423" assertions="1" />
+        <testcase name="should return cross-refs for spawn (subprocess, shell)" classname="BUN_GLOBALS / getCrossReferences &amp;gt; SearchBun / lib" time="0" file="mcp-bun-docs/search-bun.test.ts" line="426" assertions="3" />
+        <testcase name="should return cross-refs for Bun.serve (serve, fetch)" classname="BUN_GLOBALS / getCrossReferences &amp;gt; SearchBun / lib" time="0.000291" file="mcp-bun-docs/search-bun.test.ts" line="432" assertions="2" />
+        <testcase name="should return empty array for term with no relatedTerms" classname="BUN_GLOBALS / getCrossReferences &amp;gt; SearchBun / lib" time="0.000033" file="mcp-bun-docs/search-bun.test.ts" line="437" assertions="1" />
+      </testsuite>
+      <testsuite name="suggestDocTerms" file="mcp-bun-docs/search-bun.test.ts" line="443" tests="3" assertions="7" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+        <testcase name="should return matches for partial query" classname="suggestDocTerms &amp;gt; SearchBun / lib" time="0.000049" file="mcp-bun-docs/search-bun.test.ts" line="444" assertions="4" />
+        <testcase name="should respect limit" classname="suggestDocTerms &amp;gt; SearchBun / lib" time="0.000041" file="mcp-bun-docs/search-bun.test.ts" line="451" assertions="1" />
+        <testcase name="should return empty for empty query" classname="suggestDocTerms &amp;gt; SearchBun / lib" time="0" file="mcp-bun-docs/search-bun.test.ts" line="455" assertions="2" />
+      </testsuite>
+      <testsuite name="TIER_1380_COMPLIANCE" file="mcp-bun-docs/search-bun.test.ts" line="461" tests="1" assertions="2" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+        <testcase name="should document Transpiler.replMode Col 93 and maxHeaders" classname="TIER_1380_COMPLIANCE &amp;gt; SearchBun / lib" time="0" file="mcp-bun-docs/search-bun.test.ts" line="462" assertions="2" />
+      </testsuite>
+      <testsuite name="BUN_137_FEATURE_MATRIX" file="mcp-bun-docs/search-bun.test.ts" line="469" tests="2" assertions="3" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+        <testcase name="should include S3.presign and String.isWellFormed" classname="BUN_137_FEATURE_MATRIX &amp;gt; SearchBun / lib" time="0.000072" file="mcp-bun-docs/search-bun.test.ts" line="470" assertions="2" />
+        <testcase name="should have 7 v1.3.7 features" classname="BUN_137_FEATURE_MATRIX &amp;gt; SearchBun / lib" time="0" file="mcp-bun-docs/search-bun.test.ts" line="475" assertions="1" />
+      </testsuite>
+      <testsuite name="BUN_137_COMPLETE_MATRIX" file="mcp-bun-docs/search-bun.test.ts" line="480" tests="2" assertions="3" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+        <testcase name="should include Buffer.from and Bun.wrapAnsi" classname="BUN_137_COMPLETE_MATRIX &amp;gt; SearchBun / lib" time="0.000021" file="mcp-bun-docs/search-bun.test.ts" line="481" assertions="2" />
+        <testcase name="should have 20 complete matrix rows (v1.3.7 catalog)" classname="BUN_137_COMPLETE_MATRIX &amp;gt; SearchBun / lib" time="0.000002" file="mcp-bun-docs/search-bun.test.ts" line="486" assertions="1" />
+      </testsuite>
+      <testsuite name="v1.3.7 BUN_DOC_ENTRIES" file="mcp-bun-docs/search-bun.test.ts" line="491" tests="2" assertions="2" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+        <testcase name="should map S3File.presign to api/s3" classname="v1.3.7 BUN_DOC_ENTRIES &amp;gt; SearchBun / lib" time="0" file="mcp-bun-docs/search-bun.test.ts" line="492" assertions="1" />
+        <testcase name="should map node:inspector to api/node-inspector" classname="v1.3.7 BUN_DOC_ENTRIES &amp;gt; SearchBun / lib" time="0" file="mcp-bun-docs/search-bun.test.ts" line="495" assertions="1" />
       </testsuite>
     </testsuite>
   </testsuite>
