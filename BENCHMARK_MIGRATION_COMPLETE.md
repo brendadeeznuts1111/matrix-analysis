@@ -67,14 +67,29 @@ bun run all:json           # Run with JSON output
 ## Next Steps
 
 1. **Test the new setup**: Run `bun run bench` to verify everything works
-2. **Clean up old directories** (optional):
+2. **Clean up old directories** (recommended after migration is complete):
 
    ```bash
-   rm -rf /bench /benchmarks /test/scripts/bench /skills/benchmarks
+   # Remove old benchmark directories
+   rm -rf /bench
+   rm -rf /benchmarks
+   rm -rf /test/scripts/bench
+   rm -rf /skills/benchmarks
+
+   # Verify cleanup
+   git status  # Should show these directories as deleted
+   git add -A  # Stage the deletions
+   git commit -m "[INFRA][COMPONENT:BENCHMARK][TIER:500] Remove old benchmark directories after migration"
    ```
+
+   ⚠️ **Warning**: Only run these commands after:
+   - You've verified the new benchmarks work correctly
+   - CI/CD has been updated to use the new commands
+   - Team members have been notified of the change
 
 3. **Update CI/CD** to use `bun run bench:json`
 4. **Update documentation** to reference the new location
+5. **Notify team** about the new benchmark commands and structure
 
 ## Benefits
 

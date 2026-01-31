@@ -133,6 +133,27 @@ bun run all:json
 - `mitata@^1.0.34` - Modern benchmark runner
 - `benchmark@^2.1.4` - Legacy benchmark support
 
+## 🧹 Cleanup (After Migration)
+
+Once you've verified the new benchmark suite works correctly, you can remove the old directories:
+
+```bash
+# Remove old benchmark directories
+rm -rf ../bench
+rm -rf ../benchmarks
+rm -rf ../test/scripts/bench
+rm -rf ../skills/benchmarks
+
+# Commit the cleanup
+git add -A
+git commit -m "[INFRA][COMPONENT:BENCHMARK][TIER:500] Remove old benchmark directories after migration"
+```
+
+⚠️ **Important**: Only perform cleanup after:
+- All tests pass with the new structure
+- CI/CD pipelines have been updated
+- Team members have been notified
+
 ## 📚 Related Documentation
 
 - [Bun 1.3.6 Improvements](../docs/BUN_1_3_6_IMPROVEMENTS.md)
