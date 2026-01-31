@@ -6,7 +6,7 @@
  */
 
 import { readFileSync, readdirSync, statSync } from 'fs';
-import { join, relative, extname } from 'path';
+import { join, relative, extname, resolve } from 'path';
 
 const rootDir = process.argv[2] || '.';
 const verbose = process.argv.includes('--verbose');
@@ -109,7 +109,7 @@ function scanDirectory(dir: string): void {
 }
 
 console.log(`🔍 Quick link check in: ${rootDir}`);
-scanDirectory(rootDir);
+scanDirectory(resolve(rootDir));
 
 console.log(`\n📊 Results:`);
 console.log(`  Total checked: ${checkedCount}`);
