@@ -1,0 +1,48 @@
+{
+  "basicTransform": "import * as whatever from \"./whatever.ts\";\nexport function Home(props) {\n  return jsxDEV_7x81h0kn(\"p\", {\n    children: props.title\n  }, undefined, false, undefined, this);\n}\n",
+  "scanResult": {
+    "exports": [
+      "name"
+    ],
+    "imports": [
+      {
+        "kind": "import-statement",
+        "path": "react"
+      },
+      {
+        "kind": "dynamic-import",
+        "path": "./loader"
+      }
+    ]
+  },
+  "importKinds": [
+    {
+      "kind": "import-statement",
+      "path": "react"
+    },
+    {
+      "kind": "import-statement",
+      "path": "react"
+    },
+    {
+      "kind": "require-call",
+      "path": "fs"
+    },
+    {
+      "kind": "require-call",
+      "path": "child_process"
+    },
+    {
+      "kind": "dynamic-import",
+      "path": "./lazy-module"
+    }
+  ],
+  "performance": {
+    "importsScanned": 200,
+    "timeMs": 0.15858300000000014
+  },
+  "examples": {
+    "react": "import{useState,useEffect}from\"react\";import api from\"./api\";import\"./styles.css\";export function App(){const[data,setData]=useState(null);useEffect(()=>{if(false){}api.fetchData().then(setData)},[]);return jsxs_eh6c78nj(\"div\",{children:[\"Hello \",\"My App\"]})}",
+    "node": "var __dirname = \"\";\nimport { readFile, writeFile } from \"fs/promises\";\nimport { join } from \"path\";\nimport config from \"./config.json\";\nexport async function processFile(filename) {\n  const filePath = join(__dirname, filename);\n  const data = await readFile(filePath, \"utf-8\");\n  if (true) {\n    console.log(\"Processing:\", filePath);\n  }\n  return data.toUpperCase();\n}\n"
+  }
+}

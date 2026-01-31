@@ -101,6 +101,11 @@ export const BUN_DOC_ENTRIES: BunDocEntry[] = [
 	{ term: "bun:ffi.envPaths", path: "api/ffi", bunMinVersion: "1.3.7", stability: "stable", platforms: ["darwin", "linux", "win32"], security: SEC_IO, support: ["C_INCLUDE_PATH", "LIBRARY_PATH"], useCases: ["NixOS/FHS non-standard paths"], relatedTerms: ["ffi"], category: "runtime" },
 	{ term: "Mimalloc v3", path: "internals/mimalloc", bunMinVersion: "1.3.7", stability: "stable", platforms: ["darwin", "linux", "win32"], security: SEC_IO, useCases: ["Reduced multi-threaded memory usage"], relatedTerms: ["heap"], category: "internals" },
 	{ term: "Bun.stringWidth", path: "api/utils", bunMinVersion: "1.3.7", stability: "stable", platforms: ["darwin", "linux", "win32"], security: SEC_IO, perfProfile: { opsSec: 0, baseline: "GB9c Indic support" }, implementation: "51KB table (down from 70KB)", useCases: ["Col 93 alignment", "Unicode display width"], relatedTerms: ["Bun.wrapAnsi"], category: "runtime" },
+	// v1.3.5 / v1.3.8 extensions — Tier-1380
+	{ term: "Bun.Terminal", path: "api/terminal", bunMinVersion: "1.3.5", stability: "stable", platforms: ["darwin", "linux"], security: { classification: "critical", notes: "PTY spawn, validate I/O" }, methods: ["write", "resize", "setRawMode", "ref", "unref", "close"], useCases: ["Interactive shells", "Col 93 matrix display"], relatedTerms: ["Bun.spawn", "terminal"], category: "runtime" },
+	{ term: "bun:bundle feature", path: "api/bundle", bunMinVersion: "1.3.5", stability: "stable", platforms: ["darwin", "linux", "win32"], security: { classification: "medium", notes: "Dead code elimination reduces attack surface" }, useCases: ["Platform builds", "A/B testing", "Paid tiers"], cliFlags: ["--feature"], relatedTerms: ["bun build"], category: "bundler" },
+	{ term: "pm pack", path: "pm/cli/pack", bunMinVersion: "1.3.8", stability: "stable", platforms: ["darwin", "linux", "win32"], security: { classification: "high", notes: "Re-reads package.json post-lifecycle" }, useCases: ["prepack", "prepare", "prepublishOnly", "clean-package"], relatedTerms: ["bun pm publish"], category: "cli" },
+	{ term: "Redis", path: "api/redis", bunMinVersion: "1.3.0", stability: "stable", platforms: ["darwin", "linux", "win32"], security: SEC_NET, perfProfile: { opsSec: 0, baseline: "7.9x ioredis" }, relatedTerms: ["Bun.sql", "postgres"], category: "storage" },
 ];
 
 /** Tier-1380 Test Config Inheritance — bunfig.toml hierarchy */
@@ -161,6 +166,11 @@ export const BUN_137_COMPLETE_MATRIX = [
 	{ Category: "Performance", Term: "File system cache", PerfFeature: "Persistent stat cache", SecurityPlatform: "Cross-platform" },
 	{ Category: "Performance", Term: "JIT optimizations", PerfFeature: "URLPattern JIT", SecurityPlatform: "Compile-time caching" },
 	{ Category: "Unicode", Term: "GB9c table v3", PerfFeature: "Indic script support", SecurityPlatform: "Col 93 compliance" },
+	// v1.3.5 / v1.3.8 extensions
+	{ Category: "Runtime", Term: "Bun.Terminal", PerfFeature: "Native PTY (93×45)", SecurityPlatform: "POSIX only (darwin/linux)" },
+	{ Category: "Bundler", Term: "bun:bundle feature", PerfFeature: "Dead code elimination", SecurityPlatform: "Attack surface ↓" },
+	{ Category: "PM", Term: "pm pack", PerfFeature: "Lifecycle re-read", SecurityPlatform: "clean-package compat" },
+	{ Category: "Storage", Term: "Redis", PerfFeature: "7.9x vs ioredis", SecurityPlatform: "Native client" },
 ];
 
 /** Tier-1380 Col 93 / GB9c / SecureDataRepository compliance notes */
@@ -229,6 +239,10 @@ export const SEARCH_WEIGHTS: Record<string, number> = {
 	"S3File.write.contentEncoding": 1.3,
 	"bun:ffi.envPaths": 1.2,
 	"Bun.stringWidth": 1.5,
+	"Bun.Terminal": 1.5,
+	"bun:bundle feature": 1.2,
+	"pm pack": 1.2,
+	Redis: 1.5,
 };
 
 export function buildDocUrl(path: string): string {

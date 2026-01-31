@@ -5,18 +5,20 @@
  */
 
 import { resolve } from "node:path";
-import { defineCommand, fmt, jsc } from "../.claude/lib/cli.ts";
+import { defineCommand, fmt, jsc, transpiler } from "../.claude/lib/cli.ts";
 import { EXIT_CODES } from "../.claude/lib/exit-codes.ts";
 
 defineCommand({
 	name: "jsc-diagnostic",
-	description: "Inspect JavaScriptCore runtime: heap, GC, JIT, object types",
+	description: "Inspect JavaScriptCore runtime: heap, GC, JIT, transpiler, imports",
 	usage: "bun tools/jsc-diagnostic.ts [options] [file]",
 	options: {
 		heap: { type: "boolean", default: false, description: "Show heap stats and object type breakdown" },
 		gc: { type: "boolean", default: false, description: "Run full GC and report freed memory" },
 		profile: { type: "boolean", default: false, description: "Profile a file's default export function" },
 		describe: { type: "boolean", short: "d", default: false, description: "Describe internal types of module exports" },
+		transpile: { type: "boolean", short: "t", default: false, description: "Show transpiled JS output of a file" },
+		imports: { type: "boolean", short: "i", default: false, description: "Scan and list a file's imports/exports" },
 		all: { type: "boolean", short: "a", default: false, description: "Run all diagnostics" },
 	},
 	async run(values, positionals) {
@@ -24,11 +26,13 @@ defineCommand({
 		const showGC = !!values["gc"] || !!values["all"];
 		const showProfile = !!values["profile"];
 		const showDescribe = !!values["describe"];
+		const showTranspile = !!values["transpile"];
+		const showImports = !!values["imports"];
 		const showAll = !!values["all"];
 		const targetFile = positionals[0];
 
 		// Default to --all if no flags given
-		const noFlags = !showHeap && !showGC && !showProfile && !showDescribe && !showAll;
+		const noFlags = !showHeap && !showGC && !showProfile && !showDescribe && !showTranspile && !showImports && !showAll;
 
 		if (noFlags || showHeap) {
 			console.log(`\n${fmt.bold("Heap Stats")}`);
@@ -136,6 +140,54 @@ defineCommand({
 		} else if (showDescribe && !targetFile) {
 			console.error(fmt.fail("--describe requires a file argument"));
 			console.error("Usage: bun tools/jsc-diagnostic.ts --describe <file.ts>");
+			process.exit(EXIT_CODES.USAGE_ERROR);
+		}
+
+		if (showTranspile && targetFile) {
+			console.log(`\n${fmt.bold("Transpiled Output")} — ${targetFile}`);
+			try {
+				const output = await transpiler.transformFile(resolve(targetFile));
+				console.log(output);
+			} catch (err) {
+				console.error(fmt.fail(`Failed to transpile: ${err}`));
+				process.exit(EXIT_CODES.GENERIC_ERROR);
+			}
+		} else if (showTranspile && !targetFile) {
+			console.error(fmt.fail("--transpile requires a file argument"));
+			console.error("Usage: bun tools/jsc-diagnostic.ts --transpile <file.ts>");
+			process.exit(EXIT_CODES.USAGE_ERROR);
+		}
+
+		if ((showImports || showAll) && targetFile) {
+			console.log(`\n${fmt.bold("Imports & Exports")} — ${targetFile}`);
+			try {
+				const result = await transpiler.scanFile(resolve(targetFile));
+
+				if (result.exports.length > 0) {
+					console.log(`\n${fmt.bold("Exports")} (${result.exports.length})`);
+					const exportRows = result.exports.map((name) => ({ export: name }));
+					console.log(Bun.inspect.table(exportRows, ["export"]));
+				}
+
+				if (result.imports.length > 0) {
+					console.log(`${fmt.bold("Imports")} (${result.imports.length})`);
+					const importRows = result.imports.map((imp) => ({
+						path: imp.path,
+						kind: imp.kind,
+					}));
+					console.log(Bun.inspect.table(importRows, ["path", "kind"]));
+				}
+
+				if (result.exports.length === 0 && result.imports.length === 0) {
+					console.log(fmt.dim("  No imports or exports found."));
+				}
+			} catch (err) {
+				console.error(fmt.fail(`Failed to scan: ${err}`));
+				process.exit(EXIT_CODES.GENERIC_ERROR);
+			}
+		} else if (showImports && !targetFile) {
+			console.error(fmt.fail("--imports requires a file argument"));
+			console.error("Usage: bun tools/jsc-diagnostic.ts --imports <file.ts>");
 			process.exit(EXIT_CODES.USAGE_ERROR);
 		}
 	},

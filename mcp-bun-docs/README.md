@@ -24,6 +24,18 @@ bun run mcp:matrix
 # CI validation (exit 1 if deprecated)
 bun run mcp:ci-validate
 
+# Matrix validation (Col 93, GB9c, security)
+bun run matrix:validate --region=us-east --check=all
+
+# Seal lock file
+bun run tier1380:seal --matrix=v1.3.7
+
+# RSS hydration
+bun run matrix:rss --output=./feeds/bun-v1.3.7.xml
+
+# Secure test run
+bun run mcp:secure-test [ci|local|staging]
+
 # Examples
 bun run mcp:example:manifest          # Fetch & inspect manifest
 bun run mcp:example:search            # Search "fetch" (default)
@@ -57,6 +69,8 @@ bun run mcp:example:search "Bun.serve" # Search custom term
 **Filter helpers:** `filterEntriesByVersion`, `filterEntriesByStability`, `filterEntriesByPlatform`
 
 **CI:** `bun run mcp:ci-validate` — exits 1 if deprecated entries exist.
+
+**Recent additions (v1.3.5 / v1.3.8):** `Bun.Terminal` (PTY), `bun:bundle feature` (compile-time flags), `pm pack` (lifecycle re-read), `Redis` (7.9x ioredis).
 
 ## Cursor / Claude Integration
 

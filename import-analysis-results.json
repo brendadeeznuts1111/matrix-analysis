@@ -1,0 +1,90 @@
+{
+  "totalImports": 10,
+  "importsByKind": {
+    "import-statement": [
+      {
+        "kind": "import-statement",
+        "path": "react"
+      },
+      {
+        "kind": "import-statement",
+        "path": "lodash"
+      }
+    ],
+    "require-call": [
+      {
+        "kind": "require-call",
+        "path": "fs"
+      },
+      {
+        "kind": "require-call",
+        "path": "child_process"
+      },
+      {
+        "kind": "require-call",
+        "path": "./config.json"
+      },
+      {
+        "kind": "require-call",
+        "path": "react-devtools"
+      }
+    ],
+    "dynamic-import": [
+      {
+        "kind": "dynamic-import",
+        "path": "./dynamic-module"
+      },
+      {
+        "kind": "dynamic-import",
+        "path": "./heavy-module"
+      },
+      {
+        "kind": "dynamic-import",
+        "path": "./api"
+      },
+      {
+        "kind": "dynamic-import",
+        "path": "./data.json"
+      }
+    ]
+  },
+  "dependencyTree": {
+    "external": [
+      "react-devtools"
+    ],
+    "local": [
+      "./dynamic-module",
+      "./heavy-module",
+      "./api"
+    ],
+    "builtIn": [
+      "fs",
+      "child_process"
+    ],
+    "types": [
+      "react",
+      "lodash",
+      "./config.json",
+      "./data.json"
+    ]
+  },
+  "optimizationSuggestions": [],
+  "importMap": {
+    "imports": {
+      "react": "react",
+      "lodash": "lodash"
+    },
+    "dynamicImports": [
+      "./dynamic-module",
+      "./heavy-module",
+      "./api",
+      "./data.json"
+    ],
+    "requires": [
+      "fs",
+      "child_process",
+      "./config.json",
+      "react-devtools"
+    ]
+  }
+}

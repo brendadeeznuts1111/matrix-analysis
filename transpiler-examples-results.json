@@ -1,0 +1,46 @@
+{
+  "frameworkMigration": {
+    "original": "\nimport React, { useState, useEffect } from 'react';\nimport ReactDOM from 'react-dom';\nimport './App.css';\n\nfunction App() {\n  const [count, setCount] = useState(0);\n  \n  useEffect(() => {\n    document.title = `Count: ${count}`;\n  }, [count]);\n  \n  return (\n    <div className=\"app\">\n      <h1>Hello React</h1>\n      <p>Count: {count}</p>\n      <button onClick={() => setCount(count + 1)}>\n        Increment\n      </button>\n    </div>\n  );\n}\n\nexport default App;\n",
+    "preact": "import{useState,useEffect}from\"react\";import\"./App.css\";function App(){const[count,setCount]=useState(0);useEffect(()=>{document.title=`Count: ${count}`},[count]);return jsxs_eh6c78nj(\"div\",{className:\"app\",children:[jsx_w77yafs4(\"h1\",{children:\"Hello React\"}),jsxs_eh6c78nj(\"p\",{children:[\"Count: \",count]}),jsx_w77yafs4(\"button\",{onClick:()=>setCount(count+1),children:\"Increment\"})]})}export default App;"
+  },
+  "environmentBuilds": {
+    "development": "const API_URL = \"http://localhost:3000\";\nconst DEBUG = true;\nexport async function fetchUser(id) {\n  if (DEBUG)\n    console.log(\"Fetching user:\", id);\n  const response = await fetch(`${API_URL}/users/${id}`);\n  if (!response.ok) {\n    throw new Error(`HTTP error! status: ${response.status}`);\n  }\n  return response.json();\n}\nexport const config = {\n  apiUrl: API_URL,\n  debug: DEBUG,\n  version: \"2.0.0-dev\"\n};\n",
+    "production": "const API_URL=\"https://api.example.com\";const DEBUG=false;export async function fetchUser(id){if(false);const response=await fetch(`https://api.example.com/users/${id}`);if(!response.ok){throw new Error(`HTTP error! status: ${response.status}`)}return response.json()}export const config={apiUrl:\"https://api.example.com\",debug:false,version:\"2.0.0\"};"
+  },
+  "dependencyAnalysis": {
+    "categorized": {
+      "external": [],
+      "internal": [
+        "./utils",
+        "../config",
+        "./lazy-component"
+      ],
+      "dynamic": [],
+      "conditional": [],
+      "assets": [
+        "./assets/logo.png",
+        "./assets/icons.svg"
+      ],
+      "css": [
+        "./styles/main.css",
+        "./styles.module.css"
+      ],
+      "types": [
+        "react",
+        "lodash",
+        "axios",
+        "pdfkit"
+      ]
+    },
+    "totalImports": 11
+  },
+  "bundleOptimization": {
+    "original": "import React, { useState, useEffect, useContext, useMemo, useCallback } from \"react\";\nimport lodash, { map, filter, reduce, find } from \"lodash\";\nimport * as moment from \"moment\";\nimport { fetch } from \"node-fetch\";\nexport function processData(data) {\n  return map(data, (item) => item.id);\n}\nexport async function getData() {\n  const response = await fetch(\"https://api.example.com\");\n  return response.json();\n}\nfunction unusedHelper() {\n  return moment().format();\n}\n",
+    "optimized": "import{map}from\"lodash\";import*as moment from\"moment\";import{fetch}from\"node-fetch\";export function processData(data){return map(data,(item)=>item.id)}export async function getData(){const response=await fetch(\"https://api.example.com\");return response.json()}function unusedHelper(){return moment().format()}",
+    "savingsPercent": "34.3"
+  },
+  "targetSpecific": {
+    "browser": "import { readFileSync } from \"fs\";\nimport { localStorage } from \"local-storage\";\nexport function getConfig() {\n  const fileConfig = readFileSync(\"./config.json\", \"utf-8\");\n  const savedConfig = localStorage.getItem(\"config\");\n  return { fileConfig, savedConfig };\n}\nexport const platform = \"browser\";\n",
+    "node": "import { readFileSync } from \"fs\";\nimport { localStorage } from \"local-storage\";\nexport function getConfig() {\n  const fileConfig = readFileSync(\"./config.json\", \"utf-8\");\n  const savedConfig = localStorage.getItem(\"config\");\n  return { fileConfig, savedConfig };\n}\nexport const platform = process.platform;\n"
+  }
+}

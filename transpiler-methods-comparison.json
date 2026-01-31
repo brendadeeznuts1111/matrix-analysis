@@ -1,0 +1,80 @@
+{
+  "performance": {
+    "simpleTransform": {
+      "sync": "0.13",
+      "async": "0.17"
+    },
+    "largeTransform": {
+      "sync": "1.49",
+      "async": "1.40"
+    },
+    "simpleScan": {
+      "full": "0.05",
+      "imports": "0.03"
+    },
+    "largeScan": {
+      "full": "1.82",
+      "imports": "1.43"
+    },
+    "parallel": {
+      "totalTime": "1.61",
+      "average": "0.02"
+    }
+  },
+  "importKinds": {
+    "detected": [
+      {
+        "kind": "import-statement",
+        "path": "react"
+      },
+      {
+        "kind": "import-statement",
+        "path": "react"
+      },
+      {
+        "kind": "require-call",
+        "path": "fs"
+      },
+      {
+        "kind": "dynamic-import",
+        "path": "./lazy-module"
+      },
+      {
+        "kind": "require-call",
+        "path": "crypto"
+      }
+    ],
+    "grouped": {
+      "import-statement": 2,
+      "require-call": 2,
+      "dynamic-import": 1
+    }
+  },
+  "recommendations": [
+    {
+      "scenario": "Single small file (< 10KB)",
+      "method": "transformSync()",
+      "reason": "Thread pool overhead > transpilation time"
+    },
+    {
+      "scenario": "Multiple large files (> 10KB)",
+      "method": "transform()",
+      "reason": "Parallel processing saves time"
+    },
+    {
+      "scenario": "Need exports list",
+      "method": "scan()",
+      "reason": "Only method that returns exports"
+    },
+    {
+      "scenario": "Performance-critical import scanning",
+      "method": "scanImports()",
+      "reason": "Faster for large files"
+    },
+    {
+      "scenario": "CI/CD pipeline",
+      "method": "transform() with parallel processing",
+      "reason": "Utilizes all CPU cores"
+    }
+  ]
+}
