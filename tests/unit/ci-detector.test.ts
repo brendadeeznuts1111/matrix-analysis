@@ -14,6 +14,7 @@ test('should detect GitHub Actions environment', async () => {
 
   try {
     const detector = await CIDetector.getInstance();
+    detector.refreshEnvironment(process.env); // Clear cache
     const result = await detector.detect();
 
     expect(result.name).toBe('GitHub Actions');
@@ -34,6 +35,7 @@ test('should detect GitLab CI environment', async () => {
 
   try {
     const detector = await CIDetector.getInstance();
+    detector.refreshEnvironment(process.env); // Clear cache
     const result = await detector.detect();
 
     expect(result.name).toBe('GitLab CI');
@@ -48,7 +50,13 @@ test('should detect GitLab CI environment', async () => {
 });
 
 test('should detect local environment', async () => {
+  // Clear CI variables
+  delete process.env.CI;
+  delete process.env.GITHUB_ACTIONS;
+  delete process.env.GITLAB_CI;
+
   const detector = await CIDetector.getInstance();
+  detector.refreshEnvironment(process.env); // Clear cache
   const result = await detector.detect();
 
   expect(result.name).toBe('Local');
@@ -62,6 +70,7 @@ test('should detect pull request', async () => {
 
   try {
     const detector = await CIDetector.getInstance();
+    detector.refreshEnvironment(process.env); // Clear cache
     const result = await detector.detect();
 
     expect(result.isPR).toBe(true);
@@ -80,6 +89,7 @@ test('should get branch name', async () => {
 
   try {
     const detector = await CIDetector.getInstance();
+    detector.refreshEnvironment(process.env); // Clear cache
     const result = await detector.detect();
 
     expect(result.branch).toBe('main');
@@ -98,6 +108,7 @@ test('should get commit hash', async () => {
 
   try {
     const detector = await CIDetector.getInstance();
+    detector.refreshEnvironment(process.env); // Clear cache
     const result = await detector.detect();
 
     expect(result.commit).toBe('abc123def456');
@@ -139,6 +150,6 @@ test('should refresh environment', async () => {
 
   // Refresh should not throw
   expect(() => {
-    detector.refreshEnvironment();
+    detector.refreshEnvironment(process.env);
   }).not.toThrow();
 });

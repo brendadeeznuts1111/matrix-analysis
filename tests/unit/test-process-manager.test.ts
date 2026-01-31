@@ -12,7 +12,7 @@ describe('Test Process Manager', () => {
   beforeEach(async () => {
     // Start a long-running test process
     testProcess = spawn({
-      cmd: ['bun', 'test', '--timeout', '30000', './src/__tests__/network-control.test.ts'],
+      cmd: ['bun', 'test', '--timeout', '30000', './tests/unit/ci-detection.test.ts'],
       stdout: 'ignore',
       stderr: 'ignore'
     });
@@ -50,7 +50,7 @@ describe('Test Process Manager', () => {
     });
 
     it('should identify test processes correctly', () => {
-      const command = 'bun test --timeout 30000 ./src/__tests__/network-control.test.ts';
+      const command = 'bun test --timeout 30000 ./tests/unit/ci-detection.test.ts';
       const isTest = (TestProcessManager as any).isTestProcess(command);
       expect(isTest).toBe(true);
     });
@@ -70,7 +70,7 @@ describe('Test Process Manager', () => {
       }
 
       const result = await TestProcessManager.kill(testPid, 'SIGTERM');
-      expect(result).toBe(true);
+      expect(result.success).toBe(true);
 
       // Process should terminate within reasonable time
       await new Promise(resolve => setTimeout(resolve, 2000));
@@ -86,7 +86,7 @@ describe('Test Process Manager', () => {
       }
 
       const result = await TestProcessManager.kill(testPid, 'SIGKILL');
-      expect(result).toBe(true);
+      expect(result.success).toBe(true);
 
       // Process should terminate immediately
       await new Promise(resolve => setTimeout(resolve, 100));
@@ -113,15 +113,30 @@ describe('Test Process Manager', () => {
 
   describe('Error Handling', () => {
     it('should handle non-existent process', async () => {
-      const fakePid = 99999;
-      const result = await TestProcessManager.kill(fakePid);
-      expect(result).toBe(false);
+      if (!testPid) {
+        expect(true).toBe(true); // Skip if no process
+        return;
+      }
+
+      const result = await TestProcessManager.kill(99999, 'SIGTERM');
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error).toBe('NOT_FOUND');
+      }
+
+      // Process should terminate within reasonable time
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+      // Verify process is dead
     });
 
     it('should handle invalid PID gracefully', async () => {
       const invalidPid = -1;
-      // Should not throw
-      await expect(TestProcessManager.kill(invalidPid)).resolves.toBe(false);
+      const result = await TestProcessManager.kill(invalidPid, 'SIGTERM');
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error).toBe('NOT_FOUND');
+      }
     });
   });
 

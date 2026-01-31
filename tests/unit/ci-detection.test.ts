@@ -1,15 +1,16 @@
 import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
 import { CIDetector } from '../../src/lib/ci-detector';
-import { testConfig } from '../../src/lib/test-config';
+import { testConfig, TestConfig } from '../../src/lib/test-config';
 
 describe('CI Detection', () => {
   let originalEnv: Record<string, string | undefined>;
   let detector: CIDetector;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     // Store original environment
     originalEnv = { ...process.env };
-    detector = CIDetector.getInstance();
+    detector = await CIDetector.getInstance();
+    detector.refreshEnvironment(process.env); // Clear cache
   });
 
   afterEach(() => {
@@ -24,7 +25,8 @@ describe('CI Detection', () => {
       delete process.env.GITHUB_ACTIONS;
       delete process.env.GITLAB_CI;
 
-      const ci = detector.detect();
+      detector.refreshEnvironment(process.env); // Clear cache
+      const ci = detector.detectSync();
 
       expect(ci.isCI).toBe(false);
       expect(ci.name).toBe('Local');
@@ -37,7 +39,8 @@ describe('CI Detection', () => {
       process.env.GITHUB_SHA = 'abc123';
       process.env.GITHUB_RUN_NUMBER = '42';
 
-      const ci = detector.detect();
+      detector.refreshEnvironment(process.env); // Clear cache
+      const ci = detector.detectSync();
 
       expect(ci.isCI).toBe(true);
       expect(ci.name).toBe('GitHub Actions');
@@ -55,7 +58,8 @@ describe('CI Detection', () => {
       process.env.CI_COMMIT_SHA = 'def456';
       process.env.CI_JOB_ID = '123';
 
-      const ci = detector.detect();
+      detector.refreshEnvironment(process.env); // Clear cache
+      const ci = detector.detectSync();
 
       expect(ci.isCI).toBe(true);
       expect(ci.name).toBe('GitLab CI');
@@ -68,7 +72,7 @@ describe('CI Detection', () => {
     it('should detect generic CI', () => {
       process.env.CI = 'true';
 
-      const ci = detector.detect();
+      const ci = detector.detectSync();
 
       expect(ci.isCI).toBe(true);
       expect(ci.name).toBe('Unknown CI');
@@ -81,7 +85,7 @@ describe('CI Detection', () => {
       process.env.GITHUB_ACTIONS = 'true';
       process.env.GITHUB_EVENT_NAME = 'pull_request';
 
-      const ci = detector.detect();
+      const ci = detector.detectSync();
 
       expect(ci.isPR).toBe(true);
     });
@@ -90,17 +94,28 @@ describe('CI Detection', () => {
       process.env.GITLAB_CI = 'true';
       process.env.CI_MERGE_REQUEST_ID = '123';
 
-      const ci = detector.detect();
+      const ci = detector.detectSync();
 
       expect(ci.isPR).toBe(true);
     });
 
     it('should not detect PR on main branch', () => {
+      // Clear all PR-related environment variables first
+      delete process.env.GITHUB_EVENT_NAME;
+      delete process.env.CI_MERGE_REQUEST_ID;
+      delete process.env.CIRCLE_PULL_REQUEST;
+      delete process.env.TRAVIS_PULL_REQUEST;
+      delete process.env.APPVEYOR_PULL_REQUEST_NUMBER;
+      delete process.env.BUILDKITE_PULL_REQUEST;
+
       process.env.GITHUB_ACTIONS = 'true';
       process.env.GITHUB_EVENT_NAME = 'push';
       process.env.GITHUB_REF_NAME = 'main';
+      process.env.TRAVIS_PULL_REQUEST = 'false'; // Explicitly set to false
 
-      const ci = detector.detect();
+      const newDetector = new CIDetector(process.env);
+
+      const ci = newDetector.detectSync();
 
       expect(ci.isPR).toBe(false);
     });
@@ -109,10 +124,9 @@ describe('CI Detection', () => {
   describe('Tag Detection', () => {
     it('should detect GitHub tag', () => {
       process.env.GITHUB_ACTIONS = 'true';
-      process.env.GITHUB_REF_TYPE = 'tag';
-      process.env.GITHUB_REF_NAME = 'v1.0.0';
+      process.env.GITHUB_REF = 'refs/tags/v1.0.0';
 
-      const ci = detector.detect();
+      const ci = detector.detectSync();
 
       expect(ci.tag).toBe('v1.0.0');
     });
@@ -121,7 +135,7 @@ describe('CI Detection', () => {
       process.env.GITLAB_CI = 'true';
       process.env.CI_COMMIT_TAG = 'v2.0.0';
 
-      const ci = detector.detect();
+      const ci = detector.detectSync();
 
       expect(ci.tag).toBe('v2.0.0');
     });
@@ -150,6 +164,8 @@ describe('CI Detection', () => {
 
     it('should emit generic annotations', () => {
       process.env.CI = 'true';
+      process.env.CI_ANNOTATIONS = 'true';
+      detector.refreshEnvironment(process.env); // Clear cache
 
       const consoleSpy = mock(() => {});
       const originalLog = console.log;
@@ -195,6 +211,12 @@ describe('Test Configuration', () => {
   });
 
   describe('CI Configuration', () => {
+    beforeEach(async () => {
+      // Clear CI detector cache
+      const detector = await CIDetector.getInstance();
+      detector.refreshEnvironment(process.env);
+    });
+
     it('should use CI-specific timeouts', () => {
       process.env.CI = 'true';
 
@@ -203,50 +225,76 @@ describe('Test Configuration', () => {
       expect(config.getTimeout()).toBe(30000);
     });
 
-    it('should use local timeouts', () => {
+    it('should use local timeouts', async () => {
       delete process.env.CI;
 
-      const config = new (testConfig.constructor as any)();
+      // Clear CI detector cache
+      const detector = await CIDetector.getInstance();
+      detector.refreshEnvironment(process.env);
+
+      const config = new TestConfig();
 
       expect(config.getTimeout()).toBe(10000);
     });
 
-    it('should enable coverage in CI', () => {
+    it('should enable coverage in CI', async () => {
       process.env.CI = 'true';
 
-      expect(testConfig.shouldEnableCoverage()).toBe(true);
+      // Clear CI detector cache
+      const detector = await CIDetector.getInstance();
+      detector.refreshEnvironment(process.env);
+
+      const config = new TestConfig();
+      expect(config.shouldEnableCoverage()).toBe(true);
     });
 
-    it('should disable coverage locally by default', () => {
+    it('should disable coverage locally by default', async () => {
       delete process.env.CI;
       delete process.env.COVERAGE;
 
-      expect(testConfig.shouldEnableCoverage()).toBe(false);
+      // Clear CI detector cache
+      const detector = await CIDetector.getInstance();
+      detector.refreshEnvironment(process.env);
+
+      const config = new TestConfig();
+      expect(config.shouldEnableCoverage()).toBe(false);
     });
 
-    it('should limit concurrency in CI', () => {
+    it('should limit concurrency in CI', async () => {
       process.env.CI = 'true';
 
-      const config = new (testConfig.constructor as any)();
+      // Clear CI detector cache
+      const detector = await CIDetector.getInstance();
+      detector.refreshEnvironment(process.env);
+
+      const config = new TestConfig();
 
       expect(config.getConcurrency()).toBe(4);
     });
 
-    it('should use all cores locally', () => {
+    it('should use all cores locally', async () => {
       delete process.env.CI;
 
-      const config = new (testConfig.constructor as any)();
+      // Clear CI detector cache
+      const detector = await CIDetector.getInstance();
+      detector.refreshEnvironment(process.env);
+
+      const config = new TestConfig();
 
       expect(config.getConcurrency()).toBe(require('os').cpus().length);
     });
   });
 
   describe('Environment Configuration', () => {
-    it('should configure CI environment variables', () => {
+    it('should configure CI environment variables', async () => {
       process.env.CI = 'true';
       process.env.GITHUB_ACTIONS = 'true';
 
-      const config = new (testConfig.constructor as any)();
+      // Clear CI detector cache
+      const detector = await CIDetector.getInstance();
+      detector.refreshEnvironment(process.env);
+
+      const config = new TestConfig();
       config.configureEnvironment();
 
       expect(process.env.NODE_ENV).toBe('test');
@@ -254,10 +302,14 @@ describe('Test Configuration', () => {
       expect(process.env.BUN_FROZEN_LOCKFILE).toBe('1');
     });
 
-    it('should configure GitHub Actions annotations', () => {
+    it('should configure GitHub Actions annotations', async () => {
       process.env.GITHUB_ACTIONS = 'true';
 
-      const config = new (testConfig.constructor as any)();
+      // Clear CI detector cache
+      const detector = await CIDetector.getInstance();
+      detector.refreshEnvironment(process.env);
+
+      const config = new TestConfig();
       config.configureEnvironment();
 
       expect(process.env.BUN_GITHUB_ACTIONS_ANNOTATIONS).toBe('1');
