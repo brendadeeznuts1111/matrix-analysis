@@ -246,6 +246,47 @@ Bun.JSONL.parse(content)          // Parse newline-delimited JSON
 Bun.JSON5.parse(content)          // JSON with comments/trailing commas
 ```
 
+### Inspect, Timing, Streams & ANSI
+
+```typescript
+// Inspect — pretty-print to string (like console.log but capturable)
+Bun.inspect(value)                                        // string
+Bun.inspect(value, { depth: 4, colors: true })            // with options
+Bun.inspect.table(data, ["col1", "col2"], { colors: true })  // console.table → string
+
+// Custom inspect symbol (Node-compatible 3-arg form)
+class Foo {
+  [Bun.inspect.custom](depth: number | null, opts: object, inspect: Function) {
+    return `Foo<${inspect(this.inner, { depth: (depth ?? 2) - 1 })}>`;
+  }
+}
+
+// High-precision timing (nanoseconds, monotonic)
+const t0 = Bun.nanoseconds();
+await doWork();
+console.log(`${(Bun.nanoseconds() - t0) / 1e6} ms`);
+
+// ReadableStream consumers — consume fetch().body etc.
+await Bun.readableStreamToText(stream)         // → string
+await Bun.readableStreamToJSON(stream)         // → parsed object
+await Bun.readableStreamToBytes(stream)        // → Uint8Array
+await Bun.readableStreamToArrayBuffer(stream)  // → ArrayBuffer
+await Bun.readableStreamToBlob(stream)         // → Blob
+await Bun.readableStreamToArray(stream)        // → any[]
+await Bun.readableStreamToFormData(stream, boundary)  // → FormData
+
+// Module resolution (sync, uses Bun's algorithm)
+Bun.resolveSync("zod", import.meta.dir)        // → full path
+
+// ANSI utilities — native, faster than npm equivalents
+Bun.stripANSI(coloredText)                     // remove escape codes (~6-57x faster than strip-ansi)
+Bun.wrapAnsi(text, 89, { wordWrap: true })     // wrap preserving ANSI codes, emoji widths, hyperlinks
+```
+
+**`Bun.inspect.table` gotcha:** Nested objects >1 level truncate to `[Object ...]`. `colors: true` adds ANSI styling (cyan headers).
+
+**`Bun.wrapAnsi` options:** `{ hard?: boolean, wordWrap?: boolean, trim?: boolean, ambiguousIsNarrow?: boolean }`
+
 ### Cross-Runtime Guard
 
 ```typescript
