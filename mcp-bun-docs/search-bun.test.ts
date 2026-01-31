@@ -223,7 +223,7 @@ describe("SearchBun / lib", () => {
 
 	describe("searchBunDocs", () => {
 		// test.serial: fetch mock on globalThis — avoid concurrent interference (bun.com/docs/test/lifecycle)
-		test.serial("should return markdown for known term fetch", async () => {
+		it.serial("should return markdown for known term fetch", async () => {
 			expect.hasAssertions();
 			const result = await searchBunDocs("fetch");
 			expect(result).toContain("## Bun docs for");
@@ -232,20 +232,20 @@ describe("SearchBun / lib", () => {
 			expect(result).toContain("guides/http/fetch");
 		});
 
-		test.serial("should return markdown for known term serve", async () => {
+		it.serial("should return markdown for known term serve", async () => {
 			expect.hasAssertions();
 			const result = await searchBunDocs("serve");
 			expect(result).toContain("api/http");
 		});
 
-		test.serial("should map postgres to api/sql not sqlite", async () => {
+		it.serial("should map postgres to api/sql not sqlite", async () => {
 			expect.hasAssertions();
 			const result = await searchBunDocs("postgres");
 			expect(result).toContain("api/sql");
 			expect(result).not.toContain("api/sqlite");
 		});
 
-		test.serial("should return fallback for unknown term", async () => {
+		it.serial("should return fallback for unknown term", async () => {
 			expect.hasAssertions();
 			const result = await searchBunDocs("xyznonexistent123");
 			expect(result).toContain("Bun Documentation");
@@ -253,19 +253,19 @@ describe("SearchBun / lib", () => {
 			expect(result).toContain(BUN_DOCS_BASE);
 		});
 
-		test.serial("should accept empty opts", async () => {
+		it.serial("should accept empty opts", async () => {
 			expect.hasAssertions();
 			const result = await searchBunDocs("sqlite");
 			expect(result).toContain("sqlite");
 		});
 
-		test.serial("should trim query before search", async () => {
+		it.serial("should trim query before search", async () => {
 			expect.hasAssertions();
 			const result = await searchBunDocs("  fetch  ");
 			expect(result).toContain("fetch");
 		});
 
-		test.serial("should exclude mcp when bunVersion filters too-new APIs", async () => {
+		it.serial("should exclude mcp when bunVersion filters too-new APIs", async () => {
 			expect.hasAssertions();
 			const result = await searchBunDocs("mcp", { bunVersion: "1.0.0" });
 			expect(result).not.toContain("Bun: mcp");

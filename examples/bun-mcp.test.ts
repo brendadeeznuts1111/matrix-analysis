@@ -6,7 +6,7 @@
  * Run: bun test bun-mcp.test.ts
  */
 
-import { describe, expect, test } from "bun:test";
+import { describe, expect, it } from "bun:test";
 import {
 	fetchManifest,
 	validateManifest,
@@ -16,14 +16,14 @@ import {
 
 describe("Bun MCP Manifest", () => {
 	describe("constants", () => {
-		test("should point MCP_MANIFEST_URL to bun.com", () => {
+		it("should point MCP_MANIFEST_URL to bun.com", () => {
 			expect(MCP_MANIFEST_URL).toBe("https://bun.com/docs/mcp");
 			expect(MCP_MANIFEST_URL).toContain("bun.com");
 		});
 	});
 
 	describe("fetchManifest", () => {
-		test("should return ok and valid JSON", async () => {
+		it("should return ok and valid JSON", async () => {
 			expect.hasAssertions();
 			const result = await fetchManifest();
 			expect(result.ok).toBe(true);
@@ -31,7 +31,7 @@ describe("Bun MCP Manifest", () => {
 			expect(result.error).toBeUndefined();
 		});
 
-		test("should include server info", async () => {
+		it("should include server info", async () => {
 			expect.hasAssertions();
 			const result = await fetchManifest();
 			expect(result.ok).toBe(true);
@@ -41,7 +41,7 @@ describe("Bun MCP Manifest", () => {
 			expect(m.server.transport).toBe("http");
 		});
 
-		test("should include SearchBun tool", async () => {
+		it("should include SearchBun tool", async () => {
 			expect.hasAssertions();
 			const result = await fetchManifest();
 			expect(result.ok).toBe(true);
@@ -55,7 +55,7 @@ describe("Bun MCP Manifest", () => {
 	});
 
 	describe("validateManifest", () => {
-		test("should return no issues for real manifest", async () => {
+		it("should return no issues for real manifest", async () => {
 			expect.hasAssertions();
 			const result = await fetchManifest();
 			expect(result.ok).toBe(true);
@@ -63,7 +63,7 @@ describe("Bun MCP Manifest", () => {
 			expect(issues).toHaveLength(0);
 		});
 
-		test("should detect missing server.name", () => {
+		it("should detect missing server.name", () => {
 			const m: MCPManifest = {
 				server: { name: "", version: "1.0", transport: "http" },
 				capabilities: {
@@ -87,7 +87,7 @@ describe("Bun MCP Manifest", () => {
 			expect(issues.some((i) => i.includes("server.name"))).toBe(true);
 		});
 
-		test("should detect missing SearchBun tool", () => {
+		it("should detect missing SearchBun tool", () => {
 			const m = {
 				server: { name: "Bun", version: "1.0", transport: "http" },
 				capabilities: { tools: {}, resources: [], prompts: [] },
