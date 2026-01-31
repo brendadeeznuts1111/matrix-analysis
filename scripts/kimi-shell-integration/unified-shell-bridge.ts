@@ -173,6 +173,10 @@ async function handleToolCall(name: string, args: any): Promise<object> {
       return profileTerminal("status");
     }
     
+    case "clawbot_migrate":
+      return handleMatrixAgentTools("clawbot_migrate", args);
+    case "clawbot_legacy_config":
+      return handleMatrixAgentTools("clawbot_legacy_config", args);
     case "matrix_agent_status": {
       const result = await $`bun ${process.env.HOME}/.matrix/matrix-agent.ts status`.nothrow();
       return {
@@ -303,5 +307,76 @@ if (import.meta.main) {
     } catch (e) {
       console.error("Error:", e);
     }
+  }
+}
+
+// Matrix Agent (Clawdbot) specific tools
+async function handleMatrixAgentTools(name: string, args: any): Promise<object> {
+  const agentPath = `${process.env.HOME}/.matrix/matrix-agent.ts`;
+  
+  switch (name) {
+    case "clawbot_migrate": {
+      // Check migration status
+      const marker = `${process.env.HOME}/.matrix/.migrated-from-clawdbot`;
+      if (existsSync(marker)) {
+        const data = await Bun.file(marker).json();
+        return { migrated: true, ...data };
+      }
+      return { migrated: false };
+    }
+    
+    case "clawbot_legacy_config": {
+      // Read legacy clawdbot config (read-only)
+      const legacyConfig = `${process.env.HOME}/.clawdbot/clawdbot.json`;
+      if (!existsSync(legacyConfig)) {
+        return { error: "Legacy config not found" };
+      }
+      try {
+        const config = await Bun.file(legacyConfig).json();
+        return { 
+          legacyConfig: config,
+          note: "This is the legacy clawdbot config (read-only). Matrix Agent uses ~/.matrix/agent/config.json"
+        };
+      } catch (e) {
+        return { error: String(e) };
+      }
+    }
+    
+    case "matrix_agent_init": {
+      const result = await $`bun ${agentPath} init`.nothrow();
+      return {
+        initialized: result.exitCode === 0,
+        output: result.stdout.toString(),
+        errors: result.stderr.toString()
+      };
+    }
+    
+    case "matrix_agent_health": {
+      const result = await $`bun ${agentPath} health`.nothrow();
+      return {
+        healthy: result.exitCode === 0,
+        output: result.stdout.toString()
+      };
+    }
+    
+    case "matrix_agent_migrate": {
+      const result = await $`bun ${agentPath} migrate`.nothrow();
+      return {
+        migrated: result.exitCode === 0,
+        output: result.stdout.toString()
+      };
+    }
+    
+    case "matrix_agent_profile": {
+      const result = await $`bun ${agentPath} profile ${args.command || 'list'} ${args.args || ''}`.nothrow();
+      return {
+        output: result.stdout.toString(),
+        stderr: result.stderr.toString(),
+        exitCode: result.exitCode
+      };
+    }
+    
+    default:
+      return null;
   }
 }
