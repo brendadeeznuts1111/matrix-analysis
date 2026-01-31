@@ -198,6 +198,32 @@ The benchmark suite supports three profiles:
 | **API**         | <https://api.factory-wager.com>       | REST API endpoints    |
 | **Metrics**     | <https://metrics.factory-wager.com>   | Performance metrics   |
 
+### Storage & CDN
+
+| Service     | URL                                    | Purpose               |
+|-------------|----------------------------------------|-----------------------|
+| **R2 Bucket** | <https://benchmarks.factory-wager.com> | Benchmark results storage |
+| **CDN**       | <https://cdn.factory-wager.com/benchmarks> | Static asset delivery |
+| **Backup**    | <https://backup.factory-wager.com>     | Archive storage       |
+
+### Management URLs
+
+| Service     | URL                                    | Purpose               |
+|-------------|----------------------------------------|-----------------------|
+| **Dashboard** | <https://dashboard.factory-wager.com> | Management interface  |
+| **Admin**     | <https://admin.factory-wager.com>     | Admin panel           |
+| **Logs**      | <https://logs.factory-wager.com>      | Log aggregation       |
+| **Health**    | <https://health.factory-wager.com>    | Health checks         |
+
+### Development URLs
+
+| Service     | URL                                    | Purpose               |
+|-------------|----------------------------------------|-----------------------|
+| **Local Dev** | <http://localhost:3000>                | Local development     |
+| **Test**      | <https://test.factory-wager.com>       | Testing environment   |
+| **Dev API**   | <https://dev-api.factory-wager.com>    | Development API       |
+| **Metrics Dev** | <https://dev-metrics.factory-wager.com> | Dev metrics          |
+
 ## �🧹 Cleanup (After Migration)
 
 Once you've verified the new benchmark suite works correctly, you can remove the old directories:
