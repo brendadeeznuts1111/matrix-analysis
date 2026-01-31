@@ -1,0 +1,24 @@
+{
+  "timestamp": "2026-01-31T01:19:31.692Z",
+  "bunVersion": "v24.3.0",
+  "benchmarks": {
+    "responseJson": "3.5x faster",
+    "bufferSearch": "2x faster with SIMD",
+    "crc32": "20x faster with hardware acceleration",
+    "jsonSerialization": "3x faster",
+    "asyncAwait": "15% faster",
+    "promiseRace": "30% faster",
+    "s3RequesterPays": "Supported",
+    "websocketProxy": "Supported",
+    "sqlite": "Updated to 3.51.2",
+    "fakeTimers": "Fixed with testing-library"
+  },
+  "optimizations": [
+    "JavaScriptCore FastStringifier",
+    "SIMD-optimized Buffer search",
+    "Hardware-accelerated CRC32",
+    "Improved async/await JIT",
+    "Faster Promise.race implementation",
+    "Better syscall handling on Linux ARM64"
+  ]
+}
