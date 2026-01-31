@@ -296,6 +296,25 @@ git commit -m "[INFRA][COMPONENT:BENCHMARK][TIER:500] Remove old benchmark direc
 - CI/CD pipelines have been updated
 - Team members have been notified
 
+## 🏷️ Tags
+
+| Category | Tags |
+|----------|------|
+| **Tier** | `tier-1380` |
+| **Domain** | `enterprise`, `factory-wager`, `duoplus`, `venmo-family` |
+| **Technology** | `bun`, `typescript`, `mitata` |
+| **Purpose** | `mcp`, `config-management`, `performance`, `benchmarking` |
+| **Features** | `ci-cd`, `metrics`, `monitoring`, `analytics` |
+| **Quality** | `production-ready`, `regression-testing`, `optimization` |
+
+### Tag Usage
+
+Tags are used for:
+- **Categorization** - Organizing benchmarks by domain and purpose
+- **Discovery** - Finding relevant benchmarks quickly
+- **Filtering** - Filtering reports by specific tags
+- **Integration** - CI/CD pipeline configuration
+
 ## 📚 Related Documentation
 
 - [Bun 1.3.6 Improvements](../docs/BUN_1_3_6_IMPROVEMENTS.md)

@@ -118,6 +118,26 @@
       "dev-metrics": "https://dev-metrics.factory-wager.com",
       "local": "http://localhost:3000"
     },
-    "tags": ["tier-1380", "enterprise", "mcp", "config-management", "performance"]
+    "tags": [
+  "tier-1380",
+  "enterprise",
+  "mcp",
+  "config-management",
+  "performance",
+  "benchmarking",
+  "bun",
+  "typescript",
+  "mitata",
+  "ci-cd",
+  "metrics",
+  "monitoring",
+  "analytics",
+  "factory-wager",
+  "duoplus",
+  "venmo-family",
+  "production-ready",
+  "regression-testing",
+  "optimization"
+]
   }
 }
