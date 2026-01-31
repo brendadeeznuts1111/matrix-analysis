@@ -1,30 +1,31 @@
 #!/usr/bin/env bun
+
 /**
  * Profile Terminal Launcher with AsyncLocalStorage Context
- * 
+ *
  * Launches Bun.Terminal with implicit context propagation for:
  * - Profile metadata (name, team, role, tier)
  * - R2 bucket streaming
  * - Inlined public environment variables
- * 
+ *
  * @module team/profile-terminal
  * @tier 1380-OMEGA
  * @requires bun >=1.3.7 (for Bun.Terminal + AsyncLocalStorage fix)
  */
 
-import { type TeamRole, ROLE_TIER_MAP } from "./types.ts";
+import type { R2Bucket } from "@cloudflare/workers-types";
 import {
-	terminalStorage,
 	createR2BatchStreamer,
 	getInlinedPublicEnv,
-	registerSession,
-	unregisterSession,
-	requireTerminalContext,
 	getTerminalContext,
+	registerSession,
+	requireTerminalContext,
 	streamToR2,
 	type TerminalContext,
+	terminalStorage,
+	unregisterSession,
 } from "./terminal-context.ts";
-import type { R2Bucket } from "@cloudflare/workers-types";
+import { ROLE_TIER_MAP, type TeamRole } from "./types.ts";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Configuration
@@ -60,11 +61,11 @@ interface LaunchResult {
 
 /**
  * Launch a profile-aware terminal with AsyncLocalStorage context.
- * 
+ *
  * This function wraps Bun.Terminal creation inside AsyncLocalStorage.run(),
  * enabling implicit context access in all callbacks. The Bun v1.3.7+ fix
  * ensures Terminal callbacks (data, exit, drain) fire correctly.
- * 
+ *
  * @example
  * ```typescript
  * const result = await launchProfileTerminal({
@@ -112,9 +113,10 @@ async function runTerminalSession(
 	let bytesStreamed = 0;
 
 	// Initialize R2 batch streamer if enabled
-	const r2Streamer = options.enableR2Streaming && context.r2Bucket
-		? createR2BatchStreamer(options.r2FlushInterval ?? 5000)
-		: null;
+	const r2Streamer =
+		options.enableR2Streaming && context.r2Bucket
+			? createR2BatchStreamer(options.r2FlushInterval ?? 5000)
+			: null;
 
 	// Theme based on role/tier
 	const theme = getRoleTheme(context.role, context.tier);
@@ -133,7 +135,7 @@ async function runTerminalSession(
 			data: async (_term, data: Uint8Array) => {
 				// Access context implicitly via AsyncLocalStorage
 				const ctx = requireTerminalContext();
-				
+
 				bytesStreamed += data.length;
 
 				// Apply role-based theming to output
@@ -156,7 +158,7 @@ async function runTerminalSession(
 				const ctx = requireTerminalContext();
 				console.log(
 					`\n${theme.dim}[${ctx.profileName}]${theme.reset} ` +
-					`Session ${ctx.sessionId.slice(0, 8)} exited with code ${code}`,
+						`Session ${ctx.sessionId.slice(0, 8)} exited with code ${code}`,
 				);
 			},
 
@@ -192,7 +194,7 @@ async function runTerminalSession(
 
 		const proc = Bun.spawn([shell, ...shellArgs], {
 			stdin: "inherit",
-			stdout: "inherit", 
+			stdout: "inherit",
 			stderr: "inherit",
 			env: shellEnv,
 		});
@@ -231,7 +233,6 @@ async function runTerminalSession(
 			duration: Date.now() - startTime,
 			bytesStreamed,
 		};
-
 	} catch (error) {
 		// Ensure cleanup on error
 		if (r2Streamer) {
@@ -331,10 +332,10 @@ async function auditLog(
 	};
 
 	try {
-		await streamToR2(
-			JSON.stringify(logEntry) + "\n",
-			{ suffix: "audit.jsonl", contentType: "application/x-ndjson" },
-		);
+		await streamToR2(JSON.stringify(logEntry) + "\n", {
+			suffix: "audit.jsonl",
+			contentType: "application/x-ndjson",
+		});
 	} catch (err) {
 		// Audit failures shouldn't break the terminal
 		console.error("Audit log failed:", err);
@@ -378,7 +379,9 @@ if (import.meta.main) {
 			console.log("  launch <profile> <team> <role>  Launch profile terminal");
 			console.log("");
 			console.log("Examples:");
-			console.log("  bun core/team/profile-terminal.ts launch omega-prod platform admin");
+			console.log(
+				"  bun core/team/profile-terminal.ts launch omega-prod platform admin",
+			);
 		}
 	}
 }

@@ -1,10 +1,10 @@
 #!/usr/bin/env bun
 /**
  * Terminal Context Management with AsyncLocalStorage
- * 
+ *
  * Provides implicit context propagation for profile terminals,
  * R2 bucket references, and inlined public environment variables.
- * 
+ *
  * @module team/terminal-context
  * @tier 1380-OMEGA
  * @requires bun >=1.3.7
@@ -51,7 +51,7 @@ export interface TerminalSession {
 
 /**
  * Terminal context storage for implicit propagation through async calls.
- * 
+ *
  * Usage:
  * ```typescript
  * const context = { profileName: "omega", ... };
@@ -222,15 +222,15 @@ export function getInlinedPublicEnv(): Record<string, string> {
 		API_VERSION: process.env.API_VERSION ?? "v1",
 		ARTIFACT_VERSION: process.env.ARTIFACT_VERSION ?? "1.0.0",
 		CORS_ORIGIN: process.env.CORS_ORIGIN ?? "*",
-		
+
 		// Terminal config
 		TERMINAL_COLUMNS: process.env.TERMINAL_COLUMNS ?? "89",
 		TERMINAL_ROWS: process.env.TERMINAL_ROWS ?? "24",
 		DASHBOARD_THEME: process.env.DASHBOARD_THEME ?? "matrix",
-		
+
 		// Infrastructure
 		SUPPORTED_REGIONS: process.env.SUPPORTED_REGIONS ?? "us-east-1,us-west-2",
-		
+
 		// Feature flags
 		ENABLE_STREAMING: process.env.ENABLE_STREAMING ?? "true",
 		ENABLE_R2_AUDIT: process.env.ENABLE_R2_AUDIT ?? "true",
@@ -243,7 +243,10 @@ export function getInlinedPublicEnv(): Record<string, string> {
 
 const activeSessions = new Map<string, TerminalSession>();
 
-export function registerSession(sessionId: string, session: TerminalSession): void {
+export function registerSession(
+	sessionId: string,
+	session: TerminalSession,
+): void {
 	activeSessions.set(sessionId, session);
 }
 
@@ -284,7 +287,9 @@ export function getSessionStats(): {
 // ═══════════════════════════════════════════════════════════════════════════
 
 process.on("SIGTERM", async () => {
-	console.log(`🛑 SIGTERM: Closing ${activeSessions.size} terminal sessions...`);
+	console.log(
+		`🛑 SIGTERM: Closing ${activeSessions.size} terminal sessions...`,
+	);
 	for (const [id, session] of activeSessions) {
 		try {
 			await session.proc.kill();

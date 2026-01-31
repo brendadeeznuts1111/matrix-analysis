@@ -336,3 +336,4 @@ reports/
 # END OF ENHANCED .claude/.gitignore
 # Purpose: Maximize agent/MCP/ACP search performance, minimize index bloat
 # ============================================================================
+test/results/
