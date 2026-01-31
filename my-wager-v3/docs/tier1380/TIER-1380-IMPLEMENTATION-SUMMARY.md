@@ -1,6 +1,8 @@
 # Tier-1380 Test Runner Implementation Summary
 
-*Last Updated: January 30, 2026*
+## Last Updated
+
+*January 30, 2026*
 
 ## Overview
 
