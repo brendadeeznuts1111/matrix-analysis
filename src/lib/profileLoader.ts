@@ -1,3 +1,5 @@
+import type { TeamInfo } from "../../.claude/core/team/types.ts";
+
 export interface Profile {
   name: string;
   version: string;
@@ -6,6 +8,7 @@ export interface Profile {
   description?: string;
   environment?: string;
   env: Record<string, string>;
+  team?: TeamInfo;
 }
 
 export function getProfilesDir(): string {

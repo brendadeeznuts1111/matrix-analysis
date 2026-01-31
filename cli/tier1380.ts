@@ -8,6 +8,16 @@ import {
 	COLORS,
 	THEME,
 } from "../.claude/lib/cli.ts";
+import {
+	cmdTeamAdd,
+	cmdTeamRemove,
+	cmdTeamPromote,
+	cmdTeamDemote,
+	cmdTeamShow,
+	cmdTeamHierarchy,
+	cmdTerminalLaunch,
+	printTeamHelp,
+} from "../.claude/core/team/cli.ts";
 
 type Options = Record<string, string | boolean>;
 
@@ -200,11 +210,75 @@ async function main(): Promise<void> {
 		return;
 	}
 
-	// tier1380 terminal <team> <profile>
+	// tier1380 terminal launch <profile> — auto-themed PTY
+	// tier1380 terminal <team> <profile> — legacy banner
 	if (cmd === "terminal") {
+		if (sub === "launch") {
+			const profile = positionals[0];
+			if (!profile) {
+				console.error(fmt.fail("Missing argument: <profile>"));
+				process.exit(1);
+			}
+			await cmdTerminalLaunch(profile);
+			return;
+		}
 		const team = sub || positionals[0] || "quantum-team";
 		const profile = positionals[0] ?? "alice";
 		await terminalBanner(team, profile);
+		return;
+	}
+
+	// tier1380 team <add|remove|promote|demote|show|hierarchy>
+	if (cmd === "team") {
+		switch (sub) {
+			case "add": {
+				if (positionals.length < 3) {
+					console.error(fmt.fail("Missing arguments: <profile> <team> <role>"));
+					process.exit(1);
+				}
+				await cmdTeamAdd(positionals[0], positionals[1], positionals[2]);
+				return;
+			}
+			case "remove": {
+				if (positionals.length < 1) {
+					console.error(fmt.fail("Missing argument: <profile>"));
+					process.exit(1);
+				}
+				await cmdTeamRemove(positionals[0]);
+				return;
+			}
+			case "promote": {
+				if (positionals.length < 1) {
+					console.error(fmt.fail("Missing argument: <profile>"));
+					process.exit(1);
+				}
+				await cmdTeamPromote(positionals[0]);
+				return;
+			}
+			case "demote": {
+				if (positionals.length < 1) {
+					console.error(fmt.fail("Missing argument: <profile>"));
+					process.exit(1);
+				}
+				await cmdTeamDemote(positionals[0]);
+				return;
+			}
+			case "show": {
+				if (positionals.length < 1) {
+					console.error(fmt.fail("Missing argument: <profile>"));
+					process.exit(1);
+				}
+				await cmdTeamShow(positionals[0]);
+				return;
+			}
+			case "hierarchy": {
+				await cmdTeamHierarchy(positionals[0]);
+				return;
+			}
+			default:
+				printTeamHelp();
+				process.exit(sub ? 1 : 0);
+		}
 		return;
 	}
 
