@@ -228,10 +228,10 @@ ws.onmessage = (event) => {
 
 ## 📚 Documentation
 
-- [CLI Reference](./cli/test.ts) - Command-line options
-- [API Documentation](./packages/test/) - Core APIs
-- [Dashboard Guide](./dashboard/regional-monitor.ts) - Real-time monitoring
-- [Profiling Guide](./examples/) - Performance analysis
+- [CLI Reference](../../../src/cli.ts) - Command-line options
+- [API Documentation](../../../src/lib/) - Core APIs
+- [Dashboard Guide](../../apps/dashboard/DashboardServer.ts) - Real-time monitoring
+- [Profiling Guide](../../../examples/buffer-simd-demo.ts) - Performance analysis
 
 ## ✅ Implementation Status
 
