@@ -52,11 +52,11 @@ export async function loadConfig(): Promise<AnalyzeConfig> {
 			const data = (await f.json()) as Record<string, unknown>;
 			config = {
 				...(Array.isArray(data.roots) && { roots: data.roots as string[] }),
-				...(typeof data.limit === "number" && { limit: data.limit }),
-				...(Array.isArray(data.ignore) && { ignore: data.ignore as string[] }),
-				...(data.complexity && typeof data.complexity === "object" && (data.complexity as Record<string, unknown>).threshold != null && {
+				...(typeof data.limit === "number" ? { limit: data.limit } : {}),
+				...(Array.isArray(data.ignore) ? { ignore: data.ignore as string[] } : {}),
+				...(data.complexity && typeof data.complexity === "object" && (data.complexity as Record<string, unknown>).threshold != null ? {
 					complexity: { threshold: Number((data.complexity as Record<string, unknown>).threshold) },
-				}),
+				} : {}),
 			};
 			return config;
 		}
@@ -293,7 +293,7 @@ export async function runScan(opts: ReturnType<typeof parseArgs>): Promise<void>
 
 	console.log("📂 Structure scan (top " + opts.limit + " by lines)\n");
 	const cols = opts.metrics ? ["file", "lines", "imports", "exports"] : ["file", "lines"];
-	console.log(Bun.inspect.table(slice, cols as (keyof ScanRow)[], { colors: process.stdout.isTTY }));
+	console.log(Bun.inspect.table(slice, cols as (keyof ScanRow)[], { colors: process.stdout.isTTY && !process.env.NO_COLOR }));
 	console.log("\nTotal files scanned:", rows.length);
 }
 
@@ -352,8 +352,9 @@ export function extractEnumMembers(body: string): string[] {
 export async function runTypes(opts: ReturnType<typeof parseArgs>): Promise<void> {
 	const withProps = opts.rest.includes("--props") || opts.cmd === "props";
 	const kindArg = opts.rest.find((a) => a.startsWith("--kind="));
-	const kindFilter: KindFilter = kindArg && KIND_VALUES.includes(kindArg.slice("--kind=".length) as KindFilter)
-		? (kindArg.slice("--kind=".length) as KindFilter)
+	const kindValue = kindArg ? kindArg.slice("--kind=".length) : null;
+	const kindFilter: KindFilter = kindValue && KIND_VALUES.includes(kindValue as any)
+		? (kindValue as KindFilter)
 		: null;
 	const glob = new Bun.Glob(GLOB_PATTERN);
 	const roots = opts.all ? ["."] : opts.roots;
@@ -440,14 +441,14 @@ export async function runTypes(opts: ReturnType<typeof parseArgs>): Promise<void
 	}
 	let cols: string[] = withProps ? ["name", "kind", "props", "file"] : ["name", "kind", "file"];
 	if (slice.some((r) => r.docUrl)) cols = [...cols, "docUrl"];
-	if (withProps && opts.format !== "json") {
+	if (withProps && opts.format === "table") {
 		slice.forEach((r) => {
 			if (r.props && r.props.length > 52) r.props = r.props.slice(0, 49) + "…";
 		});
 	}
 	const kindLabel = kindFilter ? " (" + kindFilter + " only)" : "";
 	console.log(withProps ? "📐 Types and properties (top " + opts.limit + kindLabel + ")\n" : "📐 Exported types (top " + opts.limit + kindLabel + ")\n");
-	console.log(Bun.inspect.table(slice, cols as (keyof (typeof types)[0])[], { colors: process.stdout.isTTY }));
+	console.log(Bun.inspect.table(slice, cols as (keyof (typeof types)[0])[], { colors: process.stdout.isTTY && !process.env.NO_COLOR }));
 	console.log("\nTotal types:", filtered.length);
 }
 
@@ -571,7 +572,7 @@ export async function runDeps(opts: ReturnType<typeof parseArgs>): Promise<void>
 	console.log("📦 Imports (sample)\n");
 	const entries = [...importsByFile.entries()].slice(0, opts.limit);
 	const rows = entries.map(([file, imps]) => ({ file, imports: imps.length, sample: imps.slice(0, 3).join(", ") }));
-	console.log(Bun.inspect.table(rows, ["file", "imports", "sample"], { colors: process.stdout.isTTY }));
+	console.log(Bun.inspect.table(rows, ["file", "imports", "sample"], { colors: process.stdout.isTTY && !process.env.NO_COLOR }));
 	console.log("\nTotal files with imports:", importsByFile.size);
 
 	if (circular) {
@@ -588,15 +589,16 @@ export async function runDeps(opts: ReturnType<typeof parseArgs>): Promise<void>
 	}
 }
 
-export function approxComplexity(text: string): number {
-	let c = 1;
-	const tokens = ["if", "else", "for", "while", "switch", "case", "catch", "\\?", "&&", "\\|\\|", "\\?\\.", "\\?\\?"];
-	for (const t of tokens) {
-		const re = new RegExp("\\b" + t + "\\b|" + t, "g");
-		const m = text.match(re);
-		if (m) c += m.length;
-	}
-	return c;
+/** Simple complexity approximation based on code patterns */
+function approxComplexity(text: string): number {
+	// Count various complexity indicators
+	const conditions = (text.match(/\b(if|else|switch|case|for|while|try|catch)\b/g) || []).length;
+	const nested = (text.match(/\b(if|for|while)\b.*\b(if|for|while)\b/gs) || []).length;
+	const functions = (text.match(/\b(function|=>|class)\b/g) || []).length;
+	const returns = (text.match(/\b(return)\b/g) || []).length;
+
+	// Basic complexity score
+	return conditions + (nested * 2) + functions + Math.floor(returns / 2);
 }
 
 export async function runComplexity(opts: ReturnType<typeof parseArgs>, config: AnalyzeConfig): Promise<void> {
@@ -628,7 +630,7 @@ export async function runComplexity(opts: ReturnType<typeof parseArgs>, config: 
 		return;
 	}
 	console.log("📊 Complexity (threshold ≥ " + threshold + ", top " + opts.limit + ")\n");
-	console.log(Bun.inspect.table(slice, ["file", "lines", "complexity"], { colors: process.stdout.isTTY }));
+	console.log(Bun.inspect.table(slice, ["file", "lines", "complexity"], { colors: process.stdout.isTTY && !process.env.NO_COLOR }));
 	console.log("\nFiles at or above threshold:", rows.length);
 }
 
@@ -726,9 +728,9 @@ export async function runClasses(opts: ReturnType<typeof parseArgs>): Promise<vo
 		console.log(JSON.stringify({ total: classList.length, classes: sliceWithXref }, null, 2));
 		return;
 	}
-	const classCols = sliceWithXref.some((r) => r.docUrl) ? (["name", "extends", "file", "docUrl"] as const) : (["name", "extends", "file"] as const);
+	const classCols: string[] = sliceWithXref.some((r) => r.docUrl) ? ["name", "extends", "file", "docUrl"] : ["name", "extends", "file"];
 	console.log("📊 Classes (top " + opts.limit + ")\n");
-	console.log(Bun.inspect.table(sliceWithXref, classCols, { colors: process.stdout.isTTY }));
+	console.log(Bun.inspect.table(sliceWithXref, classCols, { colors: process.stdout.isTTY && !process.env.NO_COLOR }));
 	console.log("\nTotal classes:", classList.length);
 }
 
@@ -769,7 +771,7 @@ export async function runStrength(opts: ReturnType<typeof parseArgs>): Promise<v
 		return;
 	}
 	console.log(weakest ? "📉 Weakest components (top " + opts.limit + ")\n" : "📈 Strongest components (top " + opts.limit + ")\n");
-	console.log(Bun.inspect.table(slice, ["file", "score", "lines", "complexity", "exports"], { colors: process.stdout.isTTY }));
+	console.log(Bun.inspect.table(slice, ["file", "score", "lines", "complexity", "exports"], { colors: process.stdout.isTTY && !process.env.NO_COLOR }));
 	console.log("\nTotal files:", rows.length);
 }
 
@@ -818,7 +820,7 @@ export async function runRename(opts: ReturnType<typeof parseArgs>): Promise<voi
 			return;
 		}
 		const slice = hits.slice(0, opts.limit);
-		console.log(Bun.inspect.table(slice, ["file", "line", "snippet"], { colors: process.stdout.isTTY }));
+		console.log(Bun.inspect.table(slice, ["file", "line", "snippet"], { colors: process.stdout.isTTY && !process.env.NO_COLOR }));
 		console.log("\nTotal occurrences: " + hits.length + " in " + filesToEdit.length + " files. Run with --auto to apply.");
 		return;
 	}
@@ -908,7 +910,7 @@ export async function runPolish(opts: ReturnType<typeof parseArgs>): Promise<voi
 			return;
 		}
 		const slice = changes.slice(0, opts.limit);
-		console.log(Bun.inspect.table(slice, ["file", "removed"], { colors: process.stdout.isTTY }));
+		console.log(Bun.inspect.table(slice, ["file", "removed"], { colors: process.stdout.isTTY && !process.env.NO_COLOR }));
 		console.log("\nTotal: " + changes.length + " unused import(s). Run with --fix-imports or --auto to remove.");
 		return;
 	}
@@ -990,7 +992,7 @@ async function runBench(opts: ReturnType<typeof parseArgs>, config: AnalyzeConfi
 		console.log(JSON.stringify({ benchmark: "analyze", commands: rows, timestamp: Date.now() }, null, 2));
 	} else {
 		console.log("⏱️ Analyze benchmark (read-only commands)\n");
-		console.log(Bun.inspect.table(rows, ["command", "ms", "files", "filesPerSec"], { colors: process.stdout.isTTY }));
+		console.log(Bun.inspect.table(rows, ["command", "ms", "files", "filesPerSec"], { colors: process.stdout.isTTY && !process.env.NO_COLOR }));
 	}
 
 	// Broadcast plan status to MCP realtime

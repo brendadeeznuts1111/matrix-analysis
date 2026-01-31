@@ -2,15 +2,26 @@ import { loadProfile } from "../lib/profileLoader";
 import { maskValue } from "../lib/output";
 import { EXIT_CODES } from "../../.claude/lib/exit-codes.ts";
 
+// Color helpers that respect NO_COLOR
+const colors = process.env.NO_COLOR ? {
+  red: '',
+  reset: '',
+  bold: '',
+} : {
+  red: '\x1b[31m',
+  reset: '\x1b[0m',
+  bold: '\x1b[1m',
+};
+
 export async function profileShow(name: string): Promise<void> {
   const profile = await loadProfile(name);
 
   if (!profile) {
-    console.error(`\x1b[31mError: Profile "${name}" not found\x1b[0m`);
+    console.error(`${colors.red}Error: Profile "${name}" not found${colors.reset}`);
     process.exit(EXIT_CODES.NOT_FOUND);
   }
 
-  console.log(`\x1b[1mProfile: ${profile.name}\x1b[0m`);
+  console.log(`${colors.bold}Profile: ${profile.name}${colors.reset}`);
   console.log(`Version: ${profile.version}`);
   if (profile.author) {
     console.log(`Author: ${profile.author}`);
@@ -22,7 +33,7 @@ export async function profileShow(name: string): Promise<void> {
     console.log(`Description: ${profile.description}`);
   }
 
-  console.log(`\n\x1b[1mEnvironment Variables:\x1b[0m`);
+  console.log(`\n${colors.bold}Environment Variables:${colors.reset}`);
 
   const rows = Object.entries(profile.env)
     .sort(([a], [b]) => a.localeCompare(b))
@@ -31,5 +42,5 @@ export async function profileShow(name: string): Promise<void> {
       Value: maskValue(key, value),
     }));
 
-  console.log(Bun.inspect.table(rows, undefined, { colors: true }));
+  console.log(Bun.inspect.table(rows, undefined, { colors: !process.env.NO_COLOR }));
 }

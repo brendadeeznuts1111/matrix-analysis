@@ -1,0 +1,26 @@
+{
+  "version": "4.0.0",
+  "tier": "1380",
+  "name": "ACP Tier-1380 OMEGA",
+  "description": "Tier-1380 OMEGA Configuration",
+  "created": "2026-01-31T08:40:00Z",
+  "updated": "2026-01-31T08:40:00Z",
+  "config": {
+    "registry": {
+      "enabled": true,
+      "endpoint": "https://registry.example.com"
+    },
+    "kv": {
+      "enabled": true,
+      "namespace": "omega-tier1380"
+    },
+    "r2": {
+      "enabled": true,
+      "bucket": "omega-storage"
+    },
+    "websocket": {
+      "enabled": true,
+      "url": "wss://ws.example.com"
+    }
+  }
+}

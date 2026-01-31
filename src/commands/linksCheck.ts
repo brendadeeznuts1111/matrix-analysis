@@ -52,14 +52,17 @@ export async function linksQuick(directory: string = '.'): Promise<void> {
   const scriptPath = join(import.meta.dir, '../../benchmarks-combined/scripts/quick-link-check.ts');
   const absDirectory = resolve(directory);
 
-  const process = Bun.spawn(['bun', scriptPath, absDirectory], {
+  const proc = Bun.spawn(['bun', scriptPath, absDirectory], {
     cwd: import.meta.dir,
     stdout: 'inherit',
     stderr: 'inherit',
-    env: { ...Bun.env, FORCE_COLOR: '1' }
+    env: {
+      ...Bun.env,
+      FORCE_COLOR: process.env.NO_COLOR ? '0' : '1'
+    }
   });
 
-  const result = await process.exited;
+  const result = await proc.exited;
 
   if (result !== 0) {
     throw new Error('Quick link check failed');
