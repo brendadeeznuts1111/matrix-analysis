@@ -1,0 +1,29 @@
+# bun.yaml - FactoryWager GOV Headers v4.0
+rules:
+  header:
+    schema:
+      # v4.0 introduces Semantic Scopes
+      scope: [FACTORY, SEC, OPS, ALERT, GIT, DATA, WS, TG, AI]
+      type: [RULES, SUMMARY, STATS, FULL, TABLE, EXAMPLES, TEMPLATER, QUICKADD, AGENT]
+      variant: [EXPANDED, BASH, EXAMPLE, BUTTON, COMPRESSED]
+      # Enforce SHA-256 for content integrity
+      hash_algo: 'SHA-256'
+      id: 
+        pattern: '^[A-Z]{3}-[A-Z]{3,4}-[0-9]{3}$'
+        # v4.0: Prefixes allowed for AI agents
+        ai_prefix: 'GEN_'
+    defaults:
+      scope: FACTORY
+      type: RULES
+      version: v4.0
+      status: ACTIVE
+    # v4.0 Hyper-Ripgrep Config
+    grep:
+      # Matches readable AND hash signatures
+      all-tags: '\[([A-Z]+)-([A-Z]+)-([A-Z]+)-([A-Z]{3}-[A-Z0-9-]+)-([vV][0-9]+\.[0-9]+)-\[([A-Z]+)\]-([a-f0-9]{64})\]'
+      rg-flags: '--type md --mmap --pcre2-unicode --hyper-accurate'
+      validate:
+        hooks:
+          - parallel-parse: true
+          - hash-verify: true
+          - ai-score: true

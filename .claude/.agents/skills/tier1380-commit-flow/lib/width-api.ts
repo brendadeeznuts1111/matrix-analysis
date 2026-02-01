@@ -47,7 +47,7 @@ const DEFAULT_OPTIONS: Required<LoadOptions> = {
  * Load width data from API with retry logic
  */
 export async function loadWidthData(
-	options: LoadOptions = {}
+	options: LoadOptions = {},
 ): Promise<WidthData> {
 	const opts = { ...DEFAULT_OPTIONS, ...options };
 	let lastError: Error | undefined;
@@ -57,7 +57,7 @@ export async function loadWidthData(
 			return await fetchWidthData(opts);
 		} catch (error) {
 			lastError = error instanceof Error ? error : new Error(String(error));
-			
+
 			if (attempt < opts.retryCount - 1) {
 				await Bun.sleep(opts.retryDelay * (attempt + 1));
 			}
@@ -65,7 +65,7 @@ export async function loadWidthData(
 	}
 
 	throw new Error(
-		`Failed to load width data after ${opts.retryCount} attempts: ${lastError?.message}`
+		`Failed to load width data after ${opts.retryCount} attempts: ${lastError?.message}`,
 	);
 }
 
@@ -93,11 +93,11 @@ async function fetchWidthData(opts: Required<LoadOptions>): Promise<WidthData> {
 		return validateWidthData(data);
 	} catch (error) {
 		clearTimeout(timeoutId);
-		
+
 		if (error instanceof Error && error.name === "AbortError") {
 			throw new Error("Request timeout");
 		}
-		
+
 		throw error;
 	}
 }
@@ -133,10 +133,10 @@ export function checkCol89(content: string): { valid: boolean; width: number } {
  */
 export async function batchCheck(
 	files: string[],
-	checker: (file: string) => Promise<WidthViolation[]>
+	checker: (file: string) => Promise<WidthViolation[]>,
 ): Promise<Map<string, WidthViolation[]>> {
 	const results = new Map<string, WidthViolation[]>();
-	
+
 	// Process in batches of 5
 	const batchSize = 5;
 	for (let i = 0; i < files.length; i += batchSize) {
@@ -145,14 +145,14 @@ export async function batchCheck(
 			batch.map(async (file) => ({
 				file,
 				violations: await checker(file),
-			}))
+			})),
 		);
-		
+
 		for (const { file, violations } of batchResults) {
 			results.set(file, violations);
 		}
 	}
-	
+
 	return results;
 }
 

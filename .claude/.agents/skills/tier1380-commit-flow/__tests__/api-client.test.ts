@@ -3,8 +3,12 @@
  * Tests for API client
  */
 
-import { describe, it, expect, mock } from "bun:test";
-import { loadWidthData, submitWidthViolation, DEFAULT_CONFIG } from "../lib/api-client";
+import { describe, expect, it, mock } from "bun:test";
+import {
+	DEFAULT_CONFIG,
+	loadWidthData,
+	submitWidthViolation,
+} from "../lib/api-client";
 
 describe("API Client", () => {
 	it("should have default config", () => {
@@ -19,10 +23,13 @@ describe("API Client", () => {
 			Promise.resolve({
 				ok: true,
 				json: () => Promise.resolve({ files: [], stats: {} }),
-			} as Response)
+			} as Response),
 		);
 
-		await loadWidthData({ baseUrl: "http://custom:8080", headers: { "X-Custom": "true" } });
+		await loadWidthData({
+			baseUrl: "http://custom:8080",
+			headers: { "X-Custom": "true" },
+		});
 
 		// Restore
 		globalThis.fetch = originalFetch;
@@ -35,7 +42,7 @@ describe("API Client", () => {
 				ok: false,
 				status: 404,
 				statusText: "Not Found",
-			} as Response)
+			} as Response),
 		);
 
 		await expect(loadWidthData()).rejects.toThrow("HTTP 404");
@@ -48,7 +55,7 @@ describe("API Client", () => {
 		globalThis.fetch = mock(() =>
 			Promise.resolve({
 				ok: true,
-			} as Response)
+			} as Response),
 		);
 
 		const result = await submitWidthViolation({

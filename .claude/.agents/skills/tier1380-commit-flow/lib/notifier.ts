@@ -18,7 +18,7 @@ const ICONS = {
 
 async function sendNotification(options: NotificationOptions): Promise<void> {
 	const icon = ICONS[options.type || "success"];
-	
+
 	// Try macOS notification
 	if (process.platform === "darwin") {
 		try {
@@ -29,7 +29,7 @@ async function sendNotification(options: NotificationOptions): Promise<void> {
 			// Fall through to console
 		}
 	}
-	
+
 	// Console fallback
 	console.log(`${icon} ${options.title}: ${options.message}`);
 }
@@ -60,8 +60,8 @@ async function notifyError(message: string): Promise<void> {
 
 // Main for testing
 if (import.meta.main) {
-	const type = Bun.argv[2] as "success" | "warning" | "error" || "success";
-	
+	const type = (Bun.argv[2] as "success" | "warning" | "error") || "success";
+
 	await sendNotification({
 		title: "Test Notification",
 		message: "This is a test notification from Tier-1380",

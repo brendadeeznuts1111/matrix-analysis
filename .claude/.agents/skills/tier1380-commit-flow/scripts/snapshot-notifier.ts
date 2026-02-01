@@ -4,8 +4,6 @@
  * SSE live notifications for snapshot events
  */
 
-import { $ } from "bun";
-
 interface SnapshotEvent {
 	type: "created" | "extracted" | "verified" | "deleted";
 	tenant: string;
@@ -30,7 +28,9 @@ class SnapshotNotifier {
 			fetch: (req) => this.handleRequest(req),
 		});
 
-		console.log(`📡 Snapshot notifier running on http://localhost:${this.port}`);
+		console.log(
+			`📡 Snapshot notifier running on http://localhost:${this.port}`,
+		);
 		console.log(`   SSE endpoint: http://localhost:${this.port}/events`);
 	}
 
@@ -52,10 +52,12 @@ class SnapshotNotifier {
 		const stream = new ReadableStream({
 			start: (controller) => {
 				this.clients.add(controller);
-				
+
 				// Send initial connected message
-				controller.enqueue(`data: ${JSON.stringify({ type: "connected", timestamp: new Date().toISOString() })}\n\n`);
-				
+				controller.enqueue(
+					`data: ${JSON.stringify({ type: "connected", timestamp: new Date().toISOString() })}\n\n`,
+				);
+
 				// Cleanup on close
 				req.signal.addEventListener("abort", () => {
 					this.clients.delete(controller);
@@ -67,14 +69,14 @@ class SnapshotNotifier {
 			headers: {
 				"Content-Type": "text/event-stream",
 				"Cache-Control": "no-cache",
-				"Connection": "keep-alive",
+				Connection: "keep-alive",
 			},
 		});
 	}
 
 	broadcast(event: SnapshotEvent): void {
 		const message = `data: ${JSON.stringify(event)}\n\n`;
-		
+
 		for (const client of this.clients) {
 			try {
 				client.enqueue(message);
@@ -83,13 +85,18 @@ class SnapshotNotifier {
 				this.clients.delete(client);
 			}
 		}
-		
+
 		// Also log to console (Col-89 safe)
 		const logLine = `Snapshot ${event.type}: ${event.tenant}/${event.filename.slice(0, 30)}`;
-		console.log(logLine.length > 89 ? logLine.slice(0, 86) + "…" : logLine);
+		console.log(logLine.length > 89 ? `${logLine.slice(0, 86)}…` : logLine);
 	}
 
-	notifyCreated(tenant: string, filename: string, sha256: string, size: number): void {
+	notifyCreated(
+		tenant: string,
+		filename: string,
+		sha256: string,
+		size: number,
+	): void {
 		this.broadcast({
 			type: "created",
 			tenant,
@@ -128,16 +135,19 @@ class SnapshotNotifier {
 // CLI mode: start the server
 if (import.meta.main) {
 	const args = Bun.argv.slice(2);
-	const port = parseInt(args.find((a) => a.startsWith("--port="))?.split("=")[1] || "3336", 10);
-	
+	const port = parseInt(
+		args.find((a) => a.startsWith("--port="))?.split("=")[1] || "3336",
+		10,
+	);
+
 	console.log("╔════════════════════════════════════════════════════════╗");
 	console.log("║     Tier-1380 OMEGA Snapshot Notifier                  ║");
 	console.log("╚════════════════════════════════════════════════════════╝");
 	console.log();
-	
+
 	const notifier = new SnapshotNotifier(port);
 	notifier.start();
-	
+
 	// Keep alive
 	setInterval(() => {}, 1000);
 }

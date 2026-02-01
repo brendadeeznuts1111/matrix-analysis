@@ -1,11 +1,12 @@
 #!/usr/bin/env bun
+
 /**
  * Tier-1380 OMEGA Health Check
  * Diagnose commit flow installation and configuration
  */
 
-import { $ } from "bun";
 import { Database } from "bun:sqlite";
+import { $ } from "bun";
 
 interface HealthResult {
 	component: string;
@@ -59,9 +60,15 @@ async function runHealthCheck(): Promise<HealthResult[]> {
 
 	// Check hooks
 	const gitDir = await $`git rev-parse --git-dir`.text().catch(() => "");
-	const hooksDir = gitDir.trim() + "/hooks";
-	const requiredHooks = ["pre-commit", "prepare-commit-msg", "commit-msg", "post-commit", "pre-push"];
-	
+	const hooksDir = `${gitDir.trim()}/hooks`;
+	const requiredHooks = [
+		"pre-commit",
+		"prepare-commit-msg",
+		"commit-msg",
+		"post-commit",
+		"pre-push",
+	];
+
 	for (const hook of requiredHooks) {
 		try {
 			const content = await Bun.file(`${hooksDir}/${hook}`).text();
@@ -83,7 +90,7 @@ async function runHealthCheck(): Promise<HealthResult[]> {
 	// Check configuration
 	const configPath = `${process.env.HOME}/.config/tier1380-commit-flow/config.json`;
 	try {
-		const config = await Bun.file(configPath).json();
+		const _config = await Bun.file(configPath).json();
 		results.push({
 			component: "Configuration",
 			status: "ok",
@@ -101,7 +108,11 @@ async function runHealthCheck(): Promise<HealthResult[]> {
 	const dbPath = `${process.env.HOME}/.matrix/commit-history.db`;
 	try {
 		const db = new Database(dbPath);
-		const tableCheck = db.query("SELECT name FROM sqlite_master WHERE type='table' AND name='commits'").get();
+		const tableCheck = db
+			.query(
+				"SELECT name FROM sqlite_master WHERE type='table' AND name='commits'",
+			)
+			.get();
 		db.close();
 		results.push({
 			component: "Database",
@@ -117,7 +128,9 @@ async function runHealthCheck(): Promise<HealthResult[]> {
 	}
 
 	// Check alias
-	const shellRc = process.env.SHELL?.includes("zsh") ? `${process.env.HOME}/.zshrc` : `${process.env.HOME}/.bashrc`;
+	const shellRc = process.env.SHELL?.includes("zsh")
+		? `${process.env.HOME}/.zshrc`
+		: `${process.env.HOME}/.bashrc`;
 	try {
 		const rcContent = await Bun.file(shellRc).text();
 		const hasAlias = rcContent.includes("tier1380");
@@ -147,7 +160,8 @@ function renderResults(results: HealthResult[]): void {
 	let error = 0;
 
 	for (const result of results) {
-		const icon = result.status === "ok" ? "✅" : result.status === "warning" ? "⚠️" : "❌";
+		const icon =
+			result.status === "ok" ? "✅" : result.status === "warning" ? "⚠️" : "❌";
 		console.log(`${icon} ${result.component.padEnd(20)} ${result.message}`);
 
 		if (result.status === "ok") ok++;

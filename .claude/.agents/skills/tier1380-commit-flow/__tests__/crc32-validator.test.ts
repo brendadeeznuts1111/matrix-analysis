@@ -67,7 +67,7 @@ describe("CRC32 Change Cache", () => {
 		const cache = new CRC32ChangeCache();
 
 		// First check should be dirty (not in cache)
-		const testFile = "/tmp/crc-test-" + Date.now() + ".txt";
+		const testFile = `/tmp/crc-test-${Date.now()}.txt`;
 		await Bun.write(testFile, "Initial content");
 
 		const isDirty1 = await cache.isDirty(testFile);

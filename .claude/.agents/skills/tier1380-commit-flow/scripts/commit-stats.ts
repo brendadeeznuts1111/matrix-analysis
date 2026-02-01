@@ -22,12 +22,14 @@ function getDb(): Database {
 
 function generateStats(days = 30): StatsResult {
 	const db = getDb();
-	
+
 	// Check if table exists
-	const tableCheck = db.query(
-		"SELECT name FROM sqlite_master WHERE type='table' AND name='commits'"
-	).get();
-	
+	const tableCheck = db
+		.query(
+			"SELECT name FROM sqlite_master WHERE type='table' AND name='commits'",
+		)
+		.get();
+
 	if (!tableCheck) {
 		db.close();
 		return {
@@ -40,59 +42,73 @@ function generateStats(days = 30): StatsResult {
 			mostActiveDay: "N/A",
 		};
 	}
-	
+
 	// Total commits
-	const totalResult = db.query(
-		"SELECT COUNT(*) as count FROM commits WHERE date > datetime('now', '-? days')"
-	).get(days) as { count: number };
-	
+	const totalResult = db
+		.query(
+			"SELECT COUNT(*) as count FROM commits WHERE date > datetime('now', '-? days')",
+		)
+		.get(days) as { count: number };
+
 	// By domain
-	const domainResults = db.query(
-		"SELECT domain, COUNT(*) as count FROM commits WHERE date > datetime('now', '-? days') GROUP BY domain"
-	).all(days) as Array<{ domain: string; count: number }>;
-	
+	const domainResults = db
+		.query(
+			"SELECT domain, COUNT(*) as count FROM commits WHERE date > datetime('now', '-? days') GROUP BY domain",
+		)
+		.all(days) as Array<{ domain: string; count: number }>;
+
 	// By component
-	const componentResults = db.query(
-		"SELECT component, COUNT(*) as count FROM commits WHERE date > datetime('now', '-? days') GROUP BY component"
-	).all(days) as Array<{ component: string; count: number }>;
-	
+	const componentResults = db
+		.query(
+			"SELECT component, COUNT(*) as count FROM commits WHERE date > datetime('now', '-? days') GROUP BY component",
+		)
+		.all(days) as Array<{ component: string; count: number }>;
+
 	// By author
-	const authorResults = db.query(
-		"SELECT author, COUNT(*) as count FROM commits WHERE date > datetime('now', '-? days') GROUP BY author"
-	).all(days) as Array<{ author: string; count: number }>;
-	
+	const authorResults = db
+		.query(
+			"SELECT author, COUNT(*) as count FROM commits WHERE date > datetime('now', '-? days') GROUP BY author",
+		)
+		.all(days) as Array<{ author: string; count: number }>;
+
 	// Compliance rate
-	const complianceResult = db.query(
-		"SELECT AVG(valid_format) as rate FROM commits WHERE date > datetime('now', '-? days')"
-	).get(days) as { rate: number };
-	
+	const complianceResult = db
+		.query(
+			"SELECT AVG(valid_format) as rate FROM commits WHERE date > datetime('now', '-? days')",
+		)
+		.get(days) as { rate: number };
+
 	// Average message length
-	const lengthResult = db.query(
-		"SELECT AVG(LENGTH(message)) as avg FROM commits WHERE date > datetime('now', '-? days')"
-	).get(days) as { avg: number };
-	
+	const lengthResult = db
+		.query(
+			"SELECT AVG(LENGTH(message)) as avg FROM commits WHERE date > datetime('now', '-? days')",
+		)
+		.get(days) as { avg: number };
+
 	// Most active day
-	const dayResult = db.query(
-		"SELECT date, COUNT(*) as count FROM commits WHERE date > datetime('now', '-? days') GROUP BY date ORDER BY count DESC LIMIT 1"
-	).get(days) as { date: string; count: number } | null;
-	
+	const dayResult = db
+		.query(
+			"SELECT date, COUNT(*) as count FROM commits WHERE date > datetime('now', '-? days') GROUP BY date ORDER BY count DESC LIMIT 1",
+		)
+		.get(days) as { date: string; count: number } | null;
+
 	db.close();
-	
+
 	const byDomain: Record<string, number> = {};
 	for (const r of domainResults) {
 		byDomain[r.domain] = r.count;
 	}
-	
+
 	const byComponent: Record<string, number> = {};
 	for (const r of componentResults) {
 		byComponent[r.component] = r.count;
 	}
-	
+
 	const byAuthor: Record<string, number> = {};
 	for (const r of authorResults) {
 		byAuthor[r.author] = r.count;
 	}
-	
+
 	return {
 		totalCommits: totalResult.count,
 		byDomain,
@@ -107,27 +123,35 @@ function generateStats(days = 30): StatsResult {
 function renderStats(stats: StatsResult): void {
 	console.log("\n📊 Commit Statistics");
 	console.log("═══════════════════════════════════════════════════\n");
-	
+
 	console.log(`Total Commits:      ${stats.totalCommits}`);
 	console.log(`Compliance Rate:    ${stats.complianceRate}%`);
 	console.log(`Avg Message Length: ${stats.averageMessageLength} chars`);
 	console.log(`Most Active Day:    ${stats.mostActiveDay}`);
 	console.log();
-	
+
 	console.log("By Domain:");
-	for (const [domain, count] of Object.entries(stats.byDomain).sort((a, b) => b[1] - a[1])) {
-		console.log(`  ${domain.padEnd(12)} ${count.toString().padStart(4)} ${"█".repeat(Math.min(count, 20))}`);
+	for (const [domain, count] of Object.entries(stats.byDomain).sort(
+		(a, b) => b[1] - a[1],
+	)) {
+		console.log(
+			`  ${domain.padEnd(12)} ${count.toString().padStart(4)} ${"█".repeat(Math.min(count, 20))}`,
+		);
 	}
 	console.log();
-	
+
 	console.log("By Component:");
-	for (const [comp, count] of Object.entries(stats.byComponent).sort((a, b) => b[1] - a[1]).slice(0, 5)) {
+	for (const [comp, count] of Object.entries(stats.byComponent)
+		.sort((a, b) => b[1] - a[1])
+		.slice(0, 5)) {
 		console.log(`  ${comp.padEnd(12)} ${count.toString().padStart(4)}`);
 	}
 	console.log();
-	
+
 	console.log("Top Authors:");
-	for (const [author, count] of Object.entries(stats.byAuthor).sort((a, b) => b[1] - a[1]).slice(0, 5)) {
+	for (const [author, count] of Object.entries(stats.byAuthor)
+		.sort((a, b) => b[1] - a[1])
+		.slice(0, 5)) {
 		console.log(`  ${author.padEnd(20)} ${count.toString().padStart(4)}`);
 	}
 }
@@ -135,13 +159,14 @@ function renderStats(stats: StatsResult): void {
 // Main
 if (import.meta.main) {
 	const args = Bun.argv.slice(2);
-	const days = Number(args.find((a) => a.startsWith("--days="))?.split("=")[1]) || 30;
-	
+	const days =
+		Number(args.find((a) => a.startsWith("--days="))?.split("=")[1]) || 30;
+
 	console.log("╔════════════════════════════════════════════════════════╗");
 	console.log("║     Tier-1380 OMEGA Commit Statistics                  ║");
 	console.log(`║     Last ${days.toString().padEnd(42)} ║`);
 	console.log("╚════════════════════════════════════════════════════════╝");
-	
+
 	const stats = generateStats(days);
 	renderStats(stats);
 }

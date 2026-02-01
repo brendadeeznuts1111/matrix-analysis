@@ -269,12 +269,12 @@ if (import.meta.main) {
 
 			// CRC32
 			const crcStart = Bun.nanoseconds();
-			const crc = Bun.hash.crc32(await file.arrayBuffer());
+			const _crc = Bun.hash.crc32(await file.arrayBuffer());
 			const crcMs = (Bun.nanoseconds() - crcStart) / 1e6;
 
 			// Wyhash
 			const wyStart = Bun.nanoseconds();
-			const wy = Bun.hash.wyhash(Buffer.from(await file.arrayBuffer()));
+			const _wy = Bun.hash.wyhash(Buffer.from(await file.arrayBuffer()));
 			const wyMs = (Bun.nanoseconds() - wyStart) / 1e6;
 
 			console.log(

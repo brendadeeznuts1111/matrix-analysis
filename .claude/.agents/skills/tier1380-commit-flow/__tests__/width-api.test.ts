@@ -3,14 +3,19 @@
  * Tests for width API
  */
 
-import { describe, it, expect, mock } from "bun:test";
-import { loadWidthData, checkCol89, batchCheck } from "../lib/width-api";
+import { describe, expect, it, mock } from "bun:test";
+import { batchCheck, checkCol89, loadWidthData } from "../lib/width-api";
 
 describe("loadWidthData", () => {
 	it("should load data successfully", async () => {
 		const mockData = {
 			files: [],
-			stats: { totalFiles: 0, totalLines: 0, violationCount: 0, complianceRate: 100 },
+			stats: {
+				totalFiles: 0,
+				totalLines: 0,
+				violationCount: 0,
+				complianceRate: 100,
+			},
 			meta: { generatedAt: new Date().toISOString(), tier: 1380 },
 		};
 
@@ -19,7 +24,7 @@ describe("loadWidthData", () => {
 			Promise.resolve({
 				ok: true,
 				json: () => Promise.resolve(mockData),
-			} as Response)
+			} as Response),
 		);
 
 		const data = await loadWidthData();
@@ -41,7 +46,12 @@ describe("loadWidthData", () => {
 				json: () =>
 					Promise.resolve({
 						files: [],
-						stats: { totalFiles: 1, totalLines: 10, violationCount: 0, complianceRate: 100 },
+						stats: {
+							totalFiles: 1,
+							totalLines: 10,
+							violationCount: 0,
+							complianceRate: 100,
+						},
 						meta: { generatedAt: "2026-01-01", tier: 1380 },
 					}),
 			} as Response);
@@ -58,9 +68,9 @@ describe("loadWidthData", () => {
 		const originalFetch = globalThis.fetch;
 		globalThis.fetch = mock(() => Promise.reject(new Error("Network error")));
 
-		await expect(loadWidthData({ retryCount: 2, retryDelay: 10 })).rejects.toThrow(
-			"Failed to load width data after 2 attempts"
-		);
+		await expect(
+			loadWidthData({ retryCount: 2, retryDelay: 10 }),
+		).rejects.toThrow("Failed to load width data after 2 attempts");
 
 		globalThis.fetch = originalFetch;
 	});
@@ -80,7 +90,7 @@ describe("checkCol89", () => {
 	});
 
 	it("should handle ANSI codes", () => {
-		const result = checkCol89("\x1b[32m" + "a".repeat(80) + "\x1b[0m");
+		const result = checkCol89(`\x1b[32m${"a".repeat(80)}\x1b[0m`);
 		expect(result.valid).toBe(true);
 		expect(result.width).toBe(80);
 	});
