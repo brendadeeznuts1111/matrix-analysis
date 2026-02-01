@@ -294,4 +294,4 @@ if (import.meta.main) {
 	);
 }
 
-export { FACTORY_WAGER_CONSTANTS, EXTENDED_GOVERNANCE_REGEX };
+// All exports already defined above

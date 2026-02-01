@@ -14,6 +14,10 @@
     "monitor": "bun run monitor-violations.ts",
     "demo-sse": "bun run demo-sse.ts",
     "r2-demo": "bun run demo-r2.ts",
+    "db-setup": "bun run database-setup.ts",
+    "api": "bun run api-server.ts",
+    "build-assets": "bun run build-assets.ts",
+    "asset-server": "bun run asset-server.ts",
     "schema:validate": "bun -e 'const schema = require(\"./schema.json\"); console.log(\"✅ Schema valid\")'"
   },
   "dependencies": {

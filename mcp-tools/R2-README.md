@@ -39,6 +39,7 @@ CLOUDFLARE_REGION=us-east-1
 ### Getting R2 Credentials
 
 1. **Create R2 Bucket**:
+
    ```bash
    # Using wrangler CLI
    wrangler r2 bucket create tier1380-violations
@@ -50,6 +51,7 @@ CLOUDFLARE_REGION=us-east-1
    - Note the Account ID, Access Key ID, and Secret Access Key
 
 3. **Configure Environment**:
+
    ```bash
    export R2_ACCOUNT_ID="your-account-id"
    export R2_ACCESS_KEY_ID="your-access-key-id"
@@ -60,7 +62,7 @@ CLOUDFLARE_REGION=us-east-1
 
 ### File Organization
 
-```
+```text
 tier1380-violations/
 ├── violations/
 │   ├── tenant-acme/
@@ -322,7 +324,7 @@ bun run sse
    ```bash
    # Verify credentials
    wrangler r2 bucket list
-   
+
    # Check environment variables
    echo $R2_ACCOUNT_ID
    echo $R2_ACCESS_KEY_ID
@@ -418,8 +420,8 @@ const cleanupPolicy = {
 
 ---
 
-🔐 **Tier-1380 R2 Integration - Production Ready**  
-📦 **Global persistent storage with 99.999% durability**  
+🔐 **Tier-1380 R2 Integration - Production Ready**
+📦 **Global persistent storage with 99.999% durability**
 🚀 **Cost-effective violation archiving and analytics**
 
 **Next**: Configure your R2 credentials and start storing violations persistently! 🎯

@@ -1,15 +1,6 @@
 // mcp-tools/r2-storage.ts - R2/S3 integration for persistent violation logs
 import { WidthViolation } from './sse-alerts.js';
 
-export interface R2Config {
-  accountId: string;
-  accessKeyId: string;
-  secretAccessKey: string;
-  bucket: string;
-  region?: string; // Default: auto
-  endpoint?: string; // For custom S3-compatible endpoints
-}
-
 export interface ViolationLogEntry {
   id: string;
   timestamp: number;
@@ -20,6 +11,18 @@ export interface ViolationLogEntry {
     sessionId?: string;
     region?: string;
   };
+}
+
+// Re-export WidthViolation for other modules (ViolationLogEntry is already exported above)
+export { WidthViolation };
+
+export interface R2Config {
+  accountId: string;
+  accessKeyId: string;
+  secretAccessKey: string;
+  bucket: string;
+  region?: string; // Default: auto
+  endpoint?: string; // For custom S3-compatible endpoints
 }
 
 export class R2ViolationLogger {
@@ -38,10 +41,10 @@ export class R2ViolationLogger {
     try {
       const key = this.generateLogKey(entry);
       const body = JSON.stringify(entry, null, 2);
-      
+
       // Create signature for AWS S3 API
       const signature = await this.createSignature('PUT', key, body);
-      
+
       const response = await fetch(`${this.baseUrl}/${this.config.bucket}/${key}`, {
         method: 'PUT',
         headers: {
@@ -80,19 +83,19 @@ export class R2ViolationLogger {
     try {
       for (let i = 0; i < violations.length; i += batchSize) {
         const batch = violations.slice(i, i + batchSize);
-        
+
         // Upload batch as a single JSONL file
         const batchKey = this.generateBatchKey(i, batch.length);
         const jsonlContent = batch.map(entry => JSON.stringify(entry)).join('\n');
-        
+
         const result = await this.uploadBatch(batchKey, jsonlContent);
-        
+
         if (!result.success) {
           throw new Error(`Batch upload failed: ${result.error}`);
         }
-        
+
         uploaded += batch.length;
-        
+
         // Add small delay to avoid rate limiting
         if (i + batchSize < violations.length) {
           await new Promise(resolve => setTimeout(resolve, 100));
@@ -122,7 +125,7 @@ export class R2ViolationLogger {
     try {
       const prefix = this.generateQueryPrefix(options);
       const listUrl = `${this.baseUrl}/${this.config.bucket}?list-type=2&prefix=${encodeURIComponent(prefix)}`;
-      
+
       const signature = await this.createSignature('GET', '', '');
       const response = await fetch(listUrl, {
         headers: {
@@ -138,7 +141,7 @@ export class R2ViolationLogger {
 
       const xml = await response.text();
       const violations = this.parseViolationList(xml, options);
-      
+
       return { violations };
     } catch (error) {
       return {
@@ -161,7 +164,7 @@ export class R2ViolationLogger {
     try {
       const endDate = new Date();
       const startDate = new Date(endDate.getTime() - (days * 24 * 60 * 60 * 1000));
-      
+
       const violations = await this.queryViolations({
         tenant,
         startDate,
@@ -200,7 +203,7 @@ export class R2ViolationLogger {
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
     const hour = String(date.getHours()).padStart(2, '0');
-    
+
     return `violations/${entry.violation.tenant}/${year}/${month}/${day}/${hour}/${entry.id}.json`;
   }
 
@@ -212,24 +215,24 @@ export class R2ViolationLogger {
 
   private generateQueryPrefix(options: any): string {
     const parts = ['violations'];
-    
+
     if (options.tenant) {
       parts.push(options.tenant);
     }
-    
+
     if (options.startDate) {
       const date = new Date(options.startDate);
       parts.push(date.getFullYear().toString());
       parts.push(String(date.getMonth() + 1).padStart(2, '0'));
     }
-    
+
     return parts.join('/') + '/';
   }
 
   private async uploadBatch(key: string, content: string): Promise<{ success: boolean; error?: string }> {
     try {
       const signature = await this.createSignature('PUT', key, content);
-      
+
       const response = await fetch(`${this.baseUrl}/${this.config.bucket}/${key}`, {
         method: 'PUT',
         headers: {
@@ -259,35 +262,35 @@ export class R2ViolationLogger {
     // Simple XML parsing for demonstration
     // In production, use a proper XML parser
     const violations: ViolationLogEntry[] = [];
-    
+
     // This is a simplified parser - in production use xml2js or similar
     const contentMatches = xml.match(/<Key>([^<]+)<\/Key>/g);
-    
+
     if (contentMatches) {
       for (const match of contentMatches) {
         const key = match.replace(/<Key>|<\/Key>/g, '');
-        
+
         // Skip non-violation files
         if (!key.includes('violations/') || key.includes('/batches/')) {
           continue;
         }
-        
+
         // In production, fetch and parse each file
         // For now, return empty array as placeholder
       }
     }
-    
+
     return violations;
   }
 
   private calculateTopFiles(violations: ViolationLogEntry[]): Array<{ file: string; count: number }> {
     const fileCounts: Record<string, number> = {};
-    
+
     violations.forEach(v => {
       const file = v.violation.file;
       fileCounts[file] = (fileCounts[file] || 0) + 1;
     });
-    
+
     return Object.entries(fileCounts)
       .map(([file, count]) => ({ file, count }))
       .sort((a, b) => b.count - a.count)
@@ -297,10 +300,10 @@ export class R2ViolationLogger {
   private async createSignature(method: string, key: string, body: string): Promise<string> {
     // Simplified AWS Signature Version 4
     // In production, implement full AWS SigV4
-    
+
     const date = this.getAmzDate();
     const credentialScope = `${date.substr(0, 8)}/${this.config.region || 'auto'}/s3/aws4_request`;
-    
+
     const canonicalRequest = [
       method,
       `/${this.config.bucket}/${key}`,

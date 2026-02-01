@@ -9,6 +9,7 @@ bun.lockb
 .env.local
 .env.production
 .env.test
+.env.example
 
 # IDE files
 .vscode/

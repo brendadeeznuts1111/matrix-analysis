@@ -1,6 +1,7 @@
 // mcp-tools/sse-alerts.ts — Production-grade SSE violation stream
 import { validateToolCall, ThreatIntelligenceService, SecureCookieManager } from './validate.js';
-import { R2ViolationLogger, ViolationLogEntry, getR2Logger } from './r2-storage.js';
+import { ViolationLogEntry } from './r2-storage.js';
+import { R2ViolationLogger, getR2Logger } from './r2-storage.js';
 
 export interface WidthViolation {
   timestamp: number;
@@ -20,7 +21,7 @@ const CONNECTIONS = new Map<string, { controller: ReadableStreamDefaultControlle
 class CSRFProtector {
   static verify(token?: string, sessionId?: string): boolean {
     // Mock verification - in production this would validate CSRF tokens
-    return token === "valid-csrf-token" || sessionId?.startsWith("session-");
+    return token === "valid-csrf-token" || (sessionId?.startsWith("session-") ?? false);
   }
 }
 
