@@ -72,7 +72,14 @@ async function analyzeChanges(): Promise<ChangeAnalysis> {
 	const files = output.trim().split("\n").filter(Boolean);
 
 	if (files.length === 0) {
-		return { files: [], domains: [], components: [], types: [], tier: "1380", description: "No changes" };
+		return {
+			files: [],
+			domains: [],
+			components: [],
+			types: [],
+			tier: "1380",
+			description: "No changes",
+		};
 	}
 
 	// Determine characteristics from files
@@ -85,7 +92,10 @@ async function analyzeChanges(): Promise<ChangeAnalysis> {
 	return { files, domains, components, types, tier, description };
 }
 
-function determineMatches(files: string[], patterns: Record<string, RegExp[]>): string[] {
+function determineMatches(
+	files: string[],
+	patterns: Record<string, RegExp[]>,
+): string[] {
 	const matches = new Map<string, number>();
 
 	for (const file of files) {
@@ -114,10 +124,16 @@ function generateDescription(files: string[], types: string[]): string {
 		extensions.set(ext, (extensions.get(ext) || 0) + 1);
 	}
 
-	const mainExt = Array.from(extensions.entries()).sort((a, b) => b[1] - a[1])[0]?.[0];
+	const mainExt = Array.from(extensions.entries()).sort(
+		(a, b) => b[1] - a[1],
+	)[0]?.[0];
 
 	if (files.length === 1) {
-		const filename = files[0]?.split("/").pop()?.replace(/\.(ts|js|json|md)$/, "") || "file";
+		const filename =
+			files[0]
+				?.split("/")
+				.pop()
+				?.replace(/\.(ts|js|json|md)$/, "") || "file";
 		return `${type} ${filename}`;
 	}
 
@@ -146,11 +162,15 @@ function generateSuggestions(analysis: ChangeAnalysis): string[] {
 
 	// With type
 	if (type !== "FEAT") {
-		suggestions.push(`[${domain}][COMPONENT:${component}][TIER:${tier}] ${type} ${desc.toLowerCase().replace(type + " ", "")}`);
+		suggestions.push(
+			`[${domain}][COMPONENT:${component}][TIER:${tier}] ${type} ${desc.toLowerCase().replace(`${type} `, "")}`,
+		);
 	}
 
 	// Extended format
-	suggestions.push(`[${domain}][${component}][${type}][META:{TIER:${tier}}] ${desc} [BUN-NATIVE]`);
+	suggestions.push(
+		`[${domain}][${component}][${type}][META:{TIER:${tier}}] ${desc} [BUN-NATIVE]`,
+	);
 
 	return suggestions;
 }
@@ -179,8 +199,12 @@ if (import.meta.main) {
 
 	console.log();
 	console.log("Analysis:");
-	console.log(`  Domain:     ${analysis.domains.join(", ") || "PLATFORM (default)"}`);
-	console.log(`  Component:  ${analysis.components.join(", ") || "MATRIX (default)"}`);
+	console.log(
+		`  Domain:     ${analysis.domains.join(", ") || "PLATFORM (default)"}`,
+	);
+	console.log(
+		`  Component:  ${analysis.components.join(", ") || "MATRIX (default)"}`,
+	);
 	console.log(`  Types:      ${analysis.types.join(", ") || "Update"}`);
 	console.log(`  Tier:       ${analysis.tier}`);
 	console.log();
@@ -199,7 +223,14 @@ if (import.meta.main) {
 	console.log(`  git commit -m "${suggestions[0]}"`);
 	console.log();
 	console.log("Or with the helper:");
-	console.log(`  bun ~/.kimi/skills/tier1380-commit-flow/scripts/git-commit.ts "${suggestions[0]}"`);
+	console.log(
+		`  bun ~/.kimi/skills/tier1380-commit-flow/scripts/git-commit.ts "${suggestions[0]}"`,
+	);
 }
 
-export { analyzeChanges, generateDescription, generateSuggestions, type ChangeAnalysis };
+export {
+	analyzeChanges,
+	generateDescription,
+	generateSuggestions,
+	type ChangeAnalysis,
+};
