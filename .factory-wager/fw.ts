@@ -14,6 +14,30 @@ const VERSION = "1.4.0-beta.20260201";
 const BUILD_DATE = new Date().toISOString();
 const BUN_VERSION = process.versions.bun;
 
+// Bun environment configuration
+const BUN_CONFIG = {
+  VERBOSE_FETCH: Bun.env.BUN_CONFIG_VERBOSE_FETCH,
+  MAX_HTTP_REQUESTS: Bun.env.BUN_CONFIG_MAX_HTTP_REQUESTS || "256",
+  NO_CLEAR_TERMINAL: Bun.env.BUN_CONFIG_NO_CLEAR_TERMINAL_ON_RELOAD === "true",
+  TRANSPILER_CACHE_PATH: Bun.env.BUN_RUNTIME_TRANSPILER_CACHE_PATH,
+  OPTIONS: Bun.env.BUN_OPTIONS || "",
+  DO_NOT_TRACK: Bun.env.DO_NOT_TRACK === "1",
+  FORCE_COLOR: Bun.env.FORCE_COLOR === "1",
+  NO_COLOR: Bun.env.NO_COLOR === "1",
+};
+
+// FactoryWager environment configuration
+const FW_CONFIG = {
+  MODE: Bun.env.FW_MODE || process.env.NODE_ENV || "development",
+  LOG_LEVEL: Bun.env.FW_LOG_LEVEL || "info",
+  PROFILE: Bun.env.FW_PROFILE,
+  REPORT_FORMAT: Bun.env.FW_REPORT_FORMAT || "html",
+  OUTPUT_DIR: Bun.env.FW_OUTPUT_DIR || "./reports",
+  CONFIG_DIR: Bun.env.FW_CONFIG_DIR || "./config",
+  AUDIT_MODE: Bun.env.FW_AUDIT_MODE === "true",
+  DEBUG: Bun.env.DEBUG || Bun.env.FW_DEBUG === "true",
+};
+
 // CLI Arguments parsing
 const args = process.argv.slice(2);
 const command = args[0];
@@ -58,6 +82,8 @@ async function getSystemStatus(): Promise<{
   gitInfo: { commit?: string; branch?: string };
   features: Record<string, boolean>;
   configStatus: Record<string, boolean>;
+  bunConfig: typeof BUN_CONFIG;
+  fwConfig: typeof FW_CONFIG;
 }> {
   const gitInfo = await getGitInfo();
   const activeProfile = profileManager.getActiveProfileName();
@@ -66,7 +92,7 @@ async function getSystemStatus(): Promise<{
     version: VERSION,
     buildDate: BUILD_DATE,
     bunVersion: BUN_VERSION,
-    environment: process.env.NODE_ENV || "development",
+    environment: FW_CONFIG.MODE,
     gitInfo,
     features: {
       markdown_engine: existsSync(PATHS.MARKDOWN_ENGINE),
@@ -82,7 +108,9 @@ async function getSystemStatus(): Promise<{
       visibility_config: existsSync(PATHS.VISIBILITY_CONFIG),
       types: existsSync(PATHS.TYPES_DIR),
       profiles: activeProfile !== null,
-    }
+    },
+    bunConfig: BUN_CONFIG,
+    fwConfig: FW_CONFIG,
   };
 }
 
@@ -106,6 +134,25 @@ async function displaySystemStatus(): Promise<void> {
     ${status.gitInfo.branch ? `🌿 Git Branch: ${status.gitInfo.branch}` : ""}
 
     👤 Active Profile: ${activeProfile || "None"}
+
+    🥟 Bun Configuration:
+    Max HTTP Requests: ${status.bunConfig.MAX_HTTP_REQUESTS}
+    Verbose Fetch: ${status.bunConfig.VERBOSE_FETCH || "disabled"}
+    No Clear Terminal: ${status.bunConfig.NO_CLEAR_TERMINAL ? "enabled" : "disabled"}
+    Do Not Track: ${status.bunConfig.DO_NOT_TRACK ? "enabled" : "disabled"}
+    Force Color: ${status.bunConfig.FORCE_COLOR ? "enabled" : "disabled"}
+    No Color: ${status.bunConfig.NO_COLOR ? "enabled" : "disabled"}
+    Options: ${status.bunConfig.OPTIONS || "none"}
+
+    🏭 FactoryWager Configuration:
+    Mode: ${status.fwConfig.MODE}
+    Log Level: ${status.fwConfig.LOG_LEVEL}
+    Profile: ${status.fwConfig.PROFILE || "auto"}
+    Report Format: ${status.fwConfig.REPORT_FORMAT}
+    Output Directory: ${status.fwConfig.OUTPUT_DIR}
+    Config Directory: ${status.fwConfig.CONFIG_DIR}
+    Audit Mode: ${status.fwConfig.AUDIT_MODE ? "enabled" : "disabled"}
+    Debug: ${status.fwConfig.DEBUG ? "enabled" : "disabled"}
 
     🚀 Features Status:
     ${Object.entries(status.features)
@@ -159,8 +206,9 @@ function showHelp(): void {
       fw report demo               - Generate demo reports in all formats
 
     Configuration:
-      fw config show               - Show current configuration
-      fw config paths              - Show all path configurations
+      fw config show               - Show configuration
+      fw config paths              - Show paths
+      fw config env                - Show environment variables
 
     Audit & Compliance:
       fw audit run                 - Run audit system
@@ -283,9 +331,23 @@ async function main(): Promise<void> {
               console.log(`${key}: ${value}`);
             });
             break;
+          case "env":
+          case "environment":
+            console.log("🌍 Environment Configuration:");
+            console.log("\n🥟 Bun Configuration:");
+            Object.entries(BUN_CONFIG).forEach(([key, value]) => {
+              const displayValue = value === "" ? "none" : value === true ? "enabled" : value === false ? "disabled" : value;
+              console.log(`  ${key}: ${displayValue}`);
+            });
+            console.log("\n🏭 FactoryWager Configuration:");
+            Object.entries(FW_CONFIG).forEach(([key, value]) => {
+              const displayValue = value === "" ? "none" : value === true ? "enabled" : value === false ? "disabled" : value;
+              console.log(`  ${key}: ${displayValue}`);
+            });
+            break;
           default:
             console.error("❌ Unknown config subcommand");
-            console.log("Available: show, paths");
+            console.log("Available: show, paths, env");
             process.exit(1);
         }
         break;
@@ -447,7 +509,7 @@ async function main(): Promise<void> {
         process.exit(1);
     }
   } catch (error) {
-    console.error("❌ Error:", error.message);
+    console.error("❌ Error:", error instanceof Error ? error.message : String(error));
     process.exit(1);
   }
 }
