@@ -197,6 +197,32 @@ tier1380-standalone
 *.tar
 *.tar.gz
 *.cdx.json
+# Database files
+data/*.db
+data/*.db-shm
+data/*.db-wal
+
+# Generated history/analysis
+.omega-cols-history
+analysis.md
+bundle-analysis.md
+meta.md
+BUN-V138-IMPLEMENTATION-SUMMARY.md
+
+# One-off test/benchmark scripts
+bun-v138-*.ts
+
+# Example entry points
+examples/
+
+# Security reports
+security/
+
+# Standalone tools
+tools/cdn-purge.ts
+tools/telemetry-overview.ts
+tools/tier1380-diagnostic.ts
+
 # Separate projects and external directories
 clawd/
 openclaw/
