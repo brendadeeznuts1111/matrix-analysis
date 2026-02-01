@@ -183,3 +183,9 @@ matrix-v*.lock
 
 # Advanced test examples (submodule)
 my-wager-v3/examples/advanced-tests/
+# Large and sensitive files - never commit
+.openclaw/
+tier1380-standalone
+*.tar
+*.tar.gz
+*.cdx.json
