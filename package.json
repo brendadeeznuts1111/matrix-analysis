@@ -400,7 +400,14 @@
     "vault:health:verbose": "bun run .factory-wager/fw-vault-health.ts --verbose",
     "vault:health:fix": "bun run .factory-wager/fw-vault-health.ts --auto-fix",
     "vault:health:report": "bun run .factory-wager/fw-vault-health.ts --save-report",
-    "vault:health:full": "bun run .factory-wager/fw-vault-health.ts --verbose --auto-fix --save-report"
+    "vault:health:full": "bun run .factory-wager/fw-vault-health.ts --verbose --auto-fix --save-report",
+    "vault:archive:create": "bun run .factory-wager/scripts/archive-backup.ts create",
+    "vault:archive:extract": "bun run .factory-wager/scripts/archive-backup.ts extract",
+    "vault:archive:list": "bun run .factory-wager/scripts/archive-backup.ts list",
+    "archive:cli": "bun run .factory-wager/bun-archive-cli.ts",
+    "archive:status": "bun run .factory-wager/bun-archive-cli.ts status",
+    "archive:config": "bun run .factory-wager/bun-archive-cli.ts config",
+    "archive:benchmark": "bun run .factory-wager/bun-archive-cli.ts benchmark"
   },
   "dependencies": {
     "@modelcontextprotocol/server-filesystem": "latest",
