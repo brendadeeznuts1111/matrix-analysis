@@ -7,15 +7,18 @@
 ## 🔍 Root Cause Analysis
 
 ### 1. **Working Directory Issue**
+
 - Tests run from repo root (`/Users/nolarose`)
 - But OMEGA config files are in `.claude/config/`
 - And binaries are in `.claude/bin/`
 
 ### 2. **Missing Path Resolution**
+
 - Tests expect `./bin/omega` but it's actually at `./.claude/bin/omega`
 - Tests expect `./config/acp-tier1380-omega.json` but it's at `./.claude/config/acp-tier1380-omega.json`
 
 ### 3. **Missing Scripts**
+
 - Tests expect scripts in `./scripts/` but they're in `./.claude/scripts/`
 
 ## 🛠️ Quick Fixes
@@ -118,14 +121,14 @@ export async function getVersion(kv?: KVNamespace): Promise<Version | null> {
         "../config/acp-tier1380-omega.json",
         new URL("../config/acp-tier1380-omega.json", import.meta.url).pathname,
       ];
-      
+
       for (const path of possiblePaths) {
         try {
           const file = await Bun.file(path).json();
           return parseVersion(file.version);
         } catch {}
       }
-      
+
       return null;
     } catch {
       return null;

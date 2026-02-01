@@ -89,16 +89,16 @@ bun simulate-multi-tenant-data.ts
 ### Global Admin Workflow
 
 1. Select "All Tenants" for overview
-2. Compare metrics across all tenants
-3. Identify trends and patterns
-4. Drill down to specific tenants as needed
+1. Compare metrics across all tenants
+1. Identify trends and patterns
+1. Drill down to specific tenants as needed
 
 ### Tenant-Specific Workflow
 
 1. Select specific tenant(s) from dropdown
-2. View isolated compliance data
-3. Analyze violations within scope
-4. Export filtered data as needed
+1. View isolated compliance data
+1. Analyze violations within scope
+1. Export filtered data as needed
 
 ## 🔒 Security Features
 
@@ -119,10 +119,10 @@ bun simulate-multi-tenant-data.ts
 The system is ready for the following enhancements:
 
 1. **SSE live width violation alerts** - Real-time filtered updates
-2. **Nightly compliance reports** - Automated tenant-specific reports
-3. **Tenant-wide export** - CSV/JSON export functionality
-4. **Threshold alerts** - Per-tenant compliance monitoring
-5. **Historical leaderboard** - Month-over-month rankings
+1. **Nightly compliance reports** - Automated tenant-specific reports
+1. **Tenant-wide export** - CSV/JSON export functionality
+1. **Threshold alerts** - Per-tenant compliance monitoring
+1. **Historical leaderboard** - Month-over-month rankings
 
 ---
 
