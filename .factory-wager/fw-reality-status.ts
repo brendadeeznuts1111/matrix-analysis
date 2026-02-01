@@ -17,16 +17,16 @@ interface RealityStatusRow {
 
 class RealityDashboard {
   private colors = {
-    live: (text: string) => Bun.color("hsl", 140, 70, 55)(text),    // Mint green
-    simulated: (text: string) => Bun.color("hsl", 280, 60, 60)(text), // Purple
-    mixed: (text: string) => Bun.color("hsl", 45, 80, 55)(text),      // Orange
-    error: (text: string) => Bun.color("hsl", 0, 70, 55)(text),       // Red
+    live: "\x1b[92m",      // Bright green (mint)
+    simulated: "\x1b[95m", // Bright magenta (purple-ish)
+    mixed: "\x1b[93m",     // Bright yellow (orange-ish)
+    error: "\x1b[91m",     // Bright red
     reset: "\x1b[0m"
   };
 
   private realityStatus = (component: string, isReal: boolean, isMixed = false): {
     icon: string;
-    color: (text: string) => string;
+    color: string;
     label: string;
     warning?: string;
   } => {
