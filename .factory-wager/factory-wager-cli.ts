@@ -7,6 +7,8 @@
 import { spawn } from "child_process";
 import { RealityCheck } from "./config/reality-config";
 import { RealityGuard } from "./fw-reality-guard";
+import { SafetyDashboard } from "./fw-safety-dashboard";
+import { AutomaticRemediation } from "./fw-automatic-remediation";
 
 interface CLIOptions {
   mode?: "audit-reality" | "force-live" | "simulate";
@@ -16,6 +18,8 @@ interface CLIOptions {
 
 class FactoryWagerCLI {
   private realityGuard = new RealityGuard();
+  private safetyDashboard = new SafetyDashboard();
+  private remediation = new AutomaticRemediation();
 
   private async checkRealityStatus() {
     return await RealityCheck.overall.getRealityStatus();
@@ -245,10 +249,45 @@ class FactoryWagerCLI {
       await this.validateBackupSafety(modeFlag);
     }
 
+    // Handle safety and remediation commands directly
+    if (command === "safety-status") {
+      const report = await this.safetyDashboard.generateSafetyReport();
+      this.safetyDashboard.displaySafetyReport(report);
+      return;
+    }
+
+    if (command === "safety-quarantine") {
+      await this.safetyDashboard.quarantineCredentials();
+      return;
+    }
+
+    if (command === "safety-list") {
+      await this.safetyDashboard.listQuarantined();
+      return;
+    }
+
+    if (command === "remediation-test") {
+      await this.remediation.handleViolation("MIXED_REALITY", {
+        command: "test",
+        mode: "MIXED"
+      });
+      return;
+    }
+
+    if (command === "compliance-report") {
+      await this.remediation.generateComplianceReport();
+      return;
+    }
+
     // Map commands to existing scripts
     const commandMap: Record<string, string> = {
       "deploy": "deploy:reality",
       "backup": "archive:create",
+      "safety-status": "safety:status",
+      "safety-quarantine": "safety:quarantine",
+      "safety-list": "safety:list",
+      "remediation-test": "remediation:test",
+      "compliance-report": "remediation:compliance",
 
       "health": "vault:health",
       "health:verbose": "vault:health:verbose",

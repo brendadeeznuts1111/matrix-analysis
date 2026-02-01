@@ -428,7 +428,12 @@
     "setup:guide": "cat .factory-wager/R2-SETUP-GUIDE.md",
     "reality:guard": "bun run .factory-wager/fw-reality-guard.ts",
     "reality:enforce": "bun run .factory-wager/fw-reality-guard.ts --enforce",
-    "reality:mixed-test": "R2_ACCESS_KEY_ID=real_key_32_chars_long_ bun run .factory-wager/fw-reality-guard.ts"
+    "reality:mixed-test": "R2_ACCESS_KEY_ID=real_key_32_chars_long_ bun run .factory-wager/fw-reality-guard.ts",
+    "safety:status": "bun run .factory-wager/fw-safety-dashboard.ts status",
+    "safety:quarantine": "bun run .factory-wager/fw-safety-dashboard.ts quarantine",
+    "safety:list": "bun run .factory-wager/fw-safety-dashboard.ts list",
+    "remediation:test": "bun run .factory-wager/fw-automatic-remediation.ts test",
+    "remediation:compliance": "bun run .factory-wager/fw-automatic-remediation.ts compliance"
   },
   "dependencies": {
     "@modelcontextprotocol/server-filesystem": "latest",
