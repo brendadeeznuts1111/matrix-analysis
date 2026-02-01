@@ -968,6 +968,38 @@ DEEP MATCH (subset/pattern matching)
   const matchesQuery = (entry: RSSEntry, query: Partial<RSSEntry>) =>
     Bun.deepMatch(query, entry); // true if entry contains query shape
 
+MCP INTEGRATION
+───────────────
+  # Pattern matching for Model Context Protocol without external deps
+  Bun.deepMatch(request.arguments, TOOL_SCHEMA.weather.input)
+  Bun.deepMatch(session.perms, { read: true, tier: 1380 })  # AuthZ check
+
+  # Resource filtering in registry-powered MCP (memory #38)
+  resources.filter(r => Bun.deepMatch({ type: "rss", active: true }, r))
+
+  # Telemetry sampling: match partial log patterns
+  logs.filter(l => Bun.deepMatch({ level: "error", region: "us-east" }, l))
+
+  // Pattern-based log sampling for 300 global PoPs
+  const CRITICAL_PATTERNS = [
+    { level: "error", region: "us-east", service: "registry" },
+    { level: "fatal" },
+    { metadata: { tier1380: true, anomaly_score: s => s > 0.8 } }
+  ];
+
+  export const shouldSampleLog = (logEntry: LogEvent): boolean => {
+    return CRITICAL_PATTERNS.some(pattern =>
+      Bun.deepMatch(pattern, logEntry)
+    );
+  };
+
+  # bunfig.toml — compile-time MCP manifest validation
+  [define]
+  "MCP_TOOL_VALIDATOR" = "Bun.deepMatch"
+
+  [packages]
+  "**/mcp-tools/*.ts" = { validation = "strict_subset" }
+
   TIER-1380 INTEGRATION OPPORTUNITIES (deepMatch)
   ═══════════════════════════════════════════════════
   Vector            Action                              Impact            Complexity  Status  Owner
