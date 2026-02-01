@@ -84,7 +84,7 @@ async function getGitInfo(): Promise<{ commit?: string; branch?: string }> {
   return info;
 }
 
-// Helper function to get system status
+// Helper function to get system status with security validation
 async function getSystemStatus(): Promise<{
   version: string;
   buildDate: string;
@@ -95,9 +95,28 @@ async function getSystemStatus(): Promise<{
   configStatus: Record<string, boolean>;
   bunConfig: typeof BUN_CONFIG;
   fwConfig: typeof FW_CONFIG;
+  securityWarnings: string[];
 }> {
   const gitInfo = await getGitInfo();
   const activeProfile = profileManager.getActiveProfileName();
+
+  // Security validation
+  const securityWarnings: string[] = [];
+
+  // Check for SSL validation disabled
+  if (BUN_CONFIG.NODE_TLS_REJECT_UNAUTHORIZED === "0") {
+    securityWarnings.push(" SSL certificate validation is DISABLED (NODE_TLS_REJECT_UNAUTHORIZED=0) - SECURITY RISK");
+  }
+
+  // Check for development mode in production-like environment
+  if (FW_CONFIG.MODE === "development" && process.env.NODE_ENV === "production") {
+    securityWarnings.push(" Development mode detected in production environment");
+  }
+
+  // Check for debug mode in production
+  if (FW_CONFIG.DEBUG && FW_CONFIG.MODE === "production") {
+    securityWarnings.push(" Debug mode enabled in production environment");
+  }
 
   return {
     version: VERSION,
@@ -122,6 +141,7 @@ async function getSystemStatus(): Promise<{
     },
     bunConfig: BUN_CONFIG,
     fwConfig: FW_CONFIG,
+    securityWarnings,
   };
 }
 
@@ -146,6 +166,11 @@ async function displaySystemStatus(): Promise<void> {
 
     👤 Active Profile: ${activeProfile || "None"}
 
+    ${status.securityWarnings.length > 0 ? `
+    🚨 SECURITY WARNINGS:
+    ${status.securityWarnings.map(warning => `    ${warning}`).join('\n')}
+    ` : ''}
+
     🥟 Bun Configuration:
     Max HTTP Requests: ${status.bunConfig.MAX_HTTP_REQUESTS}
     Verbose Fetch: ${status.bunConfig.VERBOSE_FETCH || "disabled"}
@@ -154,7 +179,7 @@ async function displaySystemStatus(): Promise<void> {
     Bun Options: ${status.bunConfig.OPTIONS || "none"}
     Force Color: ${status.bunConfig.FORCE_COLOR ? "enabled" : "disabled"}
     No Color: ${status.bunConfig.NO_COLOR ? "enabled" : "disabled"}
-    TLS Reject Unauthorized: ${status.bunConfig.NODE_TLS_REJECT_UNAUTHORIZED || "1"}
+    TLS Reject Unauthorized: ${status.bunConfig.NODE_TLS_REJECT_UNAUTHORIZED || "1"} ${status.bunConfig.NODE_TLS_REJECT_UNAUTHORIZED === "0" ? "⚠️ SECURITY RISK" : "✅ Secure"}
     Do Not Track: ${status.bunConfig.DO_NOT_TRACK ? "enabled" : "disabled"}
     Temp Directory: ${status.bunConfig.TMPDIR || "system default"}
 
@@ -359,7 +384,9 @@ async function main(): Promise<void> {
             console.log(`    FORCE_COLOR: ${BUN_CONFIG.FORCE_COLOR ? "enabled" : "disabled"} (force ANSI colors)`);
             console.log(`    NO_COLOR: ${BUN_CONFIG.NO_COLOR ? "enabled" : "disabled"} (disable ANSI colors)`);
             console.log("\n  Security & Networking:");
-            console.log(`    NODE_TLS_REJECT_UNAUTHORIZED: ${BUN_CONFIG.NODE_TLS_REJECT_UNAUTHORIZED || "1"} (SSL validation)`);
+            const tlsStatus = BUN_CONFIG.NODE_TLS_REJECT_UNAUTHORIZED || "1";
+            const tlsWarning = tlsStatus === "0" ? " ⚠️ SECURITY RISK - SSL validation disabled" : " ✅ Secure";
+            console.log(`    NODE_TLS_REJECT_UNAUTHORIZED: ${tlsStatus}${tlsWarning}`);
             console.log("\n  Telemetry & Tracking:");
             console.log(`    DO_NOT_TRACK: ${BUN_CONFIG.DO_NOT_TRACK ? "enabled" : "disabled"} (crash reports)`);
             console.log("\n  System Integration:");
