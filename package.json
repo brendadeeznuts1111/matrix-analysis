@@ -409,7 +409,10 @@
     "archive:config": "bun run .factory-wager/bun-archive-cli.ts config",
     "archive:benchmark": "bun run .factory-wager/bun-archive-cli.ts benchmark",
     "organize:run": "bun run .factory-wager/scripts/organize-and-archive.ts",
-    "organize:cleanup": "bun run .factory-wager/scripts/cleanup-untracked.ts"
+    "organize:cleanup": "bun run .factory-wager/scripts/cleanup-untracked.ts",
+    "reality:audit": "bun run .factory-wager/config/reality-config.ts",
+    "reality:status": "bun run .factory-wager/fw-reality-status-simple.ts",
+    "reality:check": "bun run .factory-wager/config/reality-config.ts && bun run .factory-wager/fw-reality-status-simple.ts"
   },
   "dependencies": {
     "@modelcontextprotocol/server-filesystem": "latest",
