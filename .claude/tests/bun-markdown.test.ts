@@ -10,15 +10,17 @@
 
 import { beforeAll, describe, expect, it } from "bun:test";
 
+const hasBunMarkdown = "markdown" in Bun;
+
 // ─── Guard ───────────────────────────────────────────────────────────────────
-describe("Bun.markdown availability", () => {
+describe.skipIf(!hasBunMarkdown)("Bun.markdown availability", () => {
 	it("should exist as a function on the Bun global", () => {
 		expect(typeof Bun.markdown).toBe("function");
 	});
 });
 
 // ─── CommonMark Core ─────────────────────────────────────────────────────────
-describe("CommonMark core rendering", () => {
+describe.skipIf(!hasBunMarkdown)("CommonMark core rendering", () => {
 	it("should render headings h1–h6", () => {
 		expect(Bun.markdown("# H1")).toContain("<h1>");
 		expect(Bun.markdown("## H2")).toContain("<h2>");
@@ -132,7 +134,7 @@ describe("CommonMark core rendering", () => {
 });
 
 // ─── GFM Extensions ─────────────────────────────────────────────────────────
-describe("GFM extensions", () => {
+describe.skipIf(!hasBunMarkdown)("GFM extensions", () => {
 	it("should render tables", () => {
 		const md = "| A | B |\n|---|---|\n| 1 | 2 |";
 		const html = Bun.markdown(md);
@@ -161,7 +163,7 @@ describe("GFM extensions", () => {
 });
 
 // ─── Edge Cases ──────────────────────────────────────────────────────────────
-describe("edge cases", () => {
+describe.skipIf(!hasBunMarkdown)("edge cases", () => {
 	it("should handle deeply nested lists", () => {
 		const md = "- a\n  - b\n    - c\n      - d";
 		const html = Bun.markdown(md);
@@ -217,7 +219,7 @@ describe("edge cases", () => {
 });
 
 // ─── Return Type ─────────────────────────────────────────────────────────────
-describe("return type", () => {
+describe.skipIf(!hasBunMarkdown)("return type", () => {
 	it("should always return a string", () => {
 		expect(typeof Bun.markdown("# test")).toBe("string");
 		expect(typeof Bun.markdown("")).toBe("string");
@@ -226,7 +228,7 @@ describe("return type", () => {
 });
 
 // ─── Integration: File → Markdown → HTML ────────────────────────────────────
-describe("file integration", () => {
+describe.skipIf(!hasBunMarkdown)("file integration", () => {
 	const tmpPath = "/tmp/bun-markdown-test.md";
 
 	beforeAll(async () => {

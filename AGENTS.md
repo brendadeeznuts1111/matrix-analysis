@@ -146,6 +146,15 @@ bun run terminal:matrix                # Generate profile matrix
 bun run terminal:broadcast             # Broadcast matrix to RSS/MCP
 bun run terminal:list                  # List available profiles
 
+# OpenClaw Integration (Tier-1380)
+bun run matrix:openclaw:status         # Check OpenClaw infrastructure status
+bun run matrix:openclaw:status:watch   # Continuous monitoring mode
+bun run matrix:openclaw:health         # Run health checks
+bun run matrix:openclaw:info           # Show system information
+bun run openclaw:status                # Shorthand for status
+bun run openclaw:health                # Shorthand for health
+bun run openclaw:info                  # Shorthand for info
+
 # Tier-1380 CLI (color | colors | terminal | dashboard)
 bun run tier1380 -- color init --team=<name> --profile=<name>    # Initialize color system
 bun run tier1380 -- color generate --wcag=aa --formats=all       # Enterprise palette
@@ -154,6 +163,14 @@ bun run tier1380 -- color metrics --team=<name> --live            # Monitor metr
 bun run tier1380 -- colors deploy <team> --profile <name>         # Deploy colors for team
 bun run tier1380 -- terminal <team> <profile>                      # Launch colored terminal banner
 bun run tier1380 -- dashboard --team=<name> --profile=<name>      # Open metrics dashboard (localhost:3001)
+
+# Tier-1380 Audit CLI (Col-89 Compliance)
+bun run tier1380:audit check <file>     # Col-89 violation scan with SQLite
+bun run tier1380:audit css <file>       # LightningCSS minification
+bun run tier1380:audit rss [url]        # RSS feed audit (Bun.xml)
+bun run tier1380:audit dashboard        # Launch dashboard on :1380
+bun run tier1380:audit db               # View violations database
+bun run tier1380:audit clean            # Clear audit data
 
 # Bun docs (mcp-bun-docs)
 bun run docs:search -- "<query>"       # Search Bun docs (markdown)
@@ -173,12 +190,28 @@ bun run docs:compat                     # Node.js compatibility doc
 bun run docs:reference                   # Bun reference (modules) index
 bun run bun-docs                        # CLI help
 
+# MCP (Model Context Protocol)
+bun run mcp:list                       # List configured MCP servers
+bun run mcp:status                     # Check MCP server status
+bun run mcp:shell                      # Start unified shell bridge
+bun run mcp:health                     # Run OpenClaw health flow
+bun run mcp:migrate                    # Run legacy migration flow
+bun run mcp:flow <name>                # Execute MCP flow
+bun run mcp:flow:list                  # List available flows
+bun run mcp:inspector                  # MCP inspector UI
+
 # Shortcuts
 bun run tbind <profile>                # Shortcut for terminal:bind
 bun run tstatus                        # Shortcut for terminal:status
 bun run tmatrix                        # Shortcut for terminal:matrix
 bun run tbroadcast                     # Shortcut for terminal:broadcast
 bun run t1380                          # Shortcut for tier1380
+
+# OpenClaw Shortcuts
+bun run ocstatus                       # One-shot status
+bun run ocwatch                        # Continuous monitoring
+bun run ochealth                       # Raw health metrics
+bun run ocinfo                         # System information
 
 # Enterprise CLI tools
 bun run bytes                          # Byte analysis CLI
@@ -640,10 +673,19 @@ The Matrix Agent integrates with:
    - Profile-terminal bindings
    - Session management
 
-4. **MCP Servers** (`.mcp.json`)
+4. **Terminal Manager** (`.claude/core/terminal/`)
+   - Profile-terminal bindings
+   - Session management
+
+5. **MCP Servers** (`.mcp.json`)
    - Bun runtime
    - Documentation search
    - File system access
+
+6. **OpenClaw Gateway** (`~/.openclaw/`)
+   - WebSocket gateway on port 18789
+   - Tailscale HTTPS access
+   - Bun Secrets token auth
 
 ### Migration from Clawdbot
 
@@ -663,6 +705,52 @@ This will:
 - Preserve agent settings, model preferences, and channel configs
 
 After migration, the legacy `~/.clawdbot` directory can be safely removed.
+
+---
+
+## Tier-1380 OpenClaw Skill
+
+Enhanced skill for OpenClaw/Matrix Agent infrastructure management.
+
+### Location
+`~/.kimi/skills/tier1380-openclaw/`
+
+### Features
+- **Unified Status Display** - All components in one view
+- **Gateway Management** - Start/stop/restart OpenClaw Gateway
+- **Matrix Agent Control** - Agent status and configuration
+- **Telegram Bot Tools** - Bot status and webhook management
+- **Migration Utilities** - Legacy clawdbot migration helpers
+
+### Commands
+
+```bash
+# Status & Monitoring
+ocstatus                      # One-shot status
+ocwatch                       # Continuous monitoring
+ochealth                      # Raw health metrics
+
+# Component Details
+ocgateway                     # Gateway status
+ocmatrix                      # Matrix Agent status
+octelegram                    # Telegram Bot status
+ocinfo                        # System information
+
+# Integration CLI
+bun ~/.kimi/skills/tier1380-openclaw/scripts/openclaw-integration.ts status
+bun ~/.kimi/skills/tier1380-openclaw/scripts/openclaw-integration.ts health
+```
+
+### Aliases (in .zshrc)
+```bash
+alias ocstatus='bun ~/.kimi/skills/tier1380-openclaw/scripts/openclaw-integration.ts status'
+alias ocinfo='bun ~/.kimi/skills/tier1380-openclaw/scripts/openclaw-integration.ts info'
+alias ochealth='bun ~/.kimi/skills/tier1380-openclaw/scripts/openclaw-integration.ts health'
+alias ocgateway='bun ~/.kimi/skills/tier1380-openclaw/scripts/openclaw-integration.ts gateway'
+alias ocmatrix='bun ~/.kimi/skills/tier1380-openclaw/scripts/openclaw-integration.ts matrix'
+alias octelegram='bun ~/.kimi/skills/tier1380-openclaw/scripts/openclaw-integration.ts telegram'
+alias ocmigrate='bun ~/.kimi/skills/tier1380-openclaw/scripts/openclaw-integration.ts migrate'
+```
 
 ---
 
@@ -722,6 +810,47 @@ const { exitCode } = await $`cmd`.nothrow();  // Don't throw
 
 ---
 
+## Tier-1380 One-Liner Cheatsheet
+
+Production-hardened Bun-native one-liners for compliance and auditing:
+
+```bash
+# Col-89 gate (returns exit code 1 on violation)
+bun -e 'const f=Bun.argv[1]||"README.md";const s=await Bun.file(f).text();const v=s.split("\n").filter(l=>Bun.stringWidth(l,{countAnsiEscapeCodes:false})>89).length;console.log(`${v} violations`);process.exit(v>0?1:0)' README.md
+
+# CRC32 hardware acceleration throughput test
+bun -e 'const b=Buffer.alloc(1<<20),t=performance.now();for(let i=0;i<100;i++)Bun.hash.crc32(b);console.log(`Throughput: ${(100/(performance.now()-t)*1000).toFixed(0)} MB/s`)'
+
+# SQLite violation count
+bun -e 'import{Database}from"bun:sqlite";console.log((new Database("./data/tier1380.db").query("SELECT COUNT(*) as c FROM violations").get()as any).c)'
+
+# LightningCSS size diff (if installed)
+bun -e 'import{transform}from"lightningcss";const c=await Bun.file("app.css").text();const r=transform({code:Buffer.from(c),minify:true});console.log(((1-r.code.length/c.length)*100).toFixed(1)+"% saved")'
+
+# Bun.xml RSS parse (v1.3.7+ experimental)
+bun -e 'const x=(Bun as any).xml?.parse?.(await(await fetch("https://bun.sh/rss.xml")).text());console.log(x?.rss?.channel?.item?.[0]?.title||"N/A")'
+
+# Bun.build introspection (async function)
+bun -e 'console.log(typeof Bun.build)' # → "function"
+
+# String width with GB9c Indic support (Bun v1.3.7+)
+bun -e 'console.log(Bun.stringWidth("क्षत्रिय",{countAnsiEscapeCodes:false}))' # → 6
+
+# Nanosecond precision timing
+bun -e 'const s=Bun.nanoseconds();await new Promise(r=>setTimeout(r,100));console.log(`${(Bun.nanoseconds()-s)/1e6}ms`)'
+
+# Security scan for bad file extensions
+bun -e 'const bad=new Set([".exe",".dll",".sh"]);const d="./dist";for await(const f of new Bun.Glob("**/*").scan(d)){const e=f.slice(f.lastIndexOf("."));if(bad.has(e))console.log(`⚠️ Illegal: ${f}`)}'
+
+# Package integrity check (Wyhash)
+bun -e 'const pkg=process.argv[3];const h=Bun.hash.wyhash(Buffer.from(pkg)).toString(16);console.log(`Package: ${pkg}\nAudit: ${h}`)' -- prisma
+
+# View recent executions (tier1380-exec)
+bun -e 'import{Database}from"bun:sqlite";const d=new Database("./data/tier1380.db");console.table(d.query("SELECT * FROM executions ORDER BY ts DESC LIMIT 5").all())'
+```
+
+---
+
 ## Related Documentation
 
 | File | Purpose |
@@ -732,6 +861,12 @@ const { exitCode } = await $`cmd`.nothrow();  // Don't throw
 | `docs/SPAWN-OPTIMIZATION.md` | Bun spawn performance guide and validation |
 | `skills/README.md` | Skills registry documentation |
 | `skills/docs/dev-hq-cli.md` | Dev HQ CLI full documentation |
+| `.kimi/skills/tier1380-openclaw/SKILL.md` | OpenClaw/Matrix Agent integration |
+| `.kimi/skills/tier1380-omega/SKILL.md` | OMEGA protocol and deployment |
+| `.kimi/skills/tier1380-infra/SKILL.md` | Infrastructure management |
+| `.kimi/skills/tier1380-commit-flow/SKILL.md` | Commit governance and validation |
+| `.kimi/skills/tier1380-mcp/SKILL.md` | MCP integration and flows |
+| `cli/tier1380-audit.ts` | Col-89 audit CLI with SQLite |
 | `docs/release-notes.md` | Bun runtime release notes |
 | `mcp-bun-docs/lib.ts` | Bun docs search, curated entries, reference links (searchBunDocs, getDocEntry, BUN_REFERENCE_LINKS) |
 

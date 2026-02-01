@@ -7,14 +7,17 @@ import { profileList } from "./commands/profileList";
 import { profileShow } from "./commands/profileShow";
 import { profileUse } from "./commands/profileUse";
 import { linksCheck, linksQuick } from "./commands/linksCheck";
+import { openclawStatus, openclawHealth, openclawInfo } from "./commands/openclawStatus";
 import { EXIT_CODES } from "../.claude/lib/exit-codes.ts";
 import { fmt } from "../.claude/lib/cli.ts";
 
 function printUsage(): void {
 	console.log(`
+${fmt.bold("📊 Matrix CLI - Environment Profile & Infrastructure Management")}
+
 ${fmt.bold("Usage:")} bun run matrix:<command> [options]
 
-${fmt.bold("Profile Commands:")}
+${fmt.bold("🔧 Profile Commands:")}
   profile:use <name>            Activate an environment profile
   profile:list                  List available profiles
   profile:show <name>           Show profile details
@@ -22,37 +25,55 @@ ${fmt.bold("Profile Commands:")}
   profile:create <name>         Create a new profile
   profile:export <name>         Export profile to .env format
 
-${fmt.bold("Link Checking Commands:")}
+${fmt.bold("🔗 Link Checking Commands:")}
   links:check                   Check all links in documentation
-  links:quick                    Quick check for internal links only
+  links:quick                   Quick check for internal links only
 
-${fmt.bold("Options for profile:use:")}
+${fmt.bold("🐾 OpenClaw Commands:")}
+  openclaw:status               Show OpenClaw infrastructure status
+  openclaw:status --watch       Continuous monitoring mode
+  openclaw:status --json        JSON output
+  openclaw:health               Run health checks on components
+  openclaw:info                 Show system information
+
+${fmt.bold("⚙️  Options for profile:use:")}
   --validate-rules       Validate profile before applying
   --dry-run              Preview changes without applying
   --environment, -e      Override NODE_ENV value
   --force, -f            Apply despite conflicts or warnings
 
-${fmt.bold("Options for profile:diff:")}
+${fmt.bold("⚙️  Options for profile:diff:")}
   --all, -a              Show unchanged variables too
 
-${fmt.bold("Options for profile:create:")}
+${fmt.bold("⚙️  Options for profile:create:")}
   --from <profile>       Base new profile on existing one
   --environment, -e      Set NODE_ENV value
   --description, -d      Set profile description
   --force, -f            Overwrite if exists
 
-${fmt.bold("Options for profile:export:")}
+${fmt.bold("⚙️  Options for profile:export:")}
   --output, -o <file>    Write to file instead of stdout
   --resolve, -r          Resolve \${VAR} references
   --quote, -q            Always quote values
 
-${fmt.bold("Options for links:check:")}
+${fmt.bold("⚙️  Options for links:check:")}
   --verbose, -v          Show detailed output
   --external, -e         Check external links (slower)
   --export <format>      Export results (json|csv)
   --directory, -d <dir>  Directory to check (default: .)
 
-${fmt.bold("Examples:")}
+${fmt.bold("⚙️  Options for openclaw:status:")}
+  --watch, -w            Continuous monitoring mode
+  --json, -j             JSON output
+  --interval, -i <ms>    Refresh interval in ms (default: 5000)
+
+${fmt.bold("📚 Quick Links:")}
+  📘 Docs:     https://github.com/nolarose/nolarose-mcp-config#readme
+  🐛 Issues:   https://github.com/nolarose/nolarose-mcp-config/issues
+  🔗 OpenClaw: ws://127.0.0.1:18789
+  📊 Dashboard: file://~/monitoring/dashboard/index.html
+
+${fmt.bold("💡 Examples:")}
   bun run matrix:profile:use dev --dry-run
   bun run matrix:profile:diff dev prod
   bun run matrix:profile:create staging --from=dev
@@ -60,6 +81,9 @@ ${fmt.bold("Examples:")}
   eval $(bun run matrix:profile:use dev)
   bun run matrix:links:check --verbose
   bun run matrix:links:quick
+  bun run matrix:openclaw:status
+  bun run matrix:openclaw:status --watch
+  bun run matrix:openclaw:health
 `);
 }
 
@@ -94,6 +118,9 @@ async function main(): Promise<void> {
 			external: { type: "boolean", short: "e", default: false },
 			export: { type: "string" },
 			directory: { type: "string", short: "d" },
+			json: { type: "boolean", short: "j" },
+			watch: { type: "boolean", short: "w" },
+			interval: { type: "string", short: "i" },
 		},
 		allowPositionals: true,
 		strict: false,
@@ -176,6 +203,22 @@ async function main(): Promise<void> {
 
 		case "links:quick":
 			await linksQuick(values["directory"] as string || '.');
+			break;
+
+		case "openclaw:status":
+			await openclawStatus({
+				json: !!values["json"],
+				watch: !!values["watch"],
+				interval: parseInt(values["interval"] as string) || 5000,
+			});
+			break;
+
+		case "openclaw:health":
+			await openclawHealth();
+			break;
+
+		case "openclaw:info":
+			await openclawInfo();
 			break;
 
 		default:
