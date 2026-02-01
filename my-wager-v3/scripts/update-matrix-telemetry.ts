@@ -25,55 +25,19 @@ class MatrixTelemetry {
   }
 
   private ensureColumns() {
-    // Ensure all Tier-1380 columns exist
-    try {
-      this.db.run(`
-        ALTER TABLE tier1380_matrix
-        ADD COLUMN col_94_redis_patch TEXT
-      `);
-    } catch {}
-
-    try {
-      this.db.run(`
-        ALTER TABLE tier1380_matrix
-        ADD COLUMN col_95_public_env BOOLEAN
-      `);
-    } catch {}
-
-    try {
-      this.db.run(`
-        ALTER TABLE tier1380_matrix
-        ADD COLUMN col_96_bundle_crc32 TEXT
-      `);
-    } catch {}
-
-    try {
-      this.db.run(`
-        ALTER TABLE tier1380_matrix
-        ADD COLUMN col_97_lockfile_clean BOOLEAN
-      `);
-    } catch {}
-
-    try {
-      this.db.run(`
-        ALTER TABLE tier1380_matrix
-        ADD COLUMN col_98_patch_time REAL
-      `);
-    } catch {}
-
-    try {
-      this.db.run(`
-        ALTER TABLE tier1380_matrix
-        ADD COLUMN col_99_env_count INTEGER
-      `);
-    } catch {}
-
-    try {
-      this.db.run(`
-        ALTER TABLE tier1380_matrix
-        ADD COLUMN col_100_leak_check BOOLEAN
-      `);
-    } catch {}
+    // ALTER TABLE throws if column already exists — expected and safe to ignore
+    const columns = [
+      "col_94_redis_patch TEXT",
+      "col_95_public_env BOOLEAN",
+      "col_96_bundle_crc32 TEXT",
+      "col_97_lockfile_clean BOOLEAN",
+      "col_98_patch_time REAL",
+      "col_99_env_count INTEGER",
+      "col_100_leak_check BOOLEAN",
+    ];
+    for (const col of columns) {
+      try { this.db.run(`ALTER TABLE tier1380_matrix ADD COLUMN ${col}`); } catch { /* column exists */ }
+    }
   }
 
   async calculatePatchChecksum(patchFile: string): Promise<string> {
