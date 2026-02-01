@@ -14,19 +14,31 @@ interface CommitInfo {
 }
 
 async function getCommits(count = 10): Promise<CommitInfo[]> {
-	const log =
-		await $`git log -${count} --pretty=format:"%h|%s|%an|%ad" --date=short`.text();
+	try {
+		const log =
+			await $`git log -${count} --pretty=format:"%h%x00%s%x00%an%x00%ad" --date=short`.text();
 
-	return log
-		.trim()
-		.split("\n")
-		.map((line) => {
-			const [hash, message, author, date] = line.split("|");
-			return { hash, message, author, date };
-		});
+		return log
+			.trim()
+			.split("\n")
+			.filter(Boolean)
+			.map((line) => {
+				const [hash, ...rest] = line.split("\0");
+				const [message, author, date] = rest.join("\0").split("\0");
+				return {
+					hash,
+					message: message ?? "",
+					author: author ?? "",
+					date: date ?? "",
+				};
+			});
+	} catch {
+		return [];
+	}
 }
 
 async function squashCommits(count: number, message: string): Promise<boolean> {
+	const origHead = (await $`git rev-parse HEAD`.text()).trim();
 	try {
 		// Soft reset to target commit
 		await $`git reset --soft HEAD~${count}`.quiet();
@@ -36,7 +48,10 @@ async function squashCommits(count: number, message: string): Promise<boolean> {
 
 		return true;
 	} catch (error) {
-		console.error("❌ Squash failed:", error);
+		// Attempt to restore original HEAD
+		await $`git reset --soft ${origHead}`.quiet().nothrow();
+		const detail = error instanceof Error ? error.message : String(error);
+		console.error("❌ Squash failed (original HEAD restored):", detail);
 		return false;
 	}
 }
@@ -90,7 +105,7 @@ if (import.meta.main) {
 	const count = Number(args[0]) || 0;
 
 	console.log("╔════════════════════════════════════════════════════════╗");
-	console.log("║     Tier-1380 OMEGA Commit Squash Helper               ║");
+	console.log("║       Tier-1380 OMEGA Commit Squash Helper             ║");
 	console.log("╚════════════════════════════════════════════════════════╝");
 	console.log();
 
@@ -113,7 +128,7 @@ if (import.meta.main) {
 		);
 		console.log();
 		console.log("This will squash the last 3 commits into 1.");
-		process.exit(1);
+		process.exit(0);
 	}
 
 	if (count > commits.length) {
@@ -130,15 +145,18 @@ if (import.meta.main) {
 	}
 	console.log();
 
-	// Get message
-	const message = args.slice(1).join(" ");
+	// Get message (filter out flags like --confirm)
+	const message = args
+		.slice(1)
+		.filter((a) => !a.startsWith("--"))
+		.join(" ");
 	if (!message) {
 		const suggestion = await suggestSquashMessage(toSquash);
 		console.log(`Suggested message: ${suggestion}`);
 		console.log();
 		console.log("Run with message:");
 		console.log(`  bun commit-squash.ts ${count} "${suggestion}"`);
-		process.exit(1);
+		process.exit(0);
 	}
 
 	// Validate message

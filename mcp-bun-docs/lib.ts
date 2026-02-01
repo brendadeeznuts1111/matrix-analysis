@@ -347,6 +347,20 @@ export const BUN_DOC_ENTRIES: BunDocEntry[] = [
 	{ term: "Bun.jsc.estimateShallowMemoryUsageOf", path: "api/jsc", bunMinVersion: "1.3.7", stability: "stable", platforms: ["darwin", "linux", "win32"], security: SEC_IO, perfProfile: { opsSec: 0, baseline: "8ns/call (1k objs)" }, useCases: ["Pool mem profiling", "Audit line mem", "Leak hunting"], relatedTerms: ["Bun.generateHeapSnapshot", "Bun.jsc.serialize"], category: "runtime" },
 	{ term: "Bun.jsc.serialize", path: "api/jsc", bunMinVersion: "1.3.7", stability: "stable", platforms: ["darwin", "linux", "win32"], security: SEC_IO, perfProfile: { opsSec: 0, baseline: "45µs/round (ser+deser)" }, methods: ["serialize", "deserialize"], useCases: ["Pool snapshots", "Zstd + ser"], relatedTerms: ["Bun.jsc.estimateShallowMemoryUsageOf", "Bun.zstdCompressSync"], category: "runtime" },
 	{ term: "Bun.generateHeapSnapshot", path: "api/jsc", bunMinVersion: "1.3.7", stability: "stable", platforms: ["darwin", "linux", "win32"], security: SEC_IO, perfProfile: { opsSec: 0, baseline: "2.1ms vs v8 12ms (6x)" }, useCases: ["Full heap profiling", "Chrome DevTools"], relatedTerms: ["--heap-prof", "Bun.jsc"], category: "runtime" },
+	// New APIs discovered at runtime (Bun >= 1.3.7)
+	{ term: "Bun.YAML", path: "api/yaml", bunMinVersion: "1.3.7", stability: "stable", platforms: ["darwin", "linux", "win32"], security: SEC_IO, useCases: ["YAML config parsing", "Kubernetes manifests", "GitHub Actions"], relatedTerms: ["Bun.TOML", "Bun.JSON5"], category: "runtime" },
+	{ term: "Bun.JSONC", path: "api/jsonc", bunMinVersion: "1.3.7", stability: "stable", platforms: ["darwin", "linux", "win32"], security: SEC_IO, useCases: ["tsconfig.json", "VS Code settings", "JSON with comments"], relatedTerms: ["Bun.JSON5", "json"], category: "runtime" },
+	{ term: "Bun.Cookie", path: "api/cookie", bunMinVersion: "1.3.7", stability: "stable", platforms: ["darwin", "linux", "win32"], security: SEC_NET, useCases: ["HTTP cookie parsing", "Set-Cookie serialization"], relatedTerms: ["Bun.CookieMap", "Bun.serve"], category: "network" },
+	{ term: "Bun.CookieMap", path: "api/cookie", bunMinVersion: "1.3.7", stability: "stable", platforms: ["darwin", "linux", "win32"], security: SEC_NET, useCases: ["Cookie jar management", "Request cookie access"], relatedTerms: ["Bun.Cookie", "Bun.serve"], category: "network" },
+	{ term: "Bun.CSRF", path: "api/csrf", bunMinVersion: "1.3.7", stability: "stable", platforms: ["darwin", "linux", "win32"], security: { classification: "critical", notes: "Token generation and validation for CSRF protection" }, useCases: ["Form protection", "API token validation"], relatedTerms: ["Bun.Cookie", "Bun.serve"], category: "network" },
+	{ term: "Bun.Archive", path: "api/archive", bunMinVersion: "1.3.7", stability: "stable", platforms: ["darwin", "linux", "win32"], security: SEC_IO, useCases: ["Tar extraction", "Zip handling", "Archive creation"], relatedTerms: ["Bun.file"], category: "runtime" },
+	{ term: "Bun.markdown", path: "api/markdown", bunMinVersion: "1.3.7", stability: "stable", platforms: ["darwin", "linux", "win32"], security: SEC_IO, useCases: ["Markdown to HTML", "Documentation rendering"], relatedTerms: [], category: "runtime" },
+	{ term: "Bun.mmap", path: "api/file-io", bunMinVersion: "1.3.7", stability: "stable", platforms: ["darwin", "linux"], security: SEC_IO, useCases: ["Memory-mapped file access", "Large file processing", "Shared memory"], relatedTerms: ["Bun.file", "file"], category: "storage" },
+	{ term: "Bun.deepMatch", path: "api/utils", bunMinVersion: "1.3.7", stability: "stable", platforms: ["darwin", "linux", "win32"], security: SEC_IO, useCases: ["Partial object matching", "Pattern assertions", "Test matchers"], relatedTerms: ["Bun.deepEquals"], category: "runtime" },
+	{ term: "Bun.randomUUIDv5", path: "api/utils", bunMinVersion: "1.3.7", stability: "stable", platforms: ["darwin", "linux", "win32"], security: SEC_CRYPTO, useCases: ["Deterministic UUID from namespace+name", "DNS/URL namespaces"], relatedTerms: ["Bun.randomUUIDv7"], category: "runtime" },
+	{ term: "Bun.indexOfLine", path: "api/utils", bunMinVersion: "1.3.7", stability: "stable", platforms: ["darwin", "linux", "win32"], security: SEC_IO, perfProfile: { opsSec: 0, baseline: "SIMD-accelerated line search" }, useCases: ["Fast line offset lookup", "Log parsing"], relatedTerms: ["Bun.file"], category: "runtime" },
+	{ term: "Bun.zstdCompress", path: "api/compression", bunMinVersion: "1.3.7", stability: "stable", platforms: ["darwin", "linux", "win32"], security: SEC_IO, useCases: ["Async Zstandard compression", "Streaming compression"], relatedTerms: ["Bun.zstdDecompress", "Bun.zstdCompressSync", "Bun.gzipSync"], category: "runtime" },
+	{ term: "Bun.zstdDecompress", path: "api/compression", bunMinVersion: "1.3.7", stability: "stable", platforms: ["darwin", "linux", "win32"], security: SEC_IO, useCases: ["Async Zstandard decompression"], relatedTerms: ["Bun.zstdCompress", "Bun.zstdDecompressSync"], category: "runtime" },
 ];
 
 /** bun test CLI options — Name, Pattern (aliases), Version, Topic, Type, Example */
@@ -970,16 +984,67 @@ export interface BunGlobalEntry {
 
 /** Top-level globals (Bun, $, fetch, Buffer, etc.) and their doc paths. API surface for Bun.* lives at api/globals. */
 export const BUN_GLOBALS: BunGlobalEntry[] = [
+	// Core globals
 	{ name: "Bun", path: "api/globals", description: "Bun namespace (version, env, sleep, which, peek, inspect, file, serve, …)", related: ["Bun.serve", "Bun.file", "Bun.inspect.table"] },
 	{ name: "$", path: "runtime/shell", description: "Shell script runner (Bun shell)", related: ["shell", "spawn"] },
 	{ name: "fetch", path: "guides/http/fetch", description: "Global fetch (undici-compatible)", related: ["Bun.serve", "Bun.file"] },
 	{ name: "Buffer", path: "api/buffer", description: "Node-compatible Buffer (swap16, swap64, indexOf, includes)", related: ["buffer", "Buffer.swap16"] },
 	{ name: "process", path: "api/env", description: "process.env, process.argv (Node compat)", related: ["env"] },
+	// File I/O
 	{ name: "Bun.file", path: "api/file-io", description: "BunFile factory", related: ["file", "Bun.write"] },
+	{ name: "Bun.write", path: "api/file-io", description: "Write string/buffer/BunFile to disk", related: ["Bun.file"] },
+	{ name: "Bun.mmap", path: "api/file-io", description: "Memory-mapped file access", related: ["Bun.file"] },
+	{ name: "Bun.Glob", path: "api/glob", description: "Fast file pattern matching", related: ["Bun.file"] },
+	// HTTP & networking
 	{ name: "Bun.serve", path: "api/http", description: "HTTP server", related: ["serve", "fetch"] },
+	{ name: "Bun.connect", path: "api/tcp", description: "TCP/TLS client connections", related: ["Bun.listen"] },
+	{ name: "Bun.listen", path: "api/tcp", description: "TCP/TLS server listener", related: ["Bun.connect"] },
+	{ name: "Bun.udpSocket", path: "api/udp", description: "UDP socket", related: ["Bun.connect", "Bun.listen"] },
+	{ name: "Bun.dns", path: "api/dns", description: "DNS resolution and prefetch", related: ["fetch", "dns.prefetch"] },
+	// HTTP utilities
+	{ name: "Bun.Cookie", path: "api/cookie", description: "HTTP cookie parsing/serialization", related: ["Bun.CookieMap", "Bun.serve"] },
+	{ name: "Bun.CookieMap", path: "api/cookie", description: "Cookie jar (Map-like interface)", related: ["Bun.Cookie"] },
+	{ name: "Bun.CSRF", path: "api/csrf", description: "CSRF token generation/validation", related: ["Bun.serve", "Bun.Cookie"] },
+	// Database & storage
+	{ name: "Bun.sql", path: "api/sql", description: "PostgreSQL tagged template client", related: ["postgres", "sql"] },
+	{ name: "Bun.redis", path: "api/redis", description: "Redis client (7.9x ioredis)", related: ["Redis"] },
+	{ name: "Bun.s3", path: "api/s3", description: "S3-compatible object storage", related: ["s3", "s3.file"] },
+	// Security
 	{ name: "Bun.secrets", path: "api/secrets", description: "OS keychain get/set", related: ["secrets"] },
 	{ name: "Bun.password", path: "api/hashing", description: "Argon2id/bcrypt hash/verify", related: ["password", "hash"] },
+	{ name: "Bun.CryptoHasher", path: "api/hashing", description: "Streaming hash (SHA256, SHA512, MD5, etc.)", related: ["hash", "Bun.sha"] },
+	// Data formats
+	{ name: "Bun.TOML", path: "api/utils", description: "TOML config parser", related: ["json", "Bun.YAML"] },
+	{ name: "Bun.YAML", path: "api/yaml", description: "YAML parser", related: ["Bun.TOML", "Bun.JSON5"] },
+	{ name: "Bun.JSON5", path: "api/json5", description: "JSON with comments/trailing commas", related: ["json", "Bun.JSONL"] },
+	{ name: "Bun.JSONL", path: "api/jsonl", description: "Newline-delimited JSON (parse, parseChunk)", related: ["json", "Bun.JSON5"] },
+	{ name: "Bun.JSONC", path: "api/jsonc", description: "JSON with comments", related: ["Bun.JSON5", "json"] },
+	{ name: "Bun.markdown", path: "api/markdown", description: "Markdown processing", related: [] },
+	{ name: "Bun.Archive", path: "api/archive", description: "Archive extraction (tar, zip)", related: [] },
+	// Terminal & text
 	{ name: "Bun.inspect", path: "api/util", description: "inspect(), table(), custom", related: ["inspect", "Bun.inspect.table"] },
+	{ name: "Bun.color", path: "runtime/color", description: "HSL/RGB/Hex color conversion", related: ["color", "hex", "ansi"] },
+	{ name: "Bun.stringWidth", path: "api/utils", description: "Unicode-aware visual string width (GB9c)", related: ["Bun.wrapAnsi"] },
+	{ name: "Bun.wrapAnsi", path: "api/terminal", description: "ANSI-aware word wrapping (88x wrap-ansi)", related: ["Bun.stripANSI", "Bun.stringWidth"] },
+	{ name: "Bun.stripANSI", path: "api/terminal", description: "Strip ANSI escape codes (57x strip-ansi)", related: ["Bun.wrapAnsi"] },
+	{ name: "Bun.Terminal", path: "api/terminal", description: "PTY with await-using auto-close", related: ["Bun.spawn", "terminal"] },
+	// Process & build
+	{ name: "Bun.spawn", path: "api/spawn", description: "Child process (spawn/spawnSync)", related: ["subprocess", "shell"] },
+	{ name: "Bun.build", path: "bundler", description: "Bundler/transpiler", related: ["bundler", "transpiler"] },
+	{ name: "Bun.Transpiler", path: "bundler/transpiler", description: "AST scanning and code transforms", related: ["build", "transpiler"] },
+	// Utilities
+	{ name: "Bun.semver", path: "api/utils", description: "Semver satisfies/order checks", related: [] },
+	{ name: "Bun.deepEquals", path: "api/utils", description: "Deep equality (circular-ref safe)", related: ["Bun.deepMatch"] },
+	{ name: "Bun.deepMatch", path: "api/utils", description: "Partial/pattern deep matching", related: ["Bun.deepEquals"] },
+	{ name: "Bun.nanoseconds", path: "api/utils", description: "Monotonic nanosecond timer", related: [] },
+	{ name: "Bun.sleep", path: "api/utils", description: "Async sleep (ms)", related: [] },
+	{ name: "Bun.which", path: "api/utils", description: "Find executable in PATH", related: ["Bun.spawn"] },
+	{ name: "Bun.peek", path: "api/utils", description: "Sync read of settled promise value", related: [] },
+	{ name: "Bun.escapeHTML", path: "api/utils", description: "XSS-safe HTML entity escaping", related: [] },
+	{ name: "Bun.randomUUIDv7", path: "api/utils", description: "Time-sortable UUID v7", related: ["Bun.randomUUIDv5"] },
+	// Compression
+	{ name: "Bun.gzipSync", path: "api/compression", description: "Gzip compress/decompress", related: ["Bun.zstdCompressSync"] },
+	{ name: "Bun.zstdCompress", path: "api/compression", description: "Zstandard compress (async)", related: ["Bun.zstdDecompress", "Bun.gzipSync"] },
 ];
 
 /** URL for Bun globals API (Bun.* methods). */
