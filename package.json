@@ -425,7 +425,10 @@
     "nexus:status": "bun run .factory-wager/fw-nexus-status-with-reality.ts --config config.yaml",
     "nexus:watch": "bun run .factory-wager/fw-nexus-status-with-reality.ts --watch --alert 70",
     "setup:r2": "bash .factory-wager/setup-r2.sh",
-    "setup:guide": "cat .factory-wager/R2-SETUP-GUIDE.md"
+    "setup:guide": "cat .factory-wager/R2-SETUP-GUIDE.md",
+    "reality:guard": "bun run .factory-wager/fw-reality-guard.ts",
+    "reality:enforce": "bun run .factory-wager/fw-reality-guard.ts --enforce",
+    "reality:mixed-test": "R2_ACCESS_KEY_ID=real_key_32_chars_long_ bun run .factory-wager/fw-reality-guard.ts"
   },
   "dependencies": {
     "@modelcontextprotocol/server-filesystem": "latest",
