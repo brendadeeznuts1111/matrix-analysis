@@ -1,5 +1,5 @@
 // MCP Server for Bun Matrix - Tier-1380 Infrastructure
-import { matrixViewer } from '../src/matrix-view/bun-matrix.ts';
+import { matrixViewer } from '../src/matrix-view';
 
 interface MCPRequest {
   jsonrpc: '2.0';

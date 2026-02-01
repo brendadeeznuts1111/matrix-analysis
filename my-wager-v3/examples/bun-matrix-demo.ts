@@ -5,7 +5,7 @@ console.log('🚀 Bun Min Version Matrix - Tier-1380 Demo');
 console.log('==========================================\n');
 
 // Import the matrix viewer
-import { matrixViewer } from '../src/matrix-view/bun-matrix.ts';
+import { matrixViewer } from '../src/matrix-view';
 
 // 1. Show full matrix
 console.log('1️⃣ Full Matrix View:');
