@@ -2,7 +2,7 @@
 name: pm
 description: "Use when user wants to manage packages, run shell commands, spawn processes, or use Bun runtime APIs: add, remove, update, audit, publish, bunx, $shell, spawn, file I/O, inspect (with advanced patterns), and more"
 user-invocable: true
-version: 3.1.0
+version: 3.2.0
 ---
 
 # Bun Package Manager (/pm)
@@ -74,6 +74,19 @@ ADD PACKAGE
   bun add lodash dayjs zod              # Multiple packages
   bun add --only-missing <pkg>          # Only if not in package.json
   bun add --trust <pkg>                 # Trust and run lifecycle scripts
+  bun add --analyze <file>               # Analyze & install deps from source file
+  bun add --omit=dev                     # Exclude dev dependencies
+  bun add --omit=optional                # Exclude optional dependencies
+  bun add --omit=peer                    # Exclude peer dependencies
+  bun install --backend=clonefile        # macOS default (fastest)
+  bun install --backend=hardlink         # Linux default
+  bun install --backend=symlink          # Symlink packages
+  bun install --backend=copyfile         # Full copy (most compatible)
+  bun install --cpu=arm64                # Override CPU for optional deps
+  bun install --os=linux                 # Override OS for optional deps
+  bun install --concurrent-scripts=<n>   # Max lifecycle script jobs (default: 5)
+  bun install --cache-dir=<path>         # Custom cache directory
+  bun install --minimum-release-age=3d   # Supply-chain: min package age
 
 GIT DEPENDENCIES
 ────────────────
@@ -269,11 +282,21 @@ VERSION FLAGS
                            WORKSPACE COMMANDS
 ===============================================================================
 
-  bun pm ls --workspaces               # List workspaces
-  bun --filter='*' run build           # Run in all workspaces
-  bun --filter='api' run test          # Run in specific workspace
-  bun --filter='@scope/*' run lint     # Run in scoped workspaces
-  bun install --filter='web'           # Install for specific workspace
+WORKSPACE TARGETING
+───────────────────
+  bun --filter='*' run build             # All workspaces
+  bun --filter='api' run test            # Exact name match
+  bun --filter='@scope/*' run lint       # Scoped glob
+  bun --filter='apps/*' run dev          # Directory glob
+  bun --filter='!legacy' run build       # Exclude pattern
+  bun --filter='./packages/core' test    # Path-based filter
+  bun install --filter='web'             # Install for workspace
+
+WORKSPACE FLAGS
+───────────────
+  -f, --filter <pattern>                 # Target workspace(s)
+  -W, --workspaces                       # Apply to all workspaces
+  --concurrent                           # Run filtered scripts in parallel
 
 ===============================================================================
                         TRUSTED DEPENDENCIES
@@ -362,10 +385,13 @@ PUBLISH
 
 CLI FLAGS
 ─────────
-  --registry <url>                     # Use specific registry
-  --network-concurrency <n>            # Max concurrent requests (default: 48)
-  --ca <cert>                          # CA signing certificate
-  --cafile <path>                      # CA certificate file path
+  --registry <url>                       # Use specific registry
+  --network-concurrency <n>              # Max concurrent requests (default: 48)
+  --ca <cert>                            # CA signing certificate
+  --cafile <path>                        # CA certificate file path
+  --prefer-offline                       # Prefer cached packages
+  --no-cache                             # Bypass cache entirely
+  --ignore-registry-errors               # Continue on registry failures
 
 ===============================================================================
                        REGISTRY CONFIGURATION (bunfig.toml)
@@ -926,6 +952,49 @@ CHECK EXISTS
   await file.exists();                 # true/false
 
 ===============================================================================
+                       BUN RUN FLAGS
+===============================================================================
+
+PROFILING
+─────────
+  bun run --cpu-prof-md script.ts        # CPU profile as markdown
+  bun run --heap-prof-md script.ts       # Heap profile as markdown
+
+RUNTIME BEHAVIOR
+────────────────
+  bun run --watch script.ts              # Re-run on file changes
+  bun run --conditions=<val>             # Custom resolve conditions
+  bun run --console-depth=<n>            # console.log depth (default: 2)
+  bun run --user-agent=<val>             # Default User-Agent header
+  bun run --unhandled-rejections=<mode>  # strict|throw|warn|none
+  bun run --expose-gc                    # Expose gc() globally
+  bun run --zero-fill-buffers            # Zero-fill Buffer.allocUnsafe
+
+PRECONNECT (warm up at startup)
+───────────────────────────────
+  bun run --fetch-preconnect=<url>       # Preconnect to URL
+  bun run --sql-preconnect               # Preconnect to $DATABASE_URL
+  bun run --redis-preconnect             # Preconnect to $REDIS_URL
+
+MODULE RESOLUTION
+─────────────────
+  bun run --main-fields=<val>            # package.json main fields
+  bun run --extension-order=<val>        # File resolution order
+  bun run --preserve-symlinks            # Preserve symlinks
+  bun run --no-addons                    # Throw on process.dlopen
+
+CA CERTIFICATES
+───────────────
+  bun run --use-system-ca                # System CA store
+  bun run --use-openssl-ca               # OpenSSL CA store
+  bun run --use-bundled-ca               # Bun's bundled CAs
+
+DEPRECATION CONTROL
+───────────────────
+  bun run --no-deprecation               # Suppress deprecation warnings
+  bun run --throw-deprecation            # Treat deprecation as error
+
+===============================================================================
                             BEST PRACTICES
 ===============================================================================
 
@@ -961,8 +1030,15 @@ CHECK EXISTS
                           ENVIRONMENT VARIABLES
 ===============================================================================
 
-  BUN_FROZEN_LOCKFILE=1                # Force frozen lockfile
-  BUN_REGISTRY_TOKEN=<token>           # Registry auth token
-  BUN_CONFIG_NO_VERIFY=1               # Skip integrity verification
+  BUN_FROZEN_LOCKFILE=1                  # Force frozen lockfile
+  BUN_REGISTRY_TOKEN=<token>             # Registry auth token
+  BUN_CONFIG_NO_VERIFY=1                 # Skip integrity verification
+  BUN_INSTALL_CACHE_DIR=<path>           # Custom cache location
+  BUN_CONFIG_REGISTRY=<url>              # Override default registry
+  BUN_CONFIG_NETWORK_CONCURRENCY=<n>     # Max concurrent requests
+  BUN_CONFIG_NO_CLEAR=1                  # Don't clear terminal on run
+  BUN_CONFIG_MAX_HTTP_HEADER_SIZE=<n>    # Max HTTP header size (bytes)
+  BUN_CONFIG_DNS_RESULT_ORDER=<val>      # verbatim | ipv4first | ipv6first
+  BUN_PORT=<port>                        # Default server port
 
 ===============================================================================
