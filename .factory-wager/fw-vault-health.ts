@@ -519,7 +519,7 @@ class FactoryWagerVaultHealth {
   }
 
   private generateRecommendations(): string[] {
-    const recommendations = [];
+    const recommendations: string[] = [];
 
     this.checks.forEach(check => {
       if (check.status === 'critical' && check.fixAvailable) {
