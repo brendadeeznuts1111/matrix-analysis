@@ -22,5 +22,5 @@ export async function profileList(): Promise<void> {
     }
   }
 
-  console.log(Bun.inspect.table(rows, undefined, { colors: true }));
+  console.log(Bun.inspect.table(rows, undefined, { colors: !process.env.NO_COLOR }));
 }

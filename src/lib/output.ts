@@ -1,5 +1,14 @@
 import { COLORS } from "../../.claude/lib/cli.ts";
 
+// Wrap COLORS with NO_COLOR check
+const colors = process.env.NO_COLOR ? {
+  red: (s: string) => s,
+  green: (s: string) => s,
+  yellow: (s: string) => s,
+  dim: (s: string) => s,
+  reset: '',
+} : COLORS;
+
 const SENSITIVE_PATTERNS = [
   "SECRET",
   "PASSWORD",
@@ -26,17 +35,17 @@ export function maskValue(key: string, value: string): string {
 
 export function printValidation(passed: boolean, errors: string[] = [], warnings: string[] = []): void {
   if (passed) {
-    console.log(`${COLORS.green}✓ Validation: PASSED${COLORS.reset}`);
+    console.log(`${colors.green}✓ Validation: PASSED${colors.reset}`);
   } else {
-    console.log(`${COLORS.red}✗ Validation: FAILED${COLORS.reset}`);
+    console.log(`${colors.red}✗ Validation: FAILED${colors.reset}`);
   }
 
   for (const error of errors) {
-    console.log(`  ${COLORS.red}✗ ${error}${COLORS.reset}`);
+    console.log(`  ${colors.red}✗ ${error}${colors.reset}`);
   }
 
   for (const warning of warnings) {
-    console.log(`  ${COLORS.yellow}⚠ ${warning}${COLORS.reset}`);
+    console.log(`  ${colors.yellow}⚠ ${warning}${colors.reset}`);
   }
 }
 
@@ -87,13 +96,13 @@ export function printEnvChanges(
 
     if (change.isChanged && change.oldValue !== undefined) {
       const maskedOld = maskValue(change.key, change.oldValue);
-      line += ` ${COLORS.yellow}(was: ${maskedOld})${COLORS.reset}`;
+      line += ` ${colors.yellow}(was: ${maskedOld})${colors.reset}`;
     } else if (change.isNew) {
-      line += ` ${COLORS.green}(new)${COLORS.reset}`;
+      line += ` ${colors.green}(new)${colors.reset}`;
     }
 
     if (isSensitiveKey(change.key)) {
-      line += ` ${COLORS.dim}(masked)${COLORS.reset}`;
+      line += ` ${colors.dim}(masked)${colors.reset}`;
     }
 
     console.log(line);
@@ -125,7 +134,7 @@ export function detectConflicts(
 export function printConflicts(conflicts: Conflict[]): void {
   if (conflicts.length === 0) return;
 
-  console.log(`\n${COLORS.yellow}⚠ Conflicts detected (${conflicts.length}):${COLORS.reset}`);
+  console.log(`\n${colors.yellow}⚠ Conflicts detected (${conflicts.length}):${colors.reset}`);
 
   for (const conflict of conflicts) {
     const maskedCurrent = maskValue(conflict.key, conflict.currentValue);

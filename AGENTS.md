@@ -13,8 +13,8 @@ This is a comprehensive **Bun-native development workspace** featuring:
 - **Dev HQ CLI** - Development intelligence platform with feature flags, device management, and templates
 - **MCP Server Ecosystem** - Model Context Protocol configuration for AI assistant integrations
 
-**Repository:** `nolarose-mcp-config`  
-**Runtime:** Bun 1.3.6+  
+**Repository:** `nolarose-mcp-config`
+**Runtime:** Bun 1.3.6+
 **License:** MIT
 
 ---
@@ -330,6 +330,46 @@ describe("feature", () => {
 const fn = mock(() => value);
 spyOn(obj, "method").mockReturnValue(42);
 ```
+
+### onTestFinished Hook
+
+Use `onTestFinished` for cleanup or assertions that must run **after** all `afterEach` hooks complete. This is useful for final verification or resource cleanup that depends on earlier teardown.
+
+```typescript
+import { describe, it, afterEach, onTestFinished, expect } from "bun:test";
+
+describe("feature", () => {
+  it("runs cleanup after afterEach", () => {
+    const calls = [];
+
+    afterEach(() => {
+      calls.push("afterEach");
+    });
+
+    onTestFinished(() => {
+      calls.push("onTestFinished");
+      // afterEach has already run
+      expect(calls).toEqual(["afterEach", "onTestFinished"]);
+    });
+
+    // test body...
+  });
+
+  it.serial("async cleanup at the very end", async () => {
+    onTestFinished(async () => {
+      await new Promise((r) => setTimeout(r, 10));
+      // ...close DB connections, stop servers, etc.
+    });
+
+    // test body...
+  });
+});
+```
+
+**Important:**
+- Runs only inside a test (not in `describe` or preload)
+- Supports async and done-style callbacks
+- Not supported in concurrent tests; use `test.serial` instead or remove `test.concurrent`
 
 ### Test Files Location
 

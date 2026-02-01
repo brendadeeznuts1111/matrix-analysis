@@ -6,16 +6,16 @@
  * Run: bun test mcp-bun-docs/timezone.test.ts
  */
 
-import { test, expect } from "bun:test";
+import { it, expect } from "bun:test";
 
-test("Welcome to California!", () => {
+it("Welcome to California!", () => {
 	process.env.TZ = "America/Los_Angeles";
 	// Pacific: 480 (PST) or 420 (PDT)
 	expect([420, 480]).toContain(new Date().getTimezoneOffset());
 	expect(new Intl.DateTimeFormat().resolvedOptions().timeZone).toBe("America/Los_Angeles");
 });
 
-test("Welcome to New York!", () => {
+it("Welcome to New York!", () => {
 	// Unlike in Jest, you can set the timezone multiple times at runtime and it will work.
 	process.env.TZ = "America/New_York";
 	// Eastern: 300 (EST) or 240 (EDT)

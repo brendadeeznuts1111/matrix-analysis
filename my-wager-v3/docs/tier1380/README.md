@@ -7,12 +7,15 @@ Tier-1380 is a secure, high-performance test configuration empire with zero-trus
 ## Documentation
 
 ### [Status](./TIER-1380-STATUS.md)
+
 Current implementation status and performance metrics.
 
 ### [Implementation Summary](./TIER-1380-IMPLEMENTATION-SUMMARY.md)
+
 Detailed architecture and feature documentation.
 
-### [Main README](../../README-TIER1380.md)
+### [Main README](../../../README.md)
+
 Quick start guide and deployment instructions.
 
 ## Key Achievements
@@ -25,6 +28,6 @@ Quick start guide and deployment instructions.
 
 ## Quick Links
 
-- [Test Runner CLI](../../cli/test.ts)
-- [Core Infrastructure](../../packages/test/)
-- [Performance Dashboard](../../dashboard/)
+- [Test Runner CLI](../../../src/cli.ts)
+- [Core Infrastructure](../../../src/lib/)
+- [Performance Dashboard](../../apps/dashboard/DashboardServer.ts)

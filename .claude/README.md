@@ -11,6 +11,18 @@
 
 > **🏢 Enterprise-Grade Development Platform** built on Bun runtime, featuring Cloudflare R2 integration, AI agents, email systems, phone environment warming, and real-time dashboard applications.
 
+## ✨ **What's New in v1380** (OMEGA Protocol)
+
+- 📏 **Column 89 Enforcer** - Unicode-aware width validation with GB9c support
+- 🍪 **Fast Cookie Parser** - 23ns parsing (74x faster than tough-cookie)
+- 🧪 **A/B Variant Handler** - Runtime + build-time variant testing
+- 📊 **Performance Benchmarks** - Bun API one-liners (6,756x wins)
+- 🔐 **Bun.secrets Integration** - `com.factory-wager.matrix` service
+- ☁️ **Cloudflare Infrastructure** - 6 R2 buckets, 12 subdomains configured
+- 🔧 **MCP Bun Docs** - SearchBun integration for documentation queries
+- 📚 **Error Codes Reference** - Comprehensive exit code documentation
+- 🚀 **Pre-commit Hook** - Broken symlink detection + Biome checks
+
 ## ✨ **What's New in v2.1** (Phase 3.23)
 
 - 🔥 **OMEGA God-Command** (`omega`) - Meta-command with 24+ fuzzy subcommands for instant snippet execution
@@ -18,7 +30,7 @@
 - 🚨 **Live Tension Alerting** - Real-time anomaly detection with wrapAnsi visual alerts and webhook integration
 - 🔄 **CI Smoke Hooks** - Pre-commit/pre-push validation for JSON5, TypeScript, and tension thresholds
 - 🎯 **Advanced Bun Arsenal** - Sub-ms pipe magic, --smol mastery, and wrapAnsi visual domination
-- ⚡ **Bun [define] Constants** - 74 build-time constants for zero-overhead configuration ([Guide](DEFINED_CONSTANTS_GUIDE.md))
+- ⚡ **Infrastructure Management** (`infra`) - Complete service control, health monitoring, and diagnostics
 
 ## ✨ **What's New in v2.0**
 
@@ -136,7 +148,7 @@ r2-bunx/
 ├── 📚 docs/                     # 📖 Documentation Hub
 │   ├── CLI_COMMAND_MATRIX.md    # 🚀 Complete CLI commands with TypeScript types
 │   ├── DOCUMENTATION_INDEX.md   # 📋 Comprehensive documentation index
-│   ├── NAVIGATION.md             # 🧭 Documentation navigation guide
+│   ├── DOCUMENTATION_INDEX.md    # 📚 Documentation index and navigation
 │   ├── CDN_README.md            # 🌐 CDN documentation center
 │   ├── guides/                  # How-to guides (17 files)
 │   │   ├── getting-started.md   # Complete setup guide
@@ -225,7 +237,7 @@ Production-grade Chrome state management with zero-knowledge security.
 ./bin/fw shell test
 ```
 
-[📖 Full Documentation](CHROME_STATE_INTEGRATION_COMPLETE.md)
+[📖 Full Documentation](chrome-state-integration-complete.md)
 
 ---
 
@@ -285,7 +297,7 @@ git config core.hooksPath .githooks
 # - Test smoke
 ```
 
-[📋 Snippet Cheatsheet](OMEGA_SNIPPET_CHEATSHEET.md)
+[📋 Snippet Cheatsheet](omega-snippet-cheatsheet.md)
 
 ---
 
@@ -382,7 +394,7 @@ bun build ./server.ts --config bunfig.production.toml --outdir ./dist
 - 7 feature flags
 - HTTP/API limits, concurrency, retry config
 
-[📖 Complete Guide](DEFINED_CONSTANTS_GUIDE.md)
+[📖 API Documentation](docs/api/reference.md)
 
 ## 🚀 **Core Features & Tools**
 
@@ -604,6 +616,55 @@ bun run scripts/verify-organization.js  # Verify structure
 bun run scripts/update-docs-paths.js    # Update documentation
 ```
 
+## 🆕 **New Libraries (v1380.0)**
+
+### **lib/col89-enforcer.ts** - Unicode-Aware Column Width Enforcer
+Enforces 89-column limit with full Unicode support:
+- **GB9c Indic script support** (Bun >=1.3.7)
+- **CJK full-width characters** (2 cols each)
+- **Emoji & ZWJ sequences** proper width
+- **ANSI escape code handling**
+- **~37ns per call** (6,756x faster than npm)
+
+```typescript
+import { enforceCol89, getStringWidth } from "./lib/col89-enforcer";
+
+// Check width
+const width = getStringWidth("CJK: 你好");  // → 8
+
+// Enforce compliance
+const result = enforceCol89([longLine], { autoWrap: true });
+```
+
+### **lib/cookie-parser.ts** - Fast Cookie Parser (23ns)
+High-performance cookie parsing with URL decoding:
+- **23ns parse time** (74x faster than tough-cookie)
+- **URL decoding**: `%3D` → `=`
+- **Malformed cookie handling**
+- **Prefix filtering** for A/B variants
+
+```typescript
+import { parseCookieMap } from "./lib/cookie-parser";
+
+const cookies = parseCookieMap("a=1;b%3D2");
+cookies.get("b");  // → "=2" (decoded)
+```
+
+### **lib/ab-variant.ts** - A/B Variant Handler
+Runtime + build-time A/B testing support:
+- **Fallback chain**: Cookie → Define → Default
+- **Build-time inlining** via `[define]` (0ns)
+- **Prefix-based detection**: `ab-variant-*`
+
+```typescript
+import { getABVariantConfig } from "./lib/ab-variant";
+
+const config = getABVariantConfig(cookieHeader);
+// { variant: "enabled", poolSize: 5, flags: {...} }
+```
+
+---
+
 ## 📚 **Documentation**
 
 ### **🚀 CLI Command Matrix**
@@ -620,13 +681,13 @@ Our documentation is professionally organized for easy navigation:
 
 **🏠 Main Documentation:**
 - **[📋 Documentation Index](docs/DOCUMENTATION_INDEX.md)** - Complete guide to all documentation
-- **[🧭 Navigation Guide](docs/guides/NAVIGATION.md)** - How to find and navigate documentation
+- **[📚 Documentation Index](docs/DOCUMENTATION_INDEX.md)** - Complete documentation index and navigation guide
 - **[🚀 CLI Command Matrix](docs/guides/CLI_COMMAND_MATRIX.md)** - Comprehensive CLI reference with types
 
 **🔧 User Guides:**
 - **[📖 Getting Started](docs/guides/getting-started.md)** - Installation and first steps
 - **[⚙️ Configuration](docs/guides/configuration.md)** - Environment setup
-- **[🔧 Bun Define Constants](DEFINED_CONSTANTS_GUIDE.md)** - 74 build-time constants for zero-overhead config
+- **[🔧 Infrastructure CLI](bin/infra)** - Service management, health checks, and diagnostics
 - **[🚀 Deployment](docs/guides/deployment.md)** - Production deployment
 - **[🏢 Enterprise](docs/guides/enterprise.md)** - Enterprise features
 

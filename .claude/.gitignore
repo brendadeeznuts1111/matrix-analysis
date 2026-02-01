@@ -35,6 +35,8 @@ node_modules/
 .env.production
 .env.staging
 .env.development
+.env.cloudflare
+.env.1380
 
 # ----------------------------------------------------------------------------
 # TYPE DEFINITIONS & BUILD INFO
@@ -336,3 +338,4 @@ reports/
 # END OF ENHANCED .claude/.gitignore
 # Purpose: Maximize agent/MCP/ACP search performance, minimize index bloat
 # ============================================================================
+test/results/

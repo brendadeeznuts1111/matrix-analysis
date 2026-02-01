@@ -1,0 +1,29 @@
+{
+  "name": "prod-api",
+  "version": "1.0.1",
+  "created": "2026-01-26T17:45:30.651Z",
+  "author": "nolarose",
+  "description": "API service production profile with monitoring and performance settings",
+  "env": {
+    "MATRIX_PROJECT": "api-service",
+    "MATRIX_REGISTRY": "@company",
+    "MATRIX_MONITORING": "true",
+    "MATRIX_LOG_LEVEL": "info",
+    "MATRIX_DEPLOY_TARGET": "docker",
+    "BUN_PREFER_OFFLINE": "true",
+    "BUN_NETWORK_CONCURRENCY": "48",
+    "NODE_ENV": "production",
+    "API_PORT": "8080",
+    "API_HOST": "0.0.0.0",
+    "API_TIMEOUT": "30000",
+    "CORS_ORIGINS": "*",
+    "RATE_LIMIT": "1000",
+    "RATE_WINDOW": "60000",
+    "DB_POOL_SIZE": "20",
+    "REDIS_URL": "${REDIS_URL}",
+    "CACHE_TTL": "300",
+    "LOG_FORMAT": "json",
+    "METRICS_ENABLED": "true",
+    "HEALTH_CHECK_PATH": "/health"
+  }
+}

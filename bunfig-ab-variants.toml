@@ -1,0 +1,73 @@
+# ╔══════════════════════════════════════════════════════════════════════════════╗
+# ║ bunfig-ab-variants.toml — A/B Variant Build Configuration                   ║
+# ║ PATH: /Users/nolarose/bunfig-ab-variants.toml                               ║
+# ║ TYPE: TOML config   CTX: Build-time A/B inlining   COMPONENTS: [define]     ║
+# ╚══════════════════════════════════════════════════════════════════════════════╝
+
+# Usage:
+#   bun build examples/ab-variant-cookies.ts --config bunfig-ab-variants.toml --outdir dist/variant-a
+#   bun build examples/ab-variant-cookies.ts --config bunfig-ab-variants.toml --define.AB_VARIANT_B="\"enabled\"" --outdir dist/variant-b
+
+# ── Build-Time A/B Defines (Zero-Runtime Cost) ────────────────────────────────
+
+[define]
+# Public A/B variants (prefixed safe)
+# These become LITERALS in the bundle (0ns lookup!)
+
+# Variant A (Treatment)
+AB_VARIANT_A = "\"enabled\""        # → literal "enabled" in bundle
+AB_VARIANT_POOL_A = "5"             # Pool size for variant A
+
+# Variant B (Control)
+AB_VARIANT_B = "\"disabled\""       # → literal "disabled" in bundle
+AB_VARIANT_POOL_B = "3"             # Pool size for variant B
+
+# Fallbacks
+DEFAULT_VARIANT = "\"control\""     # Global default variant
+MATRIX_POOL_SIZE = "5"              # Global pool size fallback
+
+# Zstd snapshot fallback
+AB_VARIANT_SNAPSHOT = "\"zstd-compressed-fallback-state\""
+
+# Feature flags (tree-shakeable)
+ENABLE_ANALYTICS = "true"           # Analytics tracking
+ENABLE_DEBUG_LOGS = "false"         # Debug output
+STRICT_COL89 = "true"               # Enforce Col-89 in prod
+
+# Environment detection (build-time)
+IS_PRODUCTION = "false"             # Production mode
+IS_STAGING = "false"                # Staging mode
+
+# ── Build Settings ─────────────────────────────────────────────────────────────
+
+[build]
+outdir = "./dist"                   # Output directory
+minify = true                       # Minify bundle
+sourcemap = true                    # Generate source maps
+target = "bun"                      # Target runtime
+splitting = true                    # Code splitting
+external = []                       # No externals
+
+# ── Example Multi-Variant Builds ───────────────────────────────────────────────
+
+# Variant A Build:
+#   bun build examples/ab-variant-cookies.ts \
+#     --config bunfig-ab-variants.toml \
+#     --define.AB_VARIANT_A="\"enabled\"" \
+#     --define.AB_VARIANT_B="\"disabled\"" \
+#     --outdir dist/variant-a
+
+# Variant B Build:
+#   bun build examples/ab-variant-cookies.ts \
+#     --config bunfig-ab-variants.toml \
+#     --define.AB_VARIANT_A="\"disabled\"" \
+#     --define.AB_VARIANT_B="\"enabled\"" \
+#     --outdir dist/variant-b
+
+# Production Build (no defines, runtime cookies only):
+#   bun build examples/ab-variant-cookies.ts \
+#     --config bunfig-ab-variants.toml \
+#     --define.IS_PRODUCTION="true" \
+#     --define.ENABLE_DEBUG_LOGS="false" \
+#     --minify \
+#     --outdir dist/production

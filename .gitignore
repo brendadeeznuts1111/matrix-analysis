@@ -33,6 +33,9 @@ tmp/
 .tmp/
 *.tmp
 
+# A/B variant snapshots (runtime)
+ab-snapshots.db
+
 # Generated indexes
 .options.index
 
@@ -70,7 +73,7 @@ bunfig.toml
 .aitk/
 .android/
 .chelper/
-.clawdbot/
+.openclawd/
 
 # Development tool configurations
 .angular-config.json
@@ -166,8 +169,17 @@ Projects/
 
 # Test reports and benchmarks
 reports/junit.xml
+reports/*.json
 *.heapsnapshot
 Heap-*
+
+# Generated test/benchmark artifacts
+test-*.txt
+bench-*.json
+*-results.json
+demo-*.js
+test-transpiled-*.js
+matrix-v*.lock
 
 # Advanced test examples (submodule)
 my-wager-v3/examples/advanced-tests/

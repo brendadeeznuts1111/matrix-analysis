@@ -6,20 +6,25 @@ import { profileExport } from "./commands/profileExport";
 import { profileList } from "./commands/profileList";
 import { profileShow } from "./commands/profileShow";
 import { profileUse } from "./commands/profileUse";
+import { linksCheck, linksQuick } from "./commands/linksCheck";
 import { EXIT_CODES } from "../.claude/lib/exit-codes.ts";
 import { fmt } from "../.claude/lib/cli.ts";
 
 function printUsage(): void {
 	console.log(`
-${fmt.bold("Usage:")} bun run matrix:profile:<command> [options]
+${fmt.bold("Usage:")} bun run matrix:<command> [options]
 
-${fmt.bold("Commands:")}
+${fmt.bold("Profile Commands:")}
   profile:use <name>            Activate an environment profile
   profile:list                  List available profiles
   profile:show <name>           Show profile details
   profile:diff <left> <right>   Compare two profiles
   profile:create <name>         Create a new profile
   profile:export <name>         Export profile to .env format
+
+${fmt.bold("Link Checking Commands:")}
+  links:check                   Check all links in documentation
+  links:quick                    Quick check for internal links only
 
 ${fmt.bold("Options for profile:use:")}
   --validate-rules       Validate profile before applying
@@ -41,12 +46,20 @@ ${fmt.bold("Options for profile:export:")}
   --resolve, -r          Resolve \${VAR} references
   --quote, -q            Always quote values
 
+${fmt.bold("Options for links:check:")}
+  --verbose, -v          Show detailed output
+  --external, -e         Check external links (slower)
+  --export <format>      Export results (json|csv)
+  --directory, -d <dir>  Directory to check (default: .)
+
 ${fmt.bold("Examples:")}
   bun run matrix:profile:use dev --dry-run
   bun run matrix:profile:diff dev prod
   bun run matrix:profile:create staging --from=dev
   bun run matrix:profile:export prod -o .env.production
   eval $(bun run matrix:profile:use dev)
+  bun run matrix:links:check --verbose
+  bun run matrix:links:quick
 `);
 }
 
@@ -77,6 +90,10 @@ async function main(): Promise<void> {
 			resolve: { type: "boolean", short: "r", default: false },
 			quote: { type: "boolean", short: "q", default: false },
 			all: { type: "boolean", short: "a", default: false },
+			verbose: { type: "boolean", short: "v", default: false },
+			external: { type: "boolean", short: "e", default: false },
+			export: { type: "string" },
+			directory: { type: "string", short: "d" },
 		},
 		allowPositionals: true,
 		strict: false,
@@ -148,6 +165,19 @@ async function main(): Promise<void> {
 			});
 			break;
 
+		case "links:check":
+			await linksCheck({
+				verbose: !!values["verbose"],
+				external: !!values["external"],
+				export: values["export"] as 'json' | 'csv' | undefined,
+				directory: values["directory"] as string | undefined,
+			});
+			break;
+
+		case "links:quick":
+			await linksQuick(values["directory"] as string || '.');
+			break;
+
 		default:
 			console.error(fmt.fail(`Unknown command: ${command}`));
 			printUsage();
@@ -156,6 +186,13 @@ async function main(): Promise<void> {
 }
 
 main().catch((err) => {
-	console.error(err);
+	if (err instanceof Error) {
+		console.error(fmt.fail(`Error: ${err.message}`));
+		if (process.env.DEBUG) {
+			console.error(err.stack);
+		}
+	} else {
+		console.error(fmt.fail(`Unknown error: ${String(err)}`));
+	}
 	process.exit(EXIT_CODES.GENERIC_ERROR);
 });

@@ -78,4 +78,4 @@ These examples showcase practical applications:
 
 - [Bun.color Documentation](https://bun.com/docs/runtime/color)
 - [Bun.write Documentation](https://bun.com/docs/guides/write-file)
-- [Tension Field System](../README.md)
+- [Tension Field System](../../README.md)

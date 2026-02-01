@@ -22,7 +22,7 @@ import {
 	filterEntriesByVersion,
 	filterEntriesByStability,
 } from "./lib.ts";
-import { MCP_MANIFEST_URL } from "../bun-mcp-manifest.ts";
+import { MCP_MANIFEST_URL } from "./mcp-manifest.ts";
 
 const lastUpdated = new Date().toISOString().slice(0, 10);
 
@@ -76,64 +76,7 @@ const patterns = [
 ];
 
 // Search weights (HTTP bias)
-const weightRows = Object.entries(SEARCH_WEIGHTS).map(([Term, Weight]) => ({
-	Term,
-	Weight,
-	Purpose: Weight >= 2 ? "High (80% query hit)" : "Normal",
-}));
+const weightRows = Object.entries(SEARCH_WEIGHTS).map(([Term, Weight]) => ({  Term, Weight, Purpose: Weight >= 2 ? "High (80% query hit)" : "Normal" })) as { Term: string; Weight: number; Purpose: string }[];
 
 // SearchBun input params
-const searchParams = [
-	{ Param: "query", Type: "string", Required: "yes", Purpose: "Search terms" },
-	{ Param: "version", Type: "string", Required: "no", Purpose: "Filter by Bun version" },
-	{ Param: "language", Type: "string", Required: "no", Purpose: "Language code (en, zh, es)" },
-	{ Param: "apiReferenceOnly", Type: "boolean", Required: "no", Purpose: "Only API reference docs" },
-	{ Param: "codeOnly", Type: "boolean", Required: "no", Purpose: "Only code snippets" },
-];
-
-console.log("\n🔷 Bun MCP Matrix View\n");
-console.log("═══ Const Variables ═══\n");
-console.log(Bun.inspect.table(consts, ["Const", "Value", "Version", "Module", "Purpose"]));
-console.log("\n═══ BUN_DOC_MAP (Curated Terms) ═══\n");
-console.log(Bun.inspect.table(docMapRows, ["Term", "Path", "FullURL"]));
-console.log("\n═══ Types ═══\n");
-console.log(Bun.inspect.table(types));
-console.log("\n═══ Tier-1380 Matrix v2 (Traceability Sample) ═══\n");
-console.log(Bun.inspect.table(v2Sample, ["Term", "bunMinVersion", "Stability", "Platforms", "Security", "Related"]));
-console.log(`\n  Prod-safe (stable + version≤${BUN_DOCS_VERSION}): ${prodSafe.length} | Experimental: ${experimentalOnly.length}\n`);
-
-// Tier-1380 Binary Ops — Col 93 alignment
-const binaryRows = BINARY_PERF_METRICS.map((r) => ({
-	Term: r.op,
-	MinVer: "1.3.8",
-	"Perf Gain": r.imp,
-	"Use Case": r.use,
-	Security: r.op === "Buffer.swap16" ? "Side-channel safe" : "Constant-time intrinsics",
-}));
-console.log("\n═══ Tier-1380 Binary Ops (Col 93) ═══\n");
-console.log(Bun.inspect.table(binaryRows, ["Term", "MinVer", "Perf Gain", "Use Case", "Security"]));
-
-console.log("\n═══ Bun v1.3.7 Feature Matrix (Tier-1380) ═══\n");
-console.log(Bun.inspect.table(BUN_137_FEATURE_MATRIX, ["Term", "Ver", "PerfGain", "Security", "Platforms", "Status"]));
-
-console.log("\n═══ Bun v1.3.7 Complete Matrix (28 entries) ═══\n");
-console.log(Bun.inspect.table(BUN_137_COMPLETE_MATRIX, ["Category", "Term", "PerfFeature", "SecurityPlatform"]));
-
-console.log("\n═══ Tier-1380 Compliance (Col 93 / GB9c) ═══\n");
-console.log(Bun.inspect.table(TIER_1380_COMPLIANCE, ["Item", "Note", "Scope"]));
-
-console.log("\n═══ Tier-1380 Test Config Inheritance ═══\n");
-console.log(Bun.inspect.table(TEST_CONFIG_MATRIX, ["Section", "InheritsFrom", "KeyValues", "SecurityScope"]));
-
-/** Alias for BUN_TEST_CLI_OPTIONS (matrix-view export). */
-export const cliOptionsTable = BUN_TEST_CLI_OPTIONS;
-
-console.log("\n═══ bun test CLI Options (Name, Pattern, Version, Topic, Type, Example) ═══\n");
-console.log(Bun.inspect.table(cliOptionsTable, ["Name", "Pattern", "Version", "Topic", "Type", "Example"]));
-
-console.log("\n═══ URL Patterns ═══\n");
-console.log(Bun.inspect.table(patterns));
-console.log("\n═══ Search Weights (HTTP Bias) ═══\n");
-console.log(Bun.inspect.table(weightRows));
-console.log("\n═══ SearchBun Parameters ═══\n");
-console.log(Bun.inspect.table(searchParams));
+const searchParams = [ { Param: "query", Type: "string", Required: "yes", Purpose: "Search terms" }, { Param: "version", Type: "string", Required: "no", Purpose: "Filter by Bun version" }, { Param: "language", Type: "string", Required: "no", Purpose: "Language code (en, zh, es)" }, { Param: "apiReferenceOnly", Type: "boolean", Required: "no", Purpose: "Only API reference docs" }, { Param: "codeOnly", Type: "boolean", Required: "no", Purpose: "Only code snippets" } ] as const as { Param: string; Type: string; Required: string; Purpose: string }[] as const;

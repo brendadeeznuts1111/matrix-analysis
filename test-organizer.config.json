@@ -1,0 +1,156 @@
+{
+  "groups": {
+    "smoke": {
+      "name": "Smoke Tests",
+      "description": "Critical path tests that must always pass",
+      "patterns": [
+        "src/__tests__/smoke/**/*.test.ts",
+        "src/__tests__/critical/**/*.test.ts"
+      ],
+      "priority": "high",
+      "tags": ["smoke", "critical", "fast"],
+      "timeout": 3000,
+      "parallel": true,
+      "environment": {
+        "TEST_MODE": "smoke",
+        "FAIL_FAST": "1"
+      }
+    },
+    "unit": {
+      "name": "Unit Tests",
+      "description": "Fast, isolated unit tests",
+      "patterns": [
+        "tests/unit/**/*.test.ts",
+        "src/__tests__/**/*.test.ts",
+        "src/**/*.test.ts",
+        "src/**/*.spec.ts"
+      ],
+      "priority": "high",
+      "tags": ["unit", "fast", "isolated"],
+      "timeout": 5000,
+      "parallel": true,
+      "environment": {
+        "TEST_MODE": "unit",
+        "ISOLATED": "1"
+      }
+    },
+    "integration": {
+      "name": "Integration Tests",
+      "description": "Tests that integrate multiple components",
+      "patterns": [
+        "tests/integration/**/*.test.ts",
+        "src/__tests__/integration/**/*.test.ts"
+      ],
+      "priority": "medium",
+      "tags": ["integration", "api"],
+      "timeout": 15000,
+      "parallel": false,
+      "dependencies": ["unit", "smoke"],
+      "environment": {
+        "TEST_MODE": "integration",
+        "DATABASE_URL": "postgresql://test:test@localhost:5432/test_db"
+      }
+    },
+    "network": {
+      "name": "Network Tests",
+      "description": "Tests that require network access",
+      "patterns": [
+        "tests/network/**/*.test.ts",
+        "src/__tests__/network/**/*.test.ts"
+      ],
+      "priority": "medium",
+      "tags": ["network", "external"],
+      "timeout": 20000,
+      "parallel": true,
+      "dependencies": ["unit"],
+      "environment": {
+        "TEST_MODE": "network",
+        "ALLOW_NETWORK": "1",
+        "NETWORK_TIMEOUT": "10000"
+      }
+    },
+    "ci": {
+      "name": "CI Pipeline Tests",
+      "description": "Tests specifically for CI environments",
+      "patterns": [
+        "src/__tests__/ci/**/*.test.ts",
+        "src/__tests__/network-control.test.ts",
+        "src/__tests__/process-management.test.ts"
+      ],
+      "priority": "high",
+      "tags": ["ci", "pipeline"],
+      "timeout": 10000,
+      "parallel": true,
+      "dependencies": ["unit"],
+      "environment": {
+        "TEST_MODE": "ci",
+        "CI": "1",
+        "GITHUB_ACTIONS": "1"
+      }
+    },
+    "performance": {
+      "name": "Performance Tests",
+      "description": "Performance and benchmark tests",
+      "patterns": [
+        "tests/performance/**/*.test.ts",
+        "src/__tests__/performance/**/*.test.ts"
+      ],
+      "priority": "low",
+      "tags": ["performance", "benchmark", "slow"],
+      "timeout": 60000,
+      "parallel": false,
+      "dependencies": ["unit"],
+      "environment": {
+        "TEST_MODE": "performance",
+        "BENCHMARK": "1",
+        "PERFORMANCE_THRESHOLD": "1000"
+      }
+    },
+    "security": {
+      "name": "Security Tests",
+      "description": "Security and vulnerability tests",
+      "patterns": [
+        "tests/security/**/*.test.ts",
+        "src/__tests__/security/**/*.test.ts"
+      ],
+      "priority": "high",
+      "tags": ["security", "audit"],
+      "timeout": 30000,
+      "parallel": true,
+      "dependencies": ["unit"],
+      "environment": {
+        "TEST_MODE": "security",
+        "SECURITY_AUDIT": "1",
+        "VULNERABILITY_SCAN": "1"
+      }
+    },
+    "e2e": {
+      "name": "End-to-End Tests",
+      "description": "Full application flow tests",
+      "patterns": [
+        "tests/e2e/**/*.test.ts",
+        "tests/acceptance/**/*.test.ts",
+        "src/__tests__/e2e/**/*.test.ts"
+      ],
+      "priority": "low",
+      "tags": ["e2e", "slow", "browser"],
+      "timeout": 120000,
+      "parallel": false,
+      "dependencies": ["integration", "network"],
+      "environment": {
+        "TEST_MODE": "e2e",
+        "BROWSER": "chromium",
+        "HEADLESS": "1"
+      }
+    }
+  },
+  "globalEnvironment": {
+    "NODE_ENV": "test",
+    "BUN_TEST_ANNOTATIONS": "1",
+    "TEST_ORGANIZER": "1",
+    "REPORTER": "verbose"
+  },
+  "defaultTimeout": 10000,
+  "maxConcurrency": 4,
+  "retryCount": 2
+}

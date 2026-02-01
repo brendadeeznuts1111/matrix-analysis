@@ -1,0 +1,81 @@
+{
+  "name": "prod",
+  "version": "1.0.0",
+  "created": "2026-01-27T00:43:00.000Z",
+  "author": "nolarose",
+  "description": "Production environment profile with security and performance optimizations",
+  "releaseNotes": {
+    "date": "2026-01-29T06:41:11.603Z",
+    "runtime": "Bun",
+    "fixes": {
+      "node:https & TLS": [
+        "Fixed TLS options (ca, cert, key, passphrase, ciphers, servername, secureOptions, rejectUnauthorized) from agent.options and agent.connectOpts not being respected in the https module",
+        "Fixed race condition where request.socket._secureEstablished could return false in HTTPS request handlers even after TLS handshake completed",
+        "Fixed TLS v1.2 renegotiation rejectUnauthorized option being incorrectly ignored in TLS socket setVerifyMode"
+      ],
+      "node:http": [
+        "Request bodies in GET requests are now supported",
+        "Fixed multipart uploads with form-data + node-fetch@2 + fs.createReadStream() being truncated"
+      ],
+      "WebSocket (ws)": [
+        "Fixed handleProtocols option in ws WebSocketServer not correctly setting selected protocol in WebSocket upgrade responses",
+        "Fixed ws.once() only working on first call for each event type"
+      ],
+      "Node-API (NAPI)": [
+        "Fixed crash causing corrupted data when using native modules - property name string dangling pointers and external buffer premature freeing issues"
+      ],
+      "Streams": [
+        "Fixed ReadableStreamDefaultController.desiredSize throwing TypeError instead of returning null when stream detached during cleanup"
+      ],
+      "bun:sql (MySQL)": [
+        "Fixed MySQL transactions hanging when executing sequential transactions in loop with INSERT awaited and SELECT returned as array",
+        "Fixed MySQL VARCHAR/CHAR/TEXT columns with binary collations incorrectly returning Buffer instead of string"
+      ],
+      "Bun.Terminal": [
+        "Fixed Bun.Terminal callbacks (data, exit, drain) not being invoked when terminal created inside AsyncLocalStorage.run()"
+      ],
+      "Memory Management": [
+        "Fixed memory leak in YAML parser",
+        "Fixed memory leak when sockets are reused for reconnection (common with MongoDB driver-like usage)"
+      ],
+      "CLI & Tooling": [
+        "Fixed bun completions crashing with BrokenPipe error when piped to commands that close stdout early",
+        "Fixed Fish shell autocompletion not working for bun update command and its flags"
+      ]
+    }
+  },
+  "env": {
+    "MATRIX_PROJECT": "production",
+    "MATRIX_REGISTRY": "@company",
+    "MATRIX_MONITORING": "true",
+    "MATRIX_LOG_LEVEL": "error",
+    "MATRIX_DEPLOY_TARGET": "kubernetes",
+    "BUN_PREFER_OFFLINE": "true",
+    "BUN_NETWORK_CONCURRENCY": "128",
+    "NODE_ENV": "production",
+    "API_PORT": "443",
+    "API_HOST": "0.0.0.0",
+    "API_TIMEOUT": "15000",
+    "CORS_ORIGINS": "https://app.example.com,https://api.example.com",
+    "RATE_LIMIT": "500",
+    "RATE_WINDOW": "60000",
+    "DB_POOL_SIZE": "50",
+    "REDIS_URL": "redis://redis-cluster:6379/0",
+    "CACHE_TTL": "600",
+    "LOG_FORMAT": "json",
+    "METRICS_ENABLED": "true",
+    "HEALTH_CHECK_PATH": "/health",
+    "SSL_ENABLED": "true",
+    "SSL_CERT_PATH": "/etc/ssl/certs/app.crt",
+    "SSL_KEY_PATH": "/etc/ssl/private/app.key",
+    "COMPRESSION_ENABLED": "true",
+    "MINIFY_RESPONSES": "true",
+    "ENABLE_HTTP2": "true",
+    "TRACING_ENABLED": "true",
+    "ERROR_REPORTING": "true",
+    "AUDIT_LOGGING": "true",
+    "SESSION_SECRET": "${SESSION_SECRET}",
+    "JWT_SECRET": "${JWT_SECRET}",
+    "DB_PASSWORD": "${DB_PASSWORD}"
+  }
+}
