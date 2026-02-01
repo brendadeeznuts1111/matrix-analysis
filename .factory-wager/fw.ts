@@ -373,37 +373,37 @@ async function main(): Promise<void> {
           case "env":
           case "environment":
             console.log("🌍 Environment Configuration:");
-            console.log("\n🥟 Bun Configuration (Official Variables):");
+            console.log("\n🥟 Bun Configuration (Official Variables from bun.com/docs):");
             console.log("  Core Configuration:");
-            console.log(`    VERBOSE_FETCH: ${BUN_CONFIG.VERBOSE_FETCH || "disabled"} (curl/1/disabled)`);
-            console.log(`    MAX_HTTP_REQUESTS: ${BUN_CONFIG.MAX_HTTP_REQUESTS} (default: 256)`);
-            console.log(`    NO_CLEAR_TERMINAL: ${BUN_CONFIG.NO_CLEAR_TERMINAL ? "enabled" : "disabled"} (watch reload)`);
-            console.log(`    TRANSPILER_CACHE_PATH: ${BUN_CONFIG.TRANSPILER_CACHE_PATH || "default"} (cache directory)`);
-            console.log(`    BUN_OPTIONS: ${BUN_CONFIG.OPTIONS || "none"} (prepended args)`);
+            console.log(`    VERBOSE_FETCH: ${BUN_CONFIG.VERBOSE_FETCH || "disabled"} - Logs fetch requests with headers for debugging`);
+            console.log(`    MAX_HTTP_REQUESTS: ${BUN_CONFIG.MAX_HTTP_REQUESTS} (default: 256) - Control concurrent HTTP requests for fetch and bun install`);
+            console.log(`    NO_CLEAR_TERMINAL: ${BUN_CONFIG.NO_CLEAR_TERMINAL ? "enabled" : "disabled"} - Prevents console clearing on bun --watch reload`);
+            console.log(`    TRANSPILER_CACHE_PATH: ${BUN_CONFIG.TRANSPILER_CACHE_PATH || "default"} - Cache directory for transpiled output (>50kb files)`);
+            console.log(`    BUN_OPTIONS: ${BUN_CONFIG.OPTIONS || "none"} - Prepended command-line arguments to any Bun execution`);
             console.log("\n  Color & Output Control:");
-            console.log(`    FORCE_COLOR: ${BUN_CONFIG.FORCE_COLOR ? "enabled" : "disabled"} (force ANSI colors)`);
-            console.log(`    NO_COLOR: ${BUN_CONFIG.NO_COLOR ? "enabled" : "disabled"} (disable ANSI colors)`);
+            console.log(`    FORCE_COLOR: ${BUN_CONFIG.FORCE_COLOR ? "enabled" : "disabled"} - Force ANSI color output, even if NO_COLOR is set`);
+            console.log(`    NO_COLOR: ${BUN_CONFIG.NO_COLOR ? "enabled" : "disabled"} - Disable ANSI color output`);
             console.log("\n  Security & Networking:");
             const tlsStatus = BUN_CONFIG.NODE_TLS_REJECT_UNAUTHORIZED || "1";
             const tlsWarning = tlsStatus === "0" ? " ⚠️ SECURITY RISK - SSL validation disabled" : " ✅ Secure";
-            console.log(`    NODE_TLS_REJECT_UNAUTHORIZED: ${tlsStatus}${tlsWarning}`);
+            console.log(`    NODE_TLS_REJECT_UNAUTHORIZED: ${tlsStatus}${tlsWarning} - Disables SSL certificate validation (testing only)`);
             console.log("\n  Telemetry & Tracking:");
-            console.log(`    DO_NOT_TRACK: ${BUN_CONFIG.DO_NOT_TRACK ? "enabled" : "disabled"} (crash reports)`);
+            console.log(`    DO_NOT_TRACK: ${BUN_CONFIG.DO_NOT_TRACK ? "enabled" : "disabled"} - Disable crash reports and telemetry uploads to bun.report`);
             console.log("\n  System Integration:");
-            console.log(`    TMPDIR: ${BUN_CONFIG.TMPDIR || "system default"} (temp directory)`);
+            console.log(`    TMPDIR: ${BUN_CONFIG.TMPDIR || "system default"} - Directory for intermediate assets during bundling operations`);
 
             console.log("\n🏭 FactoryWager Configuration:");
             console.log("  Core Settings:");
-            console.log(`    MODE: ${FW_CONFIG.MODE} (operating mode)`);
-            console.log(`    LOG_LEVEL: ${FW_CONFIG.LOG_LEVEL} (logging level)`);
-            console.log(`    PROFILE: ${FW_CONFIG.PROFILE || "auto"} (active profile)`);
+            console.log(`    MODE: ${FW_CONFIG.MODE} - Operating mode (development/production/testing/audit/demo)`);
+            console.log(`    LOG_LEVEL: ${FW_CONFIG.LOG_LEVEL} - Logging level (debug/info/warn/error)`);
+            console.log(`    PROFILE: ${FW_CONFIG.PROFILE || "auto"} - Active profile name`);
             console.log("\n  Output Configuration:");
-            console.log(`    REPORT_FORMAT: ${FW_CONFIG.REPORT_FORMAT} (default format)`);
-            console.log(`    OUTPUT_DIR: ${FW_CONFIG.OUTPUT_DIR} (reports directory)`);
-            console.log(`    CONFIG_DIR: ${FW_CONFIG.CONFIG_DIR} (config directory)`);
+            console.log(`    REPORT_FORMAT: ${FW_CONFIG.REPORT_FORMAT} - Default report format (html/ansi/markdown/react)`);
+            console.log(`    OUTPUT_DIR: ${FW_CONFIG.OUTPUT_DIR} - Reports output directory`);
+            console.log(`    CONFIG_DIR: ${FW_CONFIG.CONFIG_DIR} - Configuration directory`);
             console.log("\n  Feature Flags:");
-            console.log(`    AUDIT_MODE: ${FW_CONFIG.AUDIT_MODE ? "enabled" : "disabled"} (audit features)`);
-            console.log(`    DEBUG: ${FW_CONFIG.DEBUG ? "enabled" : "disabled"} (debug output)`);
+            console.log(`    AUDIT_MODE: ${FW_CONFIG.AUDIT_MODE ? "enabled" : "disabled"} - Enable audit mode features`);
+            console.log(`    DEBUG: ${FW_CONFIG.DEBUG ? "enabled" : "disabled"} - Enable debug output`);
             break;
           default:
             console.error("❌ Unknown config subcommand");
