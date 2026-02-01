@@ -1,0 +1,6 @@
+# Enhanced Dashboard Backup Cron Job
+# Run daily at 2 AM
+0 2 * * * /usr/bin/bun /opt/dashboard/dashboard-cli.ts backup create >> /opt/dashboard/logs/backup.log 2>&1
+
+# Cleanup old backups (keep 7 days)
+0 3 * * * find /opt/dashboard/backups -name "*.db" -mtime +7 -delete >> /opt/dashboard/logs/backup-cleanup.log 2>&1

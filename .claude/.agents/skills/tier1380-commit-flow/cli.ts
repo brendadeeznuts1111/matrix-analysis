@@ -70,6 +70,56 @@ const COMMANDS = {
 		script: "../lib/config.ts",
 		args: "<show|set|reset>",
 	},
+	changelog: {
+		description: "Generate changelog",
+		script: "changelog-generator.ts",
+		args: "[--version=X.X.X] [--since=tag] [--output=file]",
+	},
+	stats: {
+		description: "Show commit statistics",
+		script: "commit-stats.ts",
+		args: "[--days=N]",
+	},
+	health: {
+		description: "Run health check",
+		script: "health-check.ts",
+		args: "",
+	},
+	report: {
+		description: "Generate violation report",
+		script: "violation-reporter.ts",
+		args: "[--format=text|json|markdown] [--output=file] [--fix]",
+	},
+	benchmark: {
+		description: "Run performance benchmarks",
+		script: "benchmark.ts",
+		args: "",
+	},
+	"snapshot-compare": {
+		description: "Compare two snapshots",
+		script: "snapshot-compare.ts",
+		args: "<before> <after> [--output=report.md]",
+	},
+	"snapshot-cleanup": {
+		description: "Apply retention policy to snapshots",
+		script: "snapshot-retention.ts",
+		args: "[--dir=./snapshots] [--max-age=30] [--max-count=10] [--dry-run]",
+	},
+	"snapshot-create": {
+		description: "Create tenant snapshot",
+		script: "snapshot-create.ts",
+		args: "<tenant> [output-dir]",
+	},
+	"snapshot-notify": {
+		description: "Start SSE snapshot notifier",
+		script: "snapshot-notifier.ts",
+		args: "[--port=3336]",
+	},
+	"snapshot-cron": {
+		description: "Run automated snapshot cron",
+		script: "snapshot-cron.ts",
+		args: "[--interval=24] [--dir=./snapshots] [--once]",
+	},
 } as const;
 
 type Command = keyof typeof COMMANDS;
@@ -175,6 +225,16 @@ if (import.meta.main) {
 		sq: "squash",
 		p: "pr",
 		cfg: "config",
+		cl: "changelog",
+		st: "stats",
+		health: "health",
+		rep: "report",
+		bench: "benchmark",
+		diff: "snapshot-compare",
+		clean: "snapshot-cleanup",
+		snap: "snapshot-create",
+		notify: "snapshot-notify",
+		cron: "snapshot-cron",
 	};
 
 	const resolvedCommand = shortcuts[command] || (command as Command);

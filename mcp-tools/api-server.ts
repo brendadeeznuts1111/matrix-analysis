@@ -36,12 +36,18 @@ function addCorsHeaders(response: Response): Response {
   return response;
 }
 
-// Validate tenant from headers
+// Validate tenant from headers (supports multi-tenant)
 function getTenantFromRequest(request: Request): string | null {
   const tenantId = request.headers.get("x-tenant-id");
   if (!tenantId) {
     return null;
   }
+
+  // Handle special cases
+  if (tenantId === "*" || tenantId === "all") {
+    return "*"; // Global admin access
+  }
+
   return tenantId;
 }
 
@@ -57,15 +63,41 @@ const server = Bun.serve({
       return addCorsHeaders(new Response(null, { status: 200 }));
     }
 
-    // Get tenant from headers
-    const tenant = getTenantFromRequest(request);
-    if (!tenant) {
-      return addCorsHeaders(
-        Response.json({ error: "Missing x-tenant-id header" }, { status: 400 })
-      );
-    }
-
     try {
+      // Route: GET /api/tenants (for dashboard dropdown) - no tenant validation required
+      if (url.pathname === "/api/tenants" && method === "GET") {
+        try {
+          // Get distinct tenants from violations table
+          const tenantQuery = db.query("SELECT DISTINCT tenant FROM violations ORDER BY tenant ASC");
+          const tenantRows = tenantQuery.all() as Array<{ tenant: string }>;
+
+          const tenants = tenantRows.map(row => row.tenant);
+
+          return addCorsHeaders(
+            Response.json({
+              tenants: ["all", ...tenants], // "all" = global view
+              default: "all"
+            })
+          );
+        } catch (error) {
+          // Fallback if table doesn't exist yet
+          return addCorsHeaders(
+            Response.json({
+              tenants: ["all", "tenant-a", "tenant-b", "tenant-c"],
+              default: "all"
+            })
+          );
+        }
+      }
+
+      // Get tenant from headers (for all other endpoints)
+      const tenant = getTenantFromRequest(request);
+      if (!tenant) {
+        return addCorsHeaders(
+          Response.json({ error: "Missing x-tenant-id header" }, { status: 400 })
+        );
+      }
+
       // Route: GET /api/historical-compliance (OMEGA compliant)
       if (url.pathname === "/api/historical-compliance" && method === "GET") {
         // Simulate admin context check (in production, use proper auth)
@@ -74,9 +106,17 @@ const server = Bun.serve({
         let query = "SELECT * FROM monthly_compliance";
         let params: any[] = [];
 
-        if (!isGlobalAdmin) {
-          query += " WHERE tenant = ?";
-          params.push(tenant);
+        if (tenant !== "*" && !isGlobalAdmin) {
+          // Handle comma-separated multiple tenants
+          if (tenant.includes(',')) {
+            const tenantList = tenant.split(',').map(t => t.trim());
+            const placeholders = tenantList.map(() => '?').join(',');
+            query += ` WHERE tenant IN (${placeholders})`;
+            params.push(...tenantList);
+          } else {
+            query += " WHERE tenant = ?";
+            params.push(tenant);
+          }
         }
 
         query += " ORDER BY month ASC LIMIT 12";
@@ -110,7 +150,9 @@ const server = Bun.serve({
               averageCompliance: history.length > 0 ?
                 Math.round(history.reduce((sum, h) => sum + h.score, 0) / history.length) : 0,
               totalViolations: history.reduce((sum, h) => sum + h.violations, 0),
-              monthsTracked: history.length
+              monthsTracked: history.length,
+              trend: history.length >= 2 ?
+                Math.round(((history[history.length - 1].score - history[0].score) / history[0].score) * 100) : 0
             }
           })
         );
@@ -124,9 +166,22 @@ const server = Bun.serve({
         let queryStr = `
           SELECT date, file, line_number, column_number, severity, preview
           FROM daily_violations
-          WHERE tenant = ? AND date >= date('now', '-${days} days')
+          WHERE date >= date('now', '-${days} days')
         `;
-        const params: any[] = [tenant];
+        let params: any[] = [];
+
+        // Handle tenant filtering
+        if (tenant !== "*") {
+          if (tenant.includes(',')) {
+            const tenantList = tenant.split(',').map(t => t.trim());
+            const placeholders = tenantList.map(() => '?').join(',');
+            queryStr += ` AND tenant IN (${placeholders})`;
+            params.push(...tenantList);
+          } else {
+            queryStr += " AND tenant = ?";
+            params.push(tenant);
+          }
+        }
 
         if (severity) {
           queryStr += " AND severity = ?";
@@ -279,12 +334,14 @@ const server = Bun.serve({
 
 console.log(`🚀 Tier-1380 API Server running on port ${server.port}`);
 console.log(`📊 Available endpoints:`);
+console.log(`  GET  /api/tenants`);
 console.log(`  GET  /api/historical-compliance?months=12`);
 console.log(`  GET  /api/recent-violations?days=7&severity=critical`);
 console.log(`  GET  /api/tenant-metrics`);
 console.log(`  GET  /api/compliance-summary`);
 console.log(`  POST /api/insert-compliance`);
 console.log(`\n🔧 Test with:`);
+console.log(`  curl http://localhost:${API_PORT}/api/tenants -H "x-tenant-id: *"`);
 console.log(`  curl http://localhost:${API_PORT}/api/historical-compliance -H "x-tenant-id: tenant-a"`);
 
 // Graceful shutdown
