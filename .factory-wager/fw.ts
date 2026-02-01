@@ -1,9 +1,87 @@
 #!/usr/bin/env bun
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
- * FactoryWager CLI - Single Point of Entry (Bun Native)
+ * FactoryWager CLI — Global Bun.env Interface Merging
+ * Pure TypeScript with zero dependencies, full auto-completion support
  * ═══════════════════════════════════════════════════════════════════════════════
  */
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Global Bun.env Interface Merging — Top of File
+// ═══════════════════════════════════════════════════════════════════════════════
+
+declare module "bun" {
+  interface Env {
+    // ═══════════════════════════════════════════════════════════════════════════
+    // FactoryWager Custom Environment Variables
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    /** FactoryWager operating mode */
+    FW_MODE: "development" | "production" | "testing" | "audit" | "demo";
+
+    /** Logging level configuration */
+    FW_LOG_LEVEL: "debug" | "info" | "warn" | "error";
+
+    /** Active profile name */
+    FW_PROFILE?: string;
+
+    /** Default report format */
+    FW_REPORT_FORMAT: "html" | "ansi" | "markdown" | "react";
+
+    /** Reports output directory */
+    FW_OUTPUT_DIR: string;
+
+    /** Configuration directory */
+    FW_CONFIG_DIR: string;
+
+    /** Enable audit mode */
+    FW_AUDIT_MODE: "true" | "false";
+
+    /** Enable debug output */
+    FW_DEBUG: "true" | "false";
+
+    /** Extended configuration */
+    FW_MAX_ROWS?: string; // Parsed as number
+    FW_CONFIG_PATH?: string;
+    FW_TIMEOUT?: string; // Parsed as number
+    FW_RETRY_COUNT?: string; // Parsed as number
+    FW_CACHE_SIZE?: string; // Parsed as number
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // Bun Native Configuration Variables (Official)
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    /** Disable SSL certificate validation (Node.js compat) */
+    NODE_TLS_REJECT_UNAUTHORIZED?: "0" | "1";
+
+    /** Verbose fetch logging (curl style) */
+    BUN_CONFIG_VERBOSE_FETCH?: "curl" | "1";
+
+    /** Runtime transpiler cache path */
+    BUN_RUNTIME_TRANSPILER_CACHE_PATH?: string;
+
+    /** Max concurrent HTTP requests */
+    BUN_CONFIG_MAX_HTTP_REQUESTS?: string;
+
+    /** Disable terminal clear on reload */
+    BUN_CONFIG_NO_CLEAR_TERMINAL_ON_RELOAD?: "true" | "false";
+
+    /** Disable crash report uploads */
+    DO_NOT_TRACK?: "1";
+
+    /** Prepend CLI arguments */
+    BUN_OPTIONS?: string;
+
+    /** Temporary directory override */
+    TMPDIR?: string;
+
+    /** Force ANSI colors */
+    FORCE_COLOR?: "1";
+
+    /** Disable ANSI colors */
+    NO_COLOR?: "1";
+  }
+}
 
 import { profileManager, ProfileUtils } from "./config/profiles.ts";
 import { PATHS } from "./config/paths.ts";
