@@ -207,6 +207,10 @@ bun run tier1380:registry config:diff <c1> <c2>   # Compare configs (Bun.deepEqu
 bun run tier1380:registry password:hash [pwd]     # Hash password (Bun.password)
 bun run tier1380:registry rss:generate  # Generate RSS feed (Bun.escapeHTML)
 bun run tier1380:registry demo:peek     # Demo Bun.peek() async inspection
+bun run tier1380:registry demo:path     # Demo path operations (path module)
+bun run tier1380:registry server:start [port]  # Start TCP server (Bun.listen)
+bun run tier1380:registry worker:spawn [task]  # Spawn worker with IPC
+bun run tier1380:registry watch [pattern]      # Watch files (fs.watch)
 bun run tier1380:registry shell:status  # Show Kimi shell integration status
 
 # Bun docs (mcp-bun-docs)

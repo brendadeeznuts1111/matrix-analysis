@@ -2,14 +2,15 @@
 /**
  * Tier-1380 OMEGA Registry Connector with Bun-Native Features
  * Connects to and manages the OMEGA registry with Cloudflare R2 integration
- * Bun-native APIs: dns.prefetch, hash.crc32, nanoseconds, gzip, sqlite, tcp
- * Usage: bun run tier1380:registry [check|version|connect|r2|sync|benchmark]
+ * Bun-native APIs: dns.prefetch, hash.crc32, nanoseconds, gzip, sqlite, tcp, path, spawn-ipc
+ * Usage: bun run tier1380:registry [check|version|connect|r2|sync|benchmark|server|worker]
  */
 
 import { Database } from "bun:sqlite";
 import { existsSync, mkdirSync } from "fs";
 import { $ } from "bun";
-import { join } from "path";
+import { join, basename, dirname, extname } from "path";
+import type { Socket, TCPSocketListener } from "bun";
 
 // ─── Glyphs ───────────────────────────────────────
 const GLYPHS = {
@@ -1351,6 +1352,195 @@ async function peekDemo(): Promise<void> {
   console.log("-".repeat(70) + "\n");
 }
 
+// ─── Path Operations (Bun.path) ─────────────────────
+async function pathOperations(filePath: string = "./data/test.json"): Promise<void> {
+  console.log(`${GLYPHS.DRIFT} Path Operations Demo (path)\n`);
+  console.log("-".repeat(70));
+
+  console.log(`  Input: ${filePath}`);
+  console.log(`  basename: ${basename(filePath)}`);
+  console.log(`  dirname: ${dirname(filePath)}`);
+  console.log(`  extname: ${extname(filePath)}`);
+  console.log(`  join: ${join(dirname(filePath), "subfolder", basename(filePath))}`);
+
+  // Bun.file path operations
+  const file = Bun.file(filePath);
+  console.log(`\n  Bun.file exists: ${await file.exists()}`);
+  
+  // Registry path resolution
+  const registryPaths = {
+    cache: REGISTRY_CONFIG.cacheDir,
+    db: REGISTRY_CONFIG.dbPath,
+    backup: "./backups",
+    config: "./config",
+  };
+
+  console.log(`\n  Registry Paths:`);
+  Object.entries(registryPaths).forEach(([name, path]) => {
+    console.log(`    ${name}: ${path} (basename: ${basename(path)})`);
+  });
+
+  console.log("-".repeat(70) + "\n");
+}
+
+// ─── TCP Registry Server ────────────────────────────
+let tcpServer: TCPSocketListener | null = null;
+
+async function startRegistryServer(port: number = 8787): Promise<void> {
+  console.log(`${GLYPHS.CONNECT} Starting Registry TCP Server on port ${port}\n`);
+  console.log("-".repeat(70));
+
+  const connections = new Set<Socket>();
+
+  tcpServer = Bun.listen({
+    hostname: "127.0.0.1",
+    port: port,
+    socket: {
+      open(socket) {
+        connections.add(socket);
+        console.log(`  [${new Date().toISOString()}] Client connected (${connections.size} total)`);
+        socket.write("Welcome to Tier-1380 Registry Server\n");
+        socket.write("Commands: STATUS, VERSION, LIST, STATS, QUIT\n> ");
+      },
+      data(socket, data) {
+        const command = new TextDecoder().decode(data).trim().toUpperCase();
+        console.log(`  [${new Date().toISOString()}] Command: ${command}`);
+
+        switch (command) {
+          case "STATUS":
+            socket.write(`Status: ${tcpServer ? "RUNNING" : "STOPPED"}\n`);
+            socket.write(`Connections: ${connections.size}\n`);
+            break;
+          case "VERSION":
+            socket.write(`Version: ${REGISTRY_CONFIG.version}\n`);
+            break;
+          case "LIST":
+            const files = cacheDB.query("SELECT key, size FROM registry_cache LIMIT 10").all() as any[];
+            socket.write(`Cache entries: ${files.length}\n`);
+            files.forEach(f => socket.write(`  ${f.key} (${formatBytes(f.size)})\n`));
+            break;
+          case "STATS":
+            const stats = cacheDB.query("SELECT COUNT(*) as count, SUM(size) as total FROM registry_cache").get() as any;
+            socket.write(`Total entries: ${stats.count}\n`);
+            socket.write(`Total size: ${formatBytes(stats.total || 0)}\n`);
+            break;
+          case "QUIT":
+            socket.write("Goodbye!\n");
+            socket.end();
+            return;
+          default:
+            socket.write(`Unknown command: ${command}\n`);
+            socket.write("Commands: STATUS, VERSION, LIST, STATS, QUIT\n");
+        }
+        socket.write("> ");
+      },
+      close(socket) {
+        connections.delete(socket);
+        console.log(`  [${new Date().toISOString()}] Client disconnected (${connections.size} remaining)`);
+      },
+      error(socket, error) {
+        console.error(`  [${new Date().toISOString()}] Socket error:`, error);
+        connections.delete(socket);
+      },
+    },
+  });
+
+  console.log(`  ${GLYPHS.OK} Server listening on 127.0.0.1:${port}`);
+  console.log(`  Press Ctrl+C to stop\n`);
+
+  // Handle graceful shutdown
+  process.on("SIGINT", () => {
+    console.log(`\n${GLYPHS.OK} Stopping server...`);
+    tcpServer?.stop();
+    process.exit(0);
+  });
+
+  // Keep running
+  await new Promise(() => {});
+}
+
+// ─── Spawn Worker with IPC ──────────────────────────
+async function spawnWorker(task: string = "benchmark"): Promise<void> {
+  console.log(`${GLYPHS.DRIFT} Spawning Worker with IPC (Bun.spawn)\n`);
+  console.log("-".repeat(70));
+
+  const workerScript = `
+    // Worker process
+    process.on("message", (msg) => {
+      console.log("[Worker] Received:", msg);
+      
+      if (msg.task === "benchmark") {
+        const data = new Uint8Array(1024 * 1024);
+        const crc32 = Bun.hash.crc32(data);
+        process.send({ result: "benchmark", crc32: crc32.toString(16), pid: process.pid });
+      } else if (msg.task === "hash") {
+        const hash = Bun.hash.wyhash(Buffer.from(msg.data));
+        process.send({ result: "hash", hash: hash.toString(16), pid: process.pid });
+      } else {
+        process.send({ error: "Unknown task", pid: process.pid });
+      }
+      
+      process.exit(0);
+    });
+    
+    // Signal ready
+    process.send({ status: "ready", pid: process.pid });
+  `;
+
+  const proc = Bun.spawn(["bun", "-e", workerScript], {
+    ipc: (message, subprocess) => {
+      console.log(`  [Main] IPC from worker:`, message);
+    },
+    onExit: (subprocess, exitCode, signalCode, error) => {
+      console.log(`  [Main] Worker exited with code ${exitCode}`);
+    },
+  });
+
+  console.log(`  ${GLYPHS.OK} Worker spawned (PID: ${proc.pid})`);
+
+  // Wait for worker to be ready
+  await new Promise(r => setTimeout(r, 100));
+
+  // Send task to worker
+  console.log(`  [Main] Sending task: ${task}`);
+  proc.send({ task, data: "test-data" });
+
+  // Wait for completion
+  await new Promise(r => setTimeout(r, 500));
+
+  proc.kill();
+  console.log("-".repeat(70) + "\n");
+}
+
+// ─── File Watcher (Bun.watch) ───────────────────────
+async function watchFiles(pattern: string = "./data/*"): Promise<void> {
+  console.log(`${GLYPHS.WATCH} Starting File Watcher (fs.watch)\n`);
+  console.log("-".repeat(70));
+  console.log(`  Watching: ${pattern}`);
+  console.log(`  Press Ctrl+C to stop\n`);
+
+  const watcher = fs.watch("./data", { recursive: true }, (eventType, filename) => {
+    console.log(`  [${new Date().toISOString()}] ${eventType}: ${filename}`);
+    
+    // Log to database
+    cacheDB.prepare(
+      "INSERT INTO registry_sync_log (direction, key, size, duration_ms) VALUES (?, ?, 0, 0)"
+    ).run("watch", `${eventType}:${filename}`, 0);
+  });
+
+  process.on("SIGINT", () => {
+    console.log(`\n${GLYPHS.OK} Stopping watcher...`);
+    watcher.close();
+    process.exit(0);
+  });
+
+  // Keep running
+  await new Promise(() => {});
+}
+
+// Import fs for watch
+import * as fs from "fs";
+
 // ─── Main ─────────────────────────────────────────
 async function main(): Promise<void> {
   const args = process.argv.slice(2);
@@ -1513,6 +1703,26 @@ async function main(): Promise<void> {
       await peekDemo();
       break;
 
+    case "demo:path":
+      await pathOperations(args[1]);
+      break;
+
+    // Server Commands
+    case "server:start":
+      const serverPort = parseInt(args[1]) || 8787;
+      await startRegistryServer(serverPort);
+      break;
+
+    // Worker Commands
+    case "worker:spawn":
+      await spawnWorker(args[1] || "benchmark");
+      break;
+
+    // Watch Commands
+    case "watch":
+      await watchFiles(args[1] || "./data/*");
+      break;
+
     case "help":
     default:
       console.log(`
@@ -1557,6 +1767,12 @@ Utilities:
   password:hash [pwd]  Hash password (Bun.password - argon2id)
   rss:generate         Generate RSS feed (Bun.escapeHTML)
   demo:peek            Demo Bun.peek() async inspection
+  demo:path [file]     Demo path operations (path module)
+
+Server & IPC:
+  server:start [port]  Start TCP registry server (Bun.listen)
+  worker:spawn [task]  Spawn worker with IPC (Bun.spawn)
+  watch [pattern]      Watch files for changes (fs.watch)
 
 Config Management:
   config:validate <path>   Validate config (Bun.deepEquals)
@@ -1576,6 +1792,10 @@ Examples:
   bun run tier1380:registry bin:check
 
 Bun-native Features:
+  • Bun.listen() - TCP socket server for registry API
+  • Bun.spawn(ipc) - Worker processes with IPC
+  • fs.watch() - File system monitoring
+  • path module - Cross-platform path operations
   • Bun.dns.prefetch() - DNS pre-resolution for endpoints
   • Bun.semver.satisfies() - Version comparison
   • Bun.which() - Binary detection in PATH
