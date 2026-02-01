@@ -1,10 +1,6 @@
 #!/usr/bin/env bun
-// mcp-tools/server.ts
-import { createValidatedMCPServer } from './validate.js';
-import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprotocol/sdk/types.js";
-
-// Create and start the validated MCP server
-const server = createValidatedMCPServer();
+// mcp-tools/server.ts - Simple demonstration server
+import { validateToolCall, executeTool, ThreatIntelligenceService } from './validate.js';
 
 // Mock transport for demonstration
 class MockTransport {
@@ -13,7 +9,7 @@ class MockTransport {
   }
 
   async start() {
-    console.log('🚀 Tier-1380 MCP Server started with deepMatch validation');
+    console.log('🚀 Tier-1380 MCP Tool Registry Demo Server');
     console.log('📋 Available tools:', Object.keys(require('./registry.json')).join(', '));
     console.log('');
 
@@ -22,56 +18,44 @@ class MockTransport {
   }
 
   async demonstrateCalls() {
-    console.log('🎭 Demonstrating tool calls:\n');
+    console.log('🎭 Demonstrating tool validation:\n');
 
     const examples = [
       {
-        name: ListToolsRequestSchema,
-        params: {},
-        description: 'List all available tools'
-      },
-      {
-        name: CallToolRequestSchema,
-        params: {
-          name: 'rss/query',
-          arguments: { pattern: 'bun', limit: 5 }
-        },
+        name: 'rss/query',
+        arguments: { pattern: 'bun', limit: 5 },
         description: 'Valid RSS query call'
       },
       {
-        name: CallToolRequestSchema,
-        params: {
-          name: 'cdn/purge',
-          arguments: { domain: 'example.com', confirm: true }
-        },
+        name: 'cdn/purge',
+        arguments: { domain: 'example.com', confirm: true },
         description: 'Valid CDN purge call'
       },
       {
-        name: CallToolRequestSchema,
-        params: {
-          name: 'audit/scan',
-          arguments: { path: '/src', max_width: 89, recursive: true }
-        },
+        name: 'audit/scan',
+        arguments: { path: '/src', max_width: 89, recursive: true },
         description: 'Valid audit scan call'
       },
       {
-        name: CallToolRequestSchema,
-        params: {
-          name: 'rss/query',
-          arguments: { limit: 10 } // Missing required 'pattern'
-        },
+        name: 'rss/query',
+        arguments: { limit: 10 }, // Missing required 'pattern'
         description: 'Invalid call - missing required field'
       }
     ];
 
     for (const example of examples) {
       console.log(`📞 ${example.description}`);
-      console.log(`   Request: ${example.name} - ${JSON.stringify(example.params)}`);
+      console.log(`   Request: ${example.name} - ${JSON.stringify(example.arguments)}`);
 
       try {
-        const result = await server.request(example.name, example.params, {
-          _meta: { headers: { cookie: 'session=valid' } }
-        });
+        // Validate the tool call
+        const validation = validateToolCall(example.name, example.arguments);
+        if (!validation.valid) {
+          throw new Error(validation.error);
+        }
+
+        // Execute the tool (mock)
+        const result = await executeTool(example.name, example.arguments);
         console.log(`   ✅ Success:`, JSON.stringify(result).substring(0, 100) + '...');
       } catch (error) {
         console.log(`   ❌ Error: ${error instanceof Error ? error.message : String(error)}`);

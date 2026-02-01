@@ -228,6 +228,10 @@ bun run tier1380:registry:compliance [tenant]     # Calculate Col-89 compliance 
 bun run tier1380:registry:export [json|csv]       # Export registry statistics
 bun run tier1380:registry:list                    # List all registered MCP tools
 
+# Tier-1380 SSE Live Alerts
+bun run tier1380:sse:start [port]                 # Start SSE alert server
+bun run tier1380:sse:test [tenant] [file] [line] [width]  # Send test alert
+
 # Bun docs (mcp-bun-docs)
 bun run docs:search -- "<query>"       # Search Bun docs (markdown)
 bun run docs:entry -- <term> [--url]   # Curated entry (JSON or URL)

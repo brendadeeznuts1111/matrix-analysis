@@ -3,7 +3,7 @@
 const TOOL_SCHEMAS: Record<string, any> = require('./registry.json');
 
 // Mock services for demonstration
-class ThreatIntelligenceService {
+export class ThreatIntelligenceService {
   static async logAnomaly(anomaly: {
     type: string;
     tool: string;
@@ -15,7 +15,7 @@ class ThreatIntelligenceService {
   }
 }
 
-class SecureCookieManager {
+export class SecureCookieManager {
   static async verify(cookieHeader: string): Promise<Record<string, any>> {
     // Mock verification - in production this would validate JWT/session
     return {
@@ -27,7 +27,7 @@ class SecureCookieManager {
   }
 }
 
-async function executeTool(toolName: string, args: any): Promise<any> {
+export async function executeTool(toolName: string, args: any): Promise<any> {
   // Mock tool execution - in production this would call actual tool implementations
   console.log(`🔧 Executing ${toolName} with args:`, args);
 

@@ -155,6 +155,8 @@
     "tier1380:registry:compliance": "bun tools/tier1380-registry-validation.ts compliance",
     "tier1380:registry:export": "bun tools/tier1380-registry-validation.ts export",
     "tier1380:registry:list": "bun tools/tier1380-registry-validation.ts list",
+    "tier1380:sse:start": "bun tools/tier1380-sse-alerts.ts start",
+    "tier1380:sse:test": "bun tools/tier1380-sse-alerts.ts test",
     "tier1380:terminal:profiles": "bun tools/tier1380-terminal-profiles.ts",
     "tier1380:terminal:list": "bun tools/tier1380-terminal-profiles.ts list",
     "tier1380:terminal:switch": "bun tools/tier1380-terminal-profiles.ts switch",
