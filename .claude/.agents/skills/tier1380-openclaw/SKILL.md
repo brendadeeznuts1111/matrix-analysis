@@ -239,6 +239,19 @@ infra logs openclaw
 /governance openclaw
 ```
 
+### Matrix Agent Bridge
+```bash
+# Bridge commands
+bun ~/.kimi/skills/tier1380-openclaw/scripts/matrix-bridge.ts status
+bun ~/.kimi/skills/tier1380-openclaw/scripts/matrix-bridge.ts proxy status
+bun ~/.kimi/skills/tier1380-openclaw/scripts/matrix-bridge.ts matrix profile list
+
+# Direct bridge usage
+bun matrix-agent/integrations/openclaw-bridge.ts init
+bun matrix-agent/integrations/openclaw-bridge.ts proxy profile list
+bun matrix-agent/integrations/openclaw-bridge.ts matrix status
+```
+
 ### Matrix CLI Integration
 ```bash
 # Via package.json scripts
