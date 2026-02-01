@@ -1,0 +1,1477 @@
+#!/usr/bin/env bun
+/**
+ * Tier-1380 OMEGA: Unified Command System v7.0
+ *
+ * Full Bun-native overhaul:
+ * - All I/O via Bun.file(), Bun.write(), Bun.$
+ * - Bun.spawn() replaces child_process
+ * - Bun.Glob replaces readdirSync
+ * - Dynamic plugin loader with await import()
+ * - lint namespace (Biome integration)
+ * - Startup semver gate + namespace validation
+ * - Col-89 compliant output
+ *
+ * @module bin/cmd
+ * @tier 1380-OMEGA-v7.0
+ */
+
+import { $, Glob } from "bun";
+import { join, dirname } from "path";
+
+// Semver gate — require Bun >=1.3.7 for stringWidth GB9c, wrapAnsi, etc.
+if (!Bun.semver.satisfies(Bun.version, ">=1.3.7")) {
+  console.error(
+    `[TIER-1380] Bun ${Bun.version} < >=1.3.7 — upgrade required`
+  );
+  process.exit(1);
+}
+
+const VERSION = "7.0.0";
+const CLAUDE_ROOT = dirname(import.meta.dir);
+const PROJECT_ROOT = dirname(CLAUDE_ROOT);
+const HISTORY_FILE = `${CLAUDE_ROOT}/.cache/cmd-history.json`;
+const ALIASES_FILE = `${CLAUDE_ROOT}/.cache/cmd-aliases.json`;
+const PLUGINS_DIR = `${CLAUDE_ROOT}/.cache/cmd-plugins`;
+
+const DEFAULT_ALIASES: Record<string, string> = {
+  s: "infra status",
+  h: "infra health",
+  start: "dash start",
+  stop: "dash stop",
+  audit: "pm audit",
+  skills: "skill list",
+  lc: "lint check",
+  lf: "lint fix",
+};
+
+// Colors
+const C = {
+  reset: "\x1b[0m",
+  bold: "\x1b[1m",
+  dim: "\x1b[2m",
+  red: "\x1b[31m",
+  green: "\x1b[32m",
+  yellow: "\x1b[33m",
+  blue: "\x1b[34m",
+  magenta: "\x1b[35m",
+  cyan: "\x1b[36m",
+  orange: "\x1b[38;5;208m",
+  white: "\x1b[37m",
+};
+
+// Output format
+let OUTPUT_FORMAT: "default" | "json" | "table" | "compact" = "default";
+let DRY_RUN = false;
+let PARALLEL = false;
+
+// ── TypeScript interface for namespace config ──────────────────────
+
+interface NamespaceConfig {
+  name: string;
+  description: string;
+  bin?: string;
+  script?: string;
+  handler?: (args: string[]) => Promise<number>;
+  commands: string[];
+  passthrough?: boolean;
+}
+
+// ── Command namespaces ─────────────────────────────────────────────
+
+const NAMESPACES: Record<string, NamespaceConfig> = {
+  infra: {
+    name: "Infrastructure",
+    description: "Service management, health checks, monitoring",
+    bin: `${CLAUDE_ROOT}/bin/infra`,
+    commands: [
+      "status",
+      "start",
+      "stop",
+      "restart",
+      "health",
+      "context",
+      "logs",
+      "diagnose",
+      "emergency-stop",
+    ],
+  },
+  pm: {
+    name: "Package Manager",
+    description: "Bun package management, audit, workspace ops",
+    handler: handlePmCommand,
+    commands: [
+      "install",
+      "add",
+      "remove",
+      "audit",
+      "outdated",
+      "ls",
+      "why",
+      "cache",
+      "hash",
+      "graph",
+    ],
+  },
+  matrix: {
+    name: "Lockfile Matrix",
+    description: "Project health matrix, lockfile analysis",
+    script: `${CLAUDE_ROOT}/scripts/lockfile-matrix.ts`,
+    commands: ["scan", "health", "migrate", "clean"],
+  },
+  projects: {
+    name: "Project Manager",
+    description: "Git project management, sync, health",
+    script: `${CLAUDE_ROOT}/scripts/projects-matrix.ts`,
+    commands: [
+      "status",
+      "sync",
+      "push",
+      "pull",
+      "lockfile",
+      "matrix",
+      "clean",
+      "health",
+    ],
+  },
+  omega: {
+    name: "OMEGA CLI",
+    description: "Core OMEGA protocol operations",
+    bin: `${CLAUDE_ROOT}/bin/omega`,
+    commands: ["dashboard", "deploy", "registry", "health", "backup"],
+  },
+  chrome: {
+    name: "Chrome State",
+    description: "Chrome state management, persistence",
+    handler: handleChromeCommand,
+    commands: ["persist", "query", "seal", "vault", "bridge"],
+  },
+  skill: {
+    name: "Skills",
+    description: "Tier-1380 skill management",
+    handler: handleSkillCommand,
+    commands: ["list", "load", "reload", "status"],
+  },
+  lint: {
+    name: "Lint",
+    description: "Code linting and formatting with Biome",
+    handler: handleLintCommand,
+    commands: ["check", "fix", "format", "status"],
+  },
+  dash: {
+    name: "Dashboard",
+    description: "Dashboard quick control",
+    bin: `${CLAUDE_ROOT}/bin/infra`,
+    passthrough: true,
+    commands: ["start", "stop", "restart", "status", "logs"],
+  },
+  self: {
+    name: "Command System",
+    description: "Self-management, history, aliases, plugins",
+    handler: handleSelfCommand,
+    commands: [
+      "history",
+      "alias",
+      "plugin",
+      "config",
+      "doctor",
+      "symlink",
+    ],
+  },
+};
+
+// ── Utility functions ──────────────────────────────────────────────
+
+function log(type: string, msg: string) {
+  if (OUTPUT_FORMAT === "json") return;
+  if (OUTPUT_FORMAT === "compact") {
+    console.log(`${type}: ${msg}`);
+    return;
+  }
+  const colors: Record<string, string> = {
+    info: C.blue,
+    success: C.green,
+    warning: C.yellow,
+    error: C.red,
+    cmd: C.cyan,
+    dim: C.dim,
+    run: C.magenta,
+  };
+  console.log(`${colors[type] || C.dim}[${type}]${C.reset} ${msg}`);
+}
+
+function printHeader(title: string) {
+  if (OUTPUT_FORMAT === "json" || OUTPUT_FORMAT === "compact") return;
+  console.log(`\n${C.bold}${C.orange}${title}${C.reset}`);
+  console.log(`${C.dim}${"─".repeat(50)}${C.reset}\n`);
+}
+
+function output(data: unknown) {
+  if (OUTPUT_FORMAT === "json") {
+    console.log(JSON.stringify(data, null, 2));
+  } else if (OUTPUT_FORMAT === "table" && Array.isArray(data)) {
+    console.log(
+      Bun.inspect.table(data, { colors: process.stdout.isTTY ?? false })
+    );
+  } else if (typeof data === "string") {
+    console.log(data);
+  } else {
+    console.log(Bun.inspect(data, { colors: true, depth: 4 }));
+  }
+}
+
+// ── History management (Bun-native) ────────────────────────────────
+
+interface HistoryEntry {
+  cmd: string;
+  args: string[];
+  timestamp: number;
+  result: number;
+}
+
+async function loadHistory(): Promise<HistoryEntry[]> {
+  const file = Bun.file(HISTORY_FILE);
+  if (await file.exists()) {
+    return file.json().catch(() => []);
+  }
+  return [];
+}
+
+async function saveHistory(entry: HistoryEntry) {
+  const history = await loadHistory();
+  history.push(entry);
+  if (history.length > 100) history.shift();
+  await Bun.write(
+    HISTORY_FILE,
+    JSON.stringify(history, null, 2)
+  ).catch(() => null);
+}
+
+async function showHistory(limit = 20) {
+  const history = await loadHistory();
+  printHeader("Command History");
+
+  if (history.length === 0) {
+    log("info", "No history yet");
+    return;
+  }
+
+  const entries = history.slice(-limit).reverse();
+  const formatted = entries.map((h, i) => ({
+    "#": i + 1,
+    Time: new Date(h.timestamp).toLocaleTimeString(),
+    Command: `${h.cmd} ${h.args.join(" ")}`.slice(0, 40),
+    Result: h.result === 0 ? "ok" : "fail",
+  }));
+
+  output(formatted);
+}
+
+// ── Aliases management (Bun-native) ────────────────────────────────
+
+async function loadAliases(): Promise<Record<string, string>> {
+  const file = Bun.file(ALIASES_FILE);
+  if (await file.exists()) {
+    return file.json().catch(() => ({ ...DEFAULT_ALIASES }));
+  }
+  return { ...DEFAULT_ALIASES };
+}
+
+async function saveAliases(aliases: Record<string, string>) {
+  await Bun.write(
+    ALIASES_FILE,
+    JSON.stringify(aliases, null, 2)
+  ).catch(() => null);
+}
+
+async function resolveAlias(cmd: string): Promise<string | null> {
+  const aliases = await loadAliases();
+  return aliases[cmd] || null;
+}
+
+// ── Plugin system (dynamic import) ─────────────────────────────────
+
+async function loadPlugins() {
+  try {
+    const glob = new Glob("*.{ts,js}");
+    const plugins: string[] = [];
+    for await (const file of glob.scan(PLUGINS_DIR)) {
+      plugins.push(file);
+    }
+
+    for (const plugin of plugins) {
+      const pluginPath = join(PLUGINS_DIR, plugin);
+      try {
+        const mod = await import(pluginPath);
+        if (mod.name && mod.handler && mod.commands) {
+          NAMESPACES[mod.name] = {
+            name: mod.name,
+            description: mod.description || `Plugin: ${mod.name}`,
+            handler: mod.handler,
+            commands: mod.commands,
+          };
+          log("dim", `Loaded plugin: ${plugin}`);
+        }
+      } catch (err) {
+        log("warning", `Failed to load plugin ${plugin}: ${err}`);
+      }
+    }
+  } catch {
+    // Plugins dir doesn't exist or can't be read
+  }
+}
+
+// ── Spawn helper (Bun-native) ──────────────────────────────────────
+
+async function spawnCommand(
+  cmd: string,
+  args: string[],
+  opts?: { cwd?: string }
+): Promise<number> {
+  const bin = Bun.which(cmd);
+  const executable = bin || cmd;
+  const proc = Bun.spawn([executable, ...args], {
+    stdio: ["inherit", "inherit", "inherit"],
+    cwd: opts?.cwd || CLAUDE_ROOT,
+  });
+  return await proc.exited;
+}
+
+// ── Command handlers ───────────────────────────────────────────────
+
+async function handlePmCommand(args: string[]): Promise<number> {
+  const subcommand = args[0] || "help";
+
+  switch (subcommand) {
+    case "install":
+    case "i":
+      log("cmd", "Running bun install...");
+      if (DRY_RUN) {
+        log("run", "Would run: bun install " + args.slice(1).join(" "));
+        return 0;
+      }
+      return spawnCommand("bun", ["install", ...args.slice(1)]);
+
+    case "add":
+      log("cmd", `Adding package: ${args[1] || "..."}`);
+      if (DRY_RUN) {
+        log("run", `Would add: ${args[1]}`);
+        return 0;
+      }
+      return spawnCommand("bun", ["add", ...args.slice(1)]);
+
+    case "remove":
+    case "rm":
+      log("cmd", `Removing package: ${args[1] || "..."}`);
+      if (DRY_RUN) {
+        log("run", `Would remove: ${args[1]}`);
+        return 0;
+      }
+      return spawnCommand("bun", ["remove", ...args.slice(1)]);
+
+    case "audit":
+      log("cmd", "Running security audit...");
+      return spawnCommand("bun", ["pm", "audit", ...args.slice(1)]);
+
+    case "outdated":
+      log("cmd", "Checking for outdated packages...");
+      return spawnCommand("bun", ["pm", "outdated", ...args.slice(1)]);
+
+    case "ls":
+      return spawnCommand("bun", ["pm", "ls", ...args.slice(1)]);
+
+    case "why":
+      return spawnCommand("bun", ["pm", "why", ...args.slice(1)]);
+
+    case "cache":
+      return handleCacheCommand(args.slice(1));
+
+    case "hash":
+      return spawnCommand("bun", ["pm", "hash"]);
+
+    case "graph":
+      return spawnCommand("bun", ["pm", "graph"]);
+
+    case "help":
+    default:
+      showPmHelp();
+      return 0;
+  }
+}
+
+async function handleCacheCommand(args: string[]): Promise<number> {
+  const subcommand = args[0] || "list";
+
+  switch (subcommand) {
+    case "clear":
+    case "clean":
+    case "rm":
+      log("cmd", "Clearing package cache...");
+      if (DRY_RUN) {
+        log("run", "Would clear cache");
+        return 0;
+      }
+      return spawnCommand("bun", ["pm", "cache", "rm"]);
+
+    case "list":
+    case "ls":
+      return spawnCommand("bun", ["pm", "cache", "list"]);
+
+    case "path":
+      return spawnCommand("bun", ["pm", "cache", "path"]);
+
+    default:
+      console.log("Usage: cmd pm cache <clear|list|path>");
+      return 1;
+  }
+}
+
+async function handleChromeCommand(args: string[]): Promise<number> {
+  const subcommand = args[0] || "help";
+  const script = `${CLAUDE_ROOT}/chrome-state/persist.ts`;
+
+  switch (subcommand) {
+    case "persist":
+    case "save":
+      return spawnCommand("bun", [script, "persist", ...args.slice(1)]);
+
+    case "query":
+    case "get":
+      return spawnCommand("bun", [script, "query", ...args.slice(1)]);
+
+    case "seal":
+      return spawnCommand("bun", [
+        `${CLAUDE_ROOT}/chrome-state/seal.ts`,
+        ...args.slice(1),
+      ]);
+
+    case "vault":
+      return spawnCommand("bun", [
+        `${CLAUDE_ROOT}/chrome-state/vault.ts`,
+        ...args.slice(1),
+      ]);
+
+    case "bridge":
+      return spawnCommand("bun", [
+        `${CLAUDE_ROOT}/chrome-state/bridge.ts`,
+        ...args.slice(1),
+      ]);
+
+    case "help":
+    default:
+      showChromeHelp();
+      return 0;
+  }
+}
+
+async function handleSkillCommand(args: string[]): Promise<number> {
+  const subcommand = args[0] || "list";
+  const skillsDir = `${CLAUDE_ROOT}/.agents/skills`;
+
+  switch (subcommand) {
+    case "list":
+    case "ls": {
+      printHeader("Tier-1380 Skills");
+      try {
+        // Scan for subdirectories by finding any file within them
+        const glob = new Glob("*/*");
+        const skillNames = new Set<string>();
+        for await (const match of glob.scan(skillsDir)) {
+          skillNames.add(match.split("/")[0]);
+        }
+        const skills = [...skillNames].sort();
+
+        if (OUTPUT_FORMAT === "json") {
+          output({ skills, count: skills.length });
+        } else {
+          for (const skill of skills) {
+            const skillFile = join(skillsDir, skill, "SKILL.md");
+            const hasSkill = await Bun.file(skillFile).exists();
+            const icon = hasSkill ? `${C.green}+${C.reset}` : `${C.yellow}?${C.reset}`;
+            console.log(`  ${icon}  ${C.bold}${skill}${C.reset}`);
+          }
+          console.log();
+          log("info", `Found ${skills.length} skills in ${skillsDir}`);
+        }
+      } catch {
+        log("error", `Failed to list skills from ${skillsDir}`);
+      }
+      return 0;
+    }
+
+    case "load": {
+      const skillName = args[1];
+      if (!skillName) {
+        log("error", "Usage: cmd skill load <skill-name>");
+        return 1;
+      }
+      log("info", `Loading skill: ${skillName}`);
+      console.log(`Use in CLI: /skill:${skillName}`);
+      return 0;
+    }
+
+    case "reload": {
+      const reloadName = args[1];
+      if (!reloadName) {
+        log("error", "Usage: cmd skill reload <skill-name>");
+        return 1;
+      }
+      log("info", `Reloading skill: ${reloadName}`);
+      return 0;
+    }
+
+    case "status": {
+      printHeader("Skills Status");
+      const status: Record<string, string> = {
+        "Tier-1380 OMEGA": "Active",
+        Infrastructure: "Active",
+        "Commit Flow": "Active",
+      };
+      if (OUTPUT_FORMAT === "json") {
+        output(status);
+      } else {
+        for (const [k, v] of Object.entries(status)) {
+          console.log(
+            `  ${C.bold}${k}:${C.reset} ${C.green}${v}${C.reset}`
+          );
+        }
+      }
+      return 0;
+    }
+
+    default:
+      showSkillHelp();
+      return 0;
+  }
+}
+
+// ── Lint namespace handler ─────────────────────────────────────────
+
+const LINT_DIRS = ["src/", ".claude/", "tools/", "cli/", "mcp-bun-docs/"];
+
+async function handleLintCommand(args: string[]): Promise<number> {
+  const subcommand = args[0] || "help";
+
+  switch (subcommand) {
+    case "check": {
+      log("cmd", "Running Biome lint check...");
+      if (DRY_RUN) {
+        log("run", `Would run: bunx biome check ${LINT_DIRS.join(" ")}`);
+        return 0;
+      }
+      return spawnCommand(
+        "bunx",
+        ["biome", "check", ...LINT_DIRS, ...args.slice(1)],
+        { cwd: PROJECT_ROOT }
+      );
+    }
+
+    case "fix": {
+      log("cmd", "Running Biome auto-fix...");
+      if (DRY_RUN) {
+        log(
+          "run",
+          `Would run: bunx biome check --write ${LINT_DIRS.join(" ")}`
+        );
+        return 0;
+      }
+      return spawnCommand(
+        "bunx",
+        ["biome", "check", "--write", ...LINT_DIRS, ...args.slice(1)],
+        { cwd: PROJECT_ROOT }
+      );
+    }
+
+    case "format": {
+      log("cmd", "Running Biome format...");
+      if (DRY_RUN) {
+        log(
+          "run",
+          `Would run: bunx biome format --write ${LINT_DIRS.join(" ")}`
+        );
+        return 0;
+      }
+      return spawnCommand(
+        "bunx",
+        ["biome", "format", "--write", ...LINT_DIRS, ...args.slice(1)],
+        { cwd: PROJECT_ROOT }
+      );
+    }
+
+    case "status": {
+      log("cmd", "Lint summary...");
+      if (DRY_RUN) {
+        log("run", "Would run: bunx biome check --reporter=summary");
+        return 0;
+      }
+      return spawnCommand(
+        "bunx",
+        ["biome", "check", ...LINT_DIRS, "--reporter=summary"],
+        { cwd: PROJECT_ROOT }
+      );
+    }
+
+    case "help":
+    default:
+      showLintHelp();
+      return 0;
+  }
+}
+
+// ── Self management ────────────────────────────────────────────────
+
+async function handleSelfCommand(args: string[]): Promise<number> {
+  const subcommand = args[0] || "help";
+
+  switch (subcommand) {
+    case "history":
+    case "hist": {
+      const limit = parseInt(args[1]) || 20;
+      await showHistory(limit);
+      return 0;
+    }
+
+    case "replay":
+    case "r": {
+      const index = parseInt(args[1]) || 1;
+      const history = await loadHistory();
+      if (index < 1 || index > history.length) {
+        log("error", `Invalid history index: ${index}`);
+        return 1;
+      }
+      const entry = history[history.length - index];
+      log("run", `Replaying: cmd ${entry.cmd} ${entry.args.join(" ")}`);
+      return executeCommand(entry.cmd, entry.args);
+    }
+
+    case "alias":
+    case "a":
+      return handleAliasCommand(args.slice(1));
+
+    case "plugin":
+    case "p":
+      return handlePluginCommand(args.slice(1));
+
+    case "config":
+    case "c":
+      return handleConfigCommand();
+
+    case "doctor":
+    case "d":
+      return runDoctor();
+
+    case "symlink": {
+      const home = process.env.HOME || process.env.USERPROFILE || "~";
+      const targetDir = join(home, "bin");
+      const targetPath = join(targetDir, "cmd");
+      const sourcePath = join(CLAUDE_ROOT, "bin", "cmd");
+
+      if (DRY_RUN) {
+        log("run", `Would create: ln -sf ${sourcePath} ${targetPath}`);
+        return 0;
+      }
+
+      await $`mkdir -p ${targetDir}`.quiet().nothrow();
+      const result = await $`ln -sf ${sourcePath} ${targetPath}`
+        .quiet()
+        .nothrow();
+      if (result.exitCode === 0) {
+        log("success", `Symlinked ${sourcePath} -> ${targetPath}`);
+      } else {
+        log("error", `Failed to create symlink`);
+        return 1;
+      }
+      return 0;
+    }
+
+    case "help":
+    default:
+      showSelfHelp();
+      return 0;
+  }
+}
+
+async function handleAliasCommand(args: string[]): Promise<number> {
+  const subcommand = args[0] || "list";
+  const aliases = await loadAliases();
+
+  switch (subcommand) {
+    case "list":
+    case "ls":
+      printHeader("Command Aliases");
+      for (const [alias, cmd] of Object.entries(aliases)) {
+        console.log(
+          `  ${C.cyan}${alias.padEnd(10)}${C.reset} -> ${cmd}`
+        );
+      }
+      return 0;
+
+    case "add":
+    case "set": {
+      const [alias, ...cmdParts] = args.slice(1);
+      if (!alias || cmdParts.length === 0) {
+        log("error", "Usage: cmd self alias add <alias> <command>");
+        return 1;
+      }
+      aliases[alias] = cmdParts.join(" ");
+      await saveAliases(aliases);
+      log("success", `Added alias: ${alias} -> ${aliases[alias]}`);
+      return 0;
+    }
+
+    case "remove":
+    case "rm": {
+      const aliasToRemove = args[1];
+      if (!aliasToRemove || !aliases[aliasToRemove]) {
+        log("error", `Alias not found: ${aliasToRemove}`);
+        return 1;
+      }
+      delete aliases[aliasToRemove];
+      await saveAliases(aliases);
+      log("success", `Removed alias: ${aliasToRemove}`);
+      return 0;
+    }
+
+    default:
+      console.log("Usage: cmd self alias <list|add|remove>");
+      return 1;
+  }
+}
+
+async function handlePluginCommand(_args: string[]): Promise<number> {
+  printHeader("Plugin System");
+  console.log("Plugins directory: " + PLUGINS_DIR);
+
+  try {
+    const glob = new Glob("*.{ts,js}");
+    const plugins: string[] = [];
+    for await (const file of glob.scan(PLUGINS_DIR)) {
+      plugins.push(file);
+    }
+
+    if (plugins.length === 0) {
+      log("info", "No plugins installed");
+    } else {
+      console.log("Installed plugins:");
+      for (const plugin of plugins) {
+        console.log(`  * ${plugin}`);
+      }
+    }
+  } catch {
+    log("info", "No plugins directory");
+  }
+
+  console.log();
+  console.log("To create a plugin, add a .ts file to:");
+  console.log(`  ${PLUGINS_DIR}`);
+  console.log();
+  console.log("Plugin contract:");
+  console.log("  export { name, description, handler, commands }");
+  return 0;
+}
+
+async function handleConfigCommand(): Promise<number> {
+  printHeader("Command Configuration");
+  console.log("Config files:");
+  console.log(`  History: ${HISTORY_FILE}`);
+  console.log(`  Aliases: ${ALIASES_FILE}`);
+  console.log(`  Plugins: ${PLUGINS_DIR}`);
+  console.log(`  Root:    ${CLAUDE_ROOT}`);
+  console.log(`  Project: ${PROJECT_ROOT}`);
+  return 0;
+}
+
+// ── Doctor — enhanced diagnostics ──────────────────────────────────
+
+async function runDoctor(): Promise<number> {
+  printHeader("Command System Diagnostics");
+
+  const checks: Array<{
+    check: string;
+    status: string;
+    detail?: string;
+  }> = [];
+
+  // Bun version
+  checks.push({
+    check: "Bun version",
+    status: Bun.semver.satisfies(Bun.version, ">=1.3.7")
+      ? "ok"
+      : "fail",
+    detail: Bun.version,
+  });
+
+  // Namespace count
+  checks.push({
+    check: "Namespaces loaded",
+    status: Object.keys(NAMESPACES).length > 0 ? "ok" : "fail",
+    detail: `${Object.keys(NAMESPACES).length} registered`,
+  });
+
+  // Validate namespace binaries and scripts
+  for (const [key, ns] of Object.entries(NAMESPACES)) {
+    if (ns.bin) {
+      const exists = await Bun.file(ns.bin).exists();
+      checks.push({
+        check: `${key} binary`,
+        status: exists ? "ok" : "warn",
+        detail: exists ? ns.bin : "missing",
+      });
+    }
+    if (ns.script) {
+      const exists = await Bun.file(ns.script).exists();
+      checks.push({
+        check: `${key} script`,
+        status: exists ? "ok" : "warn",
+        detail: exists ? ns.script : "missing",
+      });
+    }
+  }
+
+  // FZF availability
+  const fzfPath = Bun.which("fzf");
+  checks.push({
+    check: "FZF (interactive mode)",
+    status: fzfPath ? "ok" : "warn",
+    detail: fzfPath || "not installed (brew install fzf)",
+  });
+
+  // Biome availability
+  const biomePath = Bun.which("biome");
+  checks.push({
+    check: "Biome (lint namespace)",
+    status: biomePath ? "ok" : "warn",
+    detail: biomePath || "uses bunx fallback",
+  });
+
+  // History file
+  checks.push({
+    check: "History file",
+    status: (await Bun.file(HISTORY_FILE).exists()) ? "ok" : "warn",
+    detail: HISTORY_FILE,
+  });
+
+  // Aliases file
+  checks.push({
+    check: "Aliases file",
+    status: (await Bun.file(ALIASES_FILE).exists()) ? "ok" : "warn",
+    detail: ALIASES_FILE,
+  });
+
+  // Cache directory
+  const cacheCheck = await $`test -d ${CLAUDE_ROOT}/.cache`
+    .quiet()
+    .nothrow();
+  checks.push({
+    check: "Cache directory",
+    status: cacheCheck.exitCode === 0 ? "ok" : "warn",
+    detail: `${CLAUDE_ROOT}/.cache`,
+  });
+
+  // Display
+  if (OUTPUT_FORMAT === "json") {
+    output(checks);
+  } else if (OUTPUT_FORMAT === "table") {
+    output(checks);
+  } else {
+    for (const c of checks) {
+      const icon =
+        c.status === "ok"
+          ? `${C.green}+${C.reset}`
+          : c.status === "warn"
+            ? `${C.yellow}?${C.reset}`
+            : `${C.red}x${C.reset}`;
+      const detail = c.detail
+        ? ` ${C.dim}(${c.detail})${C.reset}`
+        : "";
+      console.log(`  [${icon}] ${c.check}${detail}`);
+    }
+  }
+
+  console.log();
+  log("info", `cmd v${VERSION} | Bun ${Bun.version}`);
+  return 0;
+}
+
+// ── Interactive FZF mode (Bun.$) ───────────────────────────────────
+
+async function runInteractiveMode(): Promise<number> {
+  if (!Bun.which("fzf")) {
+    log("error", "FZF not installed. Install: brew install fzf");
+    return 1;
+  }
+
+  printHeader("Interactive Command Mode");
+
+  // Build command list
+  const commands: string[] = [];
+  for (const [nsKey, ns] of Object.entries(NAMESPACES)) {
+    for (const cmd of ns.commands) {
+      commands.push(`${nsKey} ${cmd}`);
+    }
+  }
+
+  // Add aliases
+  const aliases = await loadAliases();
+  for (const [alias, cmd] of Object.entries(aliases)) {
+    commands.push(`${alias} -> ${cmd}`);
+  }
+
+  // Add recent history
+  const history = (await loadHistory()).slice(-10).reverse();
+  for (const h of history) {
+    commands.push(`[hist] ${h.cmd} ${h.args.join(" ")}`);
+  }
+
+  try {
+    const input = commands.join("\n");
+    const result =
+      await $`echo ${input} | fzf --height 40% --border --prompt "cmd > "`.text();
+    const selection = result.trim();
+
+    if (!selection) {
+      log("info", "No selection made");
+      return 0;
+    }
+
+    if (selection.startsWith("[hist] ")) {
+      const cmdStr = selection.slice(7);
+      const parts = cmdStr.split(" ");
+      log("run", `Executing: ${cmdStr}`);
+      return await executeCommand(parts[0], parts.slice(1));
+    } else if (selection.includes(" -> ")) {
+      const aliasCmd = selection.split(" -> ")[1];
+      const parts = aliasCmd.split(" ");
+      log("run", `Executing alias: ${aliasCmd}`);
+      return await executeCommand(parts[0], parts.slice(1));
+    } else {
+      const parts = selection.split(" ");
+      log("run", `Executing: cmd ${selection}`);
+      return await executeCommand(parts[0], parts.slice(1));
+    }
+  } catch {
+    log("info", "Interactive mode cancelled");
+    return 0;
+  }
+}
+
+// ── Chain multiple commands ────────────────────────────────────────
+
+async function runChain(chainStr: string): Promise<number> {
+  const commands = chainStr
+    .split(";")
+    .map((c) => c.trim())
+    .filter(Boolean);
+  const results: Array<{ cmd: string; result: number }> = [];
+
+  printHeader(`Executing ${commands.length} Commands`);
+
+  if (PARALLEL) {
+    const promises = commands.map(async (cmdStr) => {
+      const parts = cmdStr.split(" ");
+      const ns = parts[0];
+      const args = parts.slice(1);
+      log("run", `[parallel] ${cmdStr}`);
+      const result = await executeCommand(ns, args, false);
+      return { cmd: cmdStr, result };
+    });
+
+    results.push(...(await Promise.all(promises)));
+  } else {
+    for (const cmdStr of commands) {
+      const parts = cmdStr.split(" ");
+      const ns = parts[0];
+      const args = parts.slice(1);
+      log("run", `[chain] ${cmdStr}`);
+      const result = await executeCommand(ns, args, false);
+      results.push({ cmd: cmdStr, result });
+      if (result !== 0) {
+        log("warning", `Command failed, stopping chain: ${cmdStr}`);
+        break;
+      }
+    }
+  }
+
+  printHeader("Chain Summary");
+  for (const r of results) {
+    const icon =
+      r.result === 0
+        ? `${C.green}ok${C.reset}`
+        : `${C.red}fail${C.reset}`;
+    console.log(`  [${icon}] ${r.cmd}`);
+  }
+
+  return results.every((r) => r.result === 0) ? 0 : 1;
+}
+
+// ── Main command execution ─────────────────────────────────────────
+
+async function executeCommand(
+  namespace: string,
+  args: string[],
+  recordHistory = true
+): Promise<number> {
+  // Check aliases
+  const alias = await resolveAlias(namespace);
+  if (alias) {
+    const parts = alias.split(" ");
+    namespace = parts[0];
+    args = [...parts.slice(1), ...args];
+  }
+
+  const ns = NAMESPACES[namespace];
+  if (!ns) {
+    log("error", `Unknown namespace: ${namespace}`);
+    return 1;
+  }
+
+  const startTime = Date.now();
+  let result = 0;
+
+  try {
+    if (ns.bin && !ns.handler) {
+      const cmdArgs = ns.passthrough
+        ? [args[0], "dashboard", ...args.slice(1)]
+        : args;
+      result = await spawnCommand(ns.bin, cmdArgs);
+    } else if (ns.handler) {
+      result = await ns.handler(args);
+    } else if (ns.script) {
+      result = await spawnCommand("bun", [ns.script, ...args]);
+    }
+  } catch (error) {
+    log("error", `Command failed: ${error}`);
+    result = 1;
+  }
+
+  if (recordHistory) {
+    await saveHistory({
+      cmd: namespace,
+      args,
+      timestamp: startTime,
+      result,
+    });
+  }
+
+  return result;
+}
+
+// ── Help displays ──────────────────────────────────────────────────
+
+function showPmHelp() {
+  printHeader("Package Manager Commands");
+  console.log(`${C.bold}Usage:${C.reset} cmd pm <command> [args]`);
+  console.log();
+  console.log(`${C.bold}Commands:${C.reset}`);
+  console.log("  install, i          Install dependencies");
+  console.log("  add <pkg>           Add package (--dev, --exact)");
+  console.log("  remove, rm <pkg>    Remove package");
+  console.log("  audit               Security audit");
+  console.log("  outdated            Check for updates");
+  console.log("  ls                  List packages");
+  console.log("  why <pkg>           Why is this installed?");
+  console.log("  cache <cmd>         Cache management");
+  console.log("  hash                Lockfile hash");
+  console.log("  graph               Dependency graph");
+  console.log();
+  console.log(`${C.bold}Examples:${C.reset}`);
+  console.log("  cmd pm install --frozen-lockfile");
+  console.log("  cmd pm add zod -D --exact");
+  console.log("  cmd pm audit");
+}
+
+function showChromeHelp() {
+  printHeader("Chrome State Commands");
+  console.log(`${C.bold}Usage:${C.reset} cmd chrome <command> [args]`);
+  console.log();
+  console.log(`${C.bold}Commands:${C.reset}`);
+  console.log("  persist, save       Persist Chrome state");
+  console.log("  query, get [id]     Query Chrome state by profile");
+  console.log("  seal                Seal Chrome state");
+  console.log("  vault               Vault operations");
+  console.log("  bridge              Bridge operations");
+}
+
+function showSkillHelp() {
+  printHeader("Skills Commands");
+  console.log(`${C.bold}Usage:${C.reset} cmd skill <command> [args]`);
+  console.log();
+  console.log(`${C.bold}Commands:${C.reset}`);
+  console.log("  list, ls            List all skills");
+  console.log("  load <name>         Load a skill");
+  console.log("  reload <name>       Reload a skill");
+  console.log("  status              Show skills status");
+}
+
+function showLintHelp() {
+  printHeader("Lint Commands (Biome)");
+  console.log(`${C.bold}Usage:${C.reset} cmd lint <command> [args]`);
+  console.log();
+  console.log(`${C.bold}Commands:${C.reset}`);
+  console.log("  check               Run lint checks (read-only)");
+  console.log("  fix                 Auto-fix lint issues");
+  console.log("  format              Format all source files");
+  console.log("  status              Show lint summary");
+  console.log();
+  console.log(`${C.bold}Scoped directories:${C.reset}`);
+  for (const dir of LINT_DIRS) {
+    console.log(`  ${dir}`);
+  }
+  console.log();
+  console.log(`${C.bold}Examples:${C.reset}`);
+  console.log("  cmd lint check");
+  console.log("  cmd lint fix");
+  console.log("  cmd -d lint fix              # Dry run");
+  console.log("  cmd -f json lint status      # JSON output");
+}
+
+function showSelfHelp() {
+  printHeader("Command System (self)");
+  console.log(`${C.bold}Usage:${C.reset} cmd self <command> [args]`);
+  console.log();
+  console.log(`${C.bold}Commands:${C.reset}`);
+  console.log("  history [n]         Show command history (last n)");
+  console.log("  replay [n]          Replay command from history");
+  console.log("  alias               Manage aliases");
+  console.log("  plugin              Manage plugins");
+  console.log("  config              Show configuration");
+  console.log("  doctor              Run diagnostics");
+  console.log("  symlink             Create ~/bin/cmd symlink");
+  console.log();
+  console.log(`${C.bold}Aliases:${C.reset}`);
+  console.log("  cmd self history    -> cmd hist");
+  console.log("  cmd self replay 5   -> cmd r 5");
+}
+
+function showMainHelp() {
+  printHeader(`Unified Command System v${VERSION}`);
+
+  console.log(`${C.bold}Usage:${C.reset} cmd <namespace> <command> [args...]`);
+  console.log("       cmd --interactive");
+  console.log('       cmd --chain "cmd1; cmd2; cmd3"');
+  console.log("       cmd --format json <namespace> <command>");
+  console.log();
+
+  console.log(`${C.bold}Global Options:${C.reset}`);
+  console.log("  -i, --interactive     FZF interactive mode");
+  console.log("  -c, --chain <cmds>    Execute commands (; separated)");
+  console.log("  -p, --parallel        Run chain in parallel");
+  console.log("  -d, --dry-run         Preview without executing");
+  console.log("  -f, --format <fmt>    Output: json|table|compact");
+  console.log("  -h, --help            Show help");
+  console.log("  -v, --version         Show version");
+  console.log("  -l, --list            List all commands");
+  console.log();
+
+  console.log(`${C.bold}Namespaces:${C.reset}\n`);
+
+  for (const [key, ns] of Object.entries(NAMESPACES)) {
+    console.log(
+      `  ${C.cyan}${key.padEnd(10)}${C.reset} ${C.bold}${ns.name}${C.reset}`
+    );
+    console.log(`            ${C.dim}${ns.description}${C.reset}`);
+  }
+
+  console.log();
+  console.log(`${C.bold}Examples:${C.reset}`);
+  console.log("  cmd infra status");
+  console.log("  cmd -i");
+  console.log('  cmd -c "pm audit; infra health"');
+  console.log('  cmd -c "pm audit; lint check" -p');
+  console.log("  cmd -d pm add zod");
+  console.log("  cmd -f json skill list");
+  console.log("  cmd lint check");
+  console.log("  cmd lint fix");
+  console.log("  cmd self doctor");
+  console.log("  cmd self symlink");
+  console.log();
+
+  console.log(`${C.bold}Shell Completions:${C.reset}`);
+  console.log("  source <(cmd --init-zsh)");
+  console.log("  source <(cmd --init-bash)");
+}
+
+function showList() {
+  printHeader("Available Commands");
+
+  const data = [];
+  for (const [key, ns] of Object.entries(NAMESPACES)) {
+    data.push({
+      Namespace: key,
+      Name: ns.name,
+      Commands: ns.commands.length,
+    });
+  }
+
+  if (OUTPUT_FORMAT === "json") {
+    output(data);
+  } else if (OUTPUT_FORMAT === "table") {
+    output(data);
+  } else {
+    for (const [key, ns] of Object.entries(NAMESPACES)) {
+      console.log(`${C.bold}${C.cyan}${key}${C.reset} - ${ns.name}`);
+      console.log(
+        `  Commands: ${ns.commands.map((c) => C.yellow + c + C.reset).join(", ")}`
+      );
+      console.log();
+    }
+  }
+}
+
+function showCompletions(namespace?: string) {
+  if (namespace && NAMESPACES[namespace]) {
+    console.log(NAMESPACES[namespace].commands.join(" "));
+  } else {
+    console.log(Object.keys(NAMESPACES).join(" "));
+  }
+}
+
+// ── Shell completion generators ────────────────────────────────────
+
+function generateZshCompletion() {
+  const nsList = Object.keys(NAMESPACES).join(" ");
+  const cases = Object.entries(NAMESPACES)
+    .map(
+      ([k, ns]) =>
+        `      ${k}) _values 'command' ${ns.commands.join(" ")} ;;`
+    )
+    .join("\n");
+
+  return `#compdef cmd
+# Tier-1380 OMEGA Command Completions v${VERSION}
+
+local -a namespaces
+namespaces=(${nsList})
+
+_arguments -C \\
+  '(-i --interactive)'{-i,--interactive}'[Interactive FZF mode]' \\
+  '(-c --chain)'{-c,--chain}'[Chain commands]:commands:' \\
+  '(-p --parallel)'{-p,--parallel}'[Parallel execution]' \\
+  '(-d --dry-run)'{-d,--dry-run}'[Dry run mode]' \\
+  '(-f --format)'{-f,--format}'[Output format]:format:(json table compact)' \\
+  '1: :->namespace' \\
+  '2: :->command' \\
+  '*:: :->args' && ret=0
+
+case \\"$state\\" in
+  namespace)
+    _describe -t namespaces 'namespace' namespaces
+    ;;
+  command)
+    case \\"$line[1]\\" in
+${cases}
+    esac
+    ;;
+esac
+
+return ret
+`;
+}
+
+function generateBashCompletion() {
+  const nsList = Object.keys(NAMESPACES).join(" ");
+  const cases = Object.entries(NAMESPACES)
+    .map(
+      ([k, ns]) =>
+        `      ${k}) COMPREPLY=(\\$(compgen -W "${ns.commands.join(" ")}" -- "\\$cur")) ;;`
+    )
+    .join("\n");
+
+  return `# Tier-1380 OMEGA Command Completions v${VERSION}
+_cmd_completion() {
+  local cur=\\${COMP_WORDS[COMP_CWORD]}
+  local prev=\\${COMP_WORDS[COMP_CWORD-1]}
+
+  local namespaces="${nsList}"
+  local opts="-i --interactive -c --chain -p --parallel -d --dry-run -f --format -h --help -v --version -l --list"
+
+  if [[ \\"$cur\\" == -* ]]; then
+    COMPREPLY=(\\$(compgen -W "\\$opts" -- "\\$cur"))
+  elif [ \\$COMP_CWORD -eq 1 ]; then
+    COMPREPLY=(\\$(compgen -W "\\$namespaces" -- "\\$cur"))
+  elif [ \\$COMP_CWORD -eq 2 ]; then
+    case \\$prev in
+${cases}
+    esac
+  fi
+}
+complete -F _cmd_completion cmd
+`;
+}
+
+// ── Startup validation ─────────────────────────────────────────────
+
+async function validateNamespaces() {
+  for (const [key, ns] of Object.entries(NAMESPACES)) {
+    if (ns.bin && !(await Bun.file(ns.bin).exists())) {
+      log("warning", `Namespace '${key}' binary missing: ${ns.bin}`);
+    }
+    if (ns.script && !(await Bun.file(ns.script).exists())) {
+      log("warning", `Namespace '${key}' script missing: ${ns.script}`);
+    }
+  }
+}
+
+// ── Main CLI ───────────────────────────────────────────────────────
+
+async function main(): Promise<number> {
+  // Ensure cache directories exist
+  await $`mkdir -p ${CLAUDE_ROOT}/.cache ${PLUGINS_DIR}`.quiet().nothrow();
+
+  // Load dynamic plugins
+  await loadPlugins();
+
+  // Validate namespaces (non-blocking warnings)
+  await validateNamespaces();
+
+  const args = process.argv.slice(2);
+
+  // Parse global flags
+  const flags = {
+    interactive:
+      args.includes("-i") || args.includes("--interactive"),
+    chain: (() => {
+      const idx = args.findIndex(
+        (a) => a === "-c" || a === "--chain"
+      );
+      return idx !== -1 && args[idx + 1] ? args[idx + 1] : null;
+    })(),
+    parallel:
+      args.includes("-p") || args.includes("--parallel"),
+    dryRun:
+      args.includes("-d") || args.includes("--dry-run"),
+    format: (() => {
+      const idx = args.findIndex(
+        (a) => a === "-f" || a === "--format"
+      );
+      return idx !== -1 && args[idx + 1]
+        ? (args[idx + 1] as "json" | "table" | "compact")
+        : null;
+    })(),
+    help: args.includes("-h") || args.includes("--help"),
+    version: args.includes("-v") || args.includes("--version"),
+    list: args.includes("-l") || args.includes("--list"),
+  };
+
+  // Apply settings
+  if (flags.format) OUTPUT_FORMAT = flags.format;
+  if (flags.dryRun) DRY_RUN = true;
+  if (flags.parallel) PARALLEL = true;
+
+  // Remove flags from args
+  const flagSet = new Set([
+    "-i",
+    "--interactive",
+    "-p",
+    "--parallel",
+    "-d",
+    "--dry-run",
+    "-h",
+    "--help",
+    "-v",
+    "--version",
+    "-l",
+    "--list",
+  ]);
+  const valueFlagSet = new Set(["-c", "--chain", "-f", "--format"]);
+
+  const cleanArgs = args.filter((a, i) => {
+    if (flagSet.has(a)) return false;
+    if (valueFlagSet.has(a)) return false;
+    if (i > 0 && valueFlagSet.has(args[i - 1])) return false;
+    return true;
+  });
+
+  // Handle special flags
+  if (flags.version) {
+    console.log(`cmd v${VERSION} (Tier-1380 OMEGA | Bun ${Bun.version})`);
+    return 0;
+  }
+
+  if (flags.list) {
+    showList();
+    return 0;
+  }
+
+  if (
+    flags.help ||
+    (cleanArgs.length === 0 && !flags.interactive && !flags.chain)
+  ) {
+    showMainHelp();
+    return 0;
+  }
+
+  if (cleanArgs[0] === "--complete") {
+    showCompletions(cleanArgs[1]);
+    return 0;
+  }
+
+  if (cleanArgs[0] === "--init-zsh") {
+    console.log(generateZshCompletion());
+    return 0;
+  }
+
+  if (cleanArgs[0] === "--init-bash") {
+    console.log(generateBashCompletion());
+    return 0;
+  }
+
+  // Interactive mode
+  if (flags.interactive) {
+    return await runInteractiveMode();
+  }
+
+  // Chain mode
+  if (flags.chain) {
+    return await runChain(flags.chain);
+  }
+
+  // Standard execution
+  const namespace = cleanArgs[0];
+  const command = cleanArgs[1];
+  const remainingArgs = cleanArgs.slice(2);
+
+  if (!namespace) {
+    showMainHelp();
+    return 0;
+  }
+
+  // Check for help on a specific namespace
+  if (command === "--help" || command === "-h" || !command) {
+    switch (namespace) {
+      case "pm":
+        showPmHelp();
+        break;
+      case "chrome":
+        showChromeHelp();
+        break;
+      case "skill":
+        showSkillHelp();
+        break;
+      case "lint":
+        showLintHelp();
+        break;
+      case "self":
+        showSelfHelp();
+        break;
+      default: {
+        const ns = NAMESPACES[namespace];
+        if (ns) {
+          console.log(`${C.bold}${ns.name}${C.reset}`);
+          console.log(`\nCommands: ${ns.commands.join(", ")}`);
+        } else {
+          log("error", `Unknown namespace: ${namespace}`);
+          return 1;
+        }
+      }
+    }
+    return 0;
+  }
+
+  // Execute
+  return await executeCommand(namespace, [command, ...remainingArgs]);
+}
+
+main().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});
