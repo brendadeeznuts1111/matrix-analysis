@@ -312,8 +312,69 @@ export class FactoryWagerVault {
   }
 
   /**
-   * Initialize vault with demo credentials
+   * List all available vault keys with diagnostic information
    */
+  async listKeys(): Promise<void> {
+    console.log("🔍 Available vault keys:");
+    console.log("========================");
+
+    if (Object.keys(this.metadata).length === 0) {
+      console.log("❌ No metadata found - vault may be empty");
+      return;
+    }
+
+    Object.entries(this.metadata).forEach(([key, data]) => {
+      const expiresAt = new Date(data.expiresAt);
+      const now = new Date();
+      const status = expiresAt > now ? "✅" : "⚠️";
+      const daysUntilExpiry = Math.floor((expiresAt.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+
+      console.log(`  ${status} ${key}`);
+      console.log(`     Expires: ${data.expiresAt.slice(0, 10)} (${daysUntilExpiry} days)`);
+      console.log(`     Checksum: ${data.checksum}`);
+      console.log(`     Service: ${data.service}`);
+      console.log("");
+    });
+
+    console.log(`📊 Summary: ${Object.keys(this.metadata).length} keys total`);
+  }
+
+  /**
+   * Create alias for existing vault key
+   */
+  async createAlias(sourceKey: string, aliasKey: string): Promise<boolean> {
+    try {
+      // Parse keys to extract service and actual key names
+      const sourceParts = sourceKey.split('.');
+      const aliasParts = aliasKey.split('.');
+
+      if (sourceParts.length < 5 || aliasParts.length < 5) {
+        console.error("❌ Invalid key format - expected: com.factory-wager.registry.service.key");
+        return false;
+      }
+
+      const sourceService = sourceParts[3];
+      const sourceActualKey = sourceParts.slice(4).join('.');
+      const aliasService = aliasParts[3];
+      const aliasActualKey = aliasParts.slice(4).join('.');
+
+      // Get the source value
+      const sourceValue = await this.getCredential(sourceService as any, sourceActualKey);
+      if (!sourceValue) {
+        console.error(`❌ Source key not found: ${sourceService}.${sourceActualKey}`);
+        return false;
+      }
+
+      // Create the alias
+      await this.setCredential(aliasService as any, aliasActualKey, sourceValue);
+      console.log(`✅ Alias created: ${aliasKey} → ${sourceKey}`);
+      return true;
+
+    } catch (error) {
+      console.error(`❌ Failed to create alias: ${(error as Error).message}`);
+      return false;
+    }
+  }
   async initializeDemo(): Promise<void> {
     console.log("🚀 Initializing FactoryWager Vault with demo credentials...");
 
@@ -355,6 +416,8 @@ Commands:
   set <service> <key> <value> Store a credential
   get <service> <key>        Retrieve a credential
   delete <service> <key>     Delete a credential
+  list-keys               List all available vault keys with diagnostic info
+  create-alias <source> <alias>  Create alias for existing vault key
   init-demo                  Initialize with demo credentials
 
 Services:
@@ -414,8 +477,17 @@ Features:
         }
         await vault.deleteCredential(delService as any, delKey);
         break;
-      case "init-demo":
-        await vault.initializeDemo();
+      case "list-keys":
+        await vault.listKeys();
+        break;
+      case "create-alias":
+        const [sourceKey, aliasKey] = process.argv.slice(3);
+        if (!sourceKey || !aliasKey) {
+          console.error("❌ Usage: create-alias <source-key> <alias-key>");
+          process.exit(1);
+        }
+        const aliasSuccess = await vault.createAlias(sourceKey, aliasKey);
+        process.exit(aliasSuccess ? 0 : 1);
         break;
       default:
         console.error(`❌ Unknown command: ${cmd}`);
