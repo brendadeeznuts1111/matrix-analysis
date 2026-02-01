@@ -183,6 +183,20 @@ bun run tier1380:terminal:profiles set API_KEY --value "xxx"  # Store secret
 bun run tier1380:terminal:profiles get API_KEY               # Retrieve secret
 bun run tier1380:terminal:switch prod   # Switch profile with secrets
 
+# Bun One-Liners (Advanced Features)
+# Import JSONC (JSON with comments)
+bun -e 'const c=await import("./config.jsonc",{with:{type:"jsonc"}});console.log(c.default)'
+# Import HTML as text
+bun -e 'const h=await import("./template.html",{with:{type:"text"}});console.log(h.default.slice(0,89)+"…")'
+# Build standalone executable
+bun build --compile --target=bun ./app.ts --outfile app && ./app
+# Verify WASM hash before dynamic import
+bun -e 'const w=await Bun.file("./module.wasm").arrayBuffer();const h=Bun.hash.wyhash(Buffer.from(w));console.log("wasm-hash:",h.toString(16))'
+# Load TOML with type attribute
+bun -e 'const t=await import("./bunfig.toml",{with:{type:"toml"}});console.log(t.default.logLevel)'
+# HTML bundler: check output hashes
+bun -e 'const r=await Bun.build({entrypoints:["./index.html"],outdir:"./dist"});r.outputs.forEach(o=>console.log(o.kind,o.path.split("/").pop()))'
+
 # Tier-1380 Registry Connector (Bun-native + R2 + Kimi Shell)
 bun run tier1380:registry               # Check registry status (with DNS prefetch)
 bun run tier1380:registry connect       # Connect to OMEGA registry
