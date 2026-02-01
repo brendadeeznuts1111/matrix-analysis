@@ -603,11 +603,7 @@ async function handleLintCommand(args: string[]): Promise<number> {
         log("run", "Would run: bunx biome check --reporter=summary");
         return 0;
       }
-      return spawnCommand(
-        "bunx",
-        ["biome", "check", ...LINT_DIRS, "--reporter=summary"],
-        { cwd: PROJECT_ROOT }
-      );
+      return runLintStatus(args.slice(1));
     }
 
     case "help":
@@ -615,6 +611,189 @@ async function handleLintCommand(args: string[]): Promise<number> {
       showLintHelp();
       return 0;
   }
+}
+
+// ── Lint status — parsed summary ────────────────────────────────────
+
+async function runLintStatus(_args: string[]): Promise<number> {
+  const bin = Bun.which("bunx") || "bunx";
+  const proc = Bun.spawn(
+    [bin, "biome", "check", ...LINT_DIRS, "--reporter=summary", "--max-diagnostics=50000"],
+    {
+      cwd: PROJECT_ROOT,
+      stdout: "pipe",
+      stderr: "pipe",
+    }
+  );
+
+  const [stdout, stderr] = await Promise.all([
+    new Response(proc.stdout).text(),
+    new Response(proc.stderr).text(),
+  ]);
+  const exitCode = await proc.exited;
+  const raw = stdout + stderr;
+
+  // Parse totals line: "Found N errors." / "Found N warnings." / "Found N infos."
+  const totalErrors = parseInt(raw.match(/Found (\d+) errors?\./)?.[1] || "0");
+  const totalWarnings = parseInt(raw.match(/Found (\d+) warnings?\./)?.[1] || "0");
+  const totalInfos = parseInt(raw.match(/Found (\d+) infos?\./)?.[1] || "0");
+  const filesChecked = parseInt(raw.match(/Checked (\d+) files/)?.[1] || "0");
+  const duration = raw.match(/in (\d+m?s)/)?.[1] || "?";
+
+  // Parse per-rule lines:  "  lint/suspicious/noConsole  10289 (10289 warnings)"
+  const rulePattern = /^\s+([\w/]+)\s+(\d+)\s+\(([^)]+)\)/gm;
+  const rules: Array<{
+    rule: string;
+    total: number;
+    errors: number;
+    warnings: number;
+    infos: number;
+  }> = [];
+
+  let match;
+  while ((match = rulePattern.exec(raw)) !== null) {
+    const rule = match[1];
+    const total = parseInt(match[2]);
+    const detail = match[3];
+    const errors = parseInt(detail.match(/(\d+) errors?/)?.[1] || "0");
+    const warnings = parseInt(detail.match(/(\d+) warnings?/)?.[1] || "0");
+    const infos = parseInt(detail.match(/(\d+) infos?/)?.[1] || "0");
+    rules.push({ rule, total, errors, warnings, infos });
+  }
+
+  // Sort: errors first, then by count descending
+  rules.sort((a, b) => b.errors - a.errors || b.total - a.total);
+
+  // Parse files needing format
+  const formatFiles: string[] = [];
+  const formatBlock = raw.match(/reporter\/format[\s\S]*?(?=reporter\/|Checked)/);
+  if (formatBlock) {
+    const lines = formatBlock[0].split("\n");
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (trimmed.startsWith("- ")) {
+        formatFiles.push(trimmed.slice(2));
+      }
+    }
+  }
+
+  // Parse files with parse errors
+  const parseFiles: string[] = [];
+  const parseBlock = raw.match(/reporter\/parse[\s\S]*?(?=reporter\/|Checked)/);
+  if (parseBlock) {
+    const lines = parseBlock[0].split("\n");
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (trimmed.startsWith("- ")) {
+        parseFiles.push(trimmed.slice(2));
+      }
+    }
+  }
+
+  // JSON output
+  if (OUTPUT_FORMAT === "json") {
+    output({
+      files: filesChecked,
+      duration,
+      errors: totalErrors,
+      warnings: totalWarnings,
+      infos: totalInfos,
+      rules,
+      parseErrors: parseFiles,
+      formatNeeded: formatFiles,
+    });
+    return exitCode;
+  }
+
+  // Display
+  printHeader("Lint Status");
+
+  // Totals bar
+  const errColor = totalErrors > 0 ? C.red : C.green;
+  const warnColor = totalWarnings > 0 ? C.yellow : C.green;
+  console.log(
+    `  Files:    ${C.bold}${filesChecked}${C.reset}  (${duration})`
+  );
+  console.log(
+    `  Errors:   ${errColor}${C.bold}${totalErrors}${C.reset}`
+  );
+  console.log(
+    `  Warnings: ${warnColor}${C.bold}${totalWarnings}${C.reset}`
+  );
+  console.log(
+    `  Infos:    ${C.dim}${totalInfos}${C.reset}`
+  );
+
+  // Parse errors
+  if (parseFiles.length > 0) {
+    console.log(
+      `\n  ${C.red}Parse errors (${parseFiles.length}):${C.reset}`
+    );
+    for (const f of parseFiles) {
+      console.log(`    ${C.dim}-${C.reset} ${f}`);
+    }
+  }
+
+  // Format needed
+  if (formatFiles.length > 0) {
+    console.log(
+      `\n  ${C.yellow}Needs formatting (${formatFiles.length}):${C.reset}`
+    );
+    for (const f of formatFiles) {
+      console.log(`    ${C.dim}-${C.reset} ${f}`);
+    }
+  }
+
+  // Rules table — split errors and top warnings
+  const errorRules = rules.filter((r) => r.errors > 0);
+  const warningRules = rules.filter((r) => r.errors === 0 && r.warnings > 0);
+
+  if (errorRules.length > 0) {
+    console.log(`\n  ${C.red}${C.bold}Error rules:${C.reset}`);
+    const errorTable = errorRules.map((r) => ({
+      Rule: r.rule.replace("lint/", ""),
+      Errors: r.errors,
+      Warnings: r.warnings,
+    }));
+    console.log(
+      Bun.inspect.table(errorTable, ["Rule", "Errors", "Warnings"], {
+        colors: process.stdout.isTTY ?? false,
+      })
+    );
+  }
+
+  if (warningRules.length > 0) {
+    const topWarnings = warningRules.slice(0, 15);
+    const hidden = warningRules.length - topWarnings.length;
+    console.log(
+      `  ${C.yellow}${C.bold}Top warning rules:${C.reset}`
+    );
+    const warnTable = topWarnings.map((r) => ({
+      Rule: r.rule.replace("lint/", ""),
+      Count: r.total,
+    }));
+    console.log(
+      Bun.inspect.table(warnTable, ["Rule", "Count"], {
+        colors: process.stdout.isTTY ?? false,
+      })
+    );
+    if (hidden > 0) {
+      console.log(`  ${C.dim}...and ${hidden} more warning rules${C.reset}`);
+    }
+  }
+
+  // Health score: 0 errors = 100%, scale down by error density
+  const healthPct =
+    filesChecked > 0
+      ? Math.max(0, Math.round(100 - (totalErrors / filesChecked) * 100))
+      : 100;
+  const healthColor =
+    healthPct >= 95 ? C.green : healthPct >= 80 ? C.yellow : C.red;
+  console.log(
+    `\n  Lint health: ${healthColor}${C.bold}${healthPct}%${C.reset}`
+  );
+
+  return exitCode;
 }
 
 // ── Self management ────────────────────────────────────────────────
