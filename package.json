@@ -104,6 +104,7 @@
     "tier1380:audit:db": "bun cli/tier1380-audit.ts db",
     "tier1380:audit:dashboard": "bun cli/tier1380-audit.ts dashboard",
     "tier1380:audit:clean": "bun cli/tier1380-audit.ts clean",
+    "tier1380:audit:export": "bun cli/tier1380-audit.ts export",
     "tier1380:audit:scan": "bun cli/tier1380-audit.ts scan",
     "tier1380:exec": "bun tools/tier1380-exec.ts",
     "tier1380:exec:log": "bun tools/tier1380-exec.ts log",

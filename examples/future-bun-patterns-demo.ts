@@ -13,7 +13,9 @@
  *   1. SQLite optimizations (WAL, statement cache, batch inserts)
  *   2. Runtime capability detection & progressive enhancement
  *   3. Typed arrays, NDJSON streaming, buffer ops
- *   4. CSS processing readiness (informational)
+ *   4. Bun utility APIs (color, password, deepEquals,
+ *      peek, escapeHTML, stringWidth, Glob)
+ *   5. CSS processing readiness (informational)
  *
  * Zero external dependencies. Uses :memory: SQLite (no side effects).
  *
@@ -685,11 +687,274 @@ async function typedArraysAndStreaming(): Promise<void> {
 }
 
 // ═════════════════════════════════════════════════════════════
-// SECTION 4: Summary
+// SECTION 4: Bun Utility APIs
+// ═════════════════════════════════════════════════════════════
+
+async function bunUtilityAPIs(): Promise<void> {
+  console.log("\n[4] Bun Utility APIs");
+  console.log("=".repeat(55));
+
+  // ── 4a. Bun.color Conversions ─────────────────────────
+
+  console.log("\n  4a. Bun.color Conversions");
+  console.log("  " + "-".repeat(40));
+
+  const colorSamples = [
+    {
+      input: '"red"',
+      hex: Bun.color("red", "hex") ?? "N/A",
+      rgb: Bun.color("red", "rgb") ?? "N/A",
+    },
+    {
+      input: '"hsl(120,100%,40%)"',
+      hex:
+        Bun.color("hsl(120, 100%, 40%)", "hex") ?? "N/A",
+      rgb:
+        Bun.color("hsl(120, 100%, 40%)", "rgb") ?? "N/A",
+    },
+    {
+      input: "[99, 71, 255]",
+      hex: Bun.color([99, 71, 255], "hex") ?? "N/A",
+      rgb: Bun.color([99, 71, 255], "rgb") ?? "N/A",
+    },
+    {
+      input: "0x007acc",
+      hex: Bun.color(0x007acc, "hex") ?? "N/A",
+      rgb: Bun.color(0x007acc, "rgb") ?? "N/A",
+    },
+  ];
+
+  console.log(
+    Bun.inspect.table(colorSamples, ["input", "hex", "rgb"])
+  );
+
+  // ── 4b. Bun.password (Argon2id) ──────────────────────
+
+  console.log("  4b. Bun.password (Argon2id)");
+  console.log("  " + "-".repeat(40));
+
+  const pwd = "tier-1380-demo";
+  const t1 = Bun.nanoseconds();
+  const hash = await Bun.password.hash(pwd);
+  const hashMs = (Bun.nanoseconds() - t1) / 1e6;
+
+  const t2 = Bun.nanoseconds();
+  const valid = await Bun.password.verify(pwd, hash);
+  const verifyMs = (Bun.nanoseconds() - t2) / 1e6;
+
+  const pwdResults = [
+    {
+      operation: "hash (Argon2id)",
+      timeMs: hashMs.toFixed(1),
+      result: hash.slice(0, 30) + "...",
+    },
+    {
+      operation: "verify",
+      timeMs: verifyMs.toFixed(1),
+      result: String(valid),
+    },
+  ];
+
+  console.log(Bun.inspect.table(pwdResults));
+
+  recordResult(
+    "Password",
+    "Argon2id hash+verify",
+    hashMs + verifyMs,
+    `${hashMs.toFixed(0)}ms hash`
+  );
+
+  // ── 4c. Bun.deepEquals ───────────────────────────────
+
+  console.log("\n  4c. Bun.deepEquals");
+  console.log("  " + "-".repeat(40));
+
+  const objA = { x: 1, y: [2, 3], z: { nested: true } };
+  const objB = { x: 1, y: [2, 3], z: { nested: true } };
+  const objC = { x: 1, y: [2, "3"], z: { nested: true } };
+
+  const eqResults = [
+    {
+      comparison: "identical structure",
+      loose: String(Bun.deepEquals(objA, objB)),
+      strict: String(Bun.deepEquals(objA, objB, true)),
+    },
+    {
+      comparison: 'number 3 vs string "3"',
+      loose: String(Bun.deepEquals(objA, objC)),
+      strict: String(Bun.deepEquals(objA, objC, true)),
+    },
+    {
+      comparison: "NaN === NaN",
+      loose: String(Bun.deepEquals(NaN, NaN)),
+      strict: String(Bun.deepEquals(NaN, NaN, true)),
+    },
+    {
+      comparison: "-0 vs +0",
+      loose: String(Bun.deepEquals(-0, +0)),
+      strict: String(Bun.deepEquals(-0, +0, true)),
+    },
+  ];
+
+  console.log(
+    Bun.inspect.table(eqResults, [
+      "comparison",
+      "loose",
+      "strict",
+    ])
+  );
+
+  // ── 4d. Bun.peek ────────────────────────────────────
+
+  console.log("  4d. Bun.peek (Sync Promise Reading)");
+  console.log("  " + "-".repeat(40));
+
+  const resolved = Promise.resolve(42);
+  const rejected = Promise.reject(new Error("demo")).catch(
+    () => null
+  );
+  const pending = new Promise(() => {});
+
+  const peekResults = [
+    {
+      promise: "Promise.resolve(42)",
+      status: Bun.peek.status(resolved),
+      value: String(Bun.peek(resolved)),
+    },
+    {
+      promise: "rejected (caught)",
+      status: Bun.peek.status(rejected),
+      value: "N/A",
+    },
+    {
+      promise: "new Promise(() => {})",
+      status: Bun.peek.status(pending),
+      value: "(still pending)",
+    },
+  ];
+
+  console.log(
+    Bun.inspect.table(peekResults, [
+      "promise",
+      "status",
+      "value",
+    ])
+  );
+
+  // ── 4e. Bun.escapeHTML ──────────────────────────────
+
+  console.log("  4e. Bun.escapeHTML (XSS Prevention)");
+  console.log("  " + "-".repeat(40));
+
+  const xssInputs = [
+    '<script>alert("xss")</script>',
+    '<img onerror="steal()" src=x>',
+    "safe text & entities",
+  ];
+
+  for (const input of xssInputs) {
+    const escaped = Bun.escapeHTML(input);
+    console.log(`  Input:  ${input.slice(0, 40)}`);
+    console.log(`  Output: ${escaped.slice(0, 40)}`);
+    console.log("");
+  }
+
+  // ── 4f. stringWidth + wrapAnsi (Col-89) ──────────────
+
+  console.log(
+    "  4f. Bun.stringWidth + wrapAnsi (Col-89)"
+  );
+  console.log("  " + "-".repeat(40));
+
+  const widthSamples = [
+    { text: "hello", expected: 5 },
+    { text: "hello \u{1F98A}", expected: 8 },
+    { text: "\x1b[31mred\x1b[0m", expected: 3 },
+    { text: "\u{0915}\u{094D}\u{0937}", expected: 2 },
+  ];
+
+  const widthResults = widthSamples.map((s) => ({
+    text:
+      s.text.length > 20
+        ? s.text.slice(0, 17) + "..."
+        : s.text,
+    visualWidth: Bun.stringWidth(s.text, {
+      countAnsiEscapeCodes: false,
+    }),
+    expected: s.expected,
+  }));
+
+  console.log(
+    Bun.inspect.table(widthResults, [
+      "text",
+      "visualWidth",
+      "expected",
+    ])
+  );
+
+  const longLine =
+    "This is a very long line that exceeds the Col-89 " +
+    "limit and should be wrapped by Bun.wrapAnsi to " +
+    "conform to the Tier-1380 standard.";
+  const wrapped = Bun.wrapAnsi(longLine, 89, {
+    wordWrap: true,
+  });
+  console.log("  Col-89 wrap demo:");
+  for (const line of wrapped.split("\n")) {
+    const w = Bun.stringWidth(line, {
+      countAnsiEscapeCodes: false,
+    });
+    console.log(`    [${w}ch] ${line}`);
+  }
+
+  // ── 4g. Bun.Glob (File Scanning) ─────────────────────
+
+  console.log(
+    "\n  4g. Bun.Glob (Read-Only File Scanning)"
+  );
+  console.log("  " + "-".repeat(40));
+
+  const t3 = Bun.nanoseconds();
+  const glob = new Bun.Glob("*.ts");
+  const found: string[] = [];
+  for await (const f of glob.scan({
+    cwd: import.meta.dir,
+    onlyFiles: true,
+  })) {
+    found.push(f);
+  }
+  const globMs = (Bun.nanoseconds() - t3) / 1e6;
+
+  console.log("  Pattern: *.ts in examples/");
+  console.log(
+    `  Found: ${found.length} files` +
+      ` in ${globMs.toFixed(2)}ms`
+  );
+
+  const globDisplay = found.slice(0, 5).map((f) => ({
+    file: f.length > 50 ? "..." + f.slice(-47) : f,
+  }));
+  if (found.length > 5) {
+    globDisplay.push({
+      file: `... and ${found.length - 5} more`,
+    });
+  }
+  console.log(Bun.inspect.table(globDisplay));
+
+  recordResult(
+    "Glob",
+    `Scan *.ts (${found.length} files)`,
+    globMs,
+    `${globMs.toFixed(2)}ms`
+  );
+}
+
+// ═════════════════════════════════════════════════════════════
+// SECTION 5: Summary
 // ═════════════════════════════════════════════════════════════
 
 function printSummary(): void {
-  console.log("\n[4] Benchmark Summary");
+  console.log("\n[5] Benchmark Summary");
   console.log("=".repeat(55));
 
   if (allResults.length > 0) {
@@ -717,6 +982,13 @@ function printSummary(): void {
     "║   [x] Bun.concatArrayBuffers                            ║",
     "║   [x] Runtime capability detection                      ║",
     "║   [x] Version-gated progressive enhancement             ║",
+    "║   [x] Bun.color conversions (hex/rgb/hsl)               ║",
+    "║   [x] Bun.password (Argon2id hash+verify)               ║",
+    "║   [x] Bun.deepEquals (strict vs loose)                  ║",
+    "║   [x] Bun.peek (sync promise inspection)                ║",
+    "║   [x] Bun.escapeHTML (XSS prevention)                   ║",
+    "║   [x] Bun.stringWidth + wrapAnsi (Col-89)              ║",
+    "║   [x] Bun.Glob (file scanning)                          ║",
     "║                                                         ║",
     "║ Aspirational:                                           ║",
     "║   [ ] WebGPU compute shaders                            ║",
@@ -749,6 +1021,7 @@ async function main(): Promise<void> {
   await sqliteOptimizations();
   await capabilityDetection();
   await typedArraysAndStreaming();
+  await bunUtilityAPIs();
   printSummary();
 }
 

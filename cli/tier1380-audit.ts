@@ -16,6 +16,8 @@
  *   dashboard       Launch http://127.0.0.1:1380 monitor
  *   globals         Audit available Bun.* APIs
  *   health          System health snapshot
+ *   scan [exts] [dir] Scan for bad file extensions
+ *   export [limit]  Dump violations as JSON (--jsonl)
  *   clean           Clear all audit data
  *   help            Show usage
  *
@@ -27,7 +29,7 @@
  */
 
 import { Database } from "bun:sqlite";
-import { existsSync, mkdirSync } from "fs";
+import { existsSync, mkdirSync, statSync } from "fs";
 
 // ── Constants ───────────────────────────────────────────
 
@@ -395,6 +397,35 @@ function healthCheck(): void {
 
   console.log(`  Violations recorded: ${vCount}`);
   console.log(`  Audits recorded:     ${aCount}`);
+
+  const topFiles = db
+    .prepare(
+      "SELECT file, COUNT(*) as cnt, MAX(width) as maxW " +
+        "FROM violations GROUP BY file " +
+        "ORDER BY cnt DESC LIMIT 5"
+    )
+    .all() as any[];
+
+  if (topFiles.length > 0) {
+    console.log(
+      `\n${GLYPHS.AUDIT} Top files by violations:`
+    );
+    const topDisplay = topFiles.map((r: any) => ({
+      file:
+        r.file.length > 40
+          ? "..." + r.file.slice(-37)
+          : r.file,
+      violations: r.cnt,
+      maxWidth: r.maxW,
+    }));
+    console.log(
+      Bun.inspect.table(topDisplay, [
+        "file",
+        "violations",
+        "maxWidth",
+      ])
+    );
+  }
 }
 
 // ── DB Viewer ───────────────────────────────────────────
@@ -449,6 +480,29 @@ function showViolations(limit = 10): void {
   }
 }
 
+// ── Export ──────────────────────────────────────────────
+
+function exportViolations(
+  limit = 100,
+  format: "json" | "jsonl" = "json"
+): void {
+  const rows = db
+    .prepare(
+      "SELECT file, line, width, preview, ts, " +
+        "datetime(ts, 'unixepoch', 'localtime') as time " +
+        "FROM violations ORDER BY ts DESC LIMIT ?"
+    )
+    .all(limit) as any[];
+
+  if (format === "jsonl") {
+    for (const row of rows) {
+      console.log(JSON.stringify(row));
+    }
+  } else {
+    console.log(JSON.stringify(rows, null, 2));
+  }
+}
+
 // ── Dashboard ───────────────────────────────────────────
 
 function launchDashboard(): void {
@@ -467,6 +521,22 @@ function launchDashboard(): void {
             )
             .get() as any
         ).c;
+        const aCount = (
+          db
+            .query(
+              "SELECT COUNT(*) as c FROM audits"
+            )
+            .get() as any
+        ).c;
+        const trend = db
+          .prepare(
+            "SELECT date(ts, 'unixepoch') as day," +
+              " COUNT(*) as cnt" +
+              " FROM violations" +
+              " WHERE ts >= unixepoch() - 604800" +
+              " GROUP BY day ORDER BY day"
+          )
+          .all();
         const recent = db
           .prepare(
             "SELECT command, duration_ms, result, " +
@@ -477,6 +547,8 @@ function launchDashboard(): void {
           .all();
         return Response.json({
           violations: vCount,
+          audits: aCount,
+          trend,
           recent,
         });
       }
@@ -569,8 +641,10 @@ text-align:center}
 <div class="cards">
 <div class="card"><h3>Col-89 Violations</h3>
 <div class="val" id="v">--</div></div>
-<div class="card"><h3>Audits Run</h3>
+<div class="card"><h3>Total Audits</h3>
 <div class="val" id="a">--</div></div>
+<div class="card"><h3>7-Day Violations</h3>
+<div class="val" id="trend">--</div></div>
 </div>
 <h2 style="font-size:.9rem;margin-bottom:.5rem">Recent Audits</h2>
 <table><thead><tr><th>Time</th><th>Command</th>
@@ -588,7 +662,11 @@ const s=await fetch("/api/stats").then(r=>r.json());
 const ve=document.getElementById("v");
 ve.textContent=s.violations;
 ve.className="val "+(s.violations>0?"err":"ok");
-document.getElementById("a").textContent=s.recent.length;
+document.getElementById("a").textContent=s.audits;
+var td=s.trend||[];
+var tc=td.reduce(function(a,d){return a+d.cnt},0);
+var te=document.getElementById("trend");
+te.textContent=tc;te.className="val "+(tc>0?"err":"ok");
 document.getElementById("t").innerHTML=s.recent.map(r=>
 "<tr><td>"+r.time+"</td><td>"+r.command+
 "</td><td>"+Number(r.duration_ms).toFixed(1)+
@@ -605,10 +683,11 @@ function printHelp(): void {
   console.log(`${GLYPHS.STRUCTURAL_DRIFT} Tier-1380 Audit CLI (Bun ${Bun.version})
 
 Commands:
-  check <file>    Col-89 violation scan + SQLite persist
+  check <file|dir> Col-89 scan (--glob="pattern")
   css <file>      LightningCSS minify + sourcemap
   rss [url]       Feed audit (default: bun.sh/blog/rss.xml)
   scan [exts] [dir] Scan for bad file extensions (security)
+  export [limit]  Dump violations as JSON (--jsonl)
   db [limit]      Show last N violations (default: 10)
   dashboard       Launch http://127.0.0.1:${PORT} monitor
   globals         Audit available Bun.* APIs
@@ -618,7 +697,10 @@ Commands:
 
 Examples:
   bun run cli/tier1380-audit.ts check README.md
+  bun run cli/tier1380-audit.ts check src/
+  bun run cli/tier1380-audit.ts check --glob="**/*.md"
   bun run cli/tier1380-audit.ts css css/sample.css
+  bun run cli/tier1380-audit.ts export --jsonl
   bun run cli/tier1380-audit.ts dashboard
   bun run cli/tier1380-audit.ts scan
   bun run cli/tier1380-audit.ts scan ".exe,.bat" ./build
@@ -634,13 +716,58 @@ async function main(): Promise<void> {
 
   switch (cmd) {
     case "check": {
-      const file = args[0];
-      if (!file) {
-        console.error("Usage: tier1380-audit check <file>");
+      const globOpt = args.find(
+        (a) => a.startsWith("--glob=")
+      );
+      const globPattern = globOpt?.slice(7) ?? null;
+      const file = args.find((a) => !a.startsWith("--"));
+
+      if (!file && !globPattern) {
+        console.error(
+          "Usage: tier1380-audit check <file|dir>" +
+            ' [--glob="pattern"]'
+        );
         process.exit(1);
       }
-      const v = await checkCol89(file);
-      process.exit(v > 0 ? 1 : 0);
+
+      let totalViolations = 0;
+      let fileCount = 0;
+
+      if (globPattern) {
+        const glob = new Bun.Glob(globPattern);
+        for await (const f of glob.scan({ cwd: "." })) {
+          fileCount++;
+          totalViolations += await checkCol89(f);
+        }
+      } else if (
+        file &&
+        existsSync(file) &&
+        statSync(file).isDirectory()
+      ) {
+        const glob = new Bun.Glob("**/*");
+        for await (const f of glob.scan({
+          cwd: file,
+          onlyFiles: true,
+        })) {
+          fileCount++;
+          totalViolations += await checkCol89(
+            `${file}/${f}`
+          );
+        }
+      } else {
+        fileCount = 1;
+        totalViolations = await checkCol89(file!);
+      }
+
+      if (fileCount > 1) {
+        console.log(
+          `\n${GLYPHS.STRUCTURAL_DRIFT} Total:` +
+            ` ${fileCount} files,` +
+            ` ${totalViolations} violation` +
+            `${totalViolations === 1 ? "" : "s"}`
+        );
+      }
+      process.exit(totalViolations > 0 ? 1 : 0);
       break;
     }
 
@@ -661,6 +788,17 @@ async function main(): Promise<void> {
     case "db":
       showViolations(Number(args[0]) || 10);
       break;
+
+    case "export": {
+      const limit = Number(
+        args.find((a) => !a.startsWith("--")) ?? 100
+      );
+      const format = args.includes("--jsonl")
+        ? ("jsonl" as const)
+        : ("json" as const);
+      exportViolations(limit, format);
+      break;
+    }
 
     case "dashboard":
       launchDashboard();
@@ -705,6 +843,7 @@ async function main(): Promise<void> {
       console.log(`  Found: ${found} suspicious files`);
       if (found > 0) console.log(`  Run 'tier1380:audit db' to view details`);
       process.exit(found > 0 ? 1 : 0);
+      break;
     }
 
     case "clean":
@@ -741,5 +880,6 @@ export {
   auditGlobals,
   healthCheck,
   showViolations,
+  exportViolations,
   initDB,
 };
