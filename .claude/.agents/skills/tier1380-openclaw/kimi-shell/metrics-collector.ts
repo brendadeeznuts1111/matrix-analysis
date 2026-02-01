@@ -225,7 +225,7 @@ async function main() {
 			const value = parseFloat(args[3]);
 			const unit = args[4] || "count";
 
-			if (!category || !name || isNaN(value)) {
+			if (!category || !name || Number.isNaN(value)) {
 				console.log(
 					"Usage: metrics-collector.ts record <category> <name> <value> [unit]",
 				);
