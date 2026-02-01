@@ -172,6 +172,9 @@ bun run tier1380:audit dashboard        # Launch dashboard on :1380
 bun run tier1380:audit db               # View violations database
 bun run tier1380:audit clean            # Clear audit data
 
+# Tier-1380 System Information
+bun run tier1380:sysinfo                # Full system summary
+
 # Bun docs (mcp-bun-docs)
 bun run docs:search -- "<query>"       # Search Bun docs (markdown)
 bun run docs:entry -- <term> [--url]   # Curated entry (JSON or URL)
