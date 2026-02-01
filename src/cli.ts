@@ -8,6 +8,7 @@ import { profileShow } from "./commands/profileShow";
 import { profileUse } from "./commands/profileUse";
 import { linksCheck, linksQuick } from "./commands/linksCheck";
 import { openclawStatus, openclawHealth, openclawInfo } from "./commands/openclawStatus";
+import { DEFAULT_HOST, OPENCLAW_GATEWAY_PORT } from "./constants";
 import { EXIT_CODES } from "../.claude/lib/exit-codes.ts";
 import { fmt } from "../.claude/lib/cli.ts";
 
@@ -70,7 +71,7 @@ ${fmt.bold("⚙️  Options for openclaw:status:")}
 ${fmt.bold("📚 Quick Links:")}
   📘 Docs:     https://github.com/nolarose/nolarose-mcp-config#readme
   🐛 Issues:   https://github.com/nolarose/nolarose-mcp-config/issues
-  🔗 OpenClaw: ws://127.0.0.1:18789
+  🔗 OpenClaw: ws://${DEFAULT_HOST}:${OPENCLAW_GATEWAY_PORT}
   📊 Dashboard: file://~/monitoring/dashboard/index.html
 
 ${fmt.bold("💡 Examples:")}

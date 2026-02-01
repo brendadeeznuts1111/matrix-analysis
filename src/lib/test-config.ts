@@ -1,4 +1,5 @@
 import { CIDetector } from './ci-detector';
+import { TIMER_10S, TIMER_30S } from '../constants';
 
 /**
  * CI-aware test configuration
@@ -19,11 +20,11 @@ export class TestConfig {
   getTimeout(): number {
     if (this.ci.isCI) {
       // CI environments might need longer timeouts
-      return 30000; // 30 seconds
+      return TIMER_30S;
     }
 
     // Local development - faster feedback
-    return 10000; // 10 seconds
+    return TIMER_10S;
   }
 
   /**

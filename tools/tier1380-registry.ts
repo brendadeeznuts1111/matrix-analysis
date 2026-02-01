@@ -51,6 +51,10 @@ const COLORS = {
 };
 
 // ─── Registry Configuration ───────────────────────
+const REGISTRY_PORT = 8787;
+const REGISTRY_HOST = "127.0.0.1";
+const HTTP_DEFAULT_PORT = 3000;
+
 const REGISTRY_CONFIG = {
   version: "4.0.0",
   kvNamespace: "OMEGA_REGISTRY",
@@ -58,7 +62,7 @@ const REGISTRY_CONFIG = {
   kvHistoryKey: "version:history",
   staging: "omega-staging.factory-wager.com",
   production: "omega.factory-wager.com",
-  local: "127.0.0.1:8787",
+  local: `${REGISTRY_HOST}:${REGISTRY_PORT}`,
   r2Bucket: "fw-registry",
   r2Endpoint: `https://${process.env.CF_ACCOUNT_ID || "7a470541a704caaf91e71efccc78fd36"}.r2.cloudflarestorage.com`,
   cacheDir: "./.registry-cache",
@@ -312,7 +316,7 @@ async function checkRegistry(): Promise<RegistryStatus> {
   await prefetchRegistryDNS();
 
   // Try to connect to local registry first
-  const localConnected = await checkPort(8787);
+  const localConnected = await checkPort(REGISTRY_PORT);
   const stagingConnected = await checkPort(443, REGISTRY_CONFIG.staging);
 
   let environment: RegistryStatus["environment"] = "local";
@@ -1386,14 +1390,14 @@ async function pathOperations(filePath: string = "./data/test.json"): Promise<vo
 // ─── TCP Registry Server ────────────────────────────
 let tcpServer: TCPSocketListener | null = null;
 
-async function startRegistryServer(port: number = 8787): Promise<void> {
+async function startRegistryServer(port: number = REGISTRY_PORT): Promise<void> {
   console.log(`${GLYPHS.CONNECT} Starting Registry TCP Server on port ${port}\n`);
   console.log("-".repeat(70));
 
   const connections = new Set<Socket>();
 
   tcpServer = Bun.listen({
-    hostname: "127.0.0.1",
+    hostname: REGISTRY_HOST,
     port: port,
     socket: {
       open(socket) {
@@ -1462,7 +1466,7 @@ async function startRegistryServer(port: number = 8787): Promise<void> {
 // ─── HTTP Server (Bun.serve) ──────────────────────
 let httpServer: ReturnType<typeof Bun.serve> | null = null;
 
-async function startHTTPServer(port: number = 3000): Promise<void> {
+async function startHTTPServer(port: number = HTTP_DEFAULT_PORT): Promise<void> {
   console.log(`${GLYPHS.CONNECT} Starting HTTP Registry Server on port ${port}\n`);
   console.log("-".repeat(70));
 
@@ -2232,12 +2236,12 @@ async function main(): Promise<void> {
 
     // Server Commands
     case "server:start":
-      const serverPort = parseInt(args[1]) || 8787;
+      const serverPort = parseInt(args[1]) || REGISTRY_PORT;
       await startRegistryServer(serverPort);
       break;
 
     case "http:start":
-      const httpPort = parseInt(args[1]) || 3000;
+      const httpPort = parseInt(args[1]) || HTTP_DEFAULT_PORT;
       await startHTTPServer(httpPort);
       break;
 

@@ -19,6 +19,8 @@ import {
 	printTeamHelp,
 } from "../.claude/core/team/cli.ts";
 
+const DASHBOARD_PORT = 3001;
+
 type Options = Record<string, string | boolean>;
 
 interface Parsed {
@@ -175,7 +177,7 @@ async function terminalBanner(team: string, profile: string): Promise<void> {
 
 // ─── dashboard (open URL or print) ──────────────────────────────────────────
 function dashboardOpen(team: string, profile: string): void {
-	const url = `http://localhost:3001/dashboard?teamId=${encodeURIComponent(team)}&profileId=${encodeURIComponent(profile)}`;
+	const url = `http://localhost:${DASHBOARD_PORT}/dashboard?teamId=${encodeURIComponent(team)}&profileId=${encodeURIComponent(profile)}`;
 	console.log(fmt.info("Metrics dashboard"));
 	console.log(fmt.dim(`  URL: ${url}`));
 	console.log("");
@@ -331,7 +333,7 @@ async function main(): Promise<void> {
 	console.log("Examples:");
 	console.log("  bun tier1380 colors deploy quantum-team --profile alice");
 	console.log("  bun tier1380 terminal quantum-team alice");
-	console.log("  open http://localhost:3001/dashboard?teamId=quantum-team&profileId=alice");
+	console.log(`  open http://localhost:${DASHBOARD_PORT}/dashboard?teamId=quantum-team&profileId=alice`);
 	process.exit(1);
 }
 

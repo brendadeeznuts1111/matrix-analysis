@@ -7,6 +7,7 @@
 
 import { fmt } from "../../.claude/lib/cli.ts";
 import { EXIT_CODES } from "../../.claude/lib/exit-codes.ts";
+import { DEFAULT_HOST, OPENCLAW_GATEWAY_PORT, PROMETHEUS_PORT } from "../constants.ts";
 
 interface ComponentStatus {
   name: string;
@@ -29,15 +30,16 @@ const checkPort = async (port: number, host: string): Promise<boolean> => {
 
 const checkGateway = async (): Promise<ComponentStatus> => {
   const start = performance.now();
-  const isRunning = await checkPort(18789, "127.0.0.1");
+  const isRunning = await checkPort(OPENCLAW_GATEWAY_PORT, DEFAULT_HOST);
   const latency = Math.round(performance.now() - start);
+  const url = `ws://${DEFAULT_HOST}:${OPENCLAW_GATEWAY_PORT}`;
 
   if (!isRunning) {
     return {
       name: "OpenClaw Gateway",
       status: "down",
-      message: "Port 18789 not responding",
-      url: "ws://127.0.0.1:18789",
+      message: `Port ${OPENCLAW_GATEWAY_PORT} not responding`,
+      url,
     };
   }
 
@@ -46,7 +48,7 @@ const checkGateway = async (): Promise<ComponentStatus> => {
     status: "healthy",
     version: "v2026.1.30",
     latency,
-    url: "ws://127.0.0.1:18789",
+    url,
   };
 };
 
@@ -93,21 +95,22 @@ const checkTelegramBot = async (): Promise<ComponentStatus> => {
 };
 
 const checkPrometheus = async (): Promise<ComponentStatus> => {
-  const isRunning = await checkPort(9090, "127.0.0.1");
-  
+  const isRunning = await checkPort(PROMETHEUS_PORT, DEFAULT_HOST);
+  const url = `http://${DEFAULT_HOST}:${PROMETHEUS_PORT}`;
+
   if (!isRunning) {
     return {
       name: "Prometheus",
       status: "down",
-      message: "Port 9090 not responding",
-      url: "http://127.0.0.1:9090",
+      message: `Port ${PROMETHEUS_PORT} not responding`,
+      url,
     };
   }
 
   return {
     name: "Prometheus",
     status: "healthy",
-    url: "http://127.0.0.1:9090",
+    url,
   };
 };
 
@@ -241,13 +244,13 @@ export async function openclawHealth(): Promise<void> {
 export async function openclawInfo(): Promise<void> {
   const info = {
     "Gateway Version": "v2026.1.30",
-    "Gateway Port": 18789,
-    "Local URL": "http://127.0.0.1:18789",
+    "Gateway Port": OPENCLAW_GATEWAY_PORT,
+    "Local URL": `http://${DEFAULT_HOST}:${OPENCLAW_GATEWAY_PORT}`,
     "Tailscale URL": "https://nolas-mac-mini.tailb53dda.ts.net",
     "Matrix Agent": "v1.0.0",
     "Migrated From": "clawdbot v2026.1.17-1",
     "Telegram Bot": "@mikehuntbot_bot",
-    "Prometheus Port": 9090,
+    "Prometheus Port": PROMETHEUS_PORT,
     "Config Path": `${process.env.HOME}/.openclaw/openclaw.json`,
     "Profiles Path": `${process.env.HOME}/.matrix/profiles`,
     "Logs Path": `${process.env.HOME}/.matrix/logs`,
