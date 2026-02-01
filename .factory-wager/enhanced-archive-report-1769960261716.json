@@ -1,0 +1,28 @@
+{
+  "timestamp": "2026-02-01T15:37:41.716Z",
+  "bun": {
+    "version": "1.3.8",
+    "features": [
+      "native-compression",
+      "enhanced-checksum",
+      "chunked-uploads",
+      "streaming"
+    ]
+  },
+  "summary": {
+    "total_archives": 0,
+    "successful": 0,
+    "total_original_size": 0,
+    "total_compressed_size": 0,
+    "space_saved": 0,
+    "avg_compression_ratio": 1,
+    "compression_efficiency": 0
+  },
+  "performance": {
+    "avg_compression_time_ms": null,
+    "avg_upload_time_ms": null,
+    "avg_throughput_mbps": "NaN",
+    "total_processing_time": null
+  },
+  "archives": []
+}

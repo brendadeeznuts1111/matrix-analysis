@@ -1,0 +1,80 @@
+{
+  "timestamp": "2026-02-01T15:37:45.143Z",
+  "bun": {
+    "version": "1.3.8"
+  },
+  "test": {
+    "dataSize": 1048576,
+    "iterations": 10,
+    "unit": "MB"
+  },
+  "results": {
+    "average": {
+      "duration": 3.1854251000000002,
+      "throughput": 341.59418190877204,
+      "compressionRatio": 0.015625
+    },
+    "raw": [
+      {
+        "iteration": 1,
+        "duration": 3.07225,
+        "throughput": 325.49434453576373,
+        "compressionRatio": 0.015625
+      },
+      {
+        "iteration": 2,
+        "duration": 2.781459,
+        "throughput": 359.5235450172014,
+        "compressionRatio": 0.015625
+      },
+      {
+        "iteration": 3,
+        "duration": 1.849583,
+        "throughput": 540.6624087699769,
+        "compressionRatio": 0.015625
+      },
+      {
+        "iteration": 4,
+        "duration": 2.849959,
+        "throughput": 350.88224076206006,
+        "compressionRatio": 0.015625
+      },
+      {
+        "iteration": 5,
+        "duration": 2.337292,
+        "throughput": 427.84555802184747,
+        "compressionRatio": 0.015625
+      },
+      {
+        "iteration": 6,
+        "duration": 3.071083,
+        "throughput": 325.6180311635993,
+        "compressionRatio": 0.015625
+      },
+      {
+        "iteration": 7,
+        "duration": 5.871583,
+        "throughput": 170.31182221217003,
+        "compressionRatio": 0.015625
+      },
+      {
+        "iteration": 8,
+        "duration": 2.723417,
+        "throughput": 367.1857816852873,
+        "compressionRatio": 0.015625
+      },
+      {
+        "iteration": 9,
+        "duration": 3.733375,
+        "throughput": 267.85415341346635,
+        "compressionRatio": 0.015625
+      },
+      {
+        "iteration": 10,
+        "duration": 3.56425,
+        "throughput": 280.5639335063478,
+        "compressionRatio": 0.015625
+      }
+    ]
+  }
+}
