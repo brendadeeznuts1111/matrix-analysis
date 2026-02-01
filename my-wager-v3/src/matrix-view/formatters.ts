@@ -1,6 +1,6 @@
 // Display formatting helpers for Bun Matrix
 
-import type { BunDocEntry, SecurityScope } from "./types";
+import type { BunDocEntry, SecurityScope, DisplayStats } from "./types";
 import { LOW_PERF_THRESHOLD } from "../tension-field/constants";
 
 export function formatStability(stability: string): string {
@@ -86,7 +86,7 @@ export function percentage(value: number, total: number): string {
   return total > 0 ? ((value / total) * 100).toFixed(1) : "0.0";
 }
 
-export function displayRecommendations(stats: any, entries: BunDocEntry[]): void {
+export function displayRecommendations(stats: DisplayStats, entries: BunDocEntry[]): void {
   console.log("\n💡 Recommendations:");
 
   if (stats.experimental > stats.stable) {

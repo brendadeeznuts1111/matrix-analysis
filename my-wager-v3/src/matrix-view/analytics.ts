@@ -1,6 +1,23 @@
 // Analytics functions for Bun Matrix — extracted from BunMatrixStore
 
-import type { BunDocEntry } from "./types";
+import type {
+  BunDocEntry,
+  MatrixMetrics,
+  MatrixTotals,
+  PatternAnalysis,
+  PerformanceMetrics,
+  SecurityPatterns,
+  EvolutionMetrics,
+  CorrelationMetrics,
+  HomeAutomationMetrics,
+  SecurityTrends,
+  StabilityProgression,
+  NamingPatterns,
+  DependencyPatterns,
+  BaselineImprovements,
+  ThuisIntegrationPatterns,
+  ThuisConfigComplexity,
+} from "./types";
 import {
   TOP_N_SLICE,
   EVOLUTION_PERIODS,
@@ -8,7 +25,7 @@ import {
 
 // ── Top-level metrics aggregation ────────────────────────────────────
 
-export function calculateMetrics(entries: BunDocEntry[]): any {
+export function calculateMetrics(entries: BunDocEntry[]): MatrixMetrics {
   return {
     timestamp: Date.now(),
     totals: calculateTotals(entries),
@@ -23,7 +40,7 @@ export function calculateMetrics(entries: BunDocEntry[]): any {
 
 // ── Totals ───────────────────────────────────────────────────────────
 
-export function calculateTotals(entries: BunDocEntry[]): any {
+export function calculateTotals(entries: BunDocEntry[]): MatrixTotals {
   return {
     apis: entries.length,
     platforms: [...new Set(entries.flatMap(e => e.platforms))].length,
@@ -40,7 +57,7 @@ export function calculateTotals(entries: BunDocEntry[]): any {
 
 // ── Pattern analysis ─────────────────────────────────────────────────
 
-export function analyzePatterns(entries: BunDocEntry[]): any {
+export function analyzePatterns(entries: BunDocEntry[]): PatternAnalysis {
   return {
     versionDistribution: getVersionDistribution(entries),
     platformPopularity: getPlatformPopularity(entries),
@@ -54,7 +71,7 @@ export function analyzePatterns(entries: BunDocEntry[]): any {
 
 // ── Performance ──────────────────────────────────────────────────────
 
-export function analyzePerformance(entries: BunDocEntry[]): any {
+export function analyzePerformance(entries: BunDocEntry[]): PerformanceMetrics {
   const withPerf = entries.filter(e => e.perfProfile?.opsSec);
 
   return {
@@ -74,7 +91,7 @@ export function analyzePerformance(entries: BunDocEntry[]): any {
 
 // ── Security patterns ────────────────────────────────────────────────
 
-export function analyzeSecurityPatterns(entries: BunDocEntry[]): any {
+export function analyzeSecurityPatterns(entries: BunDocEntry[]): SecurityPatterns {
   return {
     classificationDistribution: {
       high: entries.filter(e => e.security.classification === "high").length,
@@ -96,7 +113,7 @@ export function analyzeSecurityPatterns(entries: BunDocEntry[]): any {
 
 // ── Evolution ────────────────────────────────────────────────────────
 
-export function analyzeEvolution(entries: BunDocEntry[]): any {
+export function analyzeEvolution(entries: BunDocEntry[]): EvolutionMetrics {
   const sorted = entries.sort((a, b) =>
     compareVersions(a.bunMinVersion, b.bunMinVersion)
   );
@@ -114,7 +131,7 @@ export function analyzeEvolution(entries: BunDocEntry[]): any {
 
 // ── Correlations ─────────────────────────────────────────────────────
 
-export function analyzeCorrelations(entries: BunDocEntry[]): any {
+export function analyzeCorrelations(entries: BunDocEntry[]): CorrelationMetrics {
   return {
     securityVsPerformance: getSecurityPerformanceCorrelation(entries),
     stabilityVsSecurity: getStabilitySecurityCorrelation(entries),
@@ -126,7 +143,7 @@ export function analyzeCorrelations(entries: BunDocEntry[]): any {
 
 // ── Home automation ──────────────────────────────────────────────────
 
-export function analyzeHomeAutomation(entries: BunDocEntry[]): any {
+export function analyzeHomeAutomation(entries: BunDocEntry[]): HomeAutomationMetrics {
   const thuisApis = entries.filter(e => e.thuisConfig || e.homeFeatures);
 
   return {
@@ -197,7 +214,7 @@ export function getCategoryDistribution(entries: BunDocEntry[]): Record<string, 
   return dist;
 }
 
-export function getSecurityTrends(entries: BunDocEntry[]): any {
+export function getSecurityTrends(entries: BunDocEntry[]): SecurityTrends {
   return {
     increasingSecurity: entries.filter(e => e.security.zeroTrust).length,
     rootPrivilegeUsage: entries.filter(e => e.security.requiresRoot).length,
@@ -209,7 +226,7 @@ export function getSecurityTrends(entries: BunDocEntry[]): any {
   };
 }
 
-export function getStabilityProgression(entries: BunDocEntry[]): any {
+export function getStabilityProgression(entries: BunDocEntry[]): StabilityProgression {
   const progression = {
     experimental: entries.filter(e => e.stability === "experimental").length,
     stable: entries.filter(e => e.stability === "stable").length,
@@ -223,7 +240,7 @@ export function getStabilityProgression(entries: BunDocEntry[]): any {
   };
 }
 
-export function getNamingPatterns(entries: BunDocEntry[]): any {
+export function getNamingPatterns(entries: BunDocEntry[]): NamingPatterns {
   const patterns = {
     withBunPrefix: entries.filter(e => e.term.startsWith("Bun.")).length,
     withDotNotation: entries.filter(e => e.term.includes(".")).length,
@@ -238,7 +255,7 @@ export function getNamingPatterns(entries: BunDocEntry[]): any {
   };
 }
 
-export function getDependencyPatterns(entries: BunDocEntry[]): any {
+export function getDependencyPatterns(entries: BunDocEntry[]): DependencyPatterns {
   const relatedTerms = entries.flatMap(e => e.relatedTerms || []);
   const termFrequency: Record<string, number> = {};
 
@@ -277,7 +294,7 @@ export function getPerformanceByCategory(entries: BunDocEntry[]): Record<string,
   return result;
 }
 
-export function getBaselineImprovements(entries: BunDocEntry[]): any {
+export function getBaselineImprovements(entries: BunDocEntry[]): BaselineImprovements {
   const improvements = entries
     .filter(e => e.perfProfile?.baseline && e.perfProfile.baseline !== "N/A")
     .map(e => {
@@ -297,7 +314,7 @@ export function getBaselineImprovements(entries: BunDocEntry[]): any {
   };
 }
 
-export function getSecurityByCategory(entries: BunDocEntry[]): Record<string, any> {
+export function getSecurityByCategory(entries: BunDocEntry[]): Record<string, { high: number; medium: number; low: number }> {
   const result: Record<string, { high: number; medium: number; low: number }> = {};
 
   for (const entry of entries) {
@@ -309,7 +326,7 @@ export function getSecurityByCategory(entries: BunDocEntry[]): Record<string, an
   return result;
 }
 
-export function getSecurityEvolution(entries: BunDocEntry[]): any {
+export function getSecurityEvolution(entries: BunDocEntry[]): Array<{ version: string; high: number; medium: number; low: number }> {
   const sorted = entries.sort((a, b) => compareVersions(a.bunMinVersion, b.bunMinVersion));
   const evolution = [];
 
@@ -352,7 +369,7 @@ export function getMaturityIndex(entries: BunDocEntry[]): number {
   return (stable * 2 + experimental - deprecated * 3) / entries.length;
 }
 
-export function getSecurityPerformanceCorrelation(entries: BunDocEntry[]): any {
+export function getSecurityPerformanceCorrelation(entries: BunDocEntry[]): Record<string, { avg: number; count: number }> {
   const correlation: Record<string, { avg: number; count: number }> = {};
 
   for (const entry of entries) {
@@ -371,7 +388,7 @@ export function getSecurityPerformanceCorrelation(entries: BunDocEntry[]): any {
   return correlation;
 }
 
-export function getStabilitySecurityCorrelation(entries: BunDocEntry[]): any {
+export function getStabilitySecurityCorrelation(entries: BunDocEntry[]): Record<string, Record<string, number>> {
   const correlation: Record<string, Record<string, number>> = {};
 
   for (const entry of entries) {
@@ -385,7 +402,7 @@ export function getStabilitySecurityCorrelation(entries: BunDocEntry[]): any {
   return correlation;
 }
 
-export function getPlatformFeatureCorrelation(entries: BunDocEntry[]): any {
+export function getPlatformFeatureCorrelation(entries: BunDocEntry[]): Record<string, { thuis: number; total: number; thuisPct?: string }> {
   const correlation: Record<string, { thuis: number; total: number; thuisPct?: string }> = {};
 
   for (const entry of entries) {
@@ -406,7 +423,7 @@ export function getPlatformFeatureCorrelation(entries: BunDocEntry[]): any {
   return correlation;
 }
 
-export function getVersionFeatureCorrelation(entries: BunDocEntry[]): any {
+export function getVersionFeatureCorrelation(entries: BunDocEntry[]): Record<string, { features: number; total: number; avgFeatures?: number }> {
   const correlation: Record<string, { features: number; total: number; avgFeatures?: number }> = {};
 
   for (const entry of entries) {
@@ -443,7 +460,7 @@ export function getServiceModes(thuisApis: BunDocEntry[]): Record<string, number
   return modes;
 }
 
-export function getThuisIntegrationPatterns(thuisApis: BunDocEntry[]): any {
+export function getThuisIntegrationPatterns(thuisApis: BunDocEntry[]): ThuisIntegrationPatterns {
   return {
     withLocalServer: thuisApis.filter(e => e.homeFeatures?.localServer).length,
     withAutomation: thuisApis.filter(e => e.term.includes("automate")).length,
@@ -452,7 +469,7 @@ export function getThuisIntegrationPatterns(thuisApis: BunDocEntry[]): any {
   };
 }
 
-export function getThuisConfigComplexity(thuisApis: BunDocEntry[]): any {
+export function getThuisConfigComplexity(thuisApis: BunDocEntry[]): ThuisConfigComplexity {
   const complexities = thuisApis.map(api => ({
     api: api.term,
     envVars: api.thuisConfig?.envVars ? Object.keys(api.thuisConfig.envVars).length : 0,

@@ -1,6 +1,14 @@
 // Barrel re-exports preserving public API
 
-export type { Version, PerfProfile, SecurityScope, BunDocEntry } from "./types";
+export type {
+  Version, PerfProfile, SecurityScope, BunDocEntry,
+  MatrixMetrics, MatrixTotals, PatternAnalysis, PerformanceMetrics,
+  SecurityPatterns, EvolutionMetrics, CorrelationMetrics,
+  HomeAutomationMetrics, SecurityTrends, StabilityProgression,
+  NamingPatterns, DependencyPatterns, BaselineImprovements,
+  ThuisIntegrationPatterns, ThuisConfigComplexity,
+  MatrixCLIOptions, DisplayStats,
+} from "./types";
 export { BunMatrixStore } from "./store";
 export { BunMatrixViewer, runMatrixCLI, matrixViewer, matrixStore } from "./viewer";
 export { calculateMetrics } from "./analytics";

@@ -1,6 +1,6 @@
 // BunMatrixViewer — display and CLI composition layer
 
-import type { BunDocEntry } from "./types";
+import type { BunDocEntry, MatrixCLIOptions } from "./types";
 import { BunMatrixStore } from "./store";
 import { DEFAULT_ENTRIES } from "./seed-data";
 import {
@@ -381,20 +381,17 @@ export class BunMatrixViewer {
 
     console.log("\n  Security vs Performance:");
     for (const [level, data] of Object.entries(metrics.correlations.securityVsPerformance)) {
-      const dataAny = data as any;
-      console.log(`    ${level}: ${Math.round(dataAny.avg).toLocaleString()} avg ops/sec`);
+      console.log(`    ${level}: ${Math.round(data.avg).toLocaleString()} avg ops/sec`);
     }
 
     console.log("\n  Platform vs Thuis Features:");
     for (const [platform, data] of Object.entries(metrics.correlations.platformVsFeatures)) {
-      const dataAny = data as any;
-      console.log(`    ${platform}: ${dataAny.thuisPct}% with Thuis features`);
+      console.log(`    ${platform}: ${data.thuisPct}% with Thuis features`);
     }
 
     console.log("\n  Version vs Feature Richness:");
     for (const [version, data] of Object.entries(metrics.correlations.versionVsFeatures)) {
-      const dataAny = data as any;
-      console.log(`    v${version}: ${dataAny.avgFeatures.toFixed(1)} avg features`);
+      console.log(`    v${version}: ${data.avgFeatures?.toFixed(1)} avg features`);
     }
   }
 
@@ -499,14 +496,14 @@ export async function runMatrixCLI(args: string[]): Promise<void> {
   switch (command) {
     case "show":
     case "list": {
-      const options: any = {};
+      const options: MatrixCLIOptions = {};
 
       for (let i = 1; i < args.length; i++) {
         const arg = args[i];
         if (arg.startsWith("--platform=")) {
-          options.platform = arg.split("=")[1] as any;
+          options.platform = arg.split("=")[1] as MatrixCLIOptions["platform"];
         } else if (arg.startsWith("--stability=")) {
-          options.stability = arg.split("=")[1] as any;
+          options.stability = arg.split("=")[1] as MatrixCLIOptions["stability"];
         } else if (arg.startsWith("--category=")) {
           options.category = arg.split("=")[1];
         } else if (arg.startsWith("--search=")) {

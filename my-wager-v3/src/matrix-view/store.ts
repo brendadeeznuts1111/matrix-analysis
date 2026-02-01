@@ -1,6 +1,6 @@
 // BunMatrixStore — CRUD operations for matrix entries
 
-import type { BunDocEntry } from "./types";
+import type { BunDocEntry, MatrixMetrics } from "./types";
 import { calculateMetrics } from "./analytics";
 import { updateFromRSS } from "./rss";
 import { CACHE_TTL_5MIN_MS } from "../tension-field/constants";
@@ -8,7 +8,7 @@ import { CACHE_TTL_5MIN_MS } from "../tension-field/constants";
 export class BunMatrixStore {
   private entries = new Map<string, BunDocEntry>();
   private rssCache = new Map<string, { lastFetch: Date; entries: number }>();
-  metricsCache = new Map<string, { timestamp: number; data: any }>();
+  metricsCache = new Map<string, { timestamp: number; data: MatrixMetrics }>();
 
   set(entry: BunDocEntry): void {
     entry.lastUpdated = new Date();
@@ -57,7 +57,7 @@ export class BunMatrixStore {
     );
   }
 
-  calculateMetrics(): any {
+  calculateMetrics(): MatrixMetrics {
     const cacheKey = "metrics";
     const cached = this.metricsCache.get(cacheKey);
 
