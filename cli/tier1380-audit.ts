@@ -9,15 +9,15 @@
  * Tier-1380 Audit CLI — subcommand-based compliance engine.
  *
  * Commands:
- *   check <file>    Col-89 violation scan + SQLite persistence
+ *   check <file|dir> Col-89 violation scan (--glob="...")
  *   css <file>      LightningCSS minification + sourcemap
  *   rss [url]       Feed audit (default: bun.sh/blog/rss.xml)
- *   db [limit]      Show last N violations (default: 10)
- *   dashboard       Launch http://127.0.0.1:1380 monitor
+ *   scan [exts] [dir] Scan for bad file extensions
  *   globals         Audit available Bun.* APIs
  *   health          System health snapshot
- *   scan [exts] [dir] Scan for bad file extensions
+ *   db [limit]      Show last N violations (default: 10)
  *   export [limit]  Dump violations as JSON (--jsonl)
+ *   dashboard       Launch http://127.0.0.1:1380 monitor
  *   clean           Clear all audit data
  *   help            Show usage
  *
@@ -31,7 +31,9 @@
 import { Database } from "bun:sqlite";
 import { existsSync, mkdirSync, statSync } from "fs";
 
-// ── Constants ───────────────────────────────────────────
+// ═════════════════════════════════════════════════════════
+// Constants & Startup
+// ═════════════════════════════════════════════════════════
 
 const COL_LIMIT = 89;
 const PORT = 1380;
@@ -53,10 +55,14 @@ if (!Bun.semver.satisfies(Bun.version, MIN_BUN)) {
   process.exit(1);
 }
 
-// ── SQLite Schema ───────────────────────────────────────
+// ═════════════════════════════════════════════════════════
+// Database Layer
+// ═════════════════════════════════════════════════════════
 
 function initDB(): Database {
-  if (!existsSync(DB_DIR)) mkdirSync(DB_DIR, { recursive: true });
+  if (!existsSync(DB_DIR)) {
+    mkdirSync(DB_DIR, { recursive: true });
+  }
   const db = new Database(DB_PATH);
   db.exec("PRAGMA journal_mode = WAL;");
   db.exec("PRAGMA synchronous = NORMAL;");
@@ -101,13 +107,21 @@ function recordAudit(
   ).run(command, durationMs, result);
 }
 
-// ── Col-89 Scanner ──────────────────────────────────────
+// ═════════════════════════════════════════════════════════
+// Commands: Scanners & Auditors
+// ═════════════════════════════════════════════════════════
 
-async function checkCol89(filePath: string): Promise<number> {
+// ── check: Col-89 Scanner ───────────────────────────────
+
+async function checkCol89(
+  filePath: string
+): Promise<number> {
   const start = Bun.nanoseconds();
 
   if (!(await Bun.file(filePath).exists())) {
-    console.error(`${GLYPHS.AUDIT} File not found: ${filePath}`);
+    console.error(
+      `${GLYPHS.AUDIT} File not found: ${filePath}`
+    );
     return 1;
   }
 
@@ -127,7 +141,8 @@ async function checkCol89(filePath: string): Promise<number> {
     if (width > COL_LIMIT) {
       violations++;
       const raw = Bun.stripANSI(lines[i]);
-      const preview = Bun.escapeHTML(raw.slice(0, 86)) + "...";
+      const preview =
+        Bun.escapeHTML(raw.slice(0, 86)) + "...";
       stmt.run(filePath, i + 1, width, preview);
       console.log(
         `  \x1b[31m${GLYPHS.AUDIT} Line ${i + 1}\x1b[0m:` +
@@ -144,16 +159,20 @@ async function checkCol89(filePath: string): Promise<number> {
   );
 
   console.log(
-    `\n${GLYPHS.STRUCTURAL_DRIFT} Scanned ${lines.length} lines` +
+    `\n${GLYPHS.STRUCTURAL_DRIFT}` +
+      ` Scanned ${lines.length} lines` +
       ` in ${durationMs.toFixed(2)}ms` +
-      ` | ${violations} violation${violations === 1 ? "" : "s"}`
+      ` | ${violations} violation` +
+      `${violations === 1 ? "" : "s"}`
   );
   return violations;
 }
 
-// ── LightningCSS Optimizer ──────────────────────────────
+// ── css: LightningCSS Optimizer ─────────────────────────
 
-async function optimizeCSS(inputPath: string): Promise<void> {
+async function optimizeCSS(
+  inputPath: string
+): Promise<void> {
   const start = Bun.nanoseconds();
 
   if (!(await Bun.file(inputPath).exists())) {
@@ -213,7 +232,7 @@ async function optimizeCSS(inputPath: string): Promise<void> {
   if (result.map) console.log(`Map:    ${outPath}.map`);
 }
 
-// ── RSS Monitor ─────────────────────────────────────────
+// ── rss: Feed Monitor ───────────────────────────────────
 
 interface RSSItem {
   title: string;
@@ -233,7 +252,8 @@ function parseRSSItems(xml: string): RSSItem[] {
         /<title>(?:<!\[CDATA\[)?(.*?)(?:\]\]>)?<\/title>/
       )?.[1] ?? "N/A";
     const pubDate =
-      block.match(/<pubDate>(.*?)<\/pubDate>/)?.[1] ?? "N/A";
+      block.match(/<pubDate>(.*?)<\/pubDate>/)?.[1] ??
+      "N/A";
     const link =
       block.match(/<link>(.*?)<\/link>/)?.[1] ?? "N/A";
     items.push({ title, pubDate, link });
@@ -288,7 +308,60 @@ async function checkRSS(
   }
 }
 
-// ── Globals Audit ───────────────────────────────────────
+// ── scan: File Extension Security Scanner ───────────────
+
+async function scanExtensions(
+  extensions: Set<string>,
+  dir: string
+): Promise<number> {
+  const start = Bun.nanoseconds();
+  let scanned = 0;
+  let found = 0;
+
+  console.log(
+    `${GLYPHS.AUDIT} Scanning ${dir} for bad extensions:`
+  );
+  console.log(`  ${[...extensions].join(", ")}\n`);
+
+  for await (const f of new Bun.Glob("**/*").scan(dir)) {
+    scanned++;
+    const dot = f.lastIndexOf(".");
+    if (dot === -1) continue;
+    const ext = f.slice(dot);
+    if (extensions.has(ext)) {
+      found++;
+      console.log(`  \x1b[33m${GLYPHS.AUDIT}\x1b[0m ${f}`);
+      db.prepare(
+        "INSERT INTO violations" +
+          " (file, line, width, preview)" +
+          " VALUES (?, ?, ?, ?)"
+      ).run(`${dir}/${f}`, 0, 0, `Bad extension: ${ext}`);
+    }
+  }
+
+  const durationMs = (Bun.nanoseconds() - start) / 1e6;
+  recordAudit(
+    `scan ${dir}`,
+    durationMs,
+    `${found} bad files`
+  );
+
+  console.log(
+    `\n${GLYPHS.PHASE_LOCKED}` +
+      ` Scanned ${scanned} files` +
+      ` in ${durationMs.toFixed(2)}ms`
+  );
+  console.log(`  Found: ${found} suspicious files`);
+  if (found > 0) {
+    console.log(
+      "  Run 'tier1380:audit db' to view details"
+    );
+  }
+
+  return found;
+}
+
+// ── globals: Bun API Audit ──────────────────────────────
 
 function auditGlobals(): void {
   const keys = Object.keys(Bun).sort();
@@ -305,7 +378,9 @@ function auditGlobals(): void {
     const t = typeof (Bun as any)[key];
     const entry = `${key} (${t})`;
 
-    if (/hash|sha|md[45]|crc|password|csrf|crypto/i.test(key)) {
+    if (
+      /hash|sha|md[45]|crc|password|csrf|crypto/i.test(key)
+    ) {
       grouped.crypto.push(entry);
     } else if (
       /file|write|read|stream|mmap|stdin|stdout|stderr/i.test(
@@ -332,9 +407,13 @@ function auditGlobals(): void {
     }
   }
 
-  console.log(`Bun ${Bun.version} — ${keys.length} APIs\n`);
+  console.log(
+    `Bun ${Bun.version} — ${keys.length} APIs\n`
+  );
 
-  for (const [category, entries] of Object.entries(grouped)) {
+  for (const [category, entries] of Object.entries(
+    grouped
+  )) {
     if (entries.length === 0) continue;
     console.log(`  ${category} (${entries.length}):`);
     for (const e of entries) {
@@ -344,7 +423,7 @@ function auditGlobals(): void {
   }
 }
 
-// ── Health Check ────────────────────────────────────────
+// ── health: System Health Snapshot ──────────────────────
 
 function healthCheck(): void {
   const mem = process.memoryUsage();
@@ -385,14 +464,22 @@ function healthCheck(): void {
   ];
 
   console.log(
-    Bun.inspect.table(health, ["metric", "value", "status"])
+    Bun.inspect.table(health, [
+      "metric",
+      "value",
+      "status",
+    ])
   );
 
   const vCount = (
-    db.query("SELECT COUNT(*) as c FROM violations").get() as any
+    db
+      .query("SELECT COUNT(*) as c FROM violations")
+      .get() as any
   ).c;
   const aCount = (
-    db.query("SELECT COUNT(*) as c FROM audits").get() as any
+    db
+      .query("SELECT COUNT(*) as c FROM audits")
+      .get() as any
   ).c;
 
   console.log(`  Violations recorded: ${vCount}`);
@@ -428,7 +515,9 @@ function healthCheck(): void {
   }
 }
 
-// ── DB Viewer ───────────────────────────────────────────
+// ═════════════════════════════════════════════════════════
+// DB Queries
+// ═════════════════════════════════════════════════════════
 
 function showViolations(limit = 10): void {
   const rows = db
@@ -447,7 +536,9 @@ function showViolations(limit = 10): void {
   const display = rows.map((r: any) => ({
     time: r.time,
     file:
-      r.file.length > 30 ? "..." + r.file.slice(-27) : r.file,
+      r.file.length > 30
+        ? "..." + r.file.slice(-27)
+        : r.file,
     line: r.line,
     width: r.width,
   }));
@@ -468,7 +559,8 @@ function showViolations(limit = 10): void {
 
   if (audits.length > 0) {
     console.log(
-      `\n${GLYPHS.PHASE_LOCKED} Last ${audits.length} audits:`
+      `\n${GLYPHS.PHASE_LOCKED}` +
+        ` Last ${audits.length} audits:`
     );
     const auditDisplay = audits.map((r: any) => ({
       time: r.time,
@@ -479,8 +571,6 @@ function showViolations(limit = 10): void {
     console.log(Bun.inspect.table(auditDisplay));
   }
 }
-
-// ── Export ──────────────────────────────────────────────
 
 function exportViolations(
   limit = 100,
@@ -503,7 +593,85 @@ function exportViolations(
   }
 }
 
-// ── Dashboard ───────────────────────────────────────────
+// ═════════════════════════════════════════════════════════
+// Dashboard
+// ═════════════════════════════════════════════════════════
+
+const DASHBOARD_HTML = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tier-1380 Audit Dashboard</title>
+<style>
+:root{color-scheme:light dark;--bg:light-dark(#fafafa,#0a0a0a);
+--fg:light-dark(#222,#ddd);--accent:#82589f;--err:#e74c3c;
+--ok:#2ecc71;
+--border:light-dark(#ddd,#333);--card:light-dark(#fff,#141414)}
+*{margin:0;box-sizing:border-box}
+body{font-family:ui-monospace,monospace;background:var(--bg);
+color:var(--fg);max-width:89ch;margin:0 auto;padding:1rem}
+h1{font-size:1.2rem;border-bottom:1px solid var(--border);
+padding-bottom:.5rem;margin-bottom:1rem}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,
+minmax(200px,1fr));gap:1rem;margin-bottom:1.5rem}
+.card{background:var(--card);border:1px solid var(--border);
+border-radius:6px;padding:1rem}
+.card h3{font-size:.75rem;text-transform:uppercase;
+letter-spacing:.05em;opacity:.6;margin-bottom:.25rem}
+.card .val{font-size:1.8rem;font-weight:700}
+.card .val.err{color:var(--err)}
+.card .val.ok{color:var(--ok)}
+table{width:100%;border-collapse:collapse;font-size:.8rem}
+th,td{text-align:left;padding:.4rem .6rem;
+border-bottom:1px solid var(--border)}
+th{opacity:.6;font-size:.7rem;text-transform:uppercase}
+.links{margin-top:1.5rem;font-size:.8rem}
+.links a{color:var(--accent);margin-right:1rem}
+footer{margin-top:2rem;font-size:.7rem;opacity:.4;
+text-align:center}
+</style>
+</head>
+<body>
+<h1>Tier-1380 Audit Dashboard</h1>
+<div class="cards">
+<div class="card"><h3>Col-89 Violations</h3>
+<div class="val" id="v">--</div></div>
+<div class="card"><h3>Total Audits</h3>
+<div class="val" id="a">--</div></div>
+<div class="card"><h3>7-Day Violations</h3>
+<div class="val" id="trend">--</div></div>
+</div>
+<h2 style="font-size:.9rem;margin-bottom:.5rem">Recent Audits</h2>
+<table><thead><tr><th>Time</th><th>Command</th>
+<th>Duration</th><th>Result</th></tr></thead>
+<tbody id="t"></tbody></table>
+<div class="links">
+<a href="/api/stats">/api/stats</a>
+<a href="/api/violations">/api/violations</a>
+<a href="/api/health">/api/health</a>
+</div>
+<footer>Tier-1380 | Bun | Col-89 Enforced | 30s refresh</footer>
+<script>
+async function load(){try{
+var s=await fetch("/api/stats").then(function(r){return r.json()});
+var ve=document.getElementById("v");
+ve.textContent=s.violations;
+ve.className="val "+(s.violations>0?"err":"ok");
+document.getElementById("a").textContent=s.audits;
+var td=s.trend||[];
+var tc=td.reduce(function(a,d){return a+d.cnt},0);
+var te=document.getElementById("trend");
+te.textContent=tc;te.className="val "+(tc>0?"err":"ok");
+document.getElementById("t").innerHTML=s.recent.map(function(r){
+return "<tr><td>"+r.time+"</td><td>"+r.command+
+"</td><td>"+Number(r.duration_ms).toFixed(1)+
+"ms</td><td>"+r.result+"</td></tr>"}).join("");
+}catch(e){console.error(e)}}
+load();setInterval(load,30000);
+</script>
+</body>
+</html>`;
 
 function launchDashboard(): void {
   const server = Bun.serve({
@@ -577,7 +745,9 @@ function launchDashboard(): void {
         ).c;
         return Response.json({
           status:
-            vCount === 0 ? "healthy" : "violations_found",
+            vCount === 0
+              ? "healthy"
+              : "violations_found",
           violations: vCount,
           bun: Bun.version,
         });
@@ -601,97 +771,25 @@ function launchDashboard(): void {
   console.log("  GET /api/health       Health check");
 }
 
-const DASHBOARD_HTML = `<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Tier-1380 Audit Dashboard</title>
-<style>
-:root{color-scheme:light dark;--bg:light-dark(#fafafa,#0a0a0a);
---fg:light-dark(#222,#ddd);--accent:#82589f;--err:#e74c3c;
---ok:#2ecc71;
---border:light-dark(#ddd,#333);--card:light-dark(#fff,#141414)}
-*{margin:0;box-sizing:border-box}
-body{font-family:ui-monospace,monospace;background:var(--bg);
-color:var(--fg);max-width:89ch;margin:0 auto;padding:1rem}
-h1{font-size:1.2rem;border-bottom:1px solid var(--border);
-padding-bottom:.5rem;margin-bottom:1rem}
-.cards{display:grid;grid-template-columns:repeat(auto-fit,
-minmax(200px,1fr));gap:1rem;margin-bottom:1.5rem}
-.card{background:var(--card);border:1px solid var(--border);
-border-radius:6px;padding:1rem}
-.card h3{font-size:.75rem;text-transform:uppercase;
-letter-spacing:.05em;opacity:.6;margin-bottom:.25rem}
-.card .val{font-size:1.8rem;font-weight:700}
-.card .val.err{color:var(--err)}
-.card .val.ok{color:var(--ok)}
-table{width:100%;border-collapse:collapse;font-size:.8rem}
-th,td{text-align:left;padding:.4rem .6rem;
-border-bottom:1px solid var(--border)}
-th{opacity:.6;font-size:.7rem;text-transform:uppercase}
-.links{margin-top:1.5rem;font-size:.8rem}
-.links a{color:var(--accent);margin-right:1rem}
-footer{margin-top:2rem;font-size:.7rem;opacity:.4;
-text-align:center}
-</style>
-</head>
-<body>
-<h1>Tier-1380 Audit Dashboard</h1>
-<div class="cards">
-<div class="card"><h3>Col-89 Violations</h3>
-<div class="val" id="v">--</div></div>
-<div class="card"><h3>Total Audits</h3>
-<div class="val" id="a">--</div></div>
-<div class="card"><h3>7-Day Violations</h3>
-<div class="val" id="trend">--</div></div>
-</div>
-<h2 style="font-size:.9rem;margin-bottom:.5rem">Recent Audits</h2>
-<table><thead><tr><th>Time</th><th>Command</th>
-<th>Duration</th><th>Result</th></tr></thead>
-<tbody id="t"></tbody></table>
-<div class="links">
-<a href="/api/stats">/api/stats</a>
-<a href="/api/violations">/api/violations</a>
-<a href="/api/health">/api/health</a>
-</div>
-<footer>Tier-1380 | Bun | Col-89 Enforced | 30s refresh</footer>
-<script>
-async function load(){try{
-const s=await fetch("/api/stats").then(r=>r.json());
-const ve=document.getElementById("v");
-ve.textContent=s.violations;
-ve.className="val "+(s.violations>0?"err":"ok");
-document.getElementById("a").textContent=s.audits;
-var td=s.trend||[];
-var tc=td.reduce(function(a,d){return a+d.cnt},0);
-var te=document.getElementById("trend");
-te.textContent=tc;te.className="val "+(tc>0?"err":"ok");
-document.getElementById("t").innerHTML=s.recent.map(r=>
-"<tr><td>"+r.time+"</td><td>"+r.command+
-"</td><td>"+Number(r.duration_ms).toFixed(1)+
-"ms</td><td>"+r.result+"</td></tr>").join("");
-}catch(e){console.error(e)}}
-load();setInterval(load,30000);
-</script>
-</body>
-</html>`;
-
-// ── Help ────────────────────────────────────────────────
+// ═════════════════════════════════════════════════════════
+// CLI Interface
+// ═════════════════════════════════════════════════════════
 
 function printHelp(): void {
-  console.log(`${GLYPHS.STRUCTURAL_DRIFT} Tier-1380 Audit CLI (Bun ${Bun.version})
+  console.log(
+    `${GLYPHS.STRUCTURAL_DRIFT}` +
+      ` Tier-1380 Audit CLI (Bun ${Bun.version})
 
 Commands:
   check <file|dir> Col-89 scan (--glob="pattern")
   css <file>      LightningCSS minify + sourcemap
-  rss [url]       Feed audit (default: bun.sh/blog/rss.xml)
-  scan [exts] [dir] Scan for bad file extensions (security)
-  export [limit]  Dump violations as JSON (--jsonl)
-  db [limit]      Show last N violations (default: 10)
-  dashboard       Launch http://127.0.0.1:${PORT} monitor
+  rss [url]       Feed audit (default: bun.sh/blog)
+  scan [exts] [dir] Scan for bad file extensions
   globals         Audit available Bun.* APIs
   health          System health snapshot
+  db [limit]      Show last N violations (default: 10)
+  export [limit]  Dump violations as JSON (--jsonl)
+  dashboard       Launch http://127.0.0.1:${PORT} monitor
   clean           Clear all audit data
   help            Show this help
 
@@ -703,162 +801,148 @@ Examples:
   bun run cli/tier1380-audit.ts export --jsonl
   bun run cli/tier1380-audit.ts dashboard
   bun run cli/tier1380-audit.ts scan
-  bun run cli/tier1380-audit.ts scan ".exe,.bat" ./build
-
-One-Liner:
-  bun -e 'const bad=new Set([".exe",".dll",".sh"]);const d="./dist";for await(const f of new Bun.Glob("**/*").scan(d)){const e=f.slice(f.lastIndexOf("."));if(bad.has(e))console.log(\`⚠️ Illegal: \${f}\`)}'`);
+  bun run cli/tier1380-audit.ts scan ".exe,.bat" ./build`
+  );
 }
 
-// ── CLI Router ──────────────────────────────────────────
+const COMMANDS: Record<
+  string,
+  (args: string[]) => Promise<void> | void
+> = {
+  async check(args) {
+    const globOpt = args.find((a) =>
+      a.startsWith("--glob=")
+    );
+    const globPattern = globOpt?.slice(7) ?? null;
+    const file = args.find((a) => !a.startsWith("--"));
+
+    if (!file && !globPattern) {
+      console.error(
+        "Usage: tier1380-audit check <file|dir>" +
+          ' [--glob="pattern"]'
+      );
+      process.exit(1);
+    }
+
+    let totalViolations = 0;
+    let fileCount = 0;
+
+    if (globPattern) {
+      const glob = new Bun.Glob(globPattern);
+      for await (const f of glob.scan({ cwd: "." })) {
+        fileCount++;
+        totalViolations += await checkCol89(f);
+      }
+    } else if (
+      file &&
+      existsSync(file) &&
+      statSync(file).isDirectory()
+    ) {
+      const glob = new Bun.Glob("**/*");
+      for await (const f of glob.scan({
+        cwd: file,
+        onlyFiles: true,
+      })) {
+        fileCount++;
+        totalViolations += await checkCol89(
+          `${file}/${f}`
+        );
+      }
+    } else {
+      fileCount = 1;
+      totalViolations = await checkCol89(file!);
+    }
+
+    if (fileCount > 1) {
+      console.log(
+        `\n${GLYPHS.STRUCTURAL_DRIFT} Total:` +
+          ` ${fileCount} files,` +
+          ` ${totalViolations} violation` +
+          `${totalViolations === 1 ? "" : "s"}`
+      );
+    }
+    process.exit(totalViolations > 0 ? 1 : 0);
+  },
+
+  async css(args) {
+    const file = args[0];
+    if (!file) {
+      console.error("Usage: tier1380-audit css <file>");
+      process.exit(1);
+    }
+    await optimizeCSS(file);
+  },
+
+  async rss(args) {
+    await checkRSS(args[0]);
+  },
+
+  async scan(args) {
+    const bad = new Set(
+      args[0]?.split(",") || [
+        ".exe",
+        ".dll",
+        ".sh",
+        ".bat",
+        ".cmd",
+      ]
+    );
+    const dir = args[1] || "./dist";
+    const found = await scanExtensions(bad, dir);
+    process.exit(found > 0 ? 1 : 0);
+  },
+
+  globals() {
+    auditGlobals();
+  },
+
+  health() {
+    healthCheck();
+  },
+
+  db(args) {
+    showViolations(Number(args[0]) || 10);
+  },
+
+  export(args) {
+    const limit = Number(
+      args.find((a) => !a.startsWith("--")) ?? 100
+    );
+    const format = args.includes("--jsonl")
+      ? ("jsonl" as const)
+      : ("json" as const);
+    exportViolations(limit, format);
+  },
+
+  dashboard() {
+    launchDashboard();
+  },
+
+  clean() {
+    db.exec("DELETE FROM violations");
+    db.exec("DELETE FROM audits");
+    console.log(`${GLYPHS.PHASE_LOCKED} Database cleaned`);
+  },
+
+  help() {
+    printHelp();
+  },
+};
 
 async function main(): Promise<void> {
   const [cmd, ...args] = process.argv.slice(2);
+  const handler = cmd ? COMMANDS[cmd] : null;
 
-  switch (cmd) {
-    case "check": {
-      const globOpt = args.find(
-        (a) => a.startsWith("--glob=")
-      );
-      const globPattern = globOpt?.slice(7) ?? null;
-      const file = args.find((a) => !a.startsWith("--"));
-
-      if (!file && !globPattern) {
-        console.error(
-          "Usage: tier1380-audit check <file|dir>" +
-            ' [--glob="pattern"]'
-        );
-        process.exit(1);
-      }
-
-      let totalViolations = 0;
-      let fileCount = 0;
-
-      if (globPattern) {
-        const glob = new Bun.Glob(globPattern);
-        for await (const f of glob.scan({ cwd: "." })) {
-          fileCount++;
-          totalViolations += await checkCol89(f);
-        }
-      } else if (
-        file &&
-        existsSync(file) &&
-        statSync(file).isDirectory()
-      ) {
-        const glob = new Bun.Glob("**/*");
-        for await (const f of glob.scan({
-          cwd: file,
-          onlyFiles: true,
-        })) {
-          fileCount++;
-          totalViolations += await checkCol89(
-            `${file}/${f}`
-          );
-        }
-      } else {
-        fileCount = 1;
-        totalViolations = await checkCol89(file!);
-      }
-
-      if (fileCount > 1) {
-        console.log(
-          `\n${GLYPHS.STRUCTURAL_DRIFT} Total:` +
-            ` ${fileCount} files,` +
-            ` ${totalViolations} violation` +
-            `${totalViolations === 1 ? "" : "s"}`
-        );
-      }
-      process.exit(totalViolations > 0 ? 1 : 0);
-      break;
-    }
-
-    case "css": {
-      const file = args[0];
-      if (!file) {
-        console.error("Usage: tier1380-audit css <file>");
-        process.exit(1);
-      }
-      await optimizeCSS(file);
-      break;
-    }
-
-    case "rss":
-      await checkRSS(args[0]);
-      break;
-
-    case "db":
-      showViolations(Number(args[0]) || 10);
-      break;
-
-    case "export": {
-      const limit = Number(
-        args.find((a) => !a.startsWith("--")) ?? 100
-      );
-      const format = args.includes("--jsonl")
-        ? ("jsonl" as const)
-        : ("json" as const);
-      exportViolations(limit, format);
-      break;
-    }
-
-    case "dashboard":
-      launchDashboard();
-      break;
-
-    case "globals":
-      auditGlobals();
-      break;
-
-    case "health":
-      healthCheck();
-      break;
-
-    case "scan": {
-      // File extension security scanner
-      const bad = new Set(args[0]?.split(",") || [".exe", ".dll", ".sh", ".bat", ".cmd"]);
-      const dir = args[1] || "./dist";
-      const start = Bun.nanoseconds();
-      let scanned = 0;
-      let found = 0;
-      
-      console.log(`${GLYPHS.AUDIT} Scanning ${dir} for bad extensions:`);
-      console.log(`  ${[...bad].join(", ")}\n`);
-      
-      for await (const f of new Bun.Glob("**/*").scan(dir)) {
-        scanned++;
-        const dot = f.lastIndexOf(".");
-        if (dot === -1) continue;
-        const ext = f.slice(dot);
-        if (bad.has(ext)) {
-          found++;
-          console.log(`  ⚠️  ${f}`);
-          db.prepare("INSERT INTO violations (file, line, width, preview) VALUES (?, ?, ?, ?)")
-            .run(`${dir}/${f}`, 0, 0, `Bad extension: ${ext}`);
-        }
-      }
-      
-      const durationMs = (Bun.nanoseconds() - start) / 1e6;
-      recordAudit(`scan ${dir}`, durationMs, `${found} bad files`);
-      
-      console.log(`\n${GLYPHS.PHASE_LOCKED} Scanned ${scanned} files in ${durationMs.toFixed(2)}ms`);
-      console.log(`  Found: ${found} suspicious files`);
-      if (found > 0) console.log(`  Run 'tier1380:audit db' to view details`);
-      process.exit(found > 0 ? 1 : 0);
-      break;
-    }
-
-    case "clean":
-      db.exec("DELETE FROM violations");
-      db.exec("DELETE FROM audits");
-      console.log(
-        `${GLYPHS.PHASE_LOCKED} Database cleaned`
-      );
-      break;
-
-    default:
-      printHelp();
-      break;
+  if (handler) {
+    await handler(args);
+  } else {
+    printHelp();
   }
 }
+
+// ═════════════════════════════════════════════════════════
+// Entry Point
+// ═════════════════════════════════════════════════════════
 
 if (import.meta.main) {
   main().catch((err) => {
@@ -867,7 +951,6 @@ if (import.meta.main) {
   });
 }
 
-// Keep alive for dashboard
 if (process.argv[2] === "dashboard") {
   process.stdin.resume();
 }
@@ -877,6 +960,7 @@ export {
   optimizeCSS,
   checkRSS,
   parseRSSItems,
+  scanExtensions,
   auditGlobals,
   healthCheck,
   showViolations,

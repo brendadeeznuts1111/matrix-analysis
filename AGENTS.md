@@ -183,6 +183,16 @@ bun run tier1380:terminal:profiles set API_KEY --value "xxx"  # Store secret
 bun run tier1380:terminal:profiles get API_KEY               # Retrieve secret
 bun run tier1380:terminal:switch prod   # Switch profile with secrets
 
+# Tier-1380 Registry Connector (R2 + Kimi Shell)
+bun run tier1380:registry               # Check registry status
+bun run tier1380:registry connect       # Connect to OMEGA registry
+bun run tier1380:registry r2:status     # Check R2 connection
+bun run tier1380:registry r2:upload <path> [key]   # Upload to R2 (Bun.s3)
+bun run tier1380:registry r2:download <key> [path] # Download from R2
+bun run tier1380:registry r2:list [prefix]         # List R2 objects
+bun run tier1380:registry r2:delete <key>          # Delete R2 object
+bun run tier1380:registry shell:status  # Show Kimi shell integration status
+
 # Bun docs (mcp-bun-docs)
 bun run docs:search -- "<query>"       # Search Bun docs (markdown)
 bun run docs:entry -- <term> [--url]   # Curated entry (JSON or URL)

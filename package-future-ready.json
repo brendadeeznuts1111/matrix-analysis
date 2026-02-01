@@ -1,0 +1,39 @@
+{
+  "name": "tier1380-future-ready",
+  "type": "module",
+  "engines": {
+    "bun": ">=1.1.0"
+  },
+  "scripts": {
+    "dev": "bun --hot run app/css-optimizer.ts",
+    "dev:db": "bun --hot run database/tier1380-database.ts",
+    "build": "bun build ./app/css-optimizer.ts --outdir ./dist --target bun",
+    "build:css": "bun run scripts/build-css.ts",
+    "start": "bun --smol run ./dist/server.js",
+    "test:future": "bun test --coverage --future-flags",
+    "benchmark": "bun run scripts/benchmark.ts",
+    "demo:css": "bun app/css-optimizer.ts",
+    "demo:db": "bun database/tier1380-database.ts",
+    "demo:gpu": "bun -e \"import('./gpu/webgpu-future.ts').then(m => console.log('WebGPU module loaded'))\"",
+    "demo:future": "bun -e \"import('./future/bun-future-ready.ts').then(m => console.log('Future patterns loaded'))\""
+  },
+  "dependencies": {
+    "lightningcss": "^1.24.0",
+    "lru-cache": "^10.2.0"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@webgpu/types": "^0.1.38"
+  },
+  "bun": {
+    "optimization": {
+      "treeshake": true,
+      "minify": true
+    },
+    "future": {
+      "http3": "experimental",
+      "webgpu": "experimental",
+      "simd": true
+    }
+  }
+}
