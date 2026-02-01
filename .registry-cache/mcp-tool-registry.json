@@ -1,0 +1,215 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "MCP Tool Registry – Tier-1380 OMEGA",
+  "description": "Registry of all MCP tools with input schemas for Bun.deepMatch validation",
+  "version": "4.0.0",
+  "type": "object",
+  "additionalProperties": false,
+  "definitions": {
+    "inputType": {
+      "oneOf": [
+        { "type": "string", "enum": ["string", "number", "boolean", "object", "array"] },
+        {
+          "type": "object",
+          "properties": {
+            "type": { "type": "string", "enum": ["string", "number", "boolean", "object", "array"] },
+            "enum": { "type": "array" },
+            "minimum": { "type": "number" },
+            "maximum": { "type": "number" },
+            "pattern": { "type": "string", "format": "regex" },
+            "items": { "$ref": "#/definitions/inputType" },
+            "properties": { "type": "object", "additionalProperties": { "$ref": "#/definitions/inputType" } },
+            "const": {},
+            "description": { "type": "string" }
+          }
+        }
+      ]
+    }
+  },
+  "patternProperties": {
+    "^[a-z][a-z0-9_-]+(/[a-z][a-z0-9_-]+)*$": {
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Canonical tool name (same as key)" },
+        "description": { "type": "string" },
+        "input": {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/definitions/inputType" }
+        },
+        "required": { "type": "array", "items": { "type": "string" } },
+        "returns": { "type": ["string", "object"] },
+        "category": { 
+          "type": "string", 
+          "enum": ["registry", "r2", "cache", "sync", "backup", "audit", "security", "system", "demo", "other"] 
+        },
+        "tier": { "type": "integer", "minimum": 1000, "maximum": 1380 },
+        "glyph": { "type": "string" }
+      },
+      "required": ["name", "description", "input", "category"],
+      "additionalProperties": false
+    }
+  },
+  "properties": {
+    "rss/query": {
+      "name": "rss/query",
+      "description": "Query unified RSS feed with pattern matching",
+      "input": {
+        "pattern": { "type": "string", "description": "Search pattern" },
+        "limit": { "type": "number", "minimum": 1, "maximum": 100, "description": "Max results" },
+        "tier": { "type": "number", "const": 1380 }
+      },
+      "required": ["pattern"],
+      "returns": "array",
+      "category": "audit",
+      "tier": 1380,
+      "glyph": "📡"
+    },
+    "registry/check": {
+      "name": "registry/check",
+      "description": "Check OMEGA registry connection and status",
+      "input": {
+        "environment": { "type": "string", "enum": ["local", "staging", "production"], "description": "Target environment" },
+        "prefetch": { "type": "boolean", "description": "Enable DNS prefetch" }
+      },
+      "required": [],
+      "returns": "object",
+      "category": "registry",
+      "tier": 1380,
+      "glyph": "🔌"
+    },
+    "registry/r2/upload": {
+      "name": "registry/r2/upload",
+      "description": "Upload file to R2 with CRC32 and compression",
+      "input": {
+        "localPath": { "type": "string", "description": "Local file path" },
+        "r2Key": { "type": "string", "description": "R2 object key" },
+        "compress": { "type": "boolean", "description": "Enable gzip compression" },
+        "cache": { "type": "boolean", "description": "Cache locally after upload" }
+      },
+      "required": ["localPath"],
+      "returns": "object",
+      "category": "r2",
+      "tier": 1380,
+      "glyph": "📤"
+    },
+    "registry/r2/download": {
+      "name": "registry/r2/download",
+      "description": "Download file from R2 with cache support",
+      "input": {
+        "r2Key": { "type": "string", "description": "R2 object key" },
+        "localPath": { "type": "string", "description": "Local destination path" },
+        "useCache": { "type": "boolean", "description": "Use local cache if available" }
+      },
+      "required": ["r2Key"],
+      "returns": "object",
+      "category": "r2",
+      "tier": 1380,
+      "glyph": "📥"
+    },
+    "registry/cache/stats": {
+      "name": "registry/cache/stats",
+      "description": "Show registry cache statistics",
+      "input": {},
+      "required": [],
+      "returns": "object",
+      "category": "cache",
+      "tier": 1380,
+      "glyph": "💾"
+    },
+    "registry/sync": {
+      "name": "registry/sync",
+      "description": "Sync registry files between local and R2",
+      "input": {
+        "direction": { "type": "string", "enum": ["up", "down", "both"], "description": "Sync direction" },
+        "pattern": { "type": "string", "description": "File pattern to match" },
+        "verify": { "type": "boolean", "description": "Verify CRC32 after sync" }
+      },
+      "required": ["direction"],
+      "returns": "object",
+      "category": "sync",
+      "tier": 1380,
+      "glyph": "🔄"
+    },
+    "registry/backup": {
+      "name": "registry/backup",
+      "description": "Create registry backup with CRC32 verification",
+      "input": {
+        "outputPath": { "type": "string", "description": "Backup destination path" },
+        "compress": { "type": "boolean", "description": "Compress backup with gzip" }
+      },
+      "required": [],
+      "returns": "object",
+      "category": "backup",
+      "tier": 1380,
+      "glyph": "💾"
+    },
+    "registry/restore": {
+      "name": "registry/restore",
+      "description": "Restore registry from backup",
+      "input": {
+        "backupFile": { "type": "string", "description": "Path to backup file" },
+        "verify": { "type": "boolean", "description": "Verify CRC32 before restore" }
+      },
+      "required": ["backupFile"],
+      "returns": "object",
+      "category": "backup",
+      "tier": 1380,
+      "glyph": "📂"
+    },
+    "registry/benchmark": {
+      "name": "registry/benchmark",
+      "description": "Run Bun-native benchmark suite",
+      "input": {
+        "iterations": { "type": "number", "minimum": 1, "maximum": 10000, "description": "Benchmark iterations" },
+        "algorithms": { 
+          "type": "array", 
+          "items": { "type": "string", "enum": ["crc32", "wyhash", "gzip", "uuid"] },
+          "description": "Algorithms to benchmark"
+        }
+      },
+      "required": [],
+      "returns": "array",
+      "category": "demo",
+      "tier": 1380,
+      "glyph": "⏱️"
+    },
+    "registry/password/hash": {
+      "name": "registry/password/hash",
+      "description": "Hash password using Bun.password (Argon2id)",
+      "input": {
+        "password": { "type": "string", "description": "Password to hash" },
+        "algorithm": { "type": "string", "enum": ["argon2id", "bcrypt", "scrypt"], "description": "Hash algorithm" }
+      },
+      "required": ["password"],
+      "returns": "object",
+      "category": "security",
+      "tier": 1380,
+      "glyph": "🔒"
+    },
+    "registry/health/monitor": {
+      "name": "registry/health/monitor",
+      "description": "Monitor registry health with periodic checks",
+      "input": {
+        "interval": { "type": "number", "minimum": 5, "maximum": 300, "description": "Check interval in seconds" },
+        "alertThreshold": { "type": "number", "minimum": 1, "maximum": 10, "description": "Failures before alert" }
+      },
+      "required": [],
+      "returns": "stream",
+      "category": "system",
+      "tier": 1380,
+      "glyph": "❤️"
+    },
+    "registry/demo/uuid": {
+      "name": "registry/demo/uuid",
+      "description": "Generate UUIDv7 identifiers",
+      "input": {
+        "count": { "type": "number", "minimum": 1, "maximum": 100, "description": "Number of UUIDs to generate" }
+      },
+      "required": [],
+      "returns": "array",
+      "category": "demo",
+      "tier": 1380,
+      "glyph": "🆔"
+    }
+  }
+}

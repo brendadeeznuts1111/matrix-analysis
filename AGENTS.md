@@ -222,6 +222,12 @@ bun run tier1380:registry worker:spawn [task]  # Spawn worker with IPC
 bun run tier1380:registry watch [pattern]      # Watch files (fs.watch)
 bun run tier1380:registry shell:status  # Show Kimi shell integration status
 
+# Tier-1380 Registry Validation & Compliance (JSON Schema + Bun.deepMatch)
+bun run tier1380:registry:validate <tool> [args]  # Validate tool call against schema
+bun run tier1380:registry:compliance [tenant]     # Calculate Col-89 compliance score
+bun run tier1380:registry:export [json|csv]       # Export registry statistics
+bun run tier1380:registry:list                    # List all registered MCP tools
+
 # Bun docs (mcp-bun-docs)
 bun run docs:search -- "<query>"       # Search Bun docs (markdown)
 bun run docs:entry -- <term> [--url]   # Curated entry (JSON or URL)
