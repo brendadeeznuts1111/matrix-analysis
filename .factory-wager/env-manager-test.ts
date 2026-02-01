@@ -29,7 +29,7 @@ try {
   EnvManager.validateRequired(["FW_MODE", "FW_LOG_LEVEL"]);
   console.log("✅ Required environment variables validated");
 } catch (error) {
-  console.error("❌ Validation failed:", error.message);
+  console.error("❌ Validation failed:", (error as Error).message);
 }
 
 // Get complete configuration objects
@@ -99,7 +99,7 @@ function demonstrateRuntimeValidation() {
     EnvManager.validateRequired(["FW_MODE", "FW_LOG_LEVEL"]);
     console.log("  ✅ Required variables present");
   } catch (error) {
-    console.log(`  ❌ Validation error: ${error.message}`);
+    console.log(`  ❌ Validation error: ${(error as Error).message}`);
   }
 
   // Safe number parsing

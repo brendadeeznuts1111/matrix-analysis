@@ -281,12 +281,12 @@ async function getSystemStatus(): Promise<{
   }
 
   // Check for development mode in production-like environment
-  if (FW_CONFIG.MODE === "development" && process.env.NODE_ENV === "production") {
+  if (FW_CONFIG.mode === "development" && process.env.NODE_ENV === "production") {
     securityWarnings.push(" Development mode detected in production environment");
   }
 
   // Check for debug mode in production
-  if (FW_CONFIG.DEBUG && FW_CONFIG.MODE === "production") {
+  if (FW_CONFIG.debug && FW_CONFIG.mode === "production") {
     securityWarnings.push(" Debug mode enabled in production environment");
   }
 
@@ -294,7 +294,7 @@ async function getSystemStatus(): Promise<{
     version: VERSION,
     buildDate: BUILD_DATE,
     bunVersion: BUN_VERSION,
-    environment: FW_CONFIG.MODE,
+    environment: FW_CONFIG.mode,
     gitInfo,
     features: {
       markdown_engine: existsSync(PATHS.MARKDOWN_ENGINE),
@@ -348,7 +348,7 @@ async function displaySystemStatus(): Promise<void> {
     Verbose Fetch: ${status.bunConfig.VERBOSE_FETCH || "disabled"}
     No Clear Terminal: ${status.bunConfig.NO_CLEAR_TERMINAL ? "enabled" : "disabled"}
     Transpiler Cache: ${status.bunConfig.TRANSPILER_CACHE_PATH || "default"}
-    Bun Options: ${status.bunConfig.OPTIONS || "none"}
+    Bun Options: ${status.bunConfig.BUN_OPTIONS || "none"}
     Force Color: ${status.bunConfig.FORCE_COLOR ? "enabled" : "disabled"}
     No Color: ${status.bunConfig.NO_COLOR ? "enabled" : "disabled"}
     TLS Reject Unauthorized: ${status.bunConfig.NODE_TLS_REJECT_UNAUTHORIZED || "1"} ${status.bunConfig.NODE_TLS_REJECT_UNAUTHORIZED === "0" ? "⚠️ SECURITY RISK" : "✅ Secure"}
@@ -356,14 +356,14 @@ async function displaySystemStatus(): Promise<void> {
     Temp Directory: ${status.bunConfig.TMPDIR || "system default"}
 
     🏭 FactoryWager Configuration:
-    Mode: ${status.fwConfig.MODE}
-    Log Level: ${status.fwConfig.LOG_LEVEL}
-    Profile: ${status.fwConfig.PROFILE || "auto"}
-    Report Format: ${status.fwConfig.REPORT_FORMAT}
-    Output Directory: ${status.fwConfig.OUTPUT_DIR}
-    Config Directory: ${status.fwConfig.CONFIG_DIR}
-    Audit Mode: ${status.fwConfig.AUDIT_MODE ? "enabled" : "disabled"}
-    Debug: ${status.fwConfig.DEBUG ? "enabled" : "disabled"}
+    Mode: ${status.fwConfig.mode}
+    Log Level: ${status.fwConfig.logLevel}
+    Profile: ${status.fwConfig.profile || "auto"}
+    Report Format: ${status.fwConfig.reportFormat}
+    Output Directory: ${status.fwConfig.outputDir}
+    Config Directory: ${status.fwConfig.configDir}
+    Audit Mode: ${status.fwConfig.auditMode ? "enabled" : "disabled"}
+    Debug: ${status.fwConfig.debug ? "enabled" : "disabled"}
 
     🚀 Features Status:
     ${Object.entries(status.features)
@@ -551,7 +551,7 @@ async function main(): Promise<void> {
             console.log(`    MAX_HTTP_REQUESTS: ${BUN_CONFIG.MAX_HTTP_REQUESTS} (default: 256) - Control concurrent HTTP requests for fetch and bun install`);
             console.log(`    NO_CLEAR_TERMINAL: ${BUN_CONFIG.NO_CLEAR_TERMINAL ? "enabled" : "disabled"} - Prevents console clearing on bun --watch reload`);
             console.log(`    TRANSPILER_CACHE_PATH: ${BUN_CONFIG.TRANSPILER_CACHE_PATH || "default"} - Cache directory for transpiled output (>50kb files)`);
-            console.log(`    BUN_OPTIONS: ${BUN_CONFIG.OPTIONS || "none"} - Prepended command-line arguments to any Bun execution`);
+            console.log(`    BUN_OPTIONS: ${BUN_CONFIG.BUN_OPTIONS || "none"} - Prepended command-line arguments to any Bun execution`);
             console.log("\n  Color & Output Control:");
             console.log(`    FORCE_COLOR: ${BUN_CONFIG.FORCE_COLOR ? "enabled" : "disabled"} - Force ANSI color output, even if NO_COLOR is set`);
             console.log(`    NO_COLOR: ${BUN_CONFIG.NO_COLOR ? "enabled" : "disabled"} - Disable ANSI color output`);
@@ -566,16 +566,16 @@ async function main(): Promise<void> {
 
             console.log("\n🏭 FactoryWager Configuration:");
             console.log("  Core Settings:");
-            console.log(`    MODE: ${FW_CONFIG.MODE} - Operating mode (development/production/testing/audit/demo)`);
-            console.log(`    LOG_LEVEL: ${FW_CONFIG.LOG_LEVEL} - Logging level (debug/info/warn/error)`);
-            console.log(`    PROFILE: ${FW_CONFIG.PROFILE || "auto"} - Active profile name`);
+            console.log(`    MODE: ${FW_CONFIG.mode} - Operating mode (development/production/testing/audit/demo)`);
+            console.log(`    LOG_LEVEL: ${FW_CONFIG.logLevel} - Logging level (debug/info/warn/error)`);
+            console.log(`    PROFILE: ${FW_CONFIG.profile || "auto"} - Active profile name`);
             console.log("\n  Output Configuration:");
-            console.log(`    REPORT_FORMAT: ${FW_CONFIG.REPORT_FORMAT} - Default report format (html/ansi/markdown/react)`);
-            console.log(`    OUTPUT_DIR: ${FW_CONFIG.OUTPUT_DIR} - Reports output directory`);
-            console.log(`    CONFIG_DIR: ${FW_CONFIG.CONFIG_DIR} - Configuration directory`);
+            console.log(`    REPORT_FORMAT: ${FW_CONFIG.reportFormat} - Default report format (html/ansi/markdown/react)`);
+            console.log(`    OUTPUT_DIR: ${FW_CONFIG.outputDir} - Reports output directory`);
+            console.log(`    CONFIG_DIR: ${FW_CONFIG.configDir} - Configuration directory`);
             console.log("\n  Feature Flags:");
-            console.log(`    AUDIT_MODE: ${FW_CONFIG.AUDIT_MODE ? "enabled" : "disabled"} - Enable audit mode features`);
-            console.log(`    DEBUG: ${FW_CONFIG.DEBUG ? "enabled" : "disabled"} - Enable debug output`);
+            console.log(`    AUDIT_MODE: ${FW_CONFIG.auditMode ? "enabled" : "disabled"} - Enable audit mode features`);
+            console.log(`    DEBUG: ${FW_CONFIG.debug ? "enabled" : "disabled"} - Enable debug output`);
             break;
           default:
             console.error("❌ Unknown config subcommand");
