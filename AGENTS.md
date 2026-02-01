@@ -177,6 +177,12 @@ bun run tier1380:sysinfo                # Full system summary
 bun run tier1380:sysinfo --json         # JSON output
 bun run tier1380:sysinfo --health       # Component health check
 
+# Tier-1380 Terminal Profile Manager (Bun.secrets)
+bun run tier1380:terminal:profiles      # List profiles and secrets
+bun run tier1380:terminal:profiles set API_KEY --value "xxx"  # Store secret
+bun run tier1380:terminal:profiles get API_KEY               # Retrieve secret
+bun run tier1380:terminal:switch prod   # Switch profile with secrets
+
 # Bun docs (mcp-bun-docs)
 bun run docs:search -- "<query>"       # Search Bun docs (markdown)
 bun run docs:entry -- <term> [--url]   # Curated entry (JSON or URL)
