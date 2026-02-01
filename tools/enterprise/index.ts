@@ -1,15 +1,18 @@
 /**
  * Enterprise Archive Suite - Enhanced Index
  * Tier-1380 Enterprise Archive Management System
- * 
+ *
  * @version 2.0.0
  * @author Tier-1380 Enterprise Team
  */
 
 // ─── Core Enterprise Classes ─────────────────────────────────────────────────────
-export { EnterpriseArchiveManager } from './enterprise/archive/EnterpriseArchiveManager';
-export { EnterpriseSecurityValidator, securityValidator } from './enterprise/security/EnterpriseSecurityValidator';
-export { EnterpriseArchiveCLI } from './enterprise/cli/EnterpriseArchiveCLI';
+export { EnterpriseArchiveManager } from './archive/EnterpriseArchiveManager';
+export { EnterpriseSecurityValidator, securityValidator } from './security/EnterpriseSecurityValidator';
+export { EnterpriseArchiveCLI } from './cli/EnterpriseArchiveCLI';
+export { PerformanceAnalyzer, performanceAnalyzer } from './analytics/PerformanceAnalyzer';
+export { AuditTrailManager, auditTrailManager } from './audit/AuditTrailManager';
+export { compressionEngine } from '../core/compression/ArchiveCompressionEngine';
 
 // ─── Type Definitions ─────────────────────────────────────────────────────────
 export type {
@@ -23,7 +26,27 @@ export type {
   SecurityRule,
   SecurityViolation,
   SecurityReport
-} from './enterprise/security/EnterpriseSecurityValidator';
+} from './security/EnterpriseSecurityValidator';
+
+export type {
+  PerformanceMetric,
+  BenchmarkResult,
+  PerformanceReport,
+  PerformanceThreshold
+} from './analytics/PerformanceAnalyzer';
+
+export type {
+  AuditEvent,
+  ComplianceReport,
+  RetentionPolicy,
+  ComplianceRule
+} from './audit/AuditTrailManager';
+
+export type {
+  CompressionStrategy,
+  CompressionMetrics,
+  CompressionBenchmark
+} from '../core/compression/ArchiveCompressionEngine';
 
 // ─── Legacy Tools (Backward Compatibility) ───────────────────────────────────────
 // These are maintained for backward compatibility but marked as deprecated
@@ -46,6 +69,20 @@ export function createSecurityValidator(): EnterpriseSecurityValidator {
 }
 
 /**
+ * Create a performance analyzer
+ */
+export function createPerformanceAnalyzer(dbPath?: string): PerformanceAnalyzer {
+  return new PerformanceAnalyzer(dbPath);
+}
+
+/**
+ * Create an audit trail manager
+ */
+export function createAuditTrailManager(dbPath?: string): AuditTrailManager {
+  return new AuditTrailManager(dbPath);
+}
+
+/**
  * Create an enterprise CLI instance
  */
 export function createCLI(): EnterpriseArchiveCLI {
@@ -58,10 +95,10 @@ export function createCLI(): EnterpriseArchiveCLI {
  */
 export async function quickStartExample() {
   console.log('🚀 Tier-1380 Enterprise Archive Suite - Quick Start');
-  
+
   // Create archive manager
   const archiveManager = createArchiveManager('production');
-  
+
   try {
     // Create secure archive
     const result = await archiveManager.createSecureArchive('./data', {
@@ -69,10 +106,10 @@ export async function quickStartExample() {
       auditEnabled: true,
       validateIntegrity: true
     });
-    
+
     console.log(`✅ Archive created: ${result.archiveId}`);
     console.log(`📊 Performance: ${result.metrics.creationTimeMs.toFixed(2)}ms`);
-    
+
   } finally {
     archiveManager.close();
   }
@@ -83,21 +120,102 @@ export async function quickStartExample() {
  */
 export async function securityExample() {
   console.log('🔒 Security Validation Example');
-  
+
   const validator = createSecurityValidator();
-  
+
   // Example file map (in real usage, this comes from an archive)
   const files = new Map([
     ['config.json', new TextEncoder().encode('{"apiKey": "secret"}')],
     ['data.txt', new TextEncoder().encode('Hello World')],
     ['../etc/passwd', new TextEncoder().encode('malicious')]
   ]);
-  
+
   const report = await validator.validateArchive(files);
-  
+
   console.log(`📊 Risk level: ${report.overallRisk}`);
   console.log(`🚫 Blocked files: ${report.blockedFiles.length}`);
   console.log(`✅ Allowed files: ${report.allowedFiles.length}`);
+}
+
+/**
+ * Comprehensive enterprise workflow example
+ */
+export async function enterpriseWorkflowExample() {
+  console.log('🚀 Tier-1380 Enterprise Archive Suite - Complete Workflow');
+
+  // Initialize all enterprise components
+  const archiveManager = createArchiveManager('production');
+  const securityValidator = createSecurityValidator();
+  const performanceAnalyzer = createPerformanceAnalyzer();
+  const auditManager = createAuditTrailManager();
+
+  try {
+    // Step 1: Create archive with performance monitoring
+    console.log('📦 Step 1: Creating secure archive...');
+    const archiveResult = await performanceAnalyzer.runBenchmark(
+      () => archiveManager.createSecureArchive('./data', {
+        compression: 'gzip',
+        auditEnabled: true,
+        validateIntegrity: true
+      }),
+      'archive_creation',
+      5,
+      'production'
+    );
+
+    // Step 2: Security validation
+    console.log('🔒 Step 2: Security validation...');
+    const files = new Map([
+      ['config.json', new TextEncoder().encode('{"apiKey": "secret"}')],
+      ['data.txt', new TextEncoder().encode('Hello World')]
+    ]);
+
+    const securityReport = await securityValidator.validateArchive(files);
+
+    // Step 3: Audit compliance
+    console.log('📋 Step 3: Audit compliance...');
+    await auditManager.recordEvent({
+      timestamp: new Date(),
+      eventType: 'archive_created',
+      tenantId: 'production',
+      resource: 'enterprise-data',
+      action: 'create_secure_archive',
+      outcome: 'success',
+      details: { archiveId: archiveResult.archiveId, fileCount: 10 },
+      metadata: {
+        source: 'enterprise-workflow',
+        version: '2.0.0',
+        requestId: crypto.randomUUID()
+      },
+      compliance: {
+        dataClassification: 'confidential',
+        retentionPeriod: 2555,
+        legalHold: false,
+        regulations: ['SOX', 'GDPR']
+      }
+    });
+
+    // Step 4: Generate compliance report
+    const complianceReport = await auditManager.generateComplianceReport('production', {
+      start: new Date(Date.now() - 24 * 60 * 60 * 1000),
+      end: new Date()
+    });
+
+    // Step 5: Performance analytics
+    const performanceReport = await performanceAnalyzer.generateReport('production');
+
+    console.log('✅ Enterprise workflow completed successfully!');
+    console.log(`📊 Archive ID: ${archiveResult.archiveId}`);
+    console.log(`🔒 Security risk: ${securityReport.overallRisk}`);
+    console.log(`📈 Compliance score: ${complianceReport.summary.complianceScore}%`);
+    console.log(`⚡ Performance: ${archiveResult.averageTime.toFixed(2)}ms average`);
+
+  } finally {
+    // Clean up resources
+    archiveManager.close();
+    performanceAnalyzer.close();
+    auditManager.close();
+  }
 }
 
 // ─── Migration Guide ─────────────────────────────────────────────────────────
@@ -121,7 +239,7 @@ export class MigrationHelper {
     console.log('  const manager = new EnterpriseArchiveManager("production");');
     console.log('  await manager.createSecureArchive("./src", { auditEnabled: true });');
   }
-  
+
   /**
    * Migrate from tier1380-archive-secure.ts to EnterpriseArchiveManager
    */
@@ -241,12 +359,12 @@ export function formatFileSize(bytes: number): string {
   const units = ['B', 'KB', 'MB', 'GB', 'TB'];
   let size = bytes;
   let unitIndex = 0;
-  
+
   while (size >= 1024 && unitIndex < units.length - 1) {
     size /= 1024;
     unitIndex++;
   }
-  
+
   return `${size.toFixed(1)} ${units[unitIndex]}`;
 }
 
@@ -262,7 +380,7 @@ export function formatDuration(ms: number): string {
 // ─── Export Summary ─────────────────────────────────────────────────────────
 /**
  * Enterprise Archive Suite - Complete Feature Set
- * 
+ *
  * 🏢 Enterprise Features:
  * - Multi-tenant archive management
  * - Advanced security validation
@@ -270,28 +388,28 @@ export function formatDuration(ms: number): string {
  * - Performance analytics
  * - Threat intelligence integration
  * - Compliance reporting
- * 
+ *
  * 🔒 Security Features:
  * - Path traversal protection
  * - Executable file detection
  * - Sensitive content scanning
  * - Custom security rules
  * - Risk assessment
- * 
+ *
  * 📊 Analytics Features:
  * - Performance benchmarking
  * - Real-time metrics
  * - Usage analytics
  * - Capacity planning
  * - Trend analysis
- * 
+ *
  * 🚀 Performance Features:
  * - Sub-millisecond operations
  * - Memory optimization
  * - Compression efficiency
  * - Parallel processing
  * - Caching strategies
- * 
+ *
  * 📋 Compliance Features:
  * - Audit trail management
  * - Regulatory reporting
