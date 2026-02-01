@@ -1,0 +1,200 @@
+{
+  "name": "FactoryWager Bun.terminal Configuration",
+  "version": "1.0.0",
+  "description": "Bun.terminal integration for FactoryWager profile system",
+  "terminal": {
+    "shell": "zsh",
+    "theme": "dark",
+    "font": {
+      "family": "JetBrains Mono",
+      "size": 14
+    },
+    "colors": {
+      "background": "#0d1117",
+      "foreground": "#c9d1d9",
+      "cursor": "#58a6ff",
+      "selection": "#264f78"
+    }
+  },
+  "profiles": {
+    "development": {
+      "name": "FactoryWager Development",
+      "command": "zsh",
+      "args": ["-c", "source .factory-wager/config/profiles.sh && fw_profile apply development && zsh"],
+      "env": {
+        "NODE_ENV": "development",
+        "FW_MODE": "development",
+        "FW_LOG_LEVEL": "debug",
+        "DEBUG": "factory-wager:*"
+      },
+      "workingDirectory": "/Users/nolarose/.factory-wager",
+      "prompt": "⚡ FactoryWager Dev \\w\\$ ",
+      "theme": "dark"
+    },
+    "production": {
+      "name": "FactoryWager Production",
+      "command": "bash",
+      "args": ["-c", "source .factory-wager/config/profiles.sh && fw_profile apply production && bash"],
+      "env": {
+        "NODE_ENV": "production",
+        "FW_MODE": "production",
+        "FW_LOG_LEVEL": "info",
+        "FW_PERFORMANCE": "enabled"
+      },
+      "workingDirectory": "/Users/nolarose/.factory-wager",
+      "prompt": "🏭 FactoryWager Prod \\w\\$ ",
+      "theme": "dark"
+    },
+    "audit": {
+      "name": "FactoryWager Audit",
+      "command": "bash",
+      "args": ["-c", "source .factory-wager/config/profiles.sh && fw_profile apply audit && bash"],
+      "env": {
+        "NODE_ENV": "testing",
+        "FW_MODE": "audit",
+        "FW_LOG_LEVEL": "verbose",
+        "FW_AUDIT_MODE": "enabled",
+        "FW_COMPLIANCE": "strict"
+      },
+      "workingDirectory": "/Users/nolarose/.factory-wager",
+      "prompt": "🔍 FactoryWager Audit \\w\\$ ",
+      "theme": "light"
+    },
+    "demo": {
+      "name": "FactoryWager Demo",
+      "command": "zsh",
+      "args": ["-c", "source .factory-wager/config/profiles.sh && fw_profile apply demo && zsh"],
+      "env": {
+        "NODE_ENV": "development",
+        "FW_MODE": "demo",
+        "FW_LOG_LEVEL": "info",
+        "FW_DEMO_MODE": "enabled"
+      },
+      "workingDirectory": "/Users/nolarose/.factory-wager",
+      "prompt": "🎪 FactoryWager Demo \\w\\$ ",
+      "theme": "auto"
+    }
+  },
+  "integrations": {
+    "vscode": {
+      "terminal.integrated.profiles.osx": {
+        "FactoryWager Dev": {
+          "path": "zsh",
+          "args": ["-l", "-c", "source .factory-wager/config/profiles.sh && fw_profile apply development && zsh -l"]
+        },
+        "FactoryWager Prod": {
+          "path": "bash",
+          "args": ["-l", "-c", "source .factory-wager/config/profiles.sh && fw_profile apply production && bash -l"]
+        },
+        "FactoryWager Audit": {
+          "path": "bash",
+          "args": ["-l", "-c", "source .factory-wager/config/profiles.sh && fw_profile apply audit && bash -l"]
+        },
+        "FactoryWager Demo": {
+          "path": "zsh",
+          "args": ["-l", "-c", "source .factory-wager/config/profiles.sh && fw_profile apply demo && zsh -l"]
+        }
+      },
+      "terminal.integrated.defaultProfile.osx": "FactoryWager Dev"
+    },
+    "iterm2": {
+      "profiles": [
+        {
+          "name": "FactoryWager Development",
+          "command": "zsh",
+          "args": ["-l", "-c", "source .factory-wager/config/profiles.sh && fw_profile apply development && zsh -l"],
+          "workingDirectory": "/Users/nolarose/.factory-wager"
+        },
+        {
+          "name": "FactoryWager Production", 
+          "command": "bash",
+          "args": ["-l", "-c", "source .factory-wager/config/profiles.sh && fw_profile apply production && bash -l"],
+          "workingDirectory": "/Users/nolarose/.factory-wager"
+        },
+        {
+          "name": "FactoryWager Audit",
+          "command": "bash", 
+          "args": ["-l", "-c", "source .factory-wager/config/profiles.sh && fw_profile apply audit && bash -l"],
+          "workingDirectory": "/Users/nolarose/.factory-wager"
+        },
+        {
+          "name": "FactoryWager Demo",
+          "command": "zsh",
+          "args": ["-l", "-c", "source .factory-wager/config/profiles.sh && fw_profile apply demo && zsh -l"],
+          "workingDirectory": "/Users/nolarose/.factory-wager"
+        }
+      ]
+    }
+  },
+  "aliases": {
+    "development": {
+      "fw": "bun run .factory-wager/cli.ts",
+      "fw-report": "bun run .factory-wager/reports/markdown-engine.ts",
+      "fw-toml": "bun run .factory-wager/reports/toml-powered-generator.ts",
+      "fw-audit": "bun run .factory-wager/audit-cli.sh",
+      "fw-config": "cd .factory-wager && ls config/",
+      "fw-types": "cd .factory-wager && ls types/",
+      "fw-status": "git status && echo '📊 Repository Status'",
+      "fw-clean": "git clean -fd && echo '🧹 Cleaned working tree'",
+      "fw-profile": "source .factory-wager/config/profiles.sh && fw_profile"
+    },
+    "production": {
+      "fw": "bun run .factory-wager/cli.ts --prod",
+      "fw-report": "bun run .factory-wager/reports/markdown-engine.ts --format=html --theme=dark",
+      "fw-deploy": "bun run .factory-wager/archive-factory-wager.sh",
+      "fw-status": "git status && echo '📊 Production Status'",
+      "fw-health": "bun run .factory-wager/audit-cli.sh --health-check",
+      "fw-profile": "source .factory-wager/config/profiles.sh && fw_profile"
+    },
+    "audit": {
+      "fw": "bun run .factory-wager/cli.ts --audit",
+      "fw-audit": "bun run .factory-wager/audit-cli.sh --verbose",
+      "fw-report": "bun run .factory-wager/reports/markdown-engine.ts --use-case=incident_report",
+      "fw-validate": "bun run .factory-wager/audit-validator.ts",
+      "fw-rotate": "bun run .factory-wager/audit-rotator.ts",
+      "fw-profile": "source .factory-wager/config/profiles.sh && fw_profile"
+    },
+    "demo": {
+      "fw": "bun run .factory-wager/cli.ts --demo",
+      "fw-demo": "bun run .factory-wager/reports/markdown-engine.ts demo",
+      "fw-showcase": "bun run .factory-wager/factory-wager-complete-bun-api.ts",
+      "fw-colors": "bun run .factory-wager/factory-wager-terminal-reports.ts",
+      "fw-profile": "source .factory-wager/config/profiles.sh && fw_profile"
+    }
+  },
+  "bun": {
+    "config": {
+      "development": {
+        "logLevel": "debug",
+        "smol": true,
+        "jsx": "automatic",
+        "hot": true
+      },
+      "production": {
+        "logLevel": "error",
+        "minify": true,
+        "target": "bun"
+      },
+      "audit": {
+        "logLevel": "debug",
+        "audit": true
+      },
+      "demo": {
+        "logLevel": "info"
+      }
+    },
+    "flags": {
+      "development": ["--hot", "--watch"],
+      "production": ["--production", "--minify"],
+      "audit": ["--inspect"],
+      "demo": ["--hot"]
+    }
+  },
+  "scripts": {
+    "setup": "source .factory-wager/config/profiles.sh && fw_profile init",
+    "dev": "source .factory-wager/config/profiles.sh && fw_profile switch development",
+    "prod": "source .factory-wager/config/profiles.sh && fw_profile switch production",
+    "audit": "source .factory-wager/config/profiles.sh && fw_profile switch audit",
+    "demo": "source .factory-wager/config/profiles.sh && fw_profile switch demo"
+  }
+}
