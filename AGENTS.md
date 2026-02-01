@@ -212,6 +212,9 @@ bun run tier1380:registry demo:path     # Demo path operations (path module)
 bun run tier1380:registry demo:sleep [ms]     # Demo Bun.sleep() delays
 bun run tier1380:registry demo:hmac [data]    # Demo HMAC (CryptoHasher)
 bun run tier1380:registry demo:uuid [count]   # Demo UUIDv7 generation
+bun run tier1380:registry demo:toml [file]    # Demo TOML parsing (Bun.TOML)
+bun run tier1380:registry demo:transpile      # Demo code transpilation
+bun run tier1380:registry demo:env      # Demo environment (Bun.env)
 bun run tier1380:registry server:start [port]  # Start TCP server (Bun.listen)
 bun run tier1380:registry worker:spawn [task]  # Spawn worker with IPC
 bun run tier1380:registry watch [pattern]      # Watch files (fs.watch)

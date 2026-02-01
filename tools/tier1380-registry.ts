@@ -1541,6 +1541,155 @@ async function watchFiles(pattern: string = "./data/*"): Promise<void> {
 // Import fs for watch
 import * as fs from "fs";
 
+// ─── TOML Config Parser (Bun.TOML) ────────────────
+async function parseTOMLConfig(tomlPath?: string): Promise<void> {
+  console.log(`${GLYPHS.DRIFT} TOML Config Parser (Bun.TOML)\n`);
+  console.log("-".repeat(70));
+  
+  const testToml = tomlPath || "./.registry-cache/test-config.toml";
+  
+  // Create sample TOML if not exists
+  if (!existsSync(testToml)) {
+    const sampleToml = `# Registry Configuration
+[registry]
+version = "4.0.0"
+environment = "production"
+port = 8787
+
+[r2]
+bucket = "fw-registry"
+endpoint = "https://r2.cloudflarestorage.com"
+region = "auto"
+
+[cache]
+enabled = true
+ttl = 3600
+maxSize = "100MB"
+
+[nested.deep]
+value = "nested value"
+array = [1, 2, 3, 4, 5]
+`;
+    await Bun.write(testToml, sampleToml);
+    console.log(`  Created sample TOML: ${testToml}`);
+  }
+  
+  // Parse TOML
+  const start = Bun.nanoseconds();
+  const content = await Bun.file(testToml).text();
+  const config = Bun.TOML.parse(content);
+  const duration = Number(Bun.nanoseconds() - start) / 1000000;
+  
+  console.log(`\n  Parsed in ${duration.toFixed(2)}ms`);
+  console.log(`\n  Registry Version: ${config.registry.version}`);
+  console.log(`  Environment: ${config.registry.environment}`);
+  console.log(`  R2 Bucket: ${config.r2.bucket}`);
+  console.log(`  Cache Enabled: ${config.cache.enabled}`);
+  console.log(`  Nested Value: ${config.nested.deep.value}`);
+  
+  // Compare with JSON
+  const jsonString = JSON.stringify(config, null, 2);
+  console.log(`\n  JSON equivalent: ${formatBytes(jsonString.length)}`);
+  
+  // Show raw TOML content
+  console.log(`  Raw TOML size: ${formatBytes(content.length)}`);
+  console.log(`  TOML savings: ${((1 - content.length / jsonString.length) * 100).toFixed(1)}%`);
+  
+  console.log("-".repeat(70) + "\n");
+}
+
+// ─── Code Transpiler (Bun.Transpiler) ─────────────
+async function transpileCode(code?: string): Promise<void> {
+  console.log(`${GLYPHS.DRIFT} Code Transpiler (Bun.Transpiler)\n`);
+  console.log("-".repeat(70));
+  
+  const testCode = code || `
+// TypeScript test code
+interface RegistryConfig {
+  version: string;
+  port: number;
+}
+
+const config: RegistryConfig = {
+  version: "4.0.0",
+  port: 8787
+};
+
+export default config;
+`;
+  
+  console.log("  Input TypeScript:");
+  console.log("  " + testCode.split("\n").join("\n  "));
+  
+  const start = Bun.nanoseconds();
+  const transpiler = new Bun.Transpiler({
+    loader: "ts",
+    target: "bun",
+  });
+  
+  const result = await transpiler.transform(testCode);
+  const duration = Number(Bun.nanoseconds() - start) / 1000000;
+  
+  console.log(`\n  Transpiled in ${duration.toFixed(2)}ms`);
+  console.log("\n  Output JavaScript:");
+  console.log("  " + result.split("\n").join("\n  "));
+  
+  // Scan for imports
+  const imports = transpiler.scan(testCode);
+  console.log(`\n  Scanned imports: ${imports.exports.length}`);
+  
+  console.log("-".repeat(70) + "\n");
+}
+
+// ─── Environment Manager (Bun.env) ────────────────
+function manageEnv(): void {
+  console.log(`${GLYPHS.DRIFT} Environment Manager (Bun.env)\n`);
+  console.log("-".repeat(70));
+  
+  // Display registry-specific env vars
+  const registryVars = [
+    "CF_ACCOUNT_ID",
+    "R2_BUCKET",
+    "R2_ACCESS_KEY_ID",
+    "R2_SECRET_ACCESS_KEY",
+    "OMEGA_REGISTRY_KV",
+    "OMEGA_LOG_LEVEL",
+    "DASHBOARD_PORT",
+    "MCP_ENABLED",
+  ];
+  
+  console.log("  Registry Environment Variables:\n");
+  
+  const table: Array<{ Variable: string; Status: string; Value: string }> = [];
+  
+  for (const key of registryVars) {
+    const value = Bun.env[key];
+    const status = value ? "✓ set" : "✗ unset";
+    const display = value 
+      ? value.slice(0, 20) + (value.length > 20 ? "..." : "")
+      : "-";
+    table.push({ Variable: key, Status: status, Value: display });
+  }
+  
+  console.log(Bun.inspect.table(table));
+  
+  // Bun.env manipulation
+  console.log(`\n  Bun.env Manipulation:`);
+  const testKey = "REGISTRY_TEST_VAR";
+  Bun.env[testKey] = "test-value";
+  console.log(`    Set ${testKey} = ${Bun.env[testKey]}`);
+  delete Bun.env[testKey];
+  console.log(`    Deleted ${testKey}: ${Bun.env[testKey] === undefined ? "✓" : "✗"}`);
+  
+  // Compare with process.env
+  console.log(`\n  Bun.env vs process.env:`);
+  console.log(`    Same reference: ${Bun.env === process.env ? "✓" : "✗"}`);
+  console.log(`    Bun.env.PORT: ${Bun.env.PORT || "undefined"}`);
+  console.log(`    process.env.PORT: ${process.env.PORT || "undefined"}`);
+  
+  console.log("-".repeat(70) + "\n");
+}
+
 // ─── Bun.sleep Demo ───────────────────────────────
 async function sleepDemo(ms: number = 1000): Promise<void> {
   console.log(`${GLYPHS.DRIFT} Bun.sleep() Demo\n`);
@@ -1884,6 +2033,18 @@ async function main(): Promise<void> {
       generateUUIDs(parseInt(args[1]) || 5);
       break;
 
+    case "demo:toml":
+      await parseTOMLConfig(args[1]);
+      break;
+
+    case "demo:transpile":
+      await transpileCode(args.slice(1).join(" "));
+      break;
+
+    case "demo:env":
+      manageEnv();
+      break;
+
     // Info Commands
     case "info":
     case "bun:info":
@@ -1941,6 +2102,9 @@ Demo Commands:
   demo:sleep [ms]      Demo Bun.sleep() delays
   demo:hmac [data]     Demo HMAC generation (CryptoHasher)
   demo:uuid [count]    Demo UUIDv7 generation
+  demo:toml [file]     Demo TOML parsing (Bun.TOML)
+  demo:transpile [code] Demo code transpilation (Bun.Transpiler)
+  demo:env             Demo environment management (Bun.env)
 
 Server & IPC:
   server:start [port]  Start TCP registry server (Bun.listen)
@@ -1965,6 +2129,9 @@ Examples:
   bun run tier1380:registry bin:check
 
 Bun-native Features:
+  • Bun.TOML - TOML parsing and stringification
+  • Bun.Transpiler - TypeScript/TSX transpilation
+  • Bun.env - Environment variable management
   • Bun.sleep() - Precise async delays
   • Bun.CryptoHasher - HMAC/SHA hashing
   • Bun.randomUUIDv7() - UUID generation
