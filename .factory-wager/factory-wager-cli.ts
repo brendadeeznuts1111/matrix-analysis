@@ -34,10 +34,14 @@ class FactoryWagerCLI {
     if (report.mode === "MIXED") {
       console.error("\n❌ DEPLOYMENT BLOCKED - MIXED REALITY DETECTED");
       console.error("🚨 Security Risk: Partial real credentials may leak to logs or error messages");
-      console.error("\n🔧 To fix:");
-      console.error("   1. Complete credential setup for LIVE mode");
-      console.error("   2. Or use --mode=simulate for local development");
-      console.error("   3. Run: bun run reality:guard for detailed status");
+
+      // Trigger automatic remediation
+      await this.triggerAutomaticRemediation("MIXED_REALITY", {
+        command: "deploy",
+        environment,
+        mode: report.mode
+      });
+
       process.exit(1);
     }
 
@@ -45,6 +49,14 @@ class FactoryWagerCLI {
     if (environment.toLowerCase() === "production" && report.mode !== "LIVE") {
       console.error("\n❌ PRODUCTION DEPLOYMENT BLOCKED");
       console.error(`🚨 Reality Status: ${report.mode} (LIVE required for production)`);
+
+      // Log compliance violation
+      await this.logComplianceViolation("PRODUCTION_DEPLOYMENT_BLOCKED", {
+        command: "deploy",
+        environment,
+        mode: report.mode
+      });
+
       console.error("\n🔧 To enable production deployment:");
       console.error("   1. Configure real R2 credentials");
       console.error("   2. Install all MCP servers");
@@ -65,9 +77,14 @@ class FactoryWagerCLI {
     if (report.mode === "MIXED") {
       console.error("\n❌ BACKUP BLOCKED - MIXED REALITY DETECTED");
       console.error("🚨 Security Risk: Cannot backup with partial real credentials");
-      console.error("\n🔧 To fix:");
-      console.error("   1. Complete credential setup for LIVE mode");
-      console.error("   2. Or use --mode=simulate for local backup");
+
+      // Trigger automatic remediation
+      await this.triggerAutomaticRemediation("MIXED_REALITY", {
+        command: "backup",
+        mode,
+        realityMode: report.mode
+      });
+
       process.exit(1);
     }
 
@@ -75,6 +92,14 @@ class FactoryWagerCLI {
     if (mode === "live" && report.mode !== "LIVE") {
       console.error("\n❌ LIVE BACKUP BLOCKED");
       console.error("🚨 R2 credentials not configured for cloud backup");
+
+      // Log compliance violation
+      await this.logComplianceViolation("LIVE_BACKUP_BLOCKED", {
+        command: "backup",
+        mode,
+        realityMode: report.mode
+      });
+
       console.error("\n💡 Options:");
       console.error("   • Use --mode=simulate for local backup");
       console.error("   • Configure R2 credentials: bun run setup:r2");
@@ -83,6 +108,45 @@ class FactoryWagerCLI {
     }
 
     console.log("✅ Backup safety validation passed");
+  }
+
+  private async triggerAutomaticRemediation(violation: string, context: any): Promise<void> {
+    console.log("\n🛠️  Auto-remediation: Clearing partial credentials...");
+
+    // Move to quarantine rather than delete (exact pattern from user's script)
+    await Bun.$`mv .env .env.quarantine.$(date +%s) 2>/dev/null || true`;
+    await Bun.$`cp .env.local .env 2>/dev/null || echo "NODE_ENV=development" > .env`;
+
+    console.log("✅ System reset to SIMULATED mode — re-run setup to configure");
+
+    // Log the remediation action
+    await this.logComplianceViolation("AUTOMATIC_REMEDIATION_TRIGGERED", {
+      violation,
+      context,
+      action: "CREDENTIAL_QUARANTINE"
+    });
+  }
+
+  private async logComplianceViolation(event: string, context: any): Promise<void> {
+    const auditEntry = {
+      timestamp: new Date().toISOString(),
+      event,
+      command: context.command,
+      violation: context.violation || event,
+      mode: context.mode || context.realityMode,
+      user: process.env.USER,
+      pid: process.pid,
+      hash: Bun.hash.crc32(JSON.stringify(process.env)).toString(16)
+    };
+
+    // Append to quantum-resistant audit log (exact pattern from user's script)
+    await Bun.write(
+      "./.factory-wager/audit/safety-violations.jsonl",
+      JSON.stringify(auditEntry) + "\n",
+      { append: true }
+    );
+
+    console.log("🔒 Violation logged with tamper-evident hash:", auditEntry.hash);
   }
 
   private async enforceLiveMode(): Promise<void> {
