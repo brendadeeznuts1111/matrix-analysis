@@ -189,3 +189,6 @@ tier1380-standalone
 *.tar
 *.tar.gz
 *.cdx.json
+# Separate projects and external directories
+clawd/
+openclaw/
