@@ -110,6 +110,7 @@
     "tier1380:exec:log": "bun tools/tier1380-exec.ts log",
     "tier1380:exec:stats": "bun tools/tier1380-exec.ts stats",
     "tier1380:exec:packages": "bun tools/tier1380-exec.ts packages",
+    "tier1380:sysinfo": "bun tools/tier1380-sysinfo.ts",
     "mcp:rss": "bun x rss-mcp",
     "team:add": "bun cli/tier1380.ts team add",
     "team:remove": "bun cli/tier1380.ts team remove",
