@@ -125,6 +125,11 @@ const COMMANDS = {
 		script: "../lib/schema-validator.ts",
 		args: "[--schema=commit|snapshot] [--json=input]",
 	},
+	crc32: {
+		description: "CRC32 hardware acceleration",
+		script: "../lib/crc32-validator.ts",
+		args: "<checksum|validate|benchmark|fingerprint> [args]",
+	},
 } as const;
 
 type Command = keyof typeof COMMANDS;
@@ -241,6 +246,7 @@ if (import.meta.main) {
 		notify: "snapshot-notify",
 		cron: "snapshot-cron",
 		val: "validate",
+		crc: "crc32",
 	};
 
 	const resolvedCommand = shortcuts[command] || (command as Command);
