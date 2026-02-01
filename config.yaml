@@ -1,0 +1,70 @@
+# FactoryWager Test Configuration
+version: "1.1.0"
+environment: development
+
+# Base Configuration
+base: &base
+  bun: ">=1.3.8"
+  author: "FactoryWager Test"
+  timeout: 30s
+
+# Development Environment
+development:
+  <<: *base
+  api:
+    url: "http://localhost:4000"
+    port: 4000
+  database:
+    host: "localhost"
+    port: 5432
+  features:
+    debug: true
+    logging: "verbose"
+
+# Staging Environment
+staging:
+  <<: *base
+  api:
+    url: "https://staging-api.factory-wager.com"
+    port: 443
+  database:
+    host: "staging-db.factory-wager.com"
+    port: 5432
+  features:
+    debug: false
+    logging: "info"
+  security:
+    encryption: true
+    tls_version: "1.3"
+
+# Production Environment
+production:
+  <<: *base
+  api:
+    url: "https://api.factory-wager.com"
+    port: 443
+  database:
+    host: "prod-db.factory-wager.com"
+    port: 5432
+  features:
+    debug: false
+    logging: "error"
+  security:
+    encryption: true
+    tls_version: "1.3"
+    monitoring: true
+  secrets:
+    - "${PROD_API_KEY}"
+    - "${DB_PASSWORD}"
+    - "${ENCRYPTION_KEY}"
+
+# Infrastructure Configuration
+infrastructure:
+  registry:
+    url: "https://registry.factory-wager.com"
+  r2:
+    bucket: "factory-wager-artifacts"
+    region: "auto"
+  monitoring:
+    health_endpoint: "/health"
+    metrics_endpoint: "/metrics"
