@@ -7,8 +7,7 @@
 import { spawn } from "child_process";
 import { writeFileSync, existsSync, mkdirSync } from "fs";
 import { join } from "path";
-
-export type SystemMode = "LIVE" | "SIMULATED" | "MIXED" | "UNKNOWN";
+import { VisualDashboard, SystemMode } from "./shared/visual-dashboard";
 
 interface RealityReport {
   mode: SystemMode;
@@ -286,16 +285,7 @@ export class RealityGuard {
   }
 
   displayReport(report: RealityReport): void {
-    const modeBadge = this.getModeBadge(report.mode);
-
-    console.log(`
-╔══════════════════════════════════════════════════════════════════╗
-║  🎛️  FACTORYWAGER REALITY AUDIT v4.0                              ║
-╠══════════════════════════════════════════════════════════════════╣
-║  Mode: ${report.mode.padEnd(10)} ${modeBadge.icon} ${modeBadge.text.padEnd(25)} ║
-║  Components: ${Object.keys(report.components).length} checked                          ║
-║  Timestamp: ${report.timestamp.substring(0, 19).padEnd(19)}                ║
-╚══════════════════════════════════════════════════════════════════╝`);
+    console.log(this.generateHeader(report));
 
     console.log("\n📊 Component Status:");
     console.table(report.components);
@@ -319,6 +309,10 @@ export class RealityGuard {
       UNKNOWN: { color: "#6b7280", icon: "❓", text: "UNDETERMINED" }
     };
     return badges[mode] || badges.UNKNOWN;
+  }
+
+  private generateHeader(report: RealityReport): string {
+    return VisualDashboard.generateRealityHeader(report.mode, "REALITY AUDIT v4.0");
   }
 }
 

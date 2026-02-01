@@ -8,6 +8,7 @@ import { readFileSync, writeFileSync, existsSync } from 'fs';
 import { execSync } from 'child_process';
 import { join } from 'path';
 import { RealityCheck } from './config/reality-config';
+import { VisualDashboard } from './shared/visual-dashboard';
 
 interface HealthProbe {
   endpoint: string;
@@ -79,7 +80,7 @@ class RealityAwareNexusStatus {
     this.configFile = configFile;
     this.watchMode = watchMode;
     this.alertThreshold = alertThreshold;
-    
+
     // Ensure reports directory exists
     if (!existsSync(this.reportsDir)) {
       execSync(`mkdir -p ${this.reportsDir}`, { stdio: 'inherit' });
@@ -98,7 +99,7 @@ class RealityAwareNexusStatus {
     console.log("============================================");
 
     const realityStatus = await RealityCheck.overall.getRealityStatus();
-    
+
     console.log(`📊 Reality Mode: ${realityStatus.overall}`);
     console.log(`   R2 Storage: ${realityStatus.r2.mode}`);
     console.log(`   MCP Servers: ${realityStatus.mcp.installed}/${realityStatus.mcp.total}`);
@@ -119,7 +120,7 @@ class RealityAwareNexusStatus {
 
     const healthProbes = await this.probeInfrastructure(configEntries);
     const nexusStatus = this.calculateNexusStatus(healthProbes, configEntries);
-    
+
     this.displayNexusStatus(nexusStatus);
     console.log("");
 
@@ -128,15 +129,15 @@ class RealityAwareNexusStatus {
     console.log("=======================================");
 
     const monitoringAssessment = this.assessMonitoringEffectiveness(nexusStatus, realityStatus);
-    
+
     console.log(`📊 Effective Health: ${monitoringAssessment.effective_health}/100`);
     console.log(`🔄 Reality-Adjusted Score: ${monitoringAssessment.reality_adjusted_score}/100`);
-    
+
     if (monitoringAssessment.warnings.length > 0) {
       console.log("⚠️  Warnings:");
       monitoringAssessment.warnings.forEach(warning => console.log(`      • ${warning}`));
     }
-    
+
     if (monitoringAssessment.recommendations.length > 0) {
       console.log("💡 Recommendations:");
       monitoringAssessment.recommendations.forEach(rec => console.log(`      • ${rec}`));
@@ -173,7 +174,7 @@ class RealityAwareNexusStatus {
 
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     const reportFile = join(this.reportsDir, `fw-nexus-status-reality-${timestamp}.json`);
-    
+
     writeFileSync(reportFile, JSON.stringify(realityAwareNexusStatus, null, 2));
     console.log(`📄 Reality-aware status report saved: ${reportFile}`);
 
@@ -181,18 +182,18 @@ class RealityAwareNexusStatus {
     if (this.watchMode) {
       console.log("🔄 Watch mode active - checking every 30 seconds");
       console.log("   Press Ctrl+C to stop monitoring");
-      
+
       const interval = setInterval(async () => {
         console.clear();
         console.log("🔄 FactoryWager Nexus Status Monitor (Watch Mode)");
         console.log(`Last Check: ${new Date().toISOString()}`);
         console.log("");
-        
+
         const newStatus = await this.runStatusCheck();
         // Log state changes if needed
-        
+
       }, 30000);
-      
+
       // Handle graceful shutdown
       process.on('SIGINT', () => {
         clearInterval(interval);
@@ -207,7 +208,7 @@ class RealityAwareNexusStatus {
   private loadConfiguration(): ConfigEntry[] {
     try {
       const configContent = readFileSync(this.configFile, 'utf8');
-      
+
       // Mock configuration parsing - in real implementation would use parser-v45
       return [
         {
@@ -259,42 +260,42 @@ class RealityAwareNexusStatus {
 
   private async probeInfrastructure(configEntries: ConfigEntry[]): Promise<HealthProbe[]> {
     const probes: HealthProbe[] = [];
-    
+
     for (const entry of configEntries) {
       if (entry.key.includes('.url') || entry.key.includes('endpoint')) {
         const probe = await this.probeEndpoint(entry.value, entry.key);
         probes.push(probe);
       }
     }
-    
+
     // Add R2 probe if configured
     const r2Config = configEntries.find(e => e.key.includes('r2'));
     if (r2Config) {
       const r2Probe = await this.probeR2();
       probes.push(r2Probe);
     }
-    
+
     // Add registry probe if configured
     const registryConfig = configEntries.find(e => e.key.includes('registry'));
     if (registryConfig) {
       const registryProbe = await this.probeRegistry(registryConfig.value);
       probes.push(registryProbe);
     }
-    
+
     return probes;
   }
 
   private async probeEndpoint(url: string, key: string): Promise<HealthProbe> {
     const startTime = Date.now();
-    
+
     try {
       const response = await fetch(url, {
         method: 'GET',
         signal: AbortSignal.timeout(5000)
       });
-      
+
       const latency = Date.now() - startTime;
-      
+
       let health: '✓' | '⚠' | '✗';
       if (response.ok && latency < 500) {
         health = '✓';
@@ -303,7 +304,7 @@ class RealityAwareNexusStatus {
       } else {
         health = '✗';
       }
-      
+
       return {
         endpoint: key,
         health,
@@ -323,12 +324,12 @@ class RealityAwareNexusStatus {
 
   private async probeR2(): Promise<HealthProbe> {
     const startTime = Date.now();
-    
+
     try {
       // Mock R2 probe - in real implementation would use AWS SDK
       // For simulation, we'll simulate a successful R2 check
       const latency = Math.random() * 100 + 20; // 20-120ms
-      
+
       return {
         endpoint: 'r2.storage',
         health: '✓',
@@ -348,16 +349,16 @@ class RealityAwareNexusStatus {
 
   private async probeRegistry(registryUrl: string): Promise<HealthProbe> {
     const startTime = Date.now();
-    
+
     try {
       // Mock registry probe - in real implementation would check package registry
       const response = await fetch(`${registryUrl}/health`, {
         method: 'GET',
         signal: AbortSignal.timeout(5000)
       });
-      
+
       const latency = Date.now() - startTime;
-      
+
       let health: '✓' | '⚠' | '✗';
       if (response.ok && latency < 500) {
         health = '✓';
@@ -366,7 +367,7 @@ class RealityAwareNexusStatus {
       } else {
         health = '✗';
       }
-      
+
       return {
         endpoint: 'registry.service',
         health,
@@ -389,20 +390,20 @@ class RealityAwareNexusStatus {
     const down = probes.filter(p => p.health === '✗').length;
     const degraded = probes.filter(p => p.health === '⚠').length;
     const total = probes.length;
-    
+
     const latencies = probes.map(p => p.latency).filter(l => l > 0);
     const avgLatency = latencies.length > 0 ? Math.round(latencies.reduce((a, b) => a + b, 0) / latencies.length) : 0;
     const minLatency = latencies.length > 0 ? Math.min(...latencies) : 0;
     const maxLatency = latencies.length > 0 ? Math.max(...latencies) : 0;
-    
+
     // Calculate health score
     let score = 100;
     score -= (10 * down);
     score -= (5 * degraded);
-    
+
     // Mock drift detection
     const driftCount = 0; // In real implementation would compare config vs live
-    
+
     return {
       score: Math.max(0, score),
       endpoints: {
@@ -424,11 +425,8 @@ class RealityAwareNexusStatus {
   }
 
   private displayNexusStatus(status: NexusStatus): void {
-    const scoreColor = status.score >= 90 ? '\x1b[92m' : status.score >= 70 ? '\x1b[93m' : '\x1b[91m';
-    const reset = '\x1b[0m';
-    
-    console.log(`${scoreColor}🔌 FACTORYWAGER NEXUS STATUS v1.3.8${reset}`);
-    console.log(`${scoreColor} Overall Health: ${status.score}/100 [${this.getHealthLabel(status.score)}]${reset}`);
+    const mode = "SIMULATED"; // This would come from reality check in real implementation
+    console.log(VisualDashboard.generateNexusHeader(mode, status.score, status.endpoints));
     console.log(`Endpoints: ${status.endpoints.up}/${status.endpoints.total} up`);
     console.log(`Latency: ${status.latency.average}ms avg (${status.latency.min}-${status.latency.max}ms)`);
     console.log(`Drift: ${status.drift.count} mismatches`);
@@ -443,7 +441,7 @@ class RealityAwareNexusStatus {
   private assessMonitoringEffectiveness(nexus: NexusStatus, reality: any) {
     const warnings: string[] = [];
     const recommendations: string[] = [];
-    
+
     // Reality-based assessment
     let realityAdjustment = 0;
     if (reality.overall === "SIMULATED") {
@@ -455,32 +453,32 @@ class RealityAwareNexusStatus {
       realityAdjustment = -10;
       recommendations.push("Complete infrastructure configuration for full monitoring");
     }
-    
+
     // Component-specific assessment
     if (reality.mcp.installed < reality.mcp.total) {
       warnings.push(`${reality.mcp.total - reality.mcp.installed} MCP servers not monitored`);
       recommendations.push("Install missing MCP servers for complete monitoring");
     }
-    
+
     if (reality.secrets.real < reality.secrets.total) {
       warnings.push("Some endpoints may be using simulated credentials");
       recommendations.push("Configure real secrets for accurate endpoint monitoring");
     }
-    
+
     // Performance-based recommendations
     if (nexus.latency.average > 500) {
       warnings.push(`High average latency: ${nexus.latency.average}ms`);
       recommendations.push("Investigate network performance and endpoint optimization");
     }
-    
+
     if (nexus.endpoints.down > 0) {
       warnings.push(`${nexus.endpoints.down} endpoints down`);
       recommendations.push("Investigate failed endpoints and check service health");
     }
-    
+
     const effectiveHealth = Math.max(0, Math.min(100, nexus.score + realityAdjustment));
     const realityAdjustedScore = Math.max(0, nexus.score + realityAdjustment);
-    
+
     return {
       effective_health: effectiveHealth,
       reality_adjusted_score: realityAdjustedScore,
@@ -493,11 +491,11 @@ class RealityAwareNexusStatus {
 // CLI execution
 if (import.meta.main) {
   const args = process.argv.slice(2);
-  
+
   let configFile = 'config.yaml';
   let watchMode = false;
   let alertThreshold = 90;
-  
+
   // Parse arguments
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
