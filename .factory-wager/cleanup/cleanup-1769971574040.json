@@ -1,0 +1,26 @@
+{
+  "timestamp": "2026-02-01T18:46:14.040Z",
+  "category": "Test Files",
+  "files": [
+    {
+      "file": ".factory-wager/test-config.yaml",
+      "size": 464,
+      "deleted": true
+    },
+    {
+      "file": ".factory-wager/test-fixed.injected.yaml",
+      "size": 259,
+      "deleted": true
+    },
+    {
+      "file": ".factory-wager/test-fixed.yaml",
+      "size": 216,
+      "deleted": true
+    },
+    {
+      "file": ".factory-wager/test-punycode.js",
+      "size": 63,
+      "deleted": true
+    }
+  ]
+}

@@ -2,70 +2,52 @@
 
 ## 🚀 **DEPLOYMENT PHASES**
 
-### **Phase 0: Vault Pre-flight**
-**0. Vault pre-flight: rotate credentials if expired (>80 days)**
+### **Phase 0: Vault Pre-flight & Secret Injection**
+**0. Vault pre-flight: rotate credentials if expired (>80 days) + secret injection**
 
 ```bash
 #!/bin/bash
-# FactoryWager Vault Pre-flight Check
-# Ensures all credentials are fresh before deployment
+# FactoryWager Vault Pre-flight Check + Secret Injection
+# Ensures all credentials are fresh and injects them into config
 
-echo "🔐 FactoryWager Vault Pre-flight Check"
-echo "====================================="
+echo "🔐 FactoryWager Vault Pre-flight + Secret Injection"
+echo "=================================================="
 
-# Check vault health
-if ! bun run factory-wager-vault.ts health >/dev/null 2>&1; then
-    echo "❌ Vault health check failed"
-    echo "🔄 Running emergency credential rotation..."
-    bun run factory-wager-vault.ts rotate
-    
-    # Verify rotation success
-    if bun run factory-wager-vault.ts health >/dev/null 2>&1; then
-        echo "✅ Vault rotation completed successfully"
-    else
-        echo "❌ Vault rotation failed - aborting deployment"
-        exit 1
-    fi
+# Step 1: Vault health check with workflow integration
+echo "📍 Step 1: Vault health check..."
+if ! bun run vault-workflow-integration.ts deploy-preflight; then
+    echo "❌ Vault pre-flight failed - aborting deployment"
+    exit 1
+fi
+echo "✅ Vault health check passed"
+
+# Step 2: Inject secrets into config.yaml
+echo "� Step 2: Injecting vault secrets into config..."
+if ! bun run vault-workflow-integration.ts inject-yaml config.yaml; then
+    echo "❌ Secret injection failed - aborting deployment"
+    exit 1
+fi
+echo "✅ Vault secrets injected successfully"
+
+# Step 3: Use injected config for deployment
+echo "📍 Step 3: Preparing deployment configuration..."
+if [[ -f "config.injected.yaml" ]]; then
+    # Backup original config
+    cp config.yaml config.original.yaml
+    # Use injected config for deployment
+    mv config.injected.yaml config.yaml
+    echo "✅ Deployment configuration ready (config.yaml now contains injected secrets)"
 else
-    echo "✅ Vault health check passed"
+    echo "❌ Injected config file not found"
+    exit 1
 fi
 
-# Check for credentials older than 80 days
-echo "🔍 Checking credential age..."
-CREDENTIALS_OLD=false
-
-# Parse vault metadata for old credentials
-if [[ -f "$HOME/.factory-wager/vault-metadata.json" ]]; then
-    EIGHTY_DAYS_AGO=$(date -d "80 days ago" +%s 2>/dev/null || date -v-80d +%s)
-    
-    while IFS= read -r line; do
-        if [[ "$line" =~ \"rotatedAt\":\ \"([^\"]+)\" ]]; then
-            ROTATED_DATE="${BASH_REMATCH[1]}"
-            ROTATED_EPOCH=$(date -d "$ROTATED_DATE" +%s 2>/dev/null || date -j -f "%Y-%m-%dT%H:%M:%S.%fZ" "$ROTATED_DATE" +%s)
-            
-            if [[ $ROTATED_EPOCH -lt $EIGHTY_DAYS_AGO ]]; then
-                echo "⚠️  Found credential older than 80 days"
-                CREDENTIALS_OLD=true
-                break
-            fi
-        fi
-    done < <(jq -r '.[] | .rotatedAt' "$HOME/.factory-wager/vault-metadata.json" 2>/dev/null)
-fi
-
-# Rotate if credentials are old
-if [[ "$CREDENTIALS_OLD" == "true" ]]; then
-    echo "🔄 Rotating credentials older than 80 days..."
-    bun run factory-wager-vault.ts rotate
-    echo "✅ Credential rotation completed"
-else
-    echo "✅ All credentials are within 80-day freshness window"
-fi
-
-# Generate deployment credential report
-echo "📊 Generating deployment credential report..."
+# Step 4: Generate deployment credential report
+echo "� Step 4: Generating deployment credential report..."
 bun run vault-dashboard.ts json > "$HOME/.factory-wager/deployment-credentials.json"
 
-echo "🎉 Vault pre-flight complete - ready for deployment"
+echo "🎉 Vault pre-flight + secret injection complete - ready for deployment"
+echo "📊 Credentials report: $HOME/.factory-wager/deployment-credentials.json"
 ```
 
 ### **Phase 1: Environment Validation**
@@ -157,6 +139,8 @@ echo "✅ Post-deployment verification complete"
 ### **Pre-deployment**
 - [ ] Vault pre-flight check passed
 - [ ] All credentials fresh (<80 days)
+- [ ] Vault secrets injected into config.yaml
+- [ ] Original config backed up as config.original.yaml
 - [ ] Environment variables validated
 - [ ] Dependencies installed
 - [ ] Tests passing
@@ -194,14 +178,33 @@ echo "Mode: $DEPLOY_MODE"
 echo "Time: $(date)"
 echo ""
 
-# Phase 0: Vault Pre-flight
-echo "📍 Phase 0: Vault Pre-flight"
+# Phase 0: Vault Pre-flight & Secret Injection
+echo "📍 Phase 0: Vault Pre-flight & Secret Injection"
 source <(cat <<'EOF'
-# Vault pre-flight script from Phase 0 above
-if ! bun run factory-wager-vault.ts health >/dev/null 2>&1; then
-    echo "❌ Vault health check failed - rotating credentials"
-    bun run factory-wager-vault.ts rotate
+# Vault pre-flight + secret injection script
+echo "🔐 Running vault health check..."
+if ! bun run vault-workflow-integration.ts deploy-preflight; then
+    echo "❌ Vault pre-flight failed - aborting deployment"
+    exit 1
 fi
+
+echo "🔐 Injecting vault secrets..."
+if ! bun run vault-workflow-integration.ts inject-yaml config.yaml; then
+    echo "❌ Secret injection failed - aborting deployment"
+    exit 1
+fi
+
+echo "🔐 Preparing deployment configuration..."
+if [[ -f "config.injected.yaml" ]]; then
+    cp config.yaml config.original.yaml
+    mv config.injected.yaml config.yaml
+    echo "✅ Deployment configuration ready"
+else
+    echo "❌ Injected config file not found"
+    exit 1
+fi
+
+echo "✅ Vault pre-flight + secret injection complete"
 EOF
 )
 
@@ -209,7 +212,7 @@ EOF
 echo "📍 Phase 1: Environment Validation"
 # Environment validation script
 
-# Phase 2: Build Preparation  
+# Phase 2: Build Preparation
 echo "📍 Phase 2: Build Preparation"
 # Build preparation script
 
@@ -287,5 +290,5 @@ fw-vault-health  # Verify vault status
 
 ---
 
-**🎯 Deployment Priority: Vault Security First**  
+**🎯 Deployment Priority: Vault Security First**
 *Always ensure credential freshness before any deployment operation.*

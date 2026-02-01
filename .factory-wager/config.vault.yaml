@@ -1,0 +1,33 @@
+---
+api:
+  registry:
+    token: VAULT:com.factory-wager.registry.registry.token
+  r2:
+    secret: VAULT:com.factory-wager.registry.r2.secret_key
+  domain:
+    cert: VAULT:com.factory-wager.registry.domain.ssl_cert
+
+# Production-specific settings
+production:
+  security:
+    encryption: true
+    tls_version: "1.3"
+    monitoring: true
+  features:
+    debug: false
+    logging: "error"
+
+# Staging-specific settings  
+staging:
+  security:
+    encryption: true
+    tls_version: "1.3"
+  features:
+    debug: false
+    logging: "info"
+
+# Development settings
+development:
+  features:
+    debug: true
+    logging: "verbose"

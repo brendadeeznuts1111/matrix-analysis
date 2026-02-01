@@ -1,0 +1,102 @@
+{
+  "timestamp": "2026-02-01T18:46:33.688Z",
+  "removed": 19,
+  "errors": 0,
+  "operations": [
+    {
+      "file": ".factory-wager/deploy-bunx.ts",
+      "status": "removed",
+      "size": 4094
+    },
+    {
+      "file": ".factory-wager/deploy-r2-s3.ts",
+      "status": "removed",
+      "size": 4230
+    },
+    {
+      "file": ".factory-wager/fw-bunx-dns-setup.ts",
+      "status": "removed",
+      "size": 7181
+    },
+    {
+      "file": ".factory-wager/fw-changelog.ts",
+      "status": "removed",
+      "size": 14735
+    },
+    {
+      "file": ".factory-wager/fw-cloudflare-dns-setup.ts",
+      "status": "removed",
+      "size": 8014
+    },
+    {
+      "file": ".factory-wager/fw-complete-deployment.ts",
+      "status": "removed",
+      "size": 7956
+    },
+    {
+      "file": ".factory-wager/fw-deployment-status.ts",
+      "status": "removed",
+      "size": 7670
+    },
+    {
+      "file": ".factory-wager/fw-dns-setup-guide.ts",
+      "status": "removed",
+      "size": 7164
+    },
+    {
+      "file": ".factory-wager/fw-network-triage.ts",
+      "status": "removed",
+      "size": 3742
+    },
+    {
+      "file": ".factory-wager/fw-nexus-status.ts",
+      "status": "removed",
+      "size": 13980
+    },
+    {
+      "file": ".factory-wager/fw-release.ts",
+      "status": "removed",
+      "size": 17000
+    },
+    {
+      "file": ".factory-wager/fw-validate.ts",
+      "status": "removed",
+      "size": 12568
+    },
+    {
+      "file": ".factory-wager/fw-vault-health-fix.ts",
+      "status": "removed",
+      "size": 11631
+    },
+    {
+      "file": ".factory-wager/fw-wrangler-setup.ts",
+      "status": "removed",
+      "size": 12848
+    },
+    {
+      "file": ".factory-wager/scripts/archive-backup.ts",
+      "status": "removed",
+      "size": 10793
+    },
+    {
+      "file": ".factory-wager/scripts/organize-and-archive.ts",
+      "status": "removed",
+      "size": 12501
+    },
+    {
+      "file": ".factory-wager/wrangler.toml",
+      "status": "removed",
+      "size": 946
+    },
+    {
+      "file": ".factory-wager/CPU.107056869962.8900.md",
+      "status": "removed",
+      "size": 13232
+    },
+    {
+      "file": ".factory-wager/Heap.107056952005.8900.md",
+      "status": "removed",
+      "size": 1680144
+    }
+  ]
+}

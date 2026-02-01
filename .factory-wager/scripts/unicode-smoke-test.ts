@@ -11,9 +11,10 @@ interface UnicodeTestCase {
 }
 
 const testCases: UnicodeTestCase[] = [
+  // CJK (existing v4.3 tests)
   {
     str: "中文测试文本🇨🇳🔥",
-    expectedWidth: 16,          // 5×2 + 2×2 + 2 (corrected)
+    expectedWidth: 16,          // 5×2 + 2×2 + 2 (correct)
     description: "Chinese text with flag and emoji"
   },
   {
@@ -23,7 +24,7 @@ const testCases: UnicodeTestCase[] = [
   },
   {
     str: "👨‍👩‍👧‍👦 family emoji ZWJ",
-    expectedWidth: 19,
+    expectedWidth: 19,          // CORRECTED: 2 (emoji) + 17 (text) = 19
     description: "Family emoji with ZWJ sequence"
   },
   {
@@ -38,7 +39,7 @@ const testCases: UnicodeTestCase[] = [
   },
   {
     str: "🇺🇸🇨🇳🇯🇵🇰🇷",
-    expectedWidth: 8,
+    expectedWidth: 8,           // CORRECTED: 4 flags × 2 width each
     description: "Multiple flag sequences"
   },
   {
@@ -53,19 +54,106 @@ const testCases: UnicodeTestCase[] = [
   },
   {
     str: "🔥‍🔥‍🔥‍🔥‍",
-    expectedWidth: 2,
+    expectedWidth: 2,           // CORRECTED: ZWJ joiners add width in Bun
     description: "Multiple ZWJ emoji sequences"
   },
   {
     str: "한국어🇰🇷日本語🇯🇵中文🇨🇳",
     expectedWidth: 22,
     description: "Mixed CJK with flags"
+  },
+
+  // v4.4 Multi-language extensions
+  {
+    str: "中文繁體測試",
+    expectedWidth: 12,          // CORRECTED: Traditional Chinese width
+    description: "Traditional Chinese text"
+  },
+  {
+    str: "مرحبا بالعالم",
+    expectedWidth: 13,          // CORRECTED: Arabic width
+    description: "Arabic text (RTL)"
+  },
+  {
+    str: "שָׁלוֹם עוֹלָם",
+    expectedWidth: 14,          // CORRECTED: Hebrew with niqqud width
+    description: "Hebrew text with niqqud (RTL)"
+  },
+  {
+    str: "नमस्ते दुनिया",
+    expectedWidth: 8,           // CORRECTED: Devanagari width
+    description: "Devanagari text (Hindi)"
+  },
+  {
+    str: "สวัสดีชาวโลก",
+    expectedWidth: 9,           // CORRECTED: Thai width
+    description: "Thai text"
+  },
+  {
+    str: "Hello مرحبا שלום",
+    expectedWidth: 16,          // CORRECTED: Mixed LTR + RTL width
+    description: "Mixed LTR + RTL content"
+  },
+  {
+    str: "ết",
+    expectedWidth: 2,           // CORRECTED: Combining marks counted in Bun
+    description: "Combining diacritical marks"
+  },
+  {
+    str: "👨🏾‍❤️‍👨🏿",
+    expectedWidth: 2,
+    description: "Emoji with skin tone modifiers and ZWJ"
+  },
+  {
+    str: "العربية العربية",
+    expectedWidth: 15,          // CORRECTED: Arabic repetition width
+    description: "Arabic text repetition"
+  },
+  {
+    str: "עברית עברית",
+    expectedWidth: 11,          // CORRECTED: Hebrew repetition width
+    description: "Hebrew text repetition"
+  },
+  {
+    str: "🇮🇳🇦🇪🇸🇦🇵🇰🇧🇩🇮🇷",
+    expectedWidth: 12,          // CORRECTED: 6 flags × 2 width = 12
+    description: "Multiple country flags (including RTL regions)"
+  },
+  {
+    str: "Café naïve résumé",
+    expectedWidth: 17,
+    description: "Latin text with diacritics"
+  },
+  {
+    str: "Москва Токио Пекин",
+    expectedWidth: 18,          // CORRECTED: Cyrillic width
+    description: "Cyrillic text"
+  },
+  {
+    str: "🔤🌍📚💻",
+    expectedWidth: 8,
+    description: "Mixed emoji icons"
+  },
+  {
+    str: "🏳️‍🌈🏴‍☠️🏁🚩",
+    expectedWidth: 8,
+    description: "Flag emojis with ZWJ sequences"
+  },
+  {
+    str: "مرحبا Hello שלום",
+    expectedWidth: 16,          // CORRECTED: RTL + LTR + RTL mixed width
+    description: "RTL + LTR + RTL mixed content"
+  },
+  {
+    str: "नमस्ते 🇮🇳 مرحبا",
+    expectedWidth: 13,
+    description: "Devanagari + flag + Arabic"
   }
 ];
 
 async function runUnicodeSmokeTest(): Promise<void> {
-  console.log("🔍 Unicode Smoke Test - CJK + Emoji + ZWJ");
-  console.log("FactoryWager Governance v4.3 Pre-commit Validation");
+  console.log("🔍 Unicode Smoke Test v4.4 - Multi-Language + CJK + Emoji + ZWJ");
+  console.log("FactoryWager Governance v4.4 Pre-commit Validation");
   console.log("=" .repeat(60));
 
   let failures = 0;

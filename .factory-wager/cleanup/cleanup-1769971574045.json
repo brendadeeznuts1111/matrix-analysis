@@ -1,0 +1,26 @@
+{
+  "timestamp": "2026-02-01T18:46:14.045Z",
+  "category": "Temporary Files",
+  "files": [
+    {
+      "file": ".factory-wager/final-status.ts",
+      "size": 4001,
+      "deleted": true
+    },
+    {
+      "file": ".factory-wager/health.json",
+      "size": 118,
+      "deleted": true
+    },
+    {
+      "file": ".factory-wager/quick-status.ts",
+      "size": 1707,
+      "deleted": true
+    },
+    {
+      "file": ".factory-wager/vault-metadata.json",
+      "size": 3309,
+      "deleted": true
+    }
+  ]
+}

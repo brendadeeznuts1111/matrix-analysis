@@ -8,6 +8,7 @@
         "@modelcontextprotocol/server-puppeteer": "latest",
         "@modelcontextprotocol/server-sequential-thinking": "latest",
         "@upstash/context7-mcp": "latest",
+        "js-yaml": "^4.1.1",
         "lightningcss": "^1.31.1",
         "lru-cache": "^11.2.5",
         "mcp-bun": "latest",

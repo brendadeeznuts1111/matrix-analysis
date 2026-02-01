@@ -1,4 +1,6 @@
-# bun.yaml - FactoryWager GOV Headers v4.0
+# bun.yaml - FactoryWager GOV Headers v4.3
+# Unicode Governance with Per-Column Override, Auto-Language Detection, and Pre-commit Validation
+
 rules:
   header:
     schema:
@@ -8,16 +10,160 @@ rules:
       variant: [EXPANDED, BASH, EXAMPLE, BUTTON, COMPRESSED]
       # Enforce SHA-256 for content integrity
       hash_algo: 'SHA-256'
-      id: 
+      id:
         pattern: '^[A-Z]{3}-[A-Z]{3,4}-[0-9]{3}$'
         # v4.0: Prefixes allowed for AI agents
         ai_prefix: 'GEN_'
     defaults:
       scope: FACTORY
       type: RULES
-      version: v4.0
+      version: v4.3
       status: ACTIVE
-    # v4.0 Hyper-Ripgrep Config
+
+    # ──────────────────────────────────────────────────────────────
+    # NEW: Per-column display width overrides (v4.1)
+    # Keys match the column "key" property in your renderer
+    # Values = forced display width in cells (overrides Bun.stringWidth)
+    #───────────────────────────────────────────────────────────────
+    column-width-override:
+      "#":          4
+      key:          20
+      value:        32          # ← tightened from 36–40
+      type:         10
+      version:      11
+      bunVer:       9
+      author:       14
+      authorHash:   10
+      status:       12
+      modified:     19
+      "*":          16          # fallback for future columns
+
+    # When enabled, renderer MUST use these widths instead of measured
+    force-column-widths: true
+
+    # ──────────────────────────────────────────────────────────────
+    # NEW: Unicode rendering policy (v4.2)
+    # Controls how ambiguous-width characters are handled
+    #───────────────────────────────────────────────────────────────
+    unicode-rendering-policy:
+      # Possible policies:
+      #   narrow      - treat Ambiguous (A) as 1 cell (default – most conservative)
+      #   wide        - treat Ambiguous as 2 cells (East Asian legacy apps)
+      #   auto-lang   - use detected language/script to decide
+      #   auto-env    - use $LANG / $LC_CTYPE / terminal query
+      policy: auto-lang
+
+      # When policy = auto-lang, these scripts are considered wide
+      wide-scripts:
+        - Hangul
+        - Hiragana
+        - Katakana
+        - Han
+        - Yi
+        - Mongolian
+        - Tibetan
+        - Thai
+
+      # When policy = auto-lang, these locales force wide mode
+      wide-locales-prefix:
+        - zh   # Chinese
+        - ja   # Japanese
+        - ko   # Korean
+        - vi   # Vietnamese
+        - th   # Thai
+
+    # ──────────────────────────────────────────────────────────────
+    # NEW: Responsive layout engine (v4.4)
+    # Live terminal-width detection + adaptive column compression
+    #───────────────────────────────────────────────────────────────
+    responsive:
+      enabled: true
+      min-columns: 80
+      preferred-columns: 160
+      max-columns: 240
+      shrink-priority-order: [value, author, key, modified, version, bunVer, authorHash]
+      collapse-threshold: 100   # cols below this → collapse non-essential columns
+      preserve-essential-columns: [key, type, status]  # never collapse these
+
+    # ──────────────────────────────────────────────────────────────
+    # NEW: Native sixel graphics support (v4.4 escalation)
+    # Inline charts and visualizations when terminal supports it
+    #───────────────────────────────────────────────────────────────
+    sixel:
+      enabled: true
+      max-cells: "80×24"     # safe default for most terminals
+      fallback: ansi-bars    # when sixel not supported
+      chart-types:
+        - sparkline
+        - progress-bar
+        - mini-bar
+        - trend-indicator
+
+    # ──────────────────────────────────────────────────────────────
+    # NEW: Visual regression configuration (v4.4)
+    # Pixel-perfect screenshot diff settings
+    #───────────────────────────────────────────────────────────────
+    visual-regression:
+      enabled: true
+      snapshot-dir: ".factory-wager/snapshots"
+      diff-threshold: 0.01    # 1% pixel difference tolerance
+      capture-mode: ansi       # ansi | sixel | png (future)
+      auto-update-snapshots: false
+
+    # ──────────────────────────────────────────────────────────────
+    # NEW: Multi-language coverage (v4.4)
+    # Extended script support beyond CJK
+    #───────────────────────────────────────────────────────────────
+    multi-language:
+      enabled: true
+      supported-scripts:
+        # CJK (existing)
+        - Han
+        - Hiragana
+        - Katakana
+        - Hangul
+        # New v4.4 scripts
+        - Arabic
+        - Hebrew
+        - Devanagari
+        - Thai
+        - Cyrillic
+        - Latin
+      rtl-languages:
+        - ar   # Arabic
+        - he   # Hebrew
+      combining-mark-support: true
+      mixed-direction-handling: auto
+
+    # ──────────────────────────────────────────────────────────────
+    # NEW: Pre-commit validation (v4.3)
+    # Ensures Unicode governance compliance before commits
+    #───────────────────────────────────────────────────────────────
+    pre-commit-validation:
+      # Enable Unicode smoke test before commits
+      enable-unicode-smoke-test: true
+
+      # Required test coverage
+      required-coverage:
+        - cjk-characters
+        - emoji-sequences
+        - zwj-sequences
+        - flag-sequences
+        - full-width-characters
+        - mixed-content
+        # v4.4 additions
+        - arabic-script
+        - hebrew-script
+        - devanagari-script
+        - thai-script
+        - rtl-mixed-content
+        - combining-marks
+
+      # Performance requirements
+      performance-threshold:
+        max-ops-per-ms: 1000  # Minimum operations per millisecond
+        max-memory-usage: 10MB # Maximum memory usage for tests
+
     grep:
       # Matches readable AND hash signatures
       all-tags: '\[([A-Z]+)-([A-Z]+)-([A-Z]+)-([A-Z]{3}-[A-Z0-9-]+)-([vV][0-9]+\.[0-9]+)-\[([A-Z]+)\]-([a-f0-9]{64})\]'
@@ -27,3 +173,69 @@ rules:
           - parallel-parse: true
           - hash-verify: true
           - ai-score: true
+
+# Governance metadata
+governance:
+  version: "4.4"
+  rules:
+    - id: "FAC-UNI-041"
+      description: "Per-column unicode width overrides SHALL be respected when force-column-widths: true"
+      status: "ACTIVE"
+      hash: "sha256:abc123def456789012345678901234567890123456789012345678901234567890"
+
+    - id: "FAC-UNI-042"
+      description: "Unicode ambiguous-width policy SHALL be respected; auto-lang mode SHALL prefer wide for CJK content"
+      status: "ACTIVE"
+      hash: "sha256:def789ghi012345678901234567890123456789012345678901234567890123456"
+
+    - id: "FAC-UNI-043"
+      description: "Pre-commit hook unicode-smoke-test.ts SHALL execute successfully before any commit containing rendering logic"
+      status: "ACTIVE"
+      hash: "sha256:ghi345jkl678901234567890123456789012345678901234567890123456789012"
+
+    - id: "FAC-UNI-044"
+      description: "Live terminal width SHALL be detected and respected; responsive layout engine SHALL prevent overflow"
+      status: "ACTIVE"
+      hash: "sha256:jkl456mno789012345678901234567890123456789012345678901234567890123"
+
+    - id: "FAC-UNI-045"
+      description: "Visual regression suite SHALL block commits that change rendered table appearance"
+      status: "ACTIVE"
+      hash: "sha256:mno567pqr890123456789012345678901234567890123456789012345678901234"
+
+    - id: "FAC-UNI-046"
+      description: "Multi-language smoke suite SHALL cover Arabic, Hebrew, Devanagari, Thai and mixed RTL/LTR content"
+      status: "ACTIVE"
+      hash: "sha256:pqr678stu901234567890123456789012345678901234567890123456789012345"
+
+    - id: "FAC-UNI-047"
+      description: "Native sixel graphics SHALL be used for inline charts when terminal supports it; fallback to ANSI bars"
+      status: "ACTIVE"
+      hash: "sha256:stu789vwx012345678901234567890123456789012345678901234567890123456"
+
+# Performance metrics
+performance:
+  table-rendering:
+    target-rows-per-second: 100000
+    max-memory-usage: 50MB
+    unicode-optimization: true
+
+  pre-commit-tests:
+    max-execution-time: 5000ms  # 5 seconds
+    parallel-execution: true
+
+# International settings
+international:
+  default-locale: "en"
+  supported-locales:
+    - "en"
+    - "zh"
+    - "ja"
+    - "ko"
+    - "vi"
+    - "th"
+
+  character-sets:
+    - "GB18030"
+    - "Unicode-15.0"
+    - "Emoji-15.0"

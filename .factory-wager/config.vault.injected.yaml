@@ -1,0 +1,33 @@
+---
+api:
+  registry:
+    token: demo-registry-token-12345678901234567890
+  r2:
+    secret: demo-r2-secret-key-123456789012345678901234567890
+  domain:
+    cert: demo-ssl-certificate-1234567890123456789012345678901234567890123456789012345678901234567890
+
+# Production-specific settings
+production:
+  security:
+    encryption: true
+    tls_version: "1.3"
+    monitoring: true
+  features:
+    debug: false
+    logging: "error"
+
+# Staging-specific settings  
+staging:
+  security:
+    encryption: true
+    tls_version: "1.3"
+  features:
+    debug: false
+    logging: "info"
+
+# Development settings
+development:
+  features:
+    debug: true
+    logging: "verbose"

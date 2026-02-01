@@ -1,0 +1,106 @@
+{
+  "registry.token": {
+    "service": "registry",
+    "key": "com.factory-wager.registry.registry.token",
+    "value": "[REDACTED]",
+    "rotatedAt": "2026-02-01T17:32:28.397Z",
+    "expiresAt": "2026-05-02T17:32:28.397Z",
+    "checksum": "53816ad5"
+  },
+  "r2.secret_key": {
+    "service": "r2",
+    "key": "com.factory-wager.registry.r2.secret_key",
+    "value": "[REDACTED]",
+    "rotatedAt": "2026-02-01T17:32:28.541Z",
+    "expiresAt": "2026-05-02T17:32:28.541Z",
+    "checksum": "a8dc1bed"
+  },
+  "domain.ssl_cert": {
+    "service": "domain",
+    "key": "com.factory-wager.registry.domain.ssl_cert",
+    "value": "[REDACTED]",
+    "rotatedAt": "2026-02-01T17:32:28.618Z",
+    "expiresAt": "2026-05-02T17:32:28.618Z",
+    "checksum": "d69b228f"
+  },
+  "mcp.api_key": {
+    "service": "mcp",
+    "key": "com.factory-wager.registry.mcp.api_key",
+    "value": "[REDACTED]",
+    "rotatedAt": "2026-02-01T17:46:50.471Z",
+    "expiresAt": "2026-05-02T17:46:50.471Z",
+    "checksum": "beec2e6"
+  },
+  "registry.api_key": {
+    "service": "registry",
+    "key": "com.factory-wager.registry.registry.api_key",
+    "value": "[REDACTED]",
+    "rotatedAt": "2026-02-01T17:46:49.804Z",
+    "expiresAt": "2026-05-02T17:46:49.804Z",
+    "checksum": "87909fa5"
+  },
+  "r2.api_key": {
+    "service": "r2",
+    "key": "com.factory-wager.registry.r2.api_key",
+    "value": "[REDACTED]",
+    "rotatedAt": "2026-02-01T17:46:50.026Z",
+    "expiresAt": "2026-05-02T17:46:50.026Z",
+    "checksum": "8691857f"
+  },
+  "domain.api_key": {
+    "service": "domain",
+    "key": "com.factory-wager.registry.domain.api_key",
+    "value": "[REDACTED]",
+    "rotatedAt": "2026-02-01T17:46:50.227Z",
+    "expiresAt": "2026-05-02T17:46:50.227Z",
+    "checksum": "3badd1c1"
+  },
+  "mcp.api_key_backup": {
+    "service": "mcp",
+    "key": "com.factory-wager.registry.mcp.api_key_backup",
+    "value": "[REDACTED]",
+    "rotatedAt": "2026-02-01T17:46:50.323Z",
+    "expiresAt": "2026-05-02T17:46:50.323Z",
+    "checksum": "ef48d9d3"
+  },
+  "registry.new_token": {
+    "service": "registry",
+    "key": "com.factory-wager.registry.registry.new_token",
+    "value": "[REDACTED]",
+    "rotatedAt": "2026-02-01T17:32:44.020Z",
+    "expiresAt": "2026-05-02T17:32:44.020Z",
+    "checksum": "52b79abb"
+  },
+  "registry.api_key_backup": {
+    "service": "registry",
+    "key": "com.factory-wager.registry.registry.api_key_backup",
+    "value": "[REDACTED]",
+    "rotatedAt": "2026-02-01T17:46:49.671Z",
+    "expiresAt": "2026-05-02T17:46:49.671Z",
+    "checksum": "daf3858d"
+  },
+  "r2.api_key_backup": {
+    "service": "r2",
+    "key": "com.factory-wager.registry.r2.api_key_backup",
+    "value": "[REDACTED]",
+    "rotatedAt": "2026-02-01T17:46:49.914Z",
+    "expiresAt": "2026-05-02T17:46:49.914Z",
+    "checksum": "67fca0a9"
+  },
+  "domain.api_key_backup": {
+    "service": "domain",
+    "key": "com.factory-wager.registry.domain.api_key_backup",
+    "value": "[REDACTED]",
+    "rotatedAt": "2026-02-01T17:46:50.129Z",
+    "expiresAt": "2026-05-02T17:46:50.129Z",
+    "checksum": "853c358a"
+  },
+  "r2.secret_alias": {
+    "service": "r2",
+    "key": "com.factory-wager.registry.r2.secret_alias",
+    "value": "[REDACTED]",
+    "rotatedAt": "2026-02-01T17:41:23.716Z",
+    "expiresAt": "2026-05-02T17:41:23.716Z",
+    "checksum": "a8dc1bed"
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "timestamp": "2026-02-01T18:46:14.048Z",
+  "category": "Build Artifacts",
+  "files": [
+    {
+      "file": ".factory-wager/sourcemaps/",
+      "size": 96,
+      "deleted": true
+    }
+  ]
+}

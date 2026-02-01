@@ -1,0 +1,21 @@
+# Test Configuration for Vault Secret Injection
+api:
+  key: VAULT:com.factory-wager.registry.token
+  timeout: 5000
+
+database:
+  host: localhost
+  port: 5432
+  secret: VAULT:com.factory-wager.r2.secret_key
+
+ssl:
+  certificate: VAULT:com.factory-wager.domain.ssl_cert
+
+mcp:
+  api_key: VAULT:com.factory-wager.mcp.api_key
+
+services:
+  - name: registry
+    auth: VAULT:com.factory-wager.registry.token
+  - name: storage
+    auth: VAULT:com.factory-wager.r2.secret_key

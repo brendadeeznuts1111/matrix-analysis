@@ -8,7 +8,18 @@ import { PATHS, PathUtils } from "./paths.ts";
 import { readFileSync, existsSync, writeFileSync } from "fs";
 
 /**
- * Profile interface definition
+ * Secret credential interface for Bun.secrets integration
+ */
+export interface ProfileSecret {
+  service: string;
+  name: string;
+  description?: string;
+  required: boolean;
+  last_updated?: string;
+}
+
+/**
+ * Extended profile interface with secrets support
  */
 export interface Profile {
   name: string;
@@ -48,6 +59,7 @@ export interface Profile {
     audit_dir: string;
     output_dir: string;
   };
+  secrets?: ProfileSecret[];
   created_at: string;
   updated_at: string;
 }
@@ -81,6 +93,20 @@ export const DEFAULT_PROFILES: Record<string, Profile> = {
         "FW_LOG_LEVEL": "debug",
       },
     },
+    secrets: [
+      {
+        service: "com.factory-wager.dev.registry",
+        name: "api-token",
+        description: "Development registry API token",
+        required: false
+      },
+      {
+        service: "com.factory-wager.dev.r2",
+        name: "access-key",
+        description: "R2 storage access key for development",
+        required: false
+      }
+    ],
     bun: {
       version: ">=1.3.8",
       config: {
@@ -137,6 +163,26 @@ export const DEFAULT_PROFILES: Record<string, Profile> = {
         "FW_PERFORMANCE": "enabled",
       },
     },
+    secrets: [
+      {
+        service: "com.factory-wager.prod.registry",
+        name: "api-token",
+        description: "Production registry API token",
+        required: true
+      },
+      {
+        service: "com.factory-wager.prod.r2",
+        name: "access-key",
+        description: "R2 storage access key for production",
+        required: true
+      },
+      {
+        service: "com.factory-wager.prod.ssl",
+        name: "certificate",
+        description: "SSL certificate for production domain",
+        required: true
+      }
+    ],
     bun: {
       version: ">=1.3.8",
       config: {
@@ -194,6 +240,20 @@ export const DEFAULT_PROFILES: Record<string, Profile> = {
         "FW_COMPLIANCE": "strict",
       },
     },
+    secrets: [
+      {
+        service: "com.factory-wager.audit.vault",
+        name: "audit-token",
+        description: "Audit vault access token",
+        required: true
+      },
+      {
+        service: "com.factory-wager.audit.compliance",
+        name: "reporting-key",
+        description: "Compliance reporting API key",
+        required: false
+      }
+    ],
     bun: {
       version: ">=1.3.8",
       config: {
@@ -248,6 +308,14 @@ export const DEFAULT_PROFILES: Record<string, Profile> = {
         "FW_DEMO_MODE": "enabled",
       },
     },
+    secrets: [
+      {
+        service: "com.factory-wager.demo.showcase",
+        name: "demo-token",
+        description: "Demo showcase presentation token",
+        required: false
+      }
+    ],
     bun: {
       version: ">=1.3.8",
       config: {
@@ -282,16 +350,19 @@ export const DEFAULT_PROFILES: Record<string, Profile> = {
 };
 
 /**
- * Profile Manager class
+ * Profile Manager class with Bun.secrets integration
  */
 export class ProfileManager {
   private profiles: Map<string, Profile> = new Map();
   private activeProfile: string | null = null;
   private profileConfigPath: string;
+  private activeProfilePath: string;
 
   constructor() {
-    this.profileConfigPath = `${PATHS.CONFIG_DIR}/profiles.json`;
+    this.profileConfigPath = `${PATHS.FACTORY_WAGER}/config/profiles.json`;
+    this.activeProfilePath = `${PATHS.FACTORY_WAGER}/config/.active-profile`;
     this.loadProfiles();
+    this.loadActiveProfile();
   }
 
   /**
@@ -308,11 +379,44 @@ export class ProfileManager {
       try {
         const customProfiles = JSON.parse(readFileSync(this.profileConfigPath, "utf8"));
         Object.entries(customProfiles).forEach(([name, profile]) => {
-          this.profiles.set(name, profile);
+          // Type assertion to ensure profile matches Profile interface
+          this.profiles.set(name, profile as Profile);
         });
       } catch (error) {
         console.warn(`Failed to load custom profiles: ${error}`);
       }
+    }
+  }
+
+  /**
+   * Load active profile from file
+   */
+  private loadActiveProfile(): void {
+    if (existsSync(this.activeProfilePath)) {
+      try {
+        const activeProfileName = readFileSync(this.activeProfilePath, "utf8").trim();
+        if (this.profiles.has(activeProfileName)) {
+          this.activeProfile = activeProfileName;
+        }
+      } catch (error) {
+        console.warn(`Failed to load active profile: ${error}`);
+      }
+    }
+  }
+
+  /**
+   * Save active profile to file
+   */
+  private saveActiveProfile(): void {
+    try {
+      if (this.activeProfile) {
+        writeFileSync(this.activeProfilePath, this.activeProfile);
+      } else if (existsSync(this.activeProfilePath)) {
+        // Remove file if no active profile
+        require('fs').unlinkSync(this.activeProfilePath);
+      }
+    } catch (error) {
+      console.error(`Failed to save active profile: ${error}`);
     }
   }
 
@@ -369,7 +473,7 @@ export class ProfileManager {
     if (DEFAULT_PROFILES[name]) {
       throw new Error("Cannot delete default profile");
     }
-    
+
     const deleted = this.profiles.delete(name);
     if (deleted) {
       this.saveProfiles();
@@ -385,6 +489,7 @@ export class ProfileManager {
       throw new Error(`Profile '${name}' not found`);
     }
     this.activeProfile = name;
+    this.saveActiveProfile();
   }
 
   /**
@@ -468,7 +573,7 @@ export class ProfileManager {
     }
 
     console.log(`🔧 Applying profile: ${profile.name}`);
-    
+
     // Set environment variables
     Object.entries(profile.terminal.env_vars).forEach(([key, value]) => {
       process.env[key] = value;
@@ -486,15 +591,167 @@ export class ProfileManager {
   listProfiles(): void {
     console.log("📋 Available FactoryWager Profiles:");
     console.log("");
-    
+
     this.profiles.forEach((profile, name) => {
       const isActive = name === this.activeProfile ? " [ACTIVE]" : "";
       console.log(`${name}${isActive}`);
       console.log(`  ${profile.description}`);
       console.log(`  Environment: ${profile.environment}`);
       console.log(`  Mode: ${profile.factoryWager.mode}`);
+
+      // Show secrets status
+      if (profile.secrets && profile.secrets.length > 0) {
+        const requiredCount = profile.secrets.filter(s => s.required).length;
+        console.log(`  Secrets: ${profile.secrets.length} configured (${requiredCount} required)`);
+      }
       console.log("");
     });
+  }
+
+  /**
+   * Store a secret using Bun.secrets for the active profile
+   */
+  async setSecret(service: string, name: string, value: string): Promise<void> {
+    try {
+      // Use legacy format for runtime compatibility with type assertion
+      await (Bun.secrets.set as any)(service, name, value);
+      console.log(`✅ Secret stored: ${service}/${name}`);
+    } catch (error) {
+      throw new Error(`Failed to store secret ${service}/${name}: ${(error as Error).message}`);
+    }
+  }
+
+  /**
+   * Retrieve a secret using Bun.secrets for the active profile
+   */
+  async getSecret(service: string, name: string): Promise<string | null> {
+    try {
+      // Use legacy format for runtime compatibility with type assertion
+      return await (Bun.secrets.get as any)(service, name);
+    } catch (error) {
+      console.warn(`Warning: Failed to retrieve secret ${service}/${name}: ${(error as Error).message}`);
+      return null;
+    }
+  }
+
+  /**
+   * Delete a secret using Bun.secrets
+   */
+  async deleteSecret(service: string, name: string): Promise<boolean> {
+    try {
+      // Use legacy format for runtime compatibility with type assertion
+      const deleted = await (Bun.secrets.delete as any)(service, name);
+      if (deleted) {
+        console.log(`🗑️  Secret deleted: ${service}/${name}`);
+      } else {
+        console.log(`⚠️  Secret not found: ${service}/${name}`);
+      }
+      return deleted;
+    } catch (error) {
+      throw new Error(`Failed to delete secret ${service}/${name}: ${(error as Error).message}`);
+    }
+  }
+
+  /**
+   * List all secrets for the active profile with their status
+   */
+  async listSecrets(): Promise<void> {
+    const profile = this.getActiveProfile();
+    if (!profile) {
+      console.log("❌ No active profile set");
+      return;
+    }
+
+    if (!profile.secrets || profile.secrets.length === 0) {
+      console.log(`ℹ️  No secrets configured for profile '${profile.name}'`);
+      return;
+    }
+
+    console.log(`🔐 Secrets for profile '${profile.name}':`);
+    console.log("");
+
+    for (const secret of profile.secrets) {
+      const value = await this.getSecret(secret.service, secret.name);
+      const status = value ? "✅ SET" : "❌ MISSING";
+      const required = secret.required ? "[REQUIRED]" : "[OPTIONAL]";
+
+      console.log(`${status} ${required} ${secret.service}/${secret.name}`);
+      if (secret.description) {
+        console.log(`    ${secret.description}`);
+      }
+      console.log("");
+    }
+  }
+
+  /**
+   * Validate all required secrets for the active profile
+   */
+  async validateSecrets(): Promise<{ valid: boolean; missing: string[] }> {
+    const profile = this.getActiveProfile();
+    if (!profile) {
+      return { valid: false, missing: ['No active profile'] };
+    }
+
+    if (!profile.secrets || profile.secrets.length === 0) {
+      return { valid: true, missing: [] };
+    }
+
+    const missing: string[] = [];
+
+    for (const secret of profile.secrets) {
+      if (secret.required) {
+        const value = await this.getSecret(secret.service, secret.name);
+        if (!value) {
+          missing.push(`${secret.service}/${secret.name}`);
+        }
+      }
+    }
+
+    const valid = missing.length === 0;
+
+    if (valid) {
+      console.log(`✅ All required secrets are configured for profile '${profile.name}'`);
+    } else {
+      console.log(`❌ Missing required secrets for profile '${profile.name}':`);
+      missing.forEach(secret => console.log(`  - ${secret}`));
+    }
+
+    return { valid, missing };
+  }
+
+  /**
+   * Setup wizard for configuring profile secrets
+   */
+  async setupSecrets(): Promise<void> {
+    const profile = this.getActiveProfile();
+    if (!profile) {
+      console.log("❌ No active profile set");
+      return;
+    }
+
+    if (!profile.secrets || profile.secrets.length === 0) {
+      console.log(`ℹ️  No secrets to configure for profile '${profile.name}'`);
+      return;
+    }
+
+    console.log(`🔧 Setting up secrets for profile '${profile.name}':`);
+    console.log("");
+
+    for (const secret of profile.secrets) {
+      const currentValue = await this.getSecret(secret.service, secret.name);
+      const status = currentValue ? "(already set)" : "(not set)";
+      const required = secret.required ? "[REQUIRED]" : "[OPTIONAL]";
+
+      console.log(`\n${required} ${secret.service}/${secret.name} ${status}`);
+      if (secret.description) {
+        console.log(`    ${secret.description}`);
+      }
+
+      // For demo purposes, we'll show how to set secrets
+      console.log(`    To set: bun run .factory-wager/profiles.ts --set-secret ${secret.service} ${secret.name}`);
+    }
+
+    console.log("\n✅ Secret setup guide completed");
   }
 }
 
@@ -535,13 +792,13 @@ export const ProfileUtils = {
     if (originalProfile) {
       profileManager.setActiveProfile(profileName);
     }
-    
+
     const script = profileManager.generateShellConfig();
-    
+
     if (originalProfile) {
       profileManager.setActiveProfile(originalProfile);
     }
-    
+
     return script;
   },
 
@@ -562,6 +819,94 @@ export const ProfileUtils = {
 
     writeFileSync(filePath, JSON.stringify(config, null, 2));
     console.log(`✅ Profile '${name}' exported to ${filePath}`);
+  },
+
+  /**
+   * Set a secret for the current profile
+   */
+  setSecret: async (service: string, name: string, value?: string): Promise<void> => {
+    if (!value) {
+      // For CLI usage, require the value to be provided as argument
+      throw new Error(`Secret value required. Usage: secrets set <service> <name> <value>`);
+    }
+
+    await profileManager.setSecret(service, name, value);
+  },
+
+  /**
+   * Get a secret for the current profile
+   */
+  getSecret: async (service: string, name: string): Promise<void> => {
+    const value = await profileManager.getSecret(service, name);
+    if (value) {
+      console.log(`🔍 ${service}/${name}: ${value.substring(0, 8)}...`);
+    } else {
+      console.log(`❌ Secret not found: ${service}/${name}`);
+    }
+  },
+
+  /**
+   * Delete a secret
+   */
+  deleteSecret: async (service: string, name: string): Promise<void> => {
+    await profileManager.deleteSecret(service, name);
+  },
+
+  /**
+   * List all secrets for current profile
+   */
+  listSecrets: async (): Promise<void> => {
+    await profileManager.listSecrets();
+  },
+
+  /**
+   * Validate all required secrets
+   */
+  validateSecrets: async (): Promise<void> => {
+    const result = await profileManager.validateSecrets();
+    process.exit(result.valid ? 0 : 1);
+  },
+
+  /**
+   * Setup secrets for current profile
+   */
+  setupSecrets: async (): Promise<void> => {
+    await profileManager.setupSecrets();
+  },
+
+  /**
+   * Migrate secrets from environment variables to Bun.secrets
+   */
+  migrateFromEnv: async (): Promise<void> => {
+    const profile = profileManager.getActiveProfile();
+    if (!profile) {
+      console.log("❌ No active profile set");
+      return;
+    }
+
+    if (!profile.secrets || profile.secrets.length === 0) {
+      console.log(`ℹ️  No secrets to migrate for profile '${profile.name}'`);
+      return;
+    }
+
+    console.log(`🔄 Migrating secrets from environment variables for profile '${profile.name}':`);
+    console.log("");
+
+    let migrated = 0;
+    for (const secret of profile.secrets) {
+      const envKey = secret.service.toUpperCase().replace(/\./g, '_') + '_' + secret.name.toUpperCase();
+      const envValue = process.env[envKey];
+
+      if (envValue) {
+        await profileManager.setSecret(secret.service, secret.name, envValue);
+        console.log(`✅ Migrated ${envKey} → ${secret.service}/${secret.name}`);
+        migrated++;
+      } else {
+        console.log(`⚠️  No environment variable found for ${envKey}`);
+      }
+    }
+
+    console.log(`\n📊 Migration complete: ${migrated} secrets migrated`);
   },
 };
 
