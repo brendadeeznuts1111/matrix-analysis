@@ -87,44 +87,138 @@ import { profileManager, ProfileUtils } from "./config/profiles.ts";
 import { PATHS } from "./config/paths.ts";
 import { readFileSync, existsSync } from "fs";
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// Type-Safe Environment Access (EnvManager)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+class EnvManager {
+  /**
+   * Get string env var with type safety
+   */
+  static getString<K extends keyof Bun.Env>(key: K): Bun.Env[K] {
+    return Bun.env[key];
+  }
+
+  /**
+   * Get string env var with default fallback
+   */
+  static getStringOrDefault<K extends keyof Bun.Env>(
+    key: K,
+    defaultValue: NonNullable<Bun.Env[K]>
+  ): NonNullable<Bun.Env[K]> {
+    const value = Bun.env[key];
+    return (value ?? defaultValue) as NonNullable<Bun.Env[K]>;
+  }
+
+  /**
+   * Get number from env var
+   */
+  static getNumber<K extends keyof Bun.Env>(key: K): number | undefined {
+    const value = Bun.env[key];
+    if (value === undefined) return undefined;
+    const parsed = Number(value);
+    return isNaN(parsed) ? undefined : parsed;
+  }
+
+  /**
+   * Get number with default
+   */
+  static getNumberOrDefault<K extends keyof Bun.Env>(key: K, defaultValue: number): number {
+    return this.getNumber(key) ?? defaultValue;
+  }
+
+  /**
+   * Get boolean from env var
+   */
+  static getBoolean<K extends keyof Bun.Env>(key: K): boolean {
+    const value = Bun.env[key];
+    return value === "true" || value === "1" || value === "yes";
+  }
+
+  /**
+   * Validate required env vars - throws if missing
+   */
+  static validateRequired(required: Array<keyof Bun.Env>): void {
+    const missing = required.filter(key => Bun.env[key] === undefined);
+    if (missing.length > 0) {
+      throw new Error(`❌ Missing required FactoryWager environment variables: ${missing.join(", ")}`);
+    }
+  }
+
+  /**
+   * Get FactoryWager configuration with full type safety
+   */
+  static getFactoryWagerConfig() {
+    return {
+      mode: this.getStringOrDefault("FW_MODE", "development"),
+      logLevel: this.getStringOrDefault("FW_LOG_LEVEL", "info"),
+      profile: this.getString("FW_PROFILE"),
+      reportFormat: this.getStringOrDefault("FW_REPORT_FORMAT", "html"),
+      outputDir: this.getStringOrDefault("FW_OUTPUT_DIR", "./reports"),
+      configDir: this.getStringOrDefault("FW_CONFIG_DIR", "./config"),
+      auditMode: this.getBoolean("FW_AUDIT_MODE"),
+      debug: this.getBoolean("FW_DEBUG"),
+      maxRows: this.getNumberOrDefault("FW_MAX_ROWS", 1000),
+      configPath: this.getStringOrDefault("FW_CONFIG_PATH", "./config/report-config.toml"),
+      timeout: this.getNumberOrDefault("FW_TIMEOUT", 30000),
+      retryCount: this.getNumberOrDefault("FW_RETRY_COUNT", 3),
+      cacheSize: this.getNumberOrDefault("FW_CACHE_SIZE", 100)
+    };
+  }
+
+  /**
+   * Get Bun configuration with full type safety
+   */
+  static getBunConfig() {
+    return {
+      tlsRejectUnauthorized: this.getString("NODE_TLS_REJECT_UNAUTHORIZED") !== "0",
+      verboseFetch: this.getString("BUN_CONFIG_VERBOSE_FETCH") === "curl" ? "curl"
+        : this.getString("BUN_CONFIG_VERBOSE_FETCH") === "1" ? "basic"
+        : "none",
+      transpilerCachePath: this.getString("BUN_RUNTIME_TRANSPILER_CACHE_PATH"),
+      maxHttpRequests: this.getNumberOrDefault("BUN_CONFIG_MAX_HTTP_REQUESTS", 256),
+      noClearTerminalOnReload: this.getBoolean("BUN_CONFIG_NO_CLEAR_TERMINAL_ON_RELOAD"),
+      doNotTrack: this.getBoolean("DO_NOT_TRACK"),
+      bunOptions: this.getStringOrDefault("BUN_OPTIONS", ""),
+      tmpdir: this.getString("TMPDIR"),
+      forceColor: this.getBoolean("FORCE_COLOR"),
+      noColor: this.getBoolean("NO_COLOR")
+    };
+  }
+}
+
+// Export EnvManager for external use
+export { EnvManager };
+
 // Version information using existing systems
 const VERSION = "1.4.0-beta.20260201";
 const BUILD_DATE = new Date().toISOString();
 const BUN_VERSION = process.versions.bun;
 
-// Bun environment configuration (official variables from bun.com/docs)
+// FactoryWager environment configuration using EnvManager
+const FW_CONFIG = EnvManager.getFactoryWagerConfig();
+
+// Bun environment configuration using EnvManager
 const BUN_CONFIG = {
   // Core Bun configuration
-  VERBOSE_FETCH: Bun.env.BUN_CONFIG_VERBOSE_FETCH,
-  MAX_HTTP_REQUESTS: Bun.env.BUN_CONFIG_MAX_HTTP_REQUESTS || "256",
-  NO_CLEAR_TERMINAL: Bun.env.BUN_CONFIG_NO_CLEAR_TERMINAL_ON_RELOAD === "true",
-  TRANSPILER_CACHE_PATH: Bun.env.BUN_RUNTIME_TRANSPILER_CACHE_PATH,
-  OPTIONS: Bun.env.BUN_OPTIONS || "",
+  VERBOSE_FETCH: EnvManager.getString("BUN_CONFIG_VERBOSE_FETCH"),
+  MAX_HTTP_REQUESTS: EnvManager.getStringOrDefault("BUN_CONFIG_MAX_HTTP_REQUESTS", "256"),
+  NO_CLEAR_TERMINAL: EnvManager.getString("BUN_CONFIG_NO_CLEAR_TERMINAL_ON_RELOAD"),
+  TRANSPILER_CACHE_PATH: EnvManager.getString("BUN_RUNTIME_TRANSPILER_CACHE_PATH"),
+  BUN_OPTIONS: EnvManager.getStringOrDefault("BUN_OPTIONS", ""),
 
   // Color and output control
-  FORCE_COLOR: Bun.env.FORCE_COLOR === "1",
-  NO_COLOR: Bun.env.NO_COLOR === "1",
+  FORCE_COLOR: EnvManager.getString("FORCE_COLOR"),
+  NO_COLOR: EnvManager.getString("NO_COLOR"),
 
   // Security and networking
-  NODE_TLS_REJECT_UNAUTHORIZED: Bun.env.NODE_TLS_REJECT_UNAUTHORIZED,
+  NODE_TLS_REJECT_UNAUTHORIZED: EnvManager.getString("NODE_TLS_REJECT_UNAUTHORIZED"),
 
   // Telemetry and tracking
-  DO_NOT_TRACK: Bun.env.DO_NOT_TRACK === "1",
+  DO_NOT_TRACK: EnvManager.getString("DO_NOT_TRACK"),
 
   // System integration
-  TMPDIR: Bun.env.TMPDIR,
-};
-
-// FactoryWager environment configuration
-const FW_CONFIG = {
-  MODE: Bun.env.FW_MODE || process.env.NODE_ENV || "development",
-  LOG_LEVEL: Bun.env.FW_LOG_LEVEL || "info",
-  PROFILE: Bun.env.FW_PROFILE,
-  REPORT_FORMAT: Bun.env.FW_REPORT_FORMAT || "html",
-  OUTPUT_DIR: Bun.env.FW_OUTPUT_DIR || "./reports",
-  CONFIG_DIR: Bun.env.FW_CONFIG_DIR || "./config",
-  AUDIT_MODE: Bun.env.FW_AUDIT_MODE === "true",
-  DEBUG: Bun.env.DEBUG || Bun.env.FW_DEBUG === "true",
+  TMPDIR: EnvManager.getString("TMPDIR")
 };
 
 // CLI Arguments parsing
