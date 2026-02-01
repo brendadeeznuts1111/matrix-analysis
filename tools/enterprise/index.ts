@@ -20,7 +20,7 @@ export type {
   ArchiveMetadata,
   SecurityValidationResult,
   PerformanceMetrics
-} from './enterprise/archive/EnterpriseArchiveManager';
+} from './archive/EnterpriseArchiveManager';
 
 export type {
   SecurityRule,
@@ -50,8 +50,9 @@ export type {
 
 // ─── Legacy Tools (Backward Compatibility) ───────────────────────────────────────
 // These are maintained for backward compatibility but marked as deprecated
-export { default as ArchiveToolsCLI } from '../archive-tools';
-export { default as Tier1380ArchiveSecure } from '../tier1380-archive-secure';
+// Note: Legacy tools will be integrated in a future release
+// export { ArchiveToolsCLI } from '../archive-tools';
+// export { Tier1380ArchiveSecure } from '../tier1380-archive-secure';
 
 // ─── Factory Functions ─────────────────────────────────────────────────────────
 /**

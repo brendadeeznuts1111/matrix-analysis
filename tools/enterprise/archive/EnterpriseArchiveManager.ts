@@ -1,8 +1,7 @@
-#!/usr/bin/env bun
 /**
  * Enterprise Archive Manager - Enhanced Class-Based Architecture
  * Tier-1380 Secure Archive Management System
- * 
+ *
  * @version 2.0.0
  * @author Tier-1380 Enterprise Team
  * @license MIT
@@ -75,7 +74,7 @@ export class EnterpriseArchiveManager {
         created_at TEXT NOT NULL,
         performance_metrics TEXT
       );
-      
+
       CREATE TABLE IF NOT EXISTS archive_files (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         archive_id TEXT,
@@ -85,7 +84,7 @@ export class EnterpriseArchiveManager {
         security_flags TEXT,
         FOREIGN KEY (archive_id) REFERENCES archive_operations (archive_id)
       );
-      
+
       CREATE TABLE IF NOT EXISTS security_audit (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         archive_id TEXT,
@@ -103,7 +102,7 @@ export class EnterpriseArchiveManager {
    * Create secure enterprise archive with comprehensive validation
    */
   async createSecureArchive(
-    sourcePath: string, 
+    sourcePath: string,
     config: ArchiveConfiguration = {}
   ): Promise<{ archiveId: string; metadata: ArchiveMetadata; metrics: PerformanceMetrics }> {
     const startTime = performance.now();
@@ -117,7 +116,7 @@ export class EnterpriseArchiveManager {
     try {
       // Validate source and collect files
       const fileCollection = await this.collectFiles(sourcePath);
-      
+
       // Security validation
       const securityResult = await this.validateSecurity(fileCollection);
       if (securityResult.riskLevel === 'critical') {
@@ -127,7 +126,7 @@ export class EnterpriseArchiveManager {
       // Create archive with compression
       const archiveOptions = this.buildArchiveOptions(config);
       const archive = new Bun.Archive(fileCollection.files, archiveOptions);
-      
+
       // Generate output path
       const outputPath = config.outputPath || `./archives/${tenantId}/${archiveId}.tar.gz`;
       await Bun.write(outputPath, archive);
@@ -135,7 +134,7 @@ export class EnterpriseArchiveManager {
       // Calculate metrics
       const endTime = performance.now();
       const metrics = this.calculatePerformanceMetrics(fileCollection.totalSize, endTime - startTime);
-      
+
       // Generate metadata
       const metadata: ArchiveMetadata = {
         archiveId,
@@ -169,7 +168,7 @@ export class EnterpriseArchiveManager {
    * Extract archive with comprehensive validation and security checks
    */
   async extractSecureArchive(
-    archivePath: string, 
+    archivePath: string,
     outputPath: string,
     config: ArchiveConfiguration = {}
   ): Promise<{ extractedFiles: number; securityResult: SecurityValidationResult }> {
@@ -183,7 +182,7 @@ export class EnterpriseArchiveManager {
       // Load and validate archive
       const archiveData = await Bun.file(archivePath).arrayBuffer();
       const archive = new Bun.Archive(archiveData);
-      
+
       // Security validation before extraction
       const files = await archive.files();
       const fileCollection = { files: Object.fromEntries(files), fileCount: files.size, totalSize: 0 };
@@ -243,7 +242,7 @@ export class EnterpriseArchiveManager {
 
       // Build file collection for analysis
       const fileCollection = { files: Object.fromEntries(files), fileCount: files.size, totalSize: 0 };
-      
+
       // Security validation
       const securityResult = await this.validateSecurity(fileCollection);
 
@@ -298,7 +297,7 @@ export class EnterpriseArchiveManager {
       for await (const path of glob.scan(sourcePath)) {
         const fullPath = `${sourcePath}/${path}`;
         const archivePath = path.replaceAll("\\", "/");
-        
+
         try {
           const content = await Bun.file(fullPath).bytes();
           files[archivePath] = content;
@@ -414,7 +413,7 @@ export class EnterpriseArchiveManager {
     securityResult: SecurityValidationResult
   ): Promise<void> {
     const stmt = this.auditDb.prepare(`
-      INSERT INTO archive_operations 
+      INSERT INTO archive_operations
       (archive_id, tenant_id, operation_type, file_count, total_size, compression_type, checksum, metadata, created_at, performance_metrics)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
@@ -435,7 +434,7 @@ export class EnterpriseArchiveManager {
     // Log security audit if violations found
     if (securityResult.violations.length > 0) {
       const securityStmt = this.auditDb.prepare(`
-        INSERT INTO security_audit 
+        INSERT INTO security_audit
         (archive_id, scan_timestamp, risk_level, suspicious_paths, violations, recommendations)
         VALUES (?, ?, ?, ?, ?, ?)
       `);
@@ -457,9 +456,9 @@ export class EnterpriseArchiveManager {
   async generateAuditReport(tenantId?: string): Promise<string> {
     const targetTenant = tenantId || this.tenantId;
     const operations = this.auditDb.query(`
-      SELECT * FROM archive_operations 
-      WHERE tenant_id = ? 
-      ORDER BY created_at DESC 
+      SELECT * FROM archive_operations
+      WHERE tenant_id = ?
+      ORDER BY created_at DESC
       LIMIT 10
     `).all(targetTenant);
 
