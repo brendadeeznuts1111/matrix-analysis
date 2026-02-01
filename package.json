@@ -416,7 +416,9 @@
     "factory-wager": "bun run .factory-wager/factory-wager-cli.ts",
     "fw": "bun run .factory-wager/factory-wager-cli.ts",
     "deploy:reality": "bash .factory-wager/fw-deploy-with-reality-check.sh",
-    "deploy:safe": "bash .factory-wager/fw-deploy-with-reality-check.sh staging"
+    "deploy:safe": "bash .factory-wager/fw-deploy-with-reality-check.sh staging",
+    "analyze:reality": "bun run .factory-wager/fw-analyze-with-reality.ts",
+    "analyze:config": "bun run .factory-wager/fw-analyze-with-reality.ts config.yaml"
   },
   "dependencies": {
     "@modelcontextprotocol/server-filesystem": "latest",
