@@ -96,9 +96,7 @@ const checkGateway = async (): Promise<StatusResponse> => {
 
 	// Try WebSocket upgrade
 	try {
-		const ws = new WebSocket(
-			`ws://${CONFIG.gateway.host}:${CONFIG.gateway.port}/`,
-		);
+		const ws = new WebSocket(`ws://${CONFIG.gateway.host}:${CONFIG.gateway.port}/`);
 		await new Promise<void>((resolve, reject) => {
 			const timeout = setTimeout(() => reject(new Error("Timeout")), 2000);
 			ws.onopen = () => {
@@ -195,10 +193,7 @@ const checkTelegramBot = async (): Promise<StatusResponse> => {
 };
 
 const checkPrometheus = async (): Promise<StatusResponse> => {
-	const isRunning = await checkPort(
-		CONFIG.monitoring.prometheusPort,
-		"127.0.0.1",
-	);
+	const isRunning = await checkPort(CONFIG.monitoring.prometheusPort, "127.0.0.1");
 
 	if (!isRunning) {
 		return {
@@ -249,11 +244,7 @@ const displayStatus = async () => {
 		results.push(result);
 
 		const icon =
-			result.status === "healthy"
-				? "✓"
-				: result.status === "degraded"
-					? "⚠"
-					: "✗";
+			result.status === "healthy" ? "✓" : result.status === "degraded" ? "⚠" : "✗";
 		const color =
 			result.status === "healthy"
 				? "\x1b[32m"

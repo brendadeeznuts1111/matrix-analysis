@@ -25,9 +25,7 @@ function generateStats(days = 30): StatsResult {
 
 	// Check if table exists
 	const tableCheck = db
-		.query(
-			"SELECT name FROM sqlite_master WHERE type='table' AND name='commits'",
-		)
+		.query("SELECT name FROM sqlite_master WHERE type='table' AND name='commits'")
 		.get();
 
 	if (!tableCheck) {
@@ -159,8 +157,7 @@ function renderStats(stats: StatsResult): void {
 // Main
 if (import.meta.main) {
 	const args = Bun.argv.slice(2);
-	const days =
-		Number(args.find((a) => a.startsWith("--days="))?.split("=")[1]) || 30;
+	const days = Number(args.find((a) => a.startsWith("--days="))?.split("=")[1]) || 30;
 
 	console.log("╔════════════════════════════════════════════════════════╗");
 	console.log("║     Tier-1380 OMEGA Commit Statistics                  ║");

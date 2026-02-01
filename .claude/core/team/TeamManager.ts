@@ -156,9 +156,7 @@ export function getTeamForColumn(columnIndex: number): Team | undefined {
 		return TEAMS.infra;
 	}
 	// Fall back to original mapping
-	return Object.values(TEAMS).find((t) =>
-		t.matrixColumns.includes(columnIndex),
-	);
+	return Object.values(TEAMS).find((t) => t.matrixColumns.includes(columnIndex));
 }
 
 /**
@@ -254,9 +252,7 @@ export function getTeamMatrixVisualization(): string {
 	lines.push("");
 	lines.push("Legend:");
 	for (const team of Object.values(TEAMS)) {
-		lines.push(
-			`  ${team.id.slice(0, 2).toUpperCase()} = ${team.emoji} ${team.name}`,
-		);
+		lines.push(`  ${team.id.slice(0, 2).toUpperCase()} = ${team.emoji} ${team.name}`);
 	}
 	lines.push("  .. = Unassigned");
 
@@ -266,10 +262,7 @@ export function getTeamMatrixVisualization(): string {
 /**
  * Get team statistics
  */
-export function getTeamStats(): Record<
-	TeamId,
-	{ columns: number; percentage: string }
-> {
+export function getTeamStats(): Record<TeamId, { columns: number; percentage: string }> {
 	const stats = {} as Record<TeamId, { columns: number; percentage: string }>;
 
 	for (const team of Object.values(TEAMS)) {
@@ -370,17 +363,13 @@ if (import.meta.main) {
 		default: {
 			console.log("Tier-1380 OMEGA Team Manager (90-Column)\n");
 			console.log("Commands:");
-			console.log(
-				"  list              List all teams with 90-column ownership",
-			);
+			console.log("  list              List all teams with 90-column ownership");
 			console.log("  matrix            Show 90-column team ownership grid");
 			console.log("  stats             Show team column statistics");
 			console.log("  owns <col>        Show which team owns a column (1-90)");
 			console.log("  can <team> <col>  Check if team can access column");
 			console.log("  zone <col>        Show zone and team for column");
-			console.log(
-				"\nTeams: runtime, security, platform, tension, infra, validation",
-			);
+			console.log("\nTeams: runtime, security, platform, tension, infra, validation");
 		}
 	}
 }

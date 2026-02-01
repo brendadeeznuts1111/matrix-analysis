@@ -4,8 +4,12 @@
  */
 
 import { extractFrontmatter, type FrontmatterResult } from "./extractor";
-import { normalizeFrontmatter, type NormalizationOptions } from "./normalizer";
-import { validateFrontmatter, type FrontmatterSchema, type ValidationResult } from "./validator";
+import { type NormalizationOptions, normalizeFrontmatter } from "./normalizer";
+import {
+	type FrontmatterSchema,
+	type ValidationResult,
+	validateFrontmatter,
+} from "./validator";
 
 export interface BatchEntry {
 	path: string;

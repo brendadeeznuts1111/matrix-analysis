@@ -38,9 +38,9 @@ describe("Text wrapping", () => {
 		const wrapped = wrapCol89(text);
 		const lines = wrapped.split("\n");
 		for (const line of lines) {
-			expect(
-				Bun.stringWidth(line, { countAnsiEscapeCodes: false }),
-			).toBeLessThanOrEqual(89);
+			expect(Bun.stringWidth(line, { countAnsiEscapeCodes: false })).toBeLessThanOrEqual(
+				89,
+			);
 		}
 	});
 });

@@ -67,9 +67,7 @@ export async function loadConfig(): Promise<CommitFlowConfig> {
 	}
 }
 
-export async function saveConfig(
-	config: Partial<CommitFlowConfig>,
-): Promise<void> {
+export async function saveConfig(config: Partial<CommitFlowConfig>): Promise<void> {
 	await Bun.write(CONFIG_FILE, JSON.stringify(config, null, 2));
 }
 

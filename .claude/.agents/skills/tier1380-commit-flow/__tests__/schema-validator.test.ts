@@ -66,9 +66,7 @@ describe("validateSchema", () => {
 		const result = validateSchema(COMMIT_MESSAGE_SCHEMA, input);
 		expect(result.valid).toBe(false);
 		expect(
-			result.errors.some(
-				(e) => e.path === "tier" && e.message.includes("Wrong type"),
-			),
+			result.errors.some((e) => e.path === "tier" && e.message.includes("Wrong type")),
 		).toBe(true);
 	});
 
@@ -100,9 +98,7 @@ describe("validateSchema", () => {
 		const result = validateSchema(COMMIT_MESSAGE_SCHEMA, input);
 		expect(result.valid).toBe(false);
 		expect(
-			result.errors.some(
-				(e) => e.path === "tier" && e.message.includes("too small"),
-			),
+			result.errors.some((e) => e.path === "tier" && e.message.includes("too small")),
 		).toBe(true);
 	});
 

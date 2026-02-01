@@ -118,9 +118,7 @@ if (import.meta.main) {
 
 	for (const result of results) {
 		const icon = result.valid ? "✅" : "❌";
-		console.log(
-			`${icon} ${result.hash.slice(0, 7)} ${result.message.slice(0, 60)}`,
-		);
+		console.log(`${icon} ${result.hash.slice(0, 7)} ${result.message.slice(0, 60)}`);
 
 		if (!result.valid) {
 			for (const error of result.errors) {

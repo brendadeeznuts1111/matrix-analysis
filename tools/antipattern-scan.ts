@@ -5,8 +5,8 @@
  */
 
 import { $ } from "bun";
-import { EXIT_CODES } from "../.claude/lib/exit-codes.ts";
 import { defineCommand } from "../.claude/lib/cli.ts";
+import { EXIT_CODES } from "../.claude/lib/exit-codes.ts";
 
 interface Hit {
 	pattern: string;
@@ -16,19 +16,47 @@ interface Hit {
 }
 
 const SCANS = [
-	{ pattern: 'from "node:fs/promises"', name: "node:fs/promises import", fix: "Bun.file() / Bun.write()" },
+	{
+		pattern: 'from "node:fs/promises"',
+		name: "node:fs/promises import",
+		fix: "Bun.file() / Bun.write()",
+	},
 	{ pattern: 'from "node:fs"', name: "node:fs import", fix: "Bun.file() / Bun.write()" },
 	{ pattern: 'from "node:os"', name: "node:os import", fix: "Bun.env.HOME / os info" },
-	{ pattern: 'from "node:child_process"', name: "node:child_process import", fix: "Bun.spawn() / Bun.$" },
-	{ pattern: 'from "(os|path|fs|child_process)"', name: "bare node import", fix: "use node: prefix or Bun API" },
-	{ pattern: "existsSync|readFileSync|writeFileSync", name: "sync FS calls", fix: "Bun.file().exists() / .text() / Bun.write()" },
-	{ pattern: "readFile\\(", name: "readFile()", fix: "Bun.file().text() / .json() / .arrayBuffer()" },
+	{
+		pattern: 'from "node:child_process"',
+		name: "node:child_process import",
+		fix: "Bun.spawn() / Bun.$",
+	},
+	{
+		pattern: 'from "(os|path|fs|child_process)"',
+		name: "bare node import",
+		fix: "use node: prefix or Bun API",
+	},
+	{
+		pattern: "existsSync|readFileSync|writeFileSync",
+		name: "sync FS calls",
+		fix: "Bun.file().exists() / .text() / Bun.write()",
+	},
+	{
+		pattern: "readFile\\(",
+		name: "readFile()",
+		fix: "Bun.file().text() / .json() / .arrayBuffer()",
+	},
 	{ pattern: "writeFile\\(", name: "writeFile()", fix: "Bun.write()" },
 	{ pattern: "require\\(", name: "require()", fix: "ES import" },
 	{ pattern: "process\\.argv", name: "process.argv", fix: "Bun.argv" },
 	{ pattern: "process\\.env", name: "process.env", fix: "Bun.env" },
-	{ pattern: "new Promise.*setTimeout", name: "Promise(setTimeout)", fix: "Bun.sleep()" },
-	{ pattern: "export default \\{", name: "export default {}", fix: "named exports (unless CF Worker)" },
+	{
+		pattern: "new Promise.*setTimeout",
+		name: "Promise(setTimeout)",
+		fix: "Bun.sleep()",
+	},
+	{
+		pattern: "export default \\{",
+		name: "export default {}",
+		fix: "named exports (unless CF Worker)",
+	},
 ] as const;
 
 const DIRS = ["src", "tools", "examples", ".claude"];
@@ -38,11 +66,31 @@ defineCommand({
 	description: "Scan .ts files for Node.js patterns that have Bun-native replacements",
 	usage: "bun tools/antipattern-scan.ts [options] [dirs...]",
 	options: {
-		verbose: { type: "boolean", short: "v", default: false, description: "Show individual hits per pattern" },
+		verbose: {
+			type: "boolean",
+			short: "v",
+			default: false,
+			description: "Show individual hits per pattern",
+		},
 		json: { type: "boolean", default: false, description: "Output results as JSON" },
-		metrics: { type: "boolean", short: "m", default: false, description: "Show file-level breakdown" },
-		patterns: { type: "boolean", short: "p", default: false, description: "Print pattern catalog and exit" },
-		regex: { type: "boolean", short: "r", default: false, description: "Print raw regex patterns and exit" },
+		metrics: {
+			type: "boolean",
+			short: "m",
+			default: false,
+			description: "Show file-level breakdown",
+		},
+		patterns: {
+			type: "boolean",
+			short: "p",
+			default: false,
+			description: "Print pattern catalog and exit",
+		},
+		regex: {
+			type: "boolean",
+			short: "r",
+			default: false,
+			description: "Print raw regex patterns and exit",
+		},
 	},
 	async run(values, positionals) {
 		const verbose = !!values["verbose"];
@@ -73,7 +121,10 @@ defineCommand({
 		const allHits: Hit[] = [];
 
 		for (const scan of SCANS) {
-			const { stdout } = await $`rg -n ${scan.pattern} --type=ts ${scanDirs} --glob '!node_modules/**' --glob '!dist/**' --glob '!**/antipattern-scan.ts' 2>/dev/null`.quiet().nothrow();
+			const { stdout } =
+				await $`rg -n ${scan.pattern} --type=ts ${scanDirs} --glob '!node_modules/**' --glob '!dist/**' --glob '!**/antipattern-scan.ts' 2>/dev/null`
+					.quiet()
+					.nothrow();
 			const lines = stdout.toString().trim().split("\n").filter(Boolean);
 
 			for (const line of lines) {
@@ -83,7 +134,11 @@ defineCommand({
 				const text = match[3].trim();
 				// Skip comments and string-literal references
 				if (text.startsWith("//")) continue;
-				if (scan.name === "require()" && (text.includes('"require(') || text.includes("`require("))) continue;
+				if (
+					scan.name === "require()" &&
+					(text.includes('"require(') || text.includes("`require("))
+				)
+					continue;
 
 				allHits.push({
 					pattern: scan.name,
@@ -115,14 +170,18 @@ defineCommand({
 			const patternCounts = SCANS.map((s) => ({
 				pattern: s.name,
 				hits: (grouped.get(s.name) || []).length,
-			})).filter((p) => p.hits > 0).sort((a, b) => b.hits - a.hits);
+			}))
+				.filter((p) => p.hits > 0)
+				.sort((a, b) => b.hits - a.hits);
 
 			console.log(`Anti-Bun Metrics (${scanDirs.join(", ")})\n`);
 			console.log("── By Pattern ──\n");
 			console.log(Bun.inspect.table(patternCounts, ["pattern", "hits"]));
 			console.log("── By File ──\n");
 			console.log(Bun.inspect.table(byFile, ["file", "hits"]));
-			console.log(`${allHits.length} hits across ${fileMap.size} files, ${patternCounts.length}/${SCANS.length} patterns triggered`);
+			console.log(
+				`${allHits.length} hits across ${fileMap.size} files, ${patternCounts.length}/${SCANS.length} patterns triggered`,
+			);
 			process.exit(EXIT_CODES.SUCCESS);
 		}
 

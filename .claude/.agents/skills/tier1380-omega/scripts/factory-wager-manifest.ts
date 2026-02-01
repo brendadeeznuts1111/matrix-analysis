@@ -147,9 +147,7 @@ export const EXTENDED_GOVERNANCE_REGEX =
 // VALIDATION & PARSING
 // ============================================================================
 
-export function parseExtendedCommit(
-	message: string,
-): ExtendedCommitMessage | null {
+export function parseExtendedCommit(message: string): ExtendedCommitMessage | null {
 	const match = EXTENDED_GOVERNANCE_REGEX.exec(message);
 	if (!match?.groups) return null;
 
@@ -238,8 +236,7 @@ export function validateExtendedMessage(message: string): ValidationResult {
 	}
 
 	// Fall back to legacy format check
-	const legacyRegex =
-		/^\[([A-Z]+)\]\[COMPONENT:([A-Z]+)\]\[TIER:(\d+)\]\s+(.+)$/;
+	const legacyRegex = /^\[([A-Z]+)\]\[COMPONENT:([A-Z]+)\]\[TIER:(\d+)\]\s+(.+)$/;
 	const legacyMatch = legacyRegex.exec(message);
 	if (legacyMatch) {
 		return {

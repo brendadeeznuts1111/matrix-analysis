@@ -84,8 +84,7 @@ async function syncFromGit(): Promise<number> {
 
 	try {
 		// Get recent commits
-		const log =
-			await $`git log --pretty=format:"%H|%s|%an|%ad" --date=iso -50`.text();
+		const log = await $`git log --pretty=format:"%H|%s|%an|%ad" --date=iso -50`.text();
 		const commits = log.trim().split("\n");
 
 		for (const line of commits) {
@@ -102,9 +101,7 @@ async function syncFromGit(): Promise<number> {
 			const validFormat = !!match;
 
 			// Check if exists
-			const existing = db
-				.query("SELECT id FROM commits WHERE hash = ?")
-				.get(hash);
+			const existing = db.query("SELECT id FROM commits WHERE hash = ?").get(hash);
 			if (existing) continue;
 
 			db.query(`
@@ -138,9 +135,9 @@ function generateAnalytics(_days = 30): AnalyticsResult {
 	const db = getDb();
 
 	// Total commits
-	const totalResult = db
-		.query("SELECT COUNT(*) as count FROM commits")
-		.get() as { count: number };
+	const totalResult = db.query("SELECT COUNT(*) as count FROM commits").get() as {
+		count: number;
+	};
 
 	// Valid format rate
 	const validResult = db

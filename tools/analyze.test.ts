@@ -2,27 +2,29 @@
  * Unit and integration tests for analyze CLI (stages 3.x).
  * Fixtures: tools/__fixtures__/analyze/
  */
-import { describe, it, expect } from "bun:test";
+import { describe, expect, it } from "bun:test";
 import {
-	loadConfig,
-	parseArgs,
-	matchesIgnore,
 	approxComplexity,
-	extractProps,
 	extractEnumMembers,
-	runScan,
-	runTypes,
-	runDeps,
-	runComplexity,
+	extractProps,
+	loadConfig,
+	matchesIgnore,
+	parseArgs,
 	runClasses,
-	runStrength,
-	runRename,
+	runComplexity,
+	runDeps,
 	runPolish,
+	runRename,
+	runScan,
+	runStrength,
+	runTypes,
 } from "./analyze.ts";
 
 const FIXTURE_ROOT = "tools/__fixtures__/analyze";
 
-function opts(overrides: Partial<ReturnType<typeof parseArgs>> = {}): ReturnType<typeof parseArgs> {
+function opts(
+	overrides: Partial<ReturnType<typeof parseArgs>> = {},
+): ReturnType<typeof parseArgs> {
 	return {
 		cmd: "scan",
 		rest: [],
@@ -59,13 +61,18 @@ describe("parseArgs", () => {
 	});
 
 	it("accepts --ignore=glob1,glob2", () => {
-		const r = parseArgs(["node", "analyze.ts", "scan", "--ignore=**/node_modules,*.test.ts"], {});
+		const r = parseArgs(
+			["node", "analyze.ts", "scan", "--ignore=**/node_modules,*.test.ts"],
+			{},
+		);
 		expect(r.ignorePatterns).toContain("**/node_modules");
 		expect(r.ignorePatterns).toContain("*.test.ts");
 	});
 
 	it("argv wins over config for roots", () => {
-		const r = parseArgs(["node", "analyze.ts", "scan", "--roots=argv-root"], { roots: ["config-root"] });
+		const r = parseArgs(["node", "analyze.ts", "scan", "--roots=argv-root"], {
+			roots: ["config-root"],
+		});
 		expect(r.roots).toEqual(["argv-root"]);
 	});
 
@@ -164,7 +171,9 @@ describe("runners with fixtures", () => {
 		};
 		await runTypes(o);
 		console.log = log;
-		const j = JSON.parse(out) as { types: { name: string; kind: string; file: string }[] };
+		const j = JSON.parse(out) as {
+			types: { name: string; kind: string; file: string }[];
+		};
 		expect(Array.isArray(j.types)).toBe(true);
 		const hasIface = j.types.some((t: { name: string }) => t.name === "FixtureIface");
 		expect(hasIface).toBe(true);
@@ -179,7 +188,9 @@ describe("runners with fixtures", () => {
 		};
 		await runClasses(o);
 		console.log = log;
-		const j = JSON.parse(out) as { classes: { name: string; extends: string; file: string }[] };
+		const j = JSON.parse(out) as {
+			classes: { name: string; extends: string; file: string }[];
+		};
 		expect(Array.isArray(j.classes)).toBe(true);
 		const base = j.classes.find((c: { name: string }) => c.name === "Base");
 		expect(base).toBeDefined();
@@ -225,7 +236,15 @@ describe("runners with fixtures", () => {
 		};
 		await runStrength(o);
 		console.log = log;
-		const j = JSON.parse(out) as { files: { file: string; score: number; lines: number; complexity: number; exports: number }[] };
+		const j = JSON.parse(out) as {
+			files: {
+				file: string;
+				score: number;
+				lines: number;
+				complexity: number;
+				exports: number;
+			}[];
+		};
 		expect(Array.isArray(j.files)).toBe(true);
 		if (j.files.length > 0) {
 			expect(typeof j.files[0].score).toBe("number");
@@ -262,7 +281,9 @@ describe("runPolish dry-run", () => {
 		await runPolish(o);
 		console.log = log;
 		// unused-import.ts has FixtureEnum imported but only FixtureIface used
-		expect(out.includes("unused") || out.includes("import") || out.includes("removed")).toBe(true);
+		expect(
+			out.includes("unused") || out.includes("import") || out.includes("removed"),
+		).toBe(true);
 	});
 });
 
@@ -270,7 +291,13 @@ describe("integration: CLI spawn", () => {
 	it("bun tools/analyze.ts scan --roots=tools/__fixtures__/analyze --format=json returns total and files", async () => {
 		const scriptPath = import.meta.dir + "/analyze.ts";
 		const res = Bun.spawn({
-			cmd: [process.execPath, scriptPath, "scan", `--roots=${FIXTURE_ROOT}`, "--format=json"],
+			cmd: [
+				process.execPath,
+				scriptPath,
+				"scan",
+				`--roots=${FIXTURE_ROOT}`,
+				"--format=json",
+			],
 			cwd: process.cwd(),
 			stdout: "pipe",
 			stderr: "pipe",

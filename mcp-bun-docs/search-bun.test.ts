@@ -6,57 +6,57 @@
  * Run: bun test mcp-bun-docs/search-bun.test.ts
  */
 
-import { describe, expect, it, spyOn, beforeEach, afterEach } from "bun:test";
+import { afterEach, beforeEach, describe, expect, it, spyOn } from "bun:test";
 import {
-	searchBunDocs,
-	buildDocUrl,
-	getDocEntry,
-	getReferenceUrl,
-	getCrossReferences,
-	suggestDocTerms,
+	assertCol89,
+	BINARY_PERF_METRICS,
+	BUN_137_COMPLETE_MATRIX,
+	BUN_137_FEATURE_MATRIX,
+	BUN_BASE_URL,
+	BUN_BLOG_RSS_URL,
+	BUN_BLOG_URL,
+	BUN_CHANGELOG_RSS,
+	BUN_DOC_ENTRIES,
+	BUN_DOC_MAP,
+	BUN_DOCS_BASE,
+	BUN_DOCS_MIN_VERSION,
+	BUN_FEEDBACK_UPGRADE_FIRST,
+	BUN_FEEDBACK_URL,
 	BUN_GLOBALS,
 	BUN_GLOBALS_API_URL,
-	BUN_REFERENCE_LINKS,
-	BUN_REFERENCE_KEYS,
-	BUN_DOC_MAP,
-	BUN_DOC_ENTRIES,
-	BUN_BASE_URL,
+	BUN_GUIDES_URL,
+	BUN_INSTALL_ADD_URL,
 	BUN_INSTALL_SCRIPT_URL,
-	BUN_DOCS_BASE,
-	BUN_FEEDBACK_URL,
-	BUN_FEEDBACK_UPGRADE_FIRST,
-	BUN_TEST_REFERENCE_URL,
+	BUN_NODE_COMPAT_URL,
+	BUN_PM_URL,
+	BUN_REFERENCE_KEYS,
+	BUN_REFERENCE_LINKS,
+	BUN_REFERENCE_URL,
+	BUN_REPO_RELEASES_URL,
 	BUN_REPO_URL,
 	BUN_SHOP_URL,
-	BUN_BLOG_URL,
-	BUN_BLOG_RSS_URL,
-	BUN_GUIDES_URL,
-	BUN_CHANGELOG_RSS,
-	BUN_REPO_RELEASES_URL,
-	BUN_PM_URL,
-	BUN_INSTALL_ADD_URL,
-	BUN_NODE_COMPAT_URL,
-	BUN_REFERENCE_URL,
-	BUN_URL_CONFIG,
-	getUrlCanonicalizationAuditEvent,
-	getRssCanonicalizationAuditEvent,
-	getLatestBunReleaseTitleFromRss,
-	COL89_MAX,
-	getDocLinkWidth,
-	assertCol89,
-	BUN_TYPES_REPO_URL,
-	BUN_TYPES_README_URL,
+	BUN_TEST_REFERENCE_URL,
 	BUN_TYPES_AUTHORING_URL,
 	BUN_TYPES_KEY_FILES,
-	BUN_DOCS_MIN_VERSION,
-	BINARY_PERF_METRICS,
+	BUN_TYPES_README_URL,
+	BUN_TYPES_REPO_URL,
+	BUN_URL_CONFIG,
+	buildDocUrl,
+	COL89_MAX,
+	filterEntriesByPlatform,
+	filterEntriesByStability,
+	filterEntriesByVersion,
+	getCrossReferences,
+	getDocEntry,
+	getDocLinkWidth,
+	getLatestBunReleaseTitleFromRss,
+	getReferenceUrl,
+	getRssCanonicalizationAuditEvent,
+	getUrlCanonicalizationAuditEvent,
+	searchBunDocs,
+	suggestDocTerms,
 	TEST_CONFIG_MATRIX,
 	TIER_1380_COMPLIANCE,
-	BUN_137_FEATURE_MATRIX,
-	BUN_137_COMPLETE_MATRIX,
-	filterEntriesByVersion,
-	filterEntriesByStability,
-	filterEntriesByPlatform,
 } from "./lib.ts";
 
 let fetchSpy: ReturnType<typeof spyOn> | null = null;
@@ -100,7 +100,9 @@ describe("SearchBun / lib", () => {
 			expect(BUN_REPO_URL).toBe("https://github.com/oven-sh/bun");
 		});
 		it("should point BUN_TYPES_REPO_URL to bun-types package", () => {
-			expect(BUN_TYPES_REPO_URL).toBe("https://github.com/oven-sh/bun/tree/main/packages/bun-types");
+			expect(BUN_TYPES_REPO_URL).toBe(
+				"https://github.com/oven-sh/bun/tree/main/packages/bun-types",
+			);
 		});
 		it("should point BUN_TYPES_README_URL and BUN_TYPES_AUTHORING_URL to blob paths", () => {
 			expect(BUN_TYPES_README_URL).toContain("bun-types/README.md");
@@ -169,10 +171,13 @@ describe("SearchBun / lib", () => {
 			expect(ev.details).toContain("Unified RSS feed");
 			expect(ev.details).toContain(BUN_CHANGELOG_RSS);
 			expect(ev.glyph).toContain("rss unified");
-			expect(typeof ev.feed_preview_width === "number" || ev.feed_preview_width === undefined).toBe(true);
+			expect(
+				typeof ev.feed_preview_width === "number" || ev.feed_preview_width === undefined,
+			).toBe(true);
 		});
 		it("getLatestBunReleaseTitleFromRss returns first item title from RSS", async () => {
-			const xml = '<?xml version="1.0"?><rss><channel><item><title>Bun v99.0.0</title></item></channel></rss>';
+			const xml =
+				'<?xml version="1.0"?><rss><channel><item><title>Bun v99.0.0</title></item></channel></rss>';
 			fetchSpy.mockResolvedValueOnce(new Response(xml));
 			const title = await getLatestBunReleaseTitleFromRss();
 			expect(title).toBe("Bun v99.0.0");
@@ -202,7 +207,7 @@ describe("SearchBun / lib", () => {
 			["serve", "api/http"],
 			["sqlite", "api/sqlite"],
 			["mcp", "mcp"],
-	] as [string, string][])("should map BUN_DOC_MAP %s to %s", (term, path) => {
+		] as [string, string][])("should map BUN_DOC_MAP %s to %s", (term, path) => {
 			expect(BUN_DOC_MAP[term]).toBe(path);
 		});
 	});
@@ -301,7 +306,9 @@ describe("SearchBun / lib", () => {
 		});
 
 		it("should exclude Bun.inspect.table from prod-safe", () => {
-			const prodTerms = filterEntriesByStability(BUN_DOC_ENTRIES, ["stable"]).map((e) => e.term);
+			const prodTerms = filterEntriesByStability(BUN_DOC_ENTRIES, ["stable"]).map(
+				(e) => e.term,
+			);
 			expect(prodTerms).not.toContain("Bun.inspect.table");
 			expect(prodTerms).not.toContain("inspect");
 		});
@@ -320,7 +327,9 @@ describe("SearchBun / lib", () => {
 			expect(BINARY_PERF_METRICS).toHaveLength(2);
 			expect(BINARY_PERF_METRICS.map((m) => m.op)).toContain("Buffer.swap16");
 			expect(BINARY_PERF_METRICS.map((m) => m.op)).toContain("Buffer.swap64");
-			expect(BINARY_PERF_METRICS.find((m) => m.op === "Buffer.swap64")?.imp).toBe("3.6x");
+			expect(BINARY_PERF_METRICS.find((m) => m.op === "Buffer.swap64")?.imp).toBe(
+				"3.6x",
+			);
 		});
 	});
 

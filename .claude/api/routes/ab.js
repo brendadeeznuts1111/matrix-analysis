@@ -93,10 +93,7 @@ export function createABRouter(deps) {
 					sessionId,
 				});
 
-				return Response.json(
-					{ variant, poolSize, source },
-					{ headers: corsHeaders },
-				);
+				return Response.json({ variant, poolSize, source }, { headers: corsHeaders });
 			}
 
 			case "/api/ab/snapshot": {
@@ -128,8 +125,7 @@ export function createABRouter(deps) {
 					{
 						rawBytes: rawSize,
 						zstdBytes: compressed.byteLength,
-						shrink:
-							((1 - compressed.byteLength / rawSize) * 100).toFixed(1) + "%",
+						shrink: ((1 - compressed.byteLength / rawSize) * 100).toFixed(1) + "%",
 						snapshot: Buffer.from(compressed).toString("base64"),
 						...(moduleSnapshot && { moduleSnapshot }),
 					},
@@ -160,17 +156,14 @@ export function createABRouter(deps) {
 					return Response.json(restored, { headers: corsHeaders });
 				}
 
-				const restored = restoreSnapshot(
-					Buffer.from(body.snapshot, "base64"),
-				);
+				const restored = restoreSnapshot(Buffer.from(body.snapshot, "base64"));
 				return Response.json(restored, { headers: corsHeaders });
 			}
 
 			// ── Multi-tenant variant resolution ────────────────────────
 			case "/api/ab/tenant": {
-				const tenantId = resolveTenantFromRequest(req)
-					|| url.searchParams.get("tenant")
-					|| "default";
+				const tenantId =
+					resolveTenantFromRequest(req) || url.searchParams.get("tenant") || "default";
 				const cookieHeader = req.headers.get("cookie") || "";
 				const prefix = tenantPrefix(tenantId);
 				const tenantCookies = parseTenantCookieMap(cookieHeader, prefix);
@@ -254,13 +247,8 @@ export function createABRouter(deps) {
 
 			default: {
 				// ── Parameterized: GET /api/ab/persist/:sessionId ───
-				if (
-					url.pathname.startsWith("/api/ab/persist/") &&
-					req.method === "GET"
-				) {
-					const sid = decodeURIComponent(
-						url.pathname.slice("/api/ab/persist/".length),
-					);
+				if (url.pathname.startsWith("/api/ab/persist/") && req.method === "GET") {
+					const sid = decodeURIComponent(url.pathname.slice("/api/ab/persist/".length));
 					if (!sid) {
 						return Response.json(
 							{ error: "sessionId is required" },
@@ -275,10 +263,7 @@ export function createABRouter(deps) {
 								{ status: 404, headers: corsHeaders },
 							);
 						}
-						return Response.json(
-							{ sessionId: sid, snapshot },
-							{ headers: corsHeaders },
-						);
+						return Response.json({ sessionId: sid, snapshot }, { headers: corsHeaders });
 					} catch (err) {
 						return Response.json(
 							{ error: err.message },

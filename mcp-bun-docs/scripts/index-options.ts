@@ -5,9 +5,12 @@
  */
 
 async function main(): Promise<void> {
-	const proc = Bun.spawn(["rg", "--files-with-matches", "BUN_TEST_CLI_OPTIONS", "mcp-bun-docs/"], {
-		stdio: ["ignore", "pipe", "inherit"],
-	});
+	const proc = Bun.spawn(
+		["rg", "--files-with-matches", "BUN_TEST_CLI_OPTIONS", "mcp-bun-docs/"],
+		{
+			stdio: ["ignore", "pipe", "inherit"],
+		},
+	);
 	const out = await new Response(proc.stdout).text();
 	const files = out.split("\n").filter(Boolean).sort();
 	await Bun.write(".options.index", files.join("\n") + (files.length ? "\n" : ""));

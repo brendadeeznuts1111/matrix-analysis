@@ -64,9 +64,8 @@ async function analyzeFile(filePath: string): Promise<Partial<CodeMetrics>> {
 		const interfaces = (content.match(/interface\s+\w+/g) || []).length;
 		const types = (content.match(/type\s+\w+/g) || []).length;
 		const functions = (
-			content.match(
-				/(?:function|=>)\s*\w+\s*\(|const\s+\w+\s*=\s*(?:async\s*)?\(/g,
-			) || []
+			content.match(/(?:function|=>)\s*\w+\s*\(|const\s+\w+\s*=\s*(?:async\s*)?\(/g) ||
+			[]
 		).length;
 
 		return { lines, classes, interfaces, types, functions };
@@ -337,9 +336,7 @@ async function main(): Promise<void> {
 	console.log(`  ${GRAY}${"─".repeat(76)}${RESET}`);
 
 	for (const skill of skills) {
-		const installed = await checkComponent(
-			`${home}/.kimi/skills/${skill.name}`,
-		);
+		const installed = await checkComponent(`${home}/.kimi/skills/${skill.name}`);
 		const status = installed ? `${GREEN}●${RESET}` : `${YELLOW}○${RESET}`;
 		console.log(
 			`  ${status} ${skill.name.padEnd(28)} ` +

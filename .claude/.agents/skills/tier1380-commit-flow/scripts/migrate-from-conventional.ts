@@ -137,9 +137,4 @@ if (import.meta.main) {
 	}
 }
 
-export {
-	parseConventionalCommit,
-	convertToTier1380,
-	TYPE_MAPPING,
-	SCOPE_MAPPING,
-};
+export { parseConventionalCommit, convertToTier1380, TYPE_MAPPING, SCOPE_MAPPING };

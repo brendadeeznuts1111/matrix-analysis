@@ -1,4 +1,5 @@
 #!/usr/bin/env bun
+
 /**
  * Frontmatter Extraction Benchmark
  *
@@ -9,11 +10,11 @@
  *   --json         Emit JSON results to stdout
  */
 
-import { extractFrontmatter } from "./extractor";
-import { normalizeFrontmatter } from "./normalizer";
-import { validateFrontmatter, type FrontmatterSchema } from "./validator";
 import { batchExtractFrontmatter, generateIndex } from "./batch";
+import { extractFrontmatter } from "./extractor";
 import { injectIntoHtml } from "./inject";
+import { normalizeFrontmatter } from "./normalizer";
+import { type FrontmatterSchema, validateFrontmatter } from "./validator";
 
 const QUIET = process.argv.includes("--quiet") || !!process.env.CLAUDECODE;
 const JSON_OUT = process.argv.includes("--json");
@@ -222,37 +223,49 @@ benchResults.push(bench("extract(none)", () => extractFrontmatter(PLAIN_MD)));
 
 // 5. Normalize
 const yamlData = extractFrontmatter(YAML_MD).data;
-benchResults.push(bench("normalize", () => normalizeFrontmatter(yamlData, { seoMapping: true })));
+benchResults.push(
+	bench("normalize", () => normalizeFrontmatter(yamlData, { seoMapping: true })),
+);
 
 // 6. Validate
 const normalized = normalizeFrontmatter(yamlData, { seoMapping: true });
 benchResults.push(bench("validate", () => validateFrontmatter(normalized, SCHEMA)));
 
 // 7. Full pipeline: extract + normalize + validate
-benchResults.push(bench("full pipeline", () => {
-	const ex = extractFrontmatter(YAML_MD);
-	const n = normalizeFrontmatter(ex.data, { seoMapping: true });
-	validateFrontmatter(n, SCHEMA);
-}));
+benchResults.push(
+	bench("full pipeline", () => {
+		const ex = extractFrontmatter(YAML_MD);
+		const n = normalizeFrontmatter(ex.data, { seoMapping: true });
+		validateFrontmatter(n, SCHEMA);
+	}),
+);
 
 // 8. HTML injection
-benchResults.push(bench("injectIntoHtml", () => {
-	injectIntoHtml(
-		"<html><head><title>T</title></head><body><p>B</p></body></html>",
-		normalized,
-		{ modes: ["meta", "opengraph", "jsonld"], siteUrl: "https://example.com" },
-	);
-}));
+benchResults.push(
+	bench("injectIntoHtml", () => {
+		injectIntoHtml(
+			"<html><head><title>T</title></head><body><p>B</p></body></html>",
+			normalized,
+			{ modes: ["meta", "opengraph", "jsonld"], siteUrl: "https://example.com" },
+		);
+	}),
+);
 
 // 9. Full render pipeline: extract + normalize + markdown.html + inject
-benchResults.push(bench("render pipeline", () => {
-	const ex = extractFrontmatter(YAML_MD);
-	const n = normalizeFrontmatter(ex.data, { seoMapping: true });
-	const html = Bun.markdown.html(ex.content);
-	injectIntoHtml(`<html><head></head><body>${html}</body></html>`, n, {
-		modes: ["meta", "opengraph", "jsonld"],
-	});
-}, 1000));
+benchResults.push(
+	bench(
+		"render pipeline",
+		() => {
+			const ex = extractFrontmatter(YAML_MD);
+			const n = normalizeFrontmatter(ex.data, { seoMapping: true });
+			const html = Bun.markdown.html(ex.content);
+			injectIntoHtml(`<html><head></head><body>${html}</body></html>`, n, {
+				modes: ["meta", "opengraph", "jsonld"],
+			});
+		},
+		1000,
+	),
+);
 
 // ─── Batch benchmark (file I/O) ────────────────────────────────────────────
 
@@ -412,10 +425,14 @@ await batchExtractFrontmatter("${BATCH_DIR}", { schema });
 
 	const hfArgs = [
 		"hyperfine",
-		"--warmup", "3",
-		"--min-runs", "10",
-		"--export-json", jsonFile,
-		"--style", "full",
+		"--warmup",
+		"3",
+		"--min-runs",
+		"10",
+		"--export-json",
+		jsonFile,
+		"--style",
+		"full",
 	];
 	for (let i = 0; i < cmds.length; i++) {
 		hfArgs.push("--command-name", names[i], cmds[i]);
@@ -456,7 +473,17 @@ await batchExtractFrontmatter("${BATCH_DIR}", { schema });
 		max: fmtTime(r.max * 1000),
 		runs: r.times.length,
 	}));
-	console.log(Bun.inspect.table(summaryRows, ["benchmark", "mean", "median", "stddev", "min", "max", "runs"]));
+	console.log(
+		Bun.inspect.table(summaryRows, [
+			"benchmark",
+			"mean",
+			"median",
+			"stddev",
+			"min",
+			"max",
+			"runs",
+		]),
+	);
 
 	// Cleanup
 	await Bun.$`rm -rf ${tmpDir} ${BATCH_DIR}`.quiet();
@@ -530,48 +557,114 @@ async function main(): Promise<void> {
 	}
 
 	// Micro-benchmarks table
-	console.log(Bun.inspect.table(tableRows, [
-		"benchmark", "ops/sec", "median", "mean", "stddev", "p95", "cv", "throughput",
-	]));
+	console.log(
+		Bun.inspect.table(tableRows, [
+			"benchmark",
+			"ops/sec",
+			"median",
+			"mean",
+			"stddev",
+			"p95",
+			"cv",
+			"throughput",
+		]),
+	);
 
 	// Batch results table
 	const batchRows = [
-		{ metric: `batch(${BATCH_SIZE} files)`, median: fmtTime(batchResult.batchStats.median), mean: fmtTime(batchResult.batchStats.mean), stddev: fmtTime(batchResult.batchStats.stddev), min: fmtTime(batchResult.batchStats.min), max: fmtTime(batchResult.batchStats.max), cv: fmtCv(batchResult.batchStats.cv) },
-		{ metric: "per-file", median: fmtTime(batchResult.perFileStats.median), mean: fmtTime(batchResult.perFileStats.mean), stddev: fmtTime(batchResult.perFileStats.stddev), min: fmtTime(batchResult.perFileStats.min), max: fmtTime(batchResult.perFileStats.max), cv: fmtCv(batchResult.perFileStats.cv) },
-		{ metric: "index generation", median: fmtTime(batchResult.indexGenMs), mean: "-", stddev: "-", min: "-", max: "-", cv: "-" },
+		{
+			metric: `batch(${BATCH_SIZE} files)`,
+			median: fmtTime(batchResult.batchStats.median),
+			mean: fmtTime(batchResult.batchStats.mean),
+			stddev: fmtTime(batchResult.batchStats.stddev),
+			min: fmtTime(batchResult.batchStats.min),
+			max: fmtTime(batchResult.batchStats.max),
+			cv: fmtCv(batchResult.batchStats.cv),
+		},
+		{
+			metric: "per-file",
+			median: fmtTime(batchResult.perFileStats.median),
+			mean: fmtTime(batchResult.perFileStats.mean),
+			stddev: fmtTime(batchResult.perFileStats.stddev),
+			min: fmtTime(batchResult.perFileStats.min),
+			max: fmtTime(batchResult.perFileStats.max),
+			cv: fmtCv(batchResult.perFileStats.cv),
+		},
+		{
+			metric: "index generation",
+			median: fmtTime(batchResult.indexGenMs),
+			mean: "-",
+			stddev: "-",
+			min: "-",
+			max: "-",
+			cv: "-",
+		},
 	];
 
 	if (!QUIET) {
 		console.log("\n--- Batch I/O ---\n");
 	}
-	console.log(Bun.inspect.table(batchRows, ["metric", "median", "mean", "stddev", "min", "max", "cv"]));
+	console.log(
+		Bun.inspect.table(batchRows, [
+			"metric",
+			"median",
+			"mean",
+			"stddev",
+			"min",
+			"max",
+			"cv",
+		]),
+	);
 
 	// ─── Summary ──────────────────────────────────────────────────────────
 
 	if (!QUIET) {
 		// Find fastest/slowest extractors
 		const extractors = benchResults.filter((r) => r.name.startsWith("extract("));
-		const fastest = extractors.reduce((a, b) => a.opsPerSec > b.opsPerSec ? a : b);
-		const slowest = extractors.reduce((a, b) => a.opsPerSec < b.opsPerSec ? a : b);
+		const fastest = extractors.reduce((a, b) => (a.opsPerSec > b.opsPerSec ? a : b));
+		const slowest = extractors.reduce((a, b) => (a.opsPerSec < b.opsPerSec ? a : b));
 		const speedup = fastest.opsPerSec / slowest.opsPerSec;
 
 		const pipeline = benchResults.find((r) => r.name === "full pipeline");
 		const render = benchResults.find((r) => r.name === "render pipeline");
 
 		const summaryRows = [
-			{ stat: "fastest extractor", value: `${fastest.name} @ ${fmtOps(fastest.opsPerSec)} ops/s` },
-			{ stat: "slowest extractor", value: `${slowest.name} @ ${fmtOps(slowest.opsPerSec)} ops/s` },
+			{
+				stat: "fastest extractor",
+				value: `${fastest.name} @ ${fmtOps(fastest.opsPerSec)} ops/s`,
+			},
+			{
+				stat: "slowest extractor",
+				value: `${slowest.name} @ ${fmtOps(slowest.opsPerSec)} ops/s`,
+			},
 			{ stat: "extract spread", value: `${speedup.toFixed(1)}x` },
-			{ stat: "pipeline throughput", value: pipeline ? `${fmtOps(pipeline.opsPerSec)} ops/s (${fmtTime(pipeline.stats.median)}/op)` : "-" },
-			{ stat: "render throughput", value: render ? `${fmtOps(render.opsPerSec)} ops/s (${fmtTime(render.stats.median)}/op)` : "-" },
-			{ stat: "batch throughput", value: `${BATCH_SIZE} files in ${fmtTime(batchResult.batchStats.median)} (${fmtTime(batchResult.perFileStats.median)}/file)` },
+			{
+				stat: "pipeline throughput",
+				value: pipeline
+					? `${fmtOps(pipeline.opsPerSec)} ops/s (${fmtTime(pipeline.stats.median)}/op)`
+					: "-",
+			},
+			{
+				stat: "render throughput",
+				value: render
+					? `${fmtOps(render.opsPerSec)} ops/s (${fmtTime(render.stats.median)}/op)`
+					: "-",
+			},
+			{
+				stat: "batch throughput",
+				value: `${BATCH_SIZE} files in ${fmtTime(batchResult.batchStats.median)} (${fmtTime(batchResult.perFileStats.median)}/file)`,
+			},
 			{ stat: "index generation", value: fmtTime(batchResult.indexGenMs) },
 		];
 
 		console.log("\n--- Summary ---\n");
 		console.log(Bun.inspect.table(summaryRows, ["stat", "value"]));
-		console.log(`Bun ${Bun.version} | ${process.platform}/${process.arch} | ${new Date().toISOString()}`);
-		console.log("hint: run with --hyperfine for process-level benchmarks via hyperfine\n");
+		console.log(
+			`Bun ${Bun.version} | ${process.platform}/${process.arch} | ${new Date().toISOString()}`,
+		);
+		console.log(
+			"hint: run with --hyperfine for process-level benchmarks via hyperfine\n",
+		);
 	}
 }
 

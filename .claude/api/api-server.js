@@ -1,34 +1,32 @@
 #!/usr/bin/env bun
 
 import { S3Client } from "bun";
-import { phoneSanitizer } from "../core/shared/phone-sanitizer.js";
-import { coreLogger as logger } from "../shared/logger.js";
-
-// A/B variant typed modules (Bun resolves .ts from .js)
-import {
-	parseCookieMap,
-	getABVariant as getTypedABVariant,
-	getPoolSize,
-} from "../../examples/ab-variant-cookies.ts";
 import {
 	compressState,
-	decompressState,
 	createSnapshotFromCookies,
+	decompressState,
 } from "../../examples/ab-variant-compressed.ts";
+// A/B variant typed modules (Bun resolves .ts from .js)
 import {
+	getPoolSize,
+	getABVariant as getTypedABVariant,
+	parseCookieMap,
+} from "../../examples/ab-variant-cookies.ts";
+import {
+	parseTenantCookieMap,
 	resolveTenantFromRequest,
 	tenantPrefix,
-	parseTenantCookieMap,
 } from "../../examples/ab-variant-multi-tenant.ts";
 import {
-	snapshotAndPersist,
 	loadSnapshot,
 	openDb,
+	snapshotAndPersist,
 } from "../../examples/ab-variant-omega-pools-zstd.ts";
-
+import { phoneSanitizer } from "../core/shared/phone-sanitizer.js";
+import { coreLogger as logger } from "../shared/logger.js";
+import { createABRouter } from "./routes/ab.js";
 // Route modules (decomposed from this file)
 import { createPhoneRouter } from "./routes/phone.js";
-import { createABRouter } from "./routes/ab.js";
 import { createStorageRouter } from "./routes/storage.js";
 
 // Load environment variables
@@ -125,9 +123,7 @@ function getABVariant(cookies) {
 function getABPoolSize(variant, cookies) {
 	const cookiePool = cookies.get("poolSize");
 	if (cookiePool) return parseInt(cookiePool, 10);
-	return variant === "enabled"
-		? _AB_VARIANT_POOL_A
-		: _AB_VARIANT_POOL_B;
+	return variant === "enabled" ? _AB_VARIANT_POOL_A : _AB_VARIANT_POOL_B;
 }
 
 // Zstd cookie snapshot - compress A/B state for session persistence
@@ -231,9 +227,7 @@ async function getStorageStats() {
 async function testCDNPerformance() {
 	try {
 		const start = Date.now();
-		const response = await fetch(
-			"https://cdn.factory-wager.com/dashboard.html",
-		);
+		const response = await fetch("https://cdn.factory-wager.com/dashboard.html");
 		await response.arrayBuffer();
 		return Date.now() - start;
 	} catch {
@@ -253,9 +247,9 @@ const abMetricSubs = new Set();
 // In-memory metrics aggregation
 const abMetrics = {
 	impressions: 0,
-	variants: {},     // { "enabled": count, "disabled": count, "control": count }
-	pools: {},        // { poolSize: count }
-	tenants: {},      // { tenantId: count }
+	variants: {}, // { "enabled": count, "disabled": count, "control": count }
+	pools: {}, // { poolSize: count }
+	tenants: {}, // { tenantId: count }
 	lastReset: Date.now(),
 };
 
@@ -384,10 +378,10 @@ const handleStorage = createStorageRouter({ getS3Client, logger });
 
 const ROUTE_TABLE = [
 	{ prefix: "/api/phone/", handler: handlePhone },
-	{ prefix: "/api/ab/",    handler: handleAB },
+	{ prefix: "/api/ab/", handler: handleAB },
 	{ prefix: "/api/cookies", handler: handleAB },
-	{ prefix: "/api/upload",  handler: handleStorage },
-	{ prefix: "/api/cdn/",    handler: handleStorage },
+	{ prefix: "/api/upload", handler: handleStorage },
+	{ prefix: "/api/cdn/", handler: handleStorage },
 ];
 
 // API server
@@ -409,11 +403,13 @@ const server = Bun.serve({
 		}
 
 		// ── WebSocket upgrade: /api/ab/status ──────────────────────────
-		if (url.pathname === "/api/ab/status" && req.headers.get("upgrade") === "websocket") {
+		if (
+			url.pathname === "/api/ab/status" &&
+			req.headers.get("upgrade") === "websocket"
+		) {
 			const requested = req.headers.get("sec-websocket-protocol") || "";
 			const protocols = requested.split(",").map((p) => p.trim());
-			const matched = protocols.find((p) => AB_PROTOCOLS.includes(p))
-				|| "ab-events"; // default to events
+			const matched = protocols.find((p) => AB_PROTOCOLS.includes(p)) || "ab-events"; // default to events
 
 			const upgraded = server.upgrade(req, {
 				data: { protocol: matched, connectedAt: Date.now() },
@@ -433,10 +429,7 @@ const server = Bun.serve({
 				case "/api/stats": {
 					const stats = await getStorageStats();
 					const cdnLatency = await testCDNPerformance();
-					return Response.json(
-						{ ...stats, cdnLatency },
-						{ headers: corsHeaders },
-					);
+					return Response.json({ ...stats, cdnLatency }, { headers: corsHeaders });
 				}
 
 				case "/api/health": {
@@ -484,21 +477,27 @@ const server = Bun.serve({
 			const { protocol } = ws.data;
 			if (protocol === "ab-metrics") {
 				abMetricSubs.add(ws);
-				ws.send(JSON.stringify({
-					type: "connected",
-					protocol: "ab-metrics",
-					intervalMs: 1000,
-					ts: Date.now(),
-				}));
+				ws.send(
+					JSON.stringify({
+						type: "connected",
+						protocol: "ab-metrics",
+						intervalMs: 1000,
+						ts: Date.now(),
+					}),
+				);
 			} else {
 				abEventSubs.add(ws);
-				ws.send(JSON.stringify({
-					type: "connected",
-					protocol: "ab-events",
-					ts: Date.now(),
-				}));
+				ws.send(
+					JSON.stringify({
+						type: "connected",
+						protocol: "ab-events",
+						ts: Date.now(),
+					}),
+				);
 			}
-			logger.info(`WS ${protocol} client connected (events=${abEventSubs.size} metrics=${abMetricSubs.size})`);
+			logger.info(
+				`WS ${protocol} client connected (events=${abEventSubs.size} metrics=${abMetricSubs.size})`,
+			);
 		},
 
 		message(ws, message) {
@@ -536,50 +535,30 @@ const server = Bun.serve({
 	},
 });
 
-logger.info(
-	`🚀 R2 Dashboard API Server running on http://localhost:${server.port}`,
-);
-logger.info(
-	`📊 Dashboard available at: https://cdn.factory-wager.com/dashboard.html`,
-);
+logger.info(`🚀 R2 Dashboard API Server running on http://localhost:${server.port}`);
+logger.info(`📊 Dashboard available at: https://cdn.factory-wager.com/dashboard.html`);
 logger.info(`🔗 API endpoints:`);
 logger.info(`   Storage Stats: http://localhost:${server.port}/api/stats`);
-logger.info(
-	`   Phone Sanitize: http://localhost:${server.port}/api/phone/sanitize`,
-);
+logger.info(`   Phone Sanitize: http://localhost:${server.port}/api/phone/sanitize`);
 logger.info(`   Phone Batch: http://localhost:${server.port}/api/phone/batch`);
-logger.info(
-	`   Email Sanitize: http://localhost:${server.port}/api/phone/email`,
-);
+logger.info(`   Email Sanitize: http://localhost:${server.port}/api/phone/email`);
 logger.info(`   Phone Stats: http://localhost:${server.port}/api/phone/stats`);
-logger.info(
-	`   Phone Analytics: http://localhost:${server.port}/api/phone/analytics`,
-);
+logger.info(`   Phone Analytics: http://localhost:${server.port}/api/phone/analytics`);
 logger.info(
 	`   Top Countries: http://localhost:${server.port}/api/phone/analytics/top-countries`,
 );
 logger.info(
 	`   Success Trends: http://localhost:${server.port}/api/phone/analytics/trends`,
 );
-logger.info(
-	`   Phone History: http://localhost:${server.port}/api/phone/history`,
-);
+logger.info(`   Phone History: http://localhost:${server.port}/api/phone/history`);
 logger.info(
 	`   History Search: http://localhost:${server.port}/api/phone/history/search`,
 );
 logger.info(`   Custom Rules: http://localhost:${server.port}/api/phone/rules`);
-logger.info(
-	`   Enable Rules: http://localhost:${server.port}/api/phone/rules/enable`,
-);
-logger.info(
-	`   Phone Reputation: http://localhost:${server.port}/api/phone/reputation`,
-);
-logger.info(
-	`   SMS Start: http://localhost:${server.port}/api/phone/sms/start`,
-);
-logger.info(
-	`   SMS Verify: http://localhost:${server.port}/api/phone/sms/verify`,
-);
+logger.info(`   Enable Rules: http://localhost:${server.port}/api/phone/rules/enable`);
+logger.info(`   Phone Reputation: http://localhost:${server.port}/api/phone/reputation`);
+logger.info(`   SMS Start: http://localhost:${server.port}/api/phone/sms/start`);
+logger.info(`   SMS Verify: http://localhost:${server.port}/api/phone/sms/verify`);
 logger.info(
 	`   Set Disposition: http://localhost:${server.port}/api/cdn/set-disposition`,
 );
@@ -588,8 +567,12 @@ logger.info(`🔌 A/B WebSocket Status:`);
 logger.info(`   WS Upgrade:   ws://localhost:${server.port}/api/ab/status`);
 logger.info(`   Sub-protocols: ab-events (per-request), ab-metrics (1s aggregated)`);
 logger.info(`   AB Variant:   http://localhost:${server.port}/api/ab/variant`);
-logger.info(`   AB Snapshot:  http://localhost:${server.port}/api/ab/snapshot?format=zstd`);
+logger.info(
+	`   AB Snapshot:  http://localhost:${server.port}/api/ab/snapshot?format=zstd`,
+);
 logger.info(`   AB Restore:   http://localhost:${server.port}/api/ab/restore`);
 logger.info(`   AB Tenant:    http://localhost:${server.port}/api/ab/tenant`);
 logger.info(`   AB Persist:   http://localhost:${server.port}/api/ab/persist`);
-logger.info(`   AB Load:      http://localhost:${server.port}/api/ab/persist/:sessionId`);
+logger.info(
+	`   AB Load:      http://localhost:${server.port}/api/ab/persist/:sessionId`,
+);

@@ -36,12 +36,7 @@ export const PERMISSION_NAMES: (keyof PermissionFlags)[] = [
 ];
 
 /** Role hierarchy order (index = rank, 0 = highest) */
-export const ROLE_ORDER: TeamRole[] = [
-	"lead",
-	"senior",
-	"developer",
-	"contributor",
-];
+export const ROLE_ORDER: TeamRole[] = ["lead", "senior", "developer", "contributor"];
 
 /** Maps org role to tier level */
 export const ROLE_TIER_MAP: Record<TeamRole, number> = {

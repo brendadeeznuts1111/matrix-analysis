@@ -1,10 +1,10 @@
 #!/usr/bin/env bun
 /**
  * Bun Password Hashing Utility
- * 
+ *
  * Production-ready Argon2id password hashing with sensible defaults
  * based on OWASP and NIST recommendations.
- * 
+ *
  * @see https://bun.sh/docs/api/hashing
  */
 
@@ -63,10 +63,7 @@ export async function hashPassword(
 /**
  * Verify a password against a hash
  */
-export async function verifyPassword(
-	password: string,
-	hash: string,
-): Promise<boolean> {
+export async function verifyPassword(password: string, hash: string): Promise<boolean> {
 	try {
 		return await Bun.password.verify(password, hash);
 	} catch {
@@ -77,9 +74,7 @@ export async function verifyPassword(
 /**
  * Benchmark Argon2id configurations on current hardware
  */
-export async function benchmarkConfigs(): Promise<
-	Record<ConfigLevel, number>
-> {
+export async function benchmarkConfigs(): Promise<Record<ConfigLevel, number>> {
 	const results = {} as Record<ConfigLevel, number>;
 	const testPassword = "test-password-for-benchmark";
 
@@ -107,9 +102,7 @@ export async function benchmarkConfigs(): Promise<
 		);
 	}
 
-	console.log(
-		"\n💡 Recommendation: Use 'production' for most apps (100-500ms target)",
-	);
+	console.log("\n💡 Recommendation: Use 'production' for most apps (100-500ms target)");
 	return results;
 }
 
@@ -124,9 +117,7 @@ export function needsRehash(hash: string, targetLevel: ConfigLevel): boolean {
 	const [, m, t, p] = match.map(Number);
 	const target = ARGON2_CONFIGS[targetLevel];
 
-	return (
-		m < target.memoryCost || t < target.timeCost || p < target.parallelism
-	);
+	return m < target.memoryCost || t < target.timeCost || p < target.parallelism;
 }
 
 // CLI Interface
@@ -165,9 +156,7 @@ async function main() {
 		const level = (args[2] as ConfigLevel) || "production";
 
 		if (!hash) {
-			console.error(
-				"Usage: bun password-hash.ts check-rehash <hash> [level]",
-			);
+			console.error("Usage: bun password-hash.ts check-rehash <hash> [level]");
 			process.exit(1);
 		}
 

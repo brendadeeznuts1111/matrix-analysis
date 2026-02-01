@@ -33,9 +33,7 @@ function renderBox(title: string, content: string[], width = 60): string[] {
 	const bottom = `╚${"═".repeat(width - 2)}╝`;
 
 	lines.push(top);
-	lines.push(
-		`║${title.padStart((width + title.length) / 2).padEnd(width - 2)}║`,
-	);
+	lines.push(`║${title.padStart((width + title.length) / 2).padEnd(width - 2)}║`);
 	lines.push(`╠${"═".repeat(width - 2)}╣`);
 
 	for (const line of content) {
@@ -46,12 +44,7 @@ function renderBox(title: string, content: string[], width = 60): string[] {
 	return lines;
 }
 
-function renderGauge(
-	label: string,
-	value: number,
-	max = 100,
-	width = 40,
-): string {
+function renderGauge(label: string, value: number, max = 100, width = 40): string {
 	const filled = Math.round((value / max) * width);
 	const bar = "█".repeat(filled) + "░".repeat(width - filled);
 	const pct = Math.round((value / max) * 100);
@@ -63,9 +56,7 @@ function getState(): DashboardState {
 		const db = new Database(DB_PATH);
 
 		// Total commits
-		const commitsResult = db
-			.query("SELECT COUNT(*) as count FROM commits")
-			.get() as {
+		const commitsResult = db.query("SELECT COUNT(*) as count FROM commits").get() as {
 			count: number;
 		};
 
@@ -159,11 +150,7 @@ async function renderDashboard(config: DashboardConfig): Promise<void> {
 	// Recent activity
 	const activityLines = renderBox(
 		"Recent Activity",
-		[
-			`Last: ${state.lastCommit}`,
-			"",
-			`Failed Check Runs: ${state.failedChecks}`,
-		],
+		[`Last: ${state.lastCommit}`, "", `Failed Check Runs: ${state.failedChecks}`],
 		70,
 	);
 	console.log(activityLines.join("\n"));

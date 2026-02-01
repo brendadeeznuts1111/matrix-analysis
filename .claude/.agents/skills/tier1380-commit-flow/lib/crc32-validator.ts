@@ -134,9 +134,7 @@ export function contentFingerprint(content: string): string {
 export async function batchValidate(
 	files: string[],
 	expectedCrcs?: Map<string, number>,
-): Promise<
-	Array<{ path: string; crc32: number; valid: boolean; latencyMs: number }>
-> {
+): Promise<Array<{ path: string; crc32: number; valid: boolean; latencyMs: number }>> {
 	const results = await Promise.all(
 		files.map(async (filepath) => {
 			const start = Bun.nanoseconds();
@@ -209,12 +207,8 @@ if (import.meta.main) {
 		console.log();
 		console.log("Commands:");
 		console.log("  checksum <file>              Generate CRC32 checksum");
-		console.log(
-			"  validate <file> <expected>   Validate against expected CRC32",
-		);
-		console.log(
-			"  benchmark <file>             Benchmark CRC32 vs other hashes",
-		);
+		console.log("  validate <file> <expected>   Validate against expected CRC32");
+		console.log("  benchmark <file>             Benchmark CRC32 vs other hashes");
 		console.log("  fingerprint <text>           Generate content fingerprint");
 		console.log();
 		process.exit(0);

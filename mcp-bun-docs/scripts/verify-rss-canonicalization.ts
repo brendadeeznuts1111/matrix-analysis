@@ -27,7 +27,9 @@ async function main(): Promise<void> {
 		const ct = res.headers.get("content-type") ?? "";
 		const ok = res.ok && (ct.includes("xml") || ct.includes("rss"));
 		console.log(url);
-		console.log(`  HTTP ${res.status}  Content-Type: ${ct?.slice(0, 50)}  ${ok ? "✓" : "✗"}`);
+		console.log(
+			`  HTTP ${res.status}  Content-Type: ${ct?.slice(0, 50)}  ${ok ? "✓" : "✗"}`,
+		);
 		if (res.ok) {
 			const text = await res.text();
 			const w = Bun.stringWidth(text.slice(0, 200), { countAnsiEscapeCodes: false });

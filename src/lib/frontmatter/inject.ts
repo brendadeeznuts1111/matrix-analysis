@@ -65,7 +65,8 @@ function esc(value: unknown): string {
 function generateMetaTags(data: Record<string, unknown>): string {
 	const tags: string[] = [];
 	if (data.title) tags.push(`<meta name="title" content="${esc(data.title)}">`);
-	if (data.description) tags.push(`<meta name="description" content="${esc(data.description)}">`);
+	if (data.description)
+		tags.push(`<meta name="description" content="${esc(data.description)}">`);
 	if (data.author) tags.push(`<meta name="author" content="${esc(data.author)}">`);
 
 	const keywords = data.tags ?? data.keywords;
@@ -81,9 +82,11 @@ function generateMetaTags(data: Record<string, unknown>): string {
 function generateOpenGraphTags(data: Record<string, unknown>, siteUrl?: string): string {
 	const tags: string[] = [];
 	if (data.title) tags.push(`<meta property="og:title" content="${esc(data.title)}">`);
-	if (data.description) tags.push(`<meta property="og:description" content="${esc(data.description)}">`);
+	if (data.description)
+		tags.push(`<meta property="og:description" content="${esc(data.description)}">`);
 	if (data.image) tags.push(`<meta property="og:image" content="${esc(data.image)}">`);
-	if (siteUrl && data.slug) tags.push(`<meta property="og:url" content="${esc(siteUrl)}/${esc(data.slug)}">`);
+	if (siteUrl && data.slug)
+		tags.push(`<meta property="og:url" content="${esc(siteUrl)}/${esc(data.slug)}">`);
 	tags.push(`<meta property="og:type" content="article">`);
 	return tags.join("\n");
 }

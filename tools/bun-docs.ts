@@ -18,33 +18,33 @@
  */
 
 import {
-	searchBunDocs,
-	getDocEntry,
-	getReferenceUrl,
-	getCrossReferences,
-	BUN_REFERENCE_KEYS,
-	BUN_REFERENCE_LINKS,
+	BUN_BLOG_RSS_URL,
+	BUN_BLOG_URL,
+	BUN_CHANGELOG_RSS,
 	BUN_DOC_ENTRIES,
+	BUN_DOCS_BASE,
+	BUN_DOCS_MIN_VERSION,
+	BUN_DOCS_VERSION,
+	BUN_FEEDBACK_UPGRADE_FIRST,
+	BUN_FEEDBACK_URL,
 	BUN_GLOBALS,
 	BUN_GLOBALS_API_URL,
-	BUN_FEEDBACK_URL,
-	BUN_FEEDBACK_UPGRADE_FIRST,
-	BUN_DOCS_VERSION,
-	BUN_DOCS_MIN_VERSION,
-	BUN_DOCS_BASE,
-	buildDocUrl,
-	BUN_SHOP_URL,
-	BUN_BLOG_URL,
-	BUN_BLOG_RSS_URL,
 	BUN_GUIDES_URL,
-	BUN_CHANGELOG_RSS,
-	BUN_REPO_URL,
-	BUN_REPO_RELEASES_URL,
-	BUN_PM_URL,
 	BUN_INSTALL_ADD_URL,
 	BUN_NODE_COMPAT_URL,
+	BUN_PM_URL,
+	BUN_REFERENCE_KEYS,
+	BUN_REFERENCE_LINKS,
 	BUN_REFERENCE_URL,
+	BUN_REPO_RELEASES_URL,
+	BUN_REPO_URL,
+	BUN_SHOP_URL,
+	buildDocUrl,
+	getCrossReferences,
+	getDocEntry,
 	getLatestBunReleaseTitleFromRss,
+	getReferenceUrl,
+	searchBunDocs,
 } from "../mcp-bun-docs/lib.ts";
 
 const args = process.argv.slice(2);
@@ -152,7 +152,9 @@ async function main(): Promise<void> {
 		case "globals": {
 			console.log("Bun top-level globals (name → path):");
 			for (const g of BUN_GLOBALS) {
-				console.log(`  ${g.name}\t${buildDocUrl(g.path)}\t${g.description.slice(0, 50)}…`);
+				console.log(
+					`  ${g.name}\t${buildDocUrl(g.path)}\t${g.description.slice(0, 50)}…`,
+				);
 			}
 			console.log(`\nBun.* API (full list): ${BUN_GLOBALS_API_URL}`);
 			break;

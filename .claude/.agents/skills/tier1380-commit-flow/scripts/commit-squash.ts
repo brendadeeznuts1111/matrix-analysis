@@ -84,9 +84,7 @@ async function suggestSquashMessage(commits: CommitInfo[]): Promise<string> {
 	const components = new Set<string>();
 
 	for (const commit of commits) {
-		const match = commit.message.match(
-			/^\[([A-Z]+)\](?:\[COMPONENT:([A-Z]+)\])?/,
-		);
+		const match = commit.message.match(/^\[([A-Z]+)\](?:\[COMPONENT:([A-Z]+)\])?/);
 		if (match) {
 			domains.add(match[1]);
 			if (match[2]) components.add(match[2]);
@@ -189,9 +187,4 @@ if (import.meta.main) {
 	}
 }
 
-export {
-	getCommits,
-	squashCommits,
-	validateSquashMessage,
-	suggestSquashMessage,
-};
+export { getCommits, squashCommits, validateSquashMessage, suggestSquashMessage };

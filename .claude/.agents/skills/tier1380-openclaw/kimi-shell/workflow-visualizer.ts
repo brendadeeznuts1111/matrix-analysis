@@ -31,10 +31,7 @@ function printArrow(label: string, color: string = CYAN): void {
 	console.log(`    ${color}▼${RESET} ${DIM}${label}${RESET}`);
 }
 
-function printBox(
-	label: string,
-	type: "mcp" | "acp" | "bun" | "service",
-): void {
+function printBox(label: string, type: "mcp" | "acp" | "bun" | "service"): void {
 	const colors = {
 		mcp: MAGENTA,
 		acp: YELLOW,
@@ -51,9 +48,7 @@ function printBox(
 					? "[BUN]"
 					: "[SRV]";
 	console.log(`    ${color}┌${"─".repeat(50)}┐${RESET}`);
-	console.log(
-		`    ${color}│${RESET} ${prefix} ${label.padEnd(43)}${color}│${RESET}`,
-	);
+	console.log(`    ${color}│${RESET} ${prefix} ${label.padEnd(43)}${color}│${RESET}`);
 	console.log(`    ${color}└${"─".repeat(50)}┘${RESET}`);
 }
 
@@ -77,9 +72,7 @@ function showMCPFlow(): void {
 
 	printArrow("Parse & validate");
 	console.log(`    ${MAGENTA}┌${"─".repeat(50)}┐${RESET}`);
-	console.log(
-		`    ${MAGENTA}│${RESET} ${WHITE}tools/call${RESET} ${MAGENTA}│${RESET}`,
-	);
+	console.log(`    ${MAGENTA}│${RESET} ${WHITE}tools/call${RESET} ${MAGENTA}│${RESET}`);
 	console.log(
 		`    ${MAGENTA}│${RESET} ${DIM}• Extract tool name${RESET} ${MAGENTA}│${RESET}`,
 	);
@@ -96,15 +89,9 @@ function showMCPFlow(): void {
 
 	printArrow("Load environment");
 	console.log(`    ${BLUE}┌${"─".repeat(50)}┐${RESET}`);
-	console.log(
-		`    ${BLUE}│${RESET} ${WHITE}Bun.secrets.get()${RESET} ${BLUE}│${RESET}`,
-	);
-	console.log(
-		`    ${BLUE}│${RESET} ${DIM}• OpenClaw token${RESET} ${BLUE}│${RESET}`,
-	);
-	console.log(
-		`    ${BLUE}│${RESET} ${DIM}• Profile env${RESET} ${BLUE}│${RESET}`,
-	);
+	console.log(`    ${BLUE}│${RESET} ${WHITE}Bun.secrets.get()${RESET} ${BLUE}│${RESET}`);
+	console.log(`    ${BLUE}│${RESET} ${DIM}• OpenClaw token${RESET} ${BLUE}│${RESET}`);
+	console.log(`    ${BLUE}│${RESET} ${DIM}• Profile env${RESET} ${BLUE}│${RESET}`);
 	console.log(`    ${BLUE}└${"─".repeat(50)}┘${RESET}`);
 
 	printArrow("Execute command");

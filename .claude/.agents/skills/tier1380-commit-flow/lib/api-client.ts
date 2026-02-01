@@ -33,9 +33,7 @@ const DEFAULT_CONFIG: ApiConfig = {
 	timeout: 5000,
 };
 
-async function loadWidthData(
-	config: Partial<ApiConfig> = {},
-): Promise<WidthData> {
+async function loadWidthData(config: Partial<ApiConfig> = {}): Promise<WidthData> {
 	const mergedConfig = { ...DEFAULT_CONFIG, ...config };
 
 	const controller = new AbortController();
@@ -87,9 +85,7 @@ async function submitWidthViolation(violation: {
 	return { success: true };
 }
 
-async function streamViolations(
-	callback: (violation: unknown) => void,
-): Promise<void> {
+async function streamViolations(callback: (violation: unknown) => void): Promise<void> {
 	const res = await fetch(`${DEFAULT_CONFIG.baseUrl}/mcp/alerts/stream`);
 
 	if (!res.body) {

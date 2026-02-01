@@ -27,9 +27,7 @@ async function getOpenClawToken(): Promise<string | null> {
 }
 
 // Load profile environment
-async function loadProfileEnv(
-	profile: string,
-): Promise<Record<string, string>> {
+async function loadProfileEnv(profile: string): Promise<Record<string, string>> {
 	const profilePath = `${process.env.HOME}/.matrix/profiles/${profile}.json`;
 	if (!existsSync(profilePath)) return {};
 
@@ -96,10 +94,7 @@ async function getOpenClawStatus(): Promise<object> {
 }
 
 // Profile terminal operations
-async function profileTerminal(
-	command: string,
-	args: string[] = [],
-): Promise<object> {
+async function profileTerminal(command: string, args: string[] = []): Promise<object> {
 	const cliPath = `${process.env.HOME}/.claude/core/terminal/cli.ts`;
 	const result = await $`bun run ${cliPath} ${command} ${args}`.nothrow();
 	return {
@@ -195,16 +190,14 @@ async function handleToolCall(name: string, args: any): Promise<object> {
 		}
 
 		case "cron_list": {
-			const result =
-				await $`crontab -l 2>/dev/null || echo "No crontab"`.nothrow();
+			const result = await $`crontab -l 2>/dev/null || echo "No crontab"`.nothrow();
 			return {
 				crontab: result.stdout.toString(),
 			};
 		}
 
 		case "r2_status": {
-			const result =
-				await $`bun tools/tier1380-registry.ts r2:status`.nothrow();
+			const result = await $`bun tools/tier1380-registry.ts r2:status`.nothrow();
 			return {
 				connected: result.exitCode === 0,
 				output: result.stdout.toString(),
@@ -242,8 +235,7 @@ async function handleToolCall(name: string, args: any): Promise<object> {
 		}
 
 		case "kimi_shell_status": {
-			const result =
-				await $`bun tools/tier1380-registry.ts shell:status`.nothrow();
+			const result = await $`bun tools/tier1380-registry.ts shell:status`.nothrow();
 			return {
 				output: result.stdout.toString(),
 			};
@@ -308,8 +300,7 @@ if (import.meta.main) {
 							tools: [
 								{
 									name: "shell_execute",
-									description:
-										"Execute shell command with profile/OpenClaw context",
+									description: "Execute shell command with profile/OpenClaw context",
 									inputSchema: {
 										type: "object",
 										properties: {
@@ -448,9 +439,7 @@ if (import.meta.main) {
 						jsonrpc: "2.0",
 						id: request.id,
 						result: {
-							content: [
-								{ type: "text", text: JSON.stringify(result, null, 2) },
-							],
+							content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
 						},
 					}),
 				);
@@ -462,10 +451,7 @@ if (import.meta.main) {
 }
 
 // Matrix Agent (Clawdbot) specific tools
-async function handleMatrixAgentTools(
-	name: string,
-	args: any,
-): Promise<object> {
+async function handleMatrixAgentTools(name: string, args: any): Promise<object> {
 	const agentPath = `${process.env.HOME}/.matrix/matrix-agent.ts`;
 
 	switch (name) {

@@ -62,10 +62,7 @@ async function loadSnapshot(path: string): Promise<SnapshotData> {
 	return { metadata, violations };
 }
 
-function compareSnapshots(
-	before: SnapshotData,
-	after: SnapshotData,
-): DiffResult {
+function compareSnapshots(before: SnapshotData, after: SnapshotData): DiffResult {
 	const beforeMap = new Map(before.violations.map((v) => [v.id, v]));
 	const afterMap = new Map(after.violations.map((v) => [v.id, v]));
 
@@ -110,8 +107,7 @@ function compareSnapshots(
 			totalAfter,
 			netChange: totalAfter - totalBefore,
 			complianceImprovement:
-				totalAfter < totalBefore ||
-				widthIncreased.length < widthDecreased.length,
+				totalAfter < totalBefore || widthIncreased.length < widthDecreased.length,
 		},
 	};
 }
@@ -126,9 +122,7 @@ function renderDiff(result: DiffResult): void {
 	console.log(`${trend} Summary:`);
 	console.log(`  Before: ${summary.totalBefore} violations`);
 	console.log(`  After:  ${summary.totalAfter} violations`);
-	console.log(
-		`  Change: ${summary.netChange > 0 ? "+" : ""}${summary.netChange}`,
-	);
+	console.log(`  Change: ${summary.netChange > 0 ? "+" : ""}${summary.netChange}`);
 	console.log(
 		`  Status: ${summary.complianceImprovement ? "Improving ✅" : "Needs attention ⚠️"}`,
 	);

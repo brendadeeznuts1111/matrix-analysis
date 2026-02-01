@@ -1,18 +1,27 @@
 #!/usr/bin/env bun
 import { parseArgs } from "util";
+import { fmt } from "../.claude/lib/cli.ts";
+import { EXIT_CODES } from "../.claude/lib/exit-codes.ts";
+import {
+	frontmatterBatch,
+	frontmatterDebug,
+	frontmatterRender,
+	frontmatterValidate,
+} from "./commands/frontmatter";
+import { linksCheck, linksQuick } from "./commands/linksCheck";
+import { openclawHealth, openclawInfo, openclawStatus } from "./commands/openclawStatus";
 import { profileCreate } from "./commands/profileCreate";
 import { profileDiff } from "./commands/profileDiff";
 import { profileExport } from "./commands/profileExport";
 import { profileList } from "./commands/profileList";
+import {
+	profilePathAdd,
+	profilePathList,
+	profilePathRemove,
+} from "./commands/profilePath";
 import { profileShow } from "./commands/profileShow";
 import { profileUse } from "./commands/profileUse";
-import { linksCheck, linksQuick } from "./commands/linksCheck";
-import { openclawStatus, openclawHealth, openclawInfo } from "./commands/openclawStatus";
-import { profilePathAdd, profilePathRemove, profilePathList } from "./commands/profilePath";
-import { frontmatterDebug, frontmatterBatch, frontmatterValidate, frontmatterRender } from "./commands/frontmatter";
 import { DEFAULT_HOST, OPENCLAW_GATEWAY_PORT } from "./constants";
-import { EXIT_CODES } from "../.claude/lib/exit-codes.ts";
-import { fmt } from "../.claude/lib/cli.ts";
 
 function printUsage(): void {
 	console.log(`
@@ -220,7 +229,9 @@ async function main(): Promise<void> {
 		case "profile:path:add":
 			if (positionals.length < 3) {
 				console.error(fmt.fail("Profile name, variable, and path are required"));
-				console.error("Usage: bun run matrix -- profile:path:add <name> <variable> <path> [--append]");
+				console.error(
+					"Usage: bun run matrix -- profile:path:add <name> <variable> <path> [--append]",
+				);
 				process.exit(EXIT_CODES.USAGE_ERROR);
 			}
 			await profilePathAdd(positionals[0], positionals[1], positionals[2], {
@@ -232,7 +243,9 @@ async function main(): Promise<void> {
 		case "profile:path:remove":
 			if (positionals.length < 3) {
 				console.error(fmt.fail("Profile name, variable, and path are required"));
-				console.error("Usage: bun run matrix -- profile:path:remove <name> <variable> <path>");
+				console.error(
+					"Usage: bun run matrix -- profile:path:remove <name> <variable> <path>",
+				);
 				process.exit(EXIT_CODES.USAGE_ERROR);
 			}
 			await profilePathRemove(positionals[0], positionals[1], positionals[2]);
@@ -241,7 +254,9 @@ async function main(): Promise<void> {
 		case "profile:path:list":
 			if (positionals.length < 1) {
 				console.error(fmt.fail("Profile name is required"));
-				console.error("Usage: bun run matrix -- profile:path:list <name> [--variable <var>] [--resolved]");
+				console.error(
+					"Usage: bun run matrix -- profile:path:list <name> [--variable <var>] [--resolved]",
+				);
 				process.exit(EXIT_CODES.USAGE_ERROR);
 			}
 			await profilePathList(positionals[0], {
@@ -267,13 +282,13 @@ async function main(): Promise<void> {
 			await linksCheck({
 				verbose: !!values["verbose"],
 				external: !!values["external"],
-				export: values["export"] as 'json' | 'csv' | undefined,
+				export: values["export"] as "json" | "csv" | undefined,
 				directory: values["directory"] as string | undefined,
 			});
 			break;
 
 		case "links:quick":
-			await linksQuick(values["directory"] as string || '.');
+			await linksQuick((values["directory"] as string) || ".");
 			break;
 
 		case "fm:debug":
@@ -288,7 +303,9 @@ async function main(): Promise<void> {
 		case "fm:batch":
 			if (positionals.length < 1) {
 				console.error(fmt.fail("Directory path is required"));
-				console.error("Usage: bun run matrix -- fm:batch <dir> [--index-json <path>] [--schema <path>]");
+				console.error(
+					"Usage: bun run matrix -- fm:batch <dir> [--index-json <path>] [--schema <path>]",
+				);
 				process.exit(EXIT_CODES.USAGE_ERROR);
 			}
 			await frontmatterBatch(positionals[0], {
@@ -310,7 +327,9 @@ async function main(): Promise<void> {
 		case "fm:render":
 			if (positionals.length < 1) {
 				console.error(fmt.fail("File path is required"));
-				console.error("Usage: bun run matrix -- fm:render <file> [--output <path>] [--site-url <url>] [--ansi]");
+				console.error(
+					"Usage: bun run matrix -- fm:render <file> [--output <path>] [--site-url <url>] [--ansi]",
+				);
 				process.exit(EXIT_CODES.USAGE_ERROR);
 			}
 			await frontmatterRender(positionals[0], {

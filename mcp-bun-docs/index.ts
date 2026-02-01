@@ -15,43 +15,43 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 import {
-	searchBunDocs,
-	getDocEntry,
-	buildDocUrl,
-	getCrossReferences,
-	suggestDocTerms,
-	BUN_GLOBALS,
-	BUN_GLOBALS_API_URL,
-	BUN_REFERENCE_LINKS,
-	BUN_REFERENCE_KEYS,
-	BUN_FEEDBACK_URL,
-	BUN_FEEDBACK_UPGRADE_FIRST,
-	BUN_TYPES_REPO_URL,
-	BUN_TYPES_README_URL,
-	BUN_TYPES_AUTHORING_URL,
-	BUN_TYPES_KEY_FILES,
+	BINARY_PERF_METRICS,
+	BUN_137_COMPLETE_MATRIX,
+	BUN_137_FEATURE_MATRIX,
+	BUN_BLOG_RSS_URL,
+	BUN_BLOG_URL,
+	BUN_CHANGELOG_RSS,
 	BUN_DOC_ENTRIES,
 	BUN_DOC_MAP,
 	BUN_DOCS_BASE,
-	BUN_DOCS_VERSION,
 	BUN_DOCS_MIN_VERSION,
-	BUN_CHANGELOG_RSS,
-	BUN_SHOP_URL,
-	BUN_BLOG_URL,
-	BUN_BLOG_RSS_URL,
+	BUN_DOCS_VERSION,
+	BUN_FEEDBACK_UPGRADE_FIRST,
+	BUN_FEEDBACK_URL,
+	BUN_GLOBALS,
+	BUN_GLOBALS_API_URL,
 	BUN_GUIDES_URL,
-	BUN_REPO_URL,
-	BUN_REPO_RELEASES_URL,
-	BUN_PM_URL,
 	BUN_INSTALL_ADD_URL,
 	BUN_NODE_COMPAT_URL,
+	BUN_PM_URL,
+	BUN_REFERENCE_KEYS,
+	BUN_REFERENCE_LINKS,
 	BUN_REFERENCE_URL,
+	BUN_REPO_RELEASES_URL,
+	BUN_REPO_URL,
+	BUN_SHOP_URL,
+	BUN_TYPES_AUTHORING_URL,
+	BUN_TYPES_KEY_FILES,
+	BUN_TYPES_README_URL,
+	BUN_TYPES_REPO_URL,
+	buildDocUrl,
+	getCrossReferences,
+	getDocEntry,
 	SEARCH_WEIGHTS,
-	BINARY_PERF_METRICS,
-	BUN_137_FEATURE_MATRIX,
-	BUN_137_COMPLETE_MATRIX,
-	TIER_1380_COMPLIANCE,
+	searchBunDocs,
+	suggestDocTerms,
 	TEST_CONFIG_MATRIX,
+	TIER_1380_COMPLIANCE,
 } from "./lib.ts";
 import { MATRIX_ACP_RESOURCES } from "./mcp-resources.ts";
 
@@ -110,7 +110,10 @@ const server = new McpServer(
 server.resource(
 	"bun-docs-matrix",
 	"bun://docs/matrix",
-	{ description: "Bun MCP matrix: consts, curated terms, weights. For ACP dashboard hydration." },
+	{
+		description:
+			"Bun MCP matrix: consts, curated terms, weights. For ACP dashboard hydration.",
+	},
 	async () => ({
 		contents: [
 			{
@@ -128,7 +131,13 @@ server.resource(
 	MATRIX_ACP_RESOURCES[0].uri,
 	{ description: MATRIX_ACP_RESOURCES[0].name },
 	async () => ({
-		contents: [{ uri: MATRIX_ACP_RESOURCES[0].uri, mimeType: "application/json", text: getMatrixResourceContent() }],
+		contents: [
+			{
+				uri: MATRIX_ACP_RESOURCES[0].uri,
+				mimeType: "application/json",
+				text: getMatrixResourceContent(),
+			},
+		],
 	}),
 );
 
@@ -138,11 +147,21 @@ server.resource(
 	MATRIX_ACP_RESOURCES[1].uri,
 	{ description: MATRIX_ACP_RESOURCES[1].name },
 	async () => ({
-		contents: [{
-			uri: MATRIX_ACP_RESOURCES[1].uri,
-			mimeType: "application/json",
-			text: JSON.stringify({ bunVersion: BUN_DOCS_VERSION, entries: BUN_137_COMPLETE_MATRIX, entryCount: BUN_137_COMPLETE_MATRIX.length }, null, 2),
-		}],
+		contents: [
+			{
+				uri: MATRIX_ACP_RESOURCES[1].uri,
+				mimeType: "application/json",
+				text: JSON.stringify(
+					{
+						bunVersion: BUN_DOCS_VERSION,
+						entries: BUN_137_COMPLETE_MATRIX,
+						entryCount: BUN_137_COMPLETE_MATRIX.length,
+					},
+					null,
+					2,
+				),
+			},
+		],
 	}),
 );
 
@@ -152,7 +171,13 @@ server.resource(
 	MATRIX_ACP_RESOURCES[2].uri,
 	{ description: MATRIX_ACP_RESOURCES[2].name },
 	async () => ({
-		contents: [{ uri: MATRIX_ACP_RESOURCES[2].uri, mimeType: "text/markdown", text: MATRIX_ACP_RESOURCES[2].content }],
+		contents: [
+			{
+				uri: MATRIX_ACP_RESOURCES[2].uri,
+				mimeType: "text/markdown",
+				text: MATRIX_ACP_RESOURCES[2].content,
+			},
+		],
 	}),
 );
 
@@ -163,7 +188,8 @@ server.resource(
 	{ description: "CPU & Heap Profiling (Markdown) — --cpu-prof-md, --heap-prof" },
 	async () => {
 		const res = MATRIX_ACP_RESOURCES.find((r) => r.uri === "bun://profiles/cpu-heap-md");
-		const text = res && "content" in res && typeof res.content === "string" ? res.content : "";
+		const text =
+			res && "content" in res && typeof res.content === "string" ? res.content : "";
 		return {
 			contents: [{ uri: "bun://profiles/cpu-heap-md", mimeType: "text/markdown", text }],
 		};
@@ -179,8 +205,14 @@ server.tool(
 		language: z.string().optional().describe("Language code (en, zh, es)"),
 		apiReferenceOnly: z.boolean().optional().describe("Only API reference docs"),
 		codeOnly: z.boolean().optional().describe("Only code snippets"),
-		prodSafe: z.boolean().optional().describe("Exclude experimental/deprecated (prod builds)"),
-		platform: z.enum(["darwin", "linux", "win32"]).optional().describe("Filter by platform (exclude incompatible APIs)"),
+		prodSafe: z
+			.boolean()
+			.optional()
+			.describe("Exclude experimental/deprecated (prod builds)"),
+		platform: z
+			.enum(["darwin", "linux", "win32"])
+			.optional()
+			.describe("Filter by platform (exclude incompatible APIs)"),
 	},
 	async (args) => {
 		const text = await searchBunDocs(args.query, {
@@ -205,7 +237,9 @@ server.tool(
 		const entry = getDocEntry(args.term);
 		if (!entry) {
 			return {
-				content: [{ type: "text" as const, text: `No curated entry for term: ${args.term}` }],
+				content: [
+					{ type: "text" as const, text: `No curated entry for term: ${args.term}` },
+				],
 				isError: true,
 			};
 		}
@@ -213,7 +247,12 @@ server.tool(
 			return { content: [{ type: "text" as const, text: buildDocUrl(entry.path) }] };
 		}
 		return {
-			content: [{ type: "text" as const, text: JSON.stringify({ ...entry, url: buildDocUrl(entry.path) }, null, 2) }],
+			content: [
+				{
+					type: "text" as const,
+					text: JSON.stringify({ ...entry, url: buildDocUrl(entry.path) }, null, 2),
+				},
+			],
 		};
 	},
 );
@@ -223,7 +262,9 @@ server.tool(
 	"List Bun top-level globals (Bun, $, fetch, Buffer, process, Bun.file, Bun.serve, …) with doc paths and the Bun.* API doc URL.",
 	{},
 	async () => {
-		const lines = BUN_GLOBALS.map((g) => `${g.name}\t${buildDocUrl(g.path)}\t${g.description}`);
+		const lines = BUN_GLOBALS.map(
+			(g) => `${g.name}\t${buildDocUrl(g.path)}\t${g.description}`,
+		);
 		const text = `Bun globals:\n${lines.map((l) => `  ${l}`).join("\n")}\n\nBun.* API: ${BUN_GLOBALS_API_URL}`;
 		return { content: [{ type: "text" as const, text }] };
 	},
@@ -236,7 +277,11 @@ server.tool(
 	async (args) => {
 		const xrefs = getCrossReferences(args.term);
 		const entry = getDocEntry(args.term);
-		const out: { term: string; url?: string; crossReferences: { term: string; url: string }[] } = {
+		const out: {
+			term: string;
+			url?: string;
+			crossReferences: { term: string; url: string }[];
+		} = {
 			term: args.term,
 			crossReferences: xrefs.map((x) => ({ term: x.term, url: x.url })),
 		};
@@ -250,8 +295,12 @@ server.tool(
 	"List all deep-dive reference link keys and URLs (fileAPI, httpServer, shell, test, bunTest, bunTypes, bunApis, webApis, nodeApi, etc.).",
 	{},
 	async () => {
-		const links = Object.fromEntries(BUN_REFERENCE_KEYS.map((k) => [k, BUN_REFERENCE_LINKS[k]]));
-		return { content: [{ type: "text" as const, text: JSON.stringify(links, null, 2) }] };
+		const links = Object.fromEntries(
+			BUN_REFERENCE_KEYS.map((k) => [k, BUN_REFERENCE_LINKS[k]]),
+		);
+		return {
+			content: [{ type: "text" as const, text: JSON.stringify(links, null, 2) }],
+		};
 	},
 );
 
@@ -293,7 +342,9 @@ server.tool(
 	},
 	async (args) => {
 		const results = suggestDocTerms(args.query, args.limit ?? 10);
-		return { content: [{ type: "text" as const, text: JSON.stringify(results, null, 2) }] };
+		return {
+			content: [{ type: "text" as const, text: JSON.stringify(results, null, 2) }],
+		};
 	},
 );
 
@@ -301,13 +352,22 @@ server.tool(
 server.resource(
 	"bun-docs-reference-links",
 	"bun://docs/reference-links",
-	{ description: "All Bun reference link keys and URLs (fileAPI, bunTest, bunTypes, bunApis, etc.)" },
+	{
+		description:
+			"All Bun reference link keys and URLs (fileAPI, bunTest, bunTypes, bunApis, etc.)",
+	},
 	async () => ({
-		contents: [{
-			uri: "bun://docs/reference-links",
-			mimeType: "application/json",
-			text: JSON.stringify(Object.fromEntries(BUN_REFERENCE_KEYS.map((k) => [k, BUN_REFERENCE_LINKS[k]])), null, 2),
-		}],
+		contents: [
+			{
+				uri: "bun://docs/reference-links",
+				mimeType: "application/json",
+				text: JSON.stringify(
+					Object.fromEntries(BUN_REFERENCE_KEYS.map((k) => [k, BUN_REFERENCE_LINKS[k]])),
+					null,
+					2,
+				),
+			},
+		],
 	}),
 );
 
@@ -316,11 +376,13 @@ server.resource(
 	"bun://docs/feedback",
 	{ description: "Bun feedback/upgrade-first guidance and docs URL" },
 	async () => ({
-		contents: [{
-			uri: "bun://docs/feedback",
-			mimeType: "text/plain",
-			text: `${BUN_FEEDBACK_UPGRADE_FIRST}\n\nDocs: ${BUN_FEEDBACK_URL}`,
-		}],
+		contents: [
+			{
+				uri: "bun://docs/feedback",
+				mimeType: "text/plain",
+				text: `${BUN_FEEDBACK_UPGRADE_FIRST}\n\nDocs: ${BUN_FEEDBACK_URL}`,
+			},
+		],
 	}),
 );
 
@@ -330,13 +392,19 @@ server.resource(
 	{ description: "oven-sh/bun-types: repo, README, authoring, key .d.ts file URLs" },
 	async () => {
 		const base = "https://github.com/oven-sh/bun/blob/main/packages/bun-types";
-		const keyFileUrls = Object.fromEntries(BUN_TYPES_KEY_FILES.map((f) => [f, `${base}/${f}`]));
-		const text = JSON.stringify({
-			repo: BUN_TYPES_REPO_URL,
-			readme: BUN_TYPES_README_URL,
-			authoring: BUN_TYPES_AUTHORING_URL,
-			keyFiles: keyFileUrls,
-		}, null, 2);
+		const keyFileUrls = Object.fromEntries(
+			BUN_TYPES_KEY_FILES.map((f) => [f, `${base}/${f}`]),
+		);
+		const text = JSON.stringify(
+			{
+				repo: BUN_TYPES_REPO_URL,
+				readme: BUN_TYPES_README_URL,
+				authoring: BUN_TYPES_AUTHORING_URL,
+				keyFiles: keyFileUrls,
+			},
+			null,
+			2,
+		);
 		return {
 			contents: [{ uri: "bun://docs/bun-types", mimeType: "application/json", text }],
 		};
@@ -366,22 +434,31 @@ server.tool(
 server.resource(
 	"bun-docs-links",
 	"bun://docs/links",
-	{ description: "Bun shop, blog, guides, RSS; repo; dependencies; Node.js compatibility; reference (modules)" },
+	{
+		description:
+			"Bun shop, blog, guides, RSS; repo; dependencies; Node.js compatibility; reference (modules)",
+	},
 	async () => ({
-		contents: [{
-			uri: "bun://docs/links",
-			mimeType: "application/json",
-			text: JSON.stringify({
-				shop: BUN_SHOP_URL,
-				blog: BUN_BLOG_URL,
-				guides: BUN_GUIDES_URL,
-				rss: { changelog: BUN_CHANGELOG_RSS, blog: BUN_BLOG_RSS_URL },
-				repo: { main: BUN_REPO_URL, releases: BUN_REPO_RELEASES_URL },
-				dependencies: { pm: BUN_PM_URL, installAdd: BUN_INSTALL_ADD_URL },
-				compatibility: { nodeCompat: BUN_NODE_COMPAT_URL },
-				reference: BUN_REFERENCE_URL,
-			}, null, 2),
-		}],
+		contents: [
+			{
+				uri: "bun://docs/links",
+				mimeType: "application/json",
+				text: JSON.stringify(
+					{
+						shop: BUN_SHOP_URL,
+						blog: BUN_BLOG_URL,
+						guides: BUN_GUIDES_URL,
+						rss: { changelog: BUN_CHANGELOG_RSS, blog: BUN_BLOG_RSS_URL },
+						repo: { main: BUN_REPO_URL, releases: BUN_REPO_RELEASES_URL },
+						dependencies: { pm: BUN_PM_URL, installAdd: BUN_INSTALL_ADD_URL },
+						compatibility: { nodeCompat: BUN_NODE_COMPAT_URL },
+						reference: BUN_REFERENCE_URL,
+					},
+					null,
+					2,
+				),
+			},
+		],
 	}),
 );
 
@@ -389,7 +466,10 @@ server.resource(
 server.resource(
 	"bun-analyze-plan-realtime",
 	"bun://analyze/plan/realtime",
-	{ description: "Analyze CLI plan status — stages, done/pending counts, last updated. Live updates via analyze --bench." },
+	{
+		description:
+			"Analyze CLI plan status — stages, done/pending counts, last updated. Live updates via analyze --bench.",
+	},
 	async () => {
 		const path = `${process.cwd()}/.matrix-integration/mcp/analyze_plan_realtime.json`;
 		let text: string;
@@ -398,14 +478,25 @@ server.resource(
 			if (await f.exists()) text = await f.text();
 			else throw new Error("not found");
 		} catch {
-			text = JSON.stringify({
-				uri: "bun://analyze/plan/realtime",
-				data: { plan: "analyze_cli_missing_features", stages: {}, lastUpdated: Date.now(), message: "No status yet; run: bun tools/analyze.ts --bench" },
-				timestamp: Date.now(),
-			}, null, 2);
+			text = JSON.stringify(
+				{
+					uri: "bun://analyze/plan/realtime",
+					data: {
+						plan: "analyze_cli_missing_features",
+						stages: {},
+						lastUpdated: Date.now(),
+						message: "No status yet; run: bun tools/analyze.ts --bench",
+					},
+					timestamp: Date.now(),
+				},
+				null,
+				2,
+			);
 		}
 		return {
-			contents: [{ uri: "bun://analyze/plan/realtime", mimeType: "application/json", text }],
+			contents: [
+				{ uri: "bun://analyze/plan/realtime", mimeType: "application/json", text },
+			],
 		};
 	},
 );

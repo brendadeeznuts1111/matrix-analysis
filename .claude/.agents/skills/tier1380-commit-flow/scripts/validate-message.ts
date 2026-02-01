@@ -66,18 +66,14 @@ function validateLegacyFormat(message: string): ValidationResult {
 	const match = message.match(pattern);
 
 	if (!match) {
-		errors.push(
-			"Legacy format: [DOMAIN][COMPONENT:NAME][TIER:XXXX] Description",
-		);
+		errors.push("Legacy format: [DOMAIN][COMPONENT:NAME][TIER:XXXX] Description");
 		return { valid: false, format: "invalid", errors, warnings };
 	}
 
 	const [, domain, component, tier, description] = match;
 
 	if (!VALID_DOMAINS.includes(domain as any)) {
-		errors.push(
-			`Invalid domain: ${domain}. Valid: ${VALID_DOMAINS.join(", ")}`,
-		);
+		errors.push(`Invalid domain: ${domain}. Valid: ${VALID_DOMAINS.join(", ")}`);
 	}
 
 	if (!VALID_COMPONENTS.includes(component as any)) {
@@ -92,9 +88,7 @@ function validateLegacyFormat(message: string): ValidationResult {
 	}
 
 	if (description.length > 72) {
-		warnings.push(
-			`Description is ${description.length} chars (recommended: <= 72)`,
-		);
+		warnings.push(`Description is ${description.length} chars (recommended: <= 72)`);
 	}
 
 	if (description.endsWith(".")) {
@@ -141,9 +135,7 @@ if (import.meta.main) {
 		console.log("╚════════════════════════════════════════════════════════╝");
 		console.log();
 		console.log("Usage:");
-		console.log(
-			'  bun validate-message.ts "[RUNTIME][CHROME][TIER:1380] Fix entropy"',
-		);
+		console.log('  bun validate-message.ts "[RUNTIME][CHROME][TIER:1380] Fix entropy"');
 		console.log(
 			'  bun validate-message.ts "[MARKET][MICROSTRUCTURE][FEAT][META:{TIER:1380}][Analyzer][detect][T11][#REF:52][BUN-NATIVE] Hidden Steam T11_v2"',
 		);
@@ -162,9 +154,7 @@ if (import.meta.main) {
 	console.log("║     Tier-1380 OMEGA Commit Message Validation          ║");
 	console.log("╚════════════════════════════════════════════════════════╝");
 	console.log();
-	console.log(
-		`Message: ${message.slice(0, 80)}${message.length > 80 ? "..." : ""}`,
-	);
+	console.log(`Message: ${message.slice(0, 80)}${message.length > 80 ? "..." : ""}`);
 	console.log(`Format:  ${result.format.toUpperCase()}`);
 	console.log();
 

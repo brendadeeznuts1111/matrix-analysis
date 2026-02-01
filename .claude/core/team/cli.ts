@@ -20,12 +20,7 @@ import {
 	promoteMember,
 	removeMember,
 } from "./TeamRegistry.ts";
-import {
-	enabledFlags,
-	ROLE_ORDER,
-	ROLE_TIER_MAP,
-	type TeamRole,
-} from "./types.ts";
+import { enabledFlags, ROLE_ORDER, ROLE_TIER_MAP, type TeamRole } from "./types.ts";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // ANSI helpers (matches tier1380.ts style)
@@ -60,9 +55,7 @@ function printErr(msg: string): void {
 }
 
 function printKV(key: string, value: string): void {
-	console.log(
-		`  ${C.dim}${key.padEnd(20)}${C.reset} ${C.cyan}${value}${C.reset}`,
-	);
+	console.log(`  ${C.dim}${key.padEnd(20)}${C.reset} ${C.cyan}${value}${C.reset}`);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -111,9 +104,7 @@ export async function cmdTeamPromote(profileName: string): Promise<void> {
 
 	const result = await promoteMember(profileName);
 	if (!result) {
-		printErr(
-			`Cannot promote: ${profileName} is already ${C.bold}lead${C.reset}`,
-		);
+		printErr(`Cannot promote: ${profileName} is already ${C.bold}lead${C.reset}`);
 		process.exit(1);
 	}
 
@@ -133,9 +124,7 @@ export async function cmdTeamDemote(profileName: string): Promise<void> {
 
 	const result = await demoteMember(profileName);
 	if (!result) {
-		printErr(
-			`Cannot demote: ${profileName} is already ${C.bold}contributor${C.reset}`,
-		);
+		printErr(`Cannot demote: ${profileName} is already ${C.bold}contributor${C.reset}`);
 		process.exit(1);
 	}
 
@@ -269,9 +258,7 @@ export async function cmdTerminalLaunch(profileName: string): Promise<void> {
 	});
 
 	console.log();
-	printOk(
-		`Session complete (${result.duration}ms, ${result.bytesStreamed} bytes)`,
-	);
+	printOk(`Session complete (${result.duration}ms, ${result.bytesStreamed} bytes)`);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

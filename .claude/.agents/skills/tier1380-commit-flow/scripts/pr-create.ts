@@ -167,8 +167,7 @@ if (import.meta.main) {
 	}
 
 	const draft = args.includes("--draft") || args.includes("-d");
-	const base =
-		args.find((a) => a.startsWith("--base="))?.split("=")[1] || "main";
+	const base = args.find((a) => a.startsWith("--base="))?.split("=")[1] || "main";
 
 	// Display PR body preview
 	console.log("PR Body Preview:");

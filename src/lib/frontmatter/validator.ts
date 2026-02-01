@@ -39,7 +39,7 @@ export function validateFrontmatter(
 	const errors: ValidationError[] = [];
 
 	for (const [field, rule] of Object.entries(schema)) {
-		const fieldRule = typeof rule === "string" ? { type: rule } as FieldRule : rule;
+		const fieldRule = typeof rule === "string" ? ({ type: rule } as FieldRule) : rule;
 		const value = data[field];
 
 		// Required check
@@ -126,7 +126,11 @@ export function validateFrontmatter(
 		}
 
 		// Pattern for strings
-		if (fieldRule.pattern && typeof value === "string" && !fieldRule.pattern.test(value)) {
+		if (
+			fieldRule.pattern &&
+			typeof value === "string" &&
+			!fieldRule.pattern.test(value)
+		) {
 			errors.push({
 				field,
 				message: `Does not match pattern: ${fieldRule.pattern.source}`,

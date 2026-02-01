@@ -68,9 +68,9 @@ describe("loadWidthData", () => {
 		const originalFetch = globalThis.fetch;
 		globalThis.fetch = mock(() => Promise.reject(new Error("Network error")));
 
-		await expect(
-			loadWidthData({ retryCount: 2, retryDelay: 10 }),
-		).rejects.toThrow("Failed to load width data after 2 attempts");
+		await expect(loadWidthData({ retryCount: 2, retryDelay: 10 })).rejects.toThrow(
+			"Failed to load width data after 2 attempts",
+		);
 
 		globalThis.fetch = originalFetch;
 	});

@@ -69,9 +69,7 @@ async function installGitHooks(): Promise<void> {
 async function createShellAlias(): Promise<void> {
 	const shell = process.env.SHELL || "/bin/bash";
 	const isZsh = shell.includes("zsh");
-	const rcFile = isZsh
-		? `${process.env.HOME}/.zshrc`
-		: `${process.env.HOME}/.bashrc`;
+	const rcFile = isZsh ? `${process.env.HOME}/.zshrc` : `${process.env.HOME}/.bashrc`;
 
 	const aliasLine =
 		'\n# Tier-1380 OMEGA Commit Flow\nalias tier1380="bun ~/.kimi/skills/tier1380-commit-flow/cli.ts"\n';

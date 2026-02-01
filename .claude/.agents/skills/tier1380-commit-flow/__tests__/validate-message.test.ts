@@ -20,9 +20,7 @@ describe("Legacy format validation", () => {
 	});
 
 	it("should reject missing domain", () => {
-		const result = validateCommitMessage(
-			"[COMPONENT:CHROME][TIER:1380] Fix entropy",
-		);
+		const result = validateCommitMessage("[COMPONENT:CHROME][TIER:1380] Fix entropy");
 		expect(result.valid).toBe(false);
 		expect(result.format).toBe("invalid");
 	});

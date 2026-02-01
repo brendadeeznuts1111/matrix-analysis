@@ -109,9 +109,7 @@ async function runHealthCheck(): Promise<HealthResult[]> {
 	try {
 		const db = new Database(dbPath);
 		const tableCheck = db
-			.query(
-				"SELECT name FROM sqlite_master WHERE type='table' AND name='commits'",
-			)
+			.query("SELECT name FROM sqlite_master WHERE type='table' AND name='commits'")
 			.get();
 		db.close();
 		results.push({

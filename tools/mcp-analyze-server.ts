@@ -11,7 +11,14 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { z } from "zod";
 
 const ANALYZE_SCRIPT = import.meta.dir + "/analyze.ts";
-const READ_ONLY_COMMANDS = ["scan", "types", "deps", "complexity", "classes", "strength"] as const;
+const READ_ONLY_COMMANDS = [
+	"scan",
+	"types",
+	"deps",
+	"complexity",
+	"classes",
+	"strength",
+] as const;
 
 async function runAnalyze(
 	command: string,
@@ -40,9 +47,15 @@ const server = new McpServer(
 	{ capabilities: { tools: {}, resources: {} } },
 );
 
-const rootsSchema = z.string().optional().describe("Comma-separated roots (e.g. src,tools)");
+const rootsSchema = z
+	.string()
+	.optional()
+	.describe("Comma-separated roots (e.g. src,tools)");
 const limitSchema = z.number().optional().describe("Max rows (default 25)");
-const formatSchema = z.enum(["json", "table"]).optional().describe("Output format (default json)");
+const formatSchema = z
+	.enum(["json", "table"])
+	.optional()
+	.describe("Output format (default json)");
 
 for (const cmd of READ_ONLY_COMMANDS) {
 	const toolName = "analyze_" + cmd;
@@ -66,7 +79,9 @@ server.tool(
 	"analyze",
 	"Run any read-only analyze subcommand (scan, types, deps, complexity, classes, strength). Single tool to reduce tool count.",
 	{
-		command: z.enum(READ_ONLY_COMMANDS as unknown as [string, ...string[]]).describe("Subcommand to run"),
+		command: z
+			.enum(READ_ONLY_COMMANDS as unknown as [string, ...string[]])
+			.describe("Subcommand to run"),
 		roots: rootsSchema,
 		limit: limitSchema,
 		format: formatSchema,
@@ -85,13 +100,25 @@ server.tool(
 server.resource(
 	"analyze-results",
 	"analyze://results",
-	{ description: "Analyze results placeholder. Call analyze_scan, analyze_types, etc. for actual data." },
+	{
+		description:
+			"Analyze results placeholder. Call analyze_scan, analyze_types, etc. for actual data.",
+	},
 	async () => ({
-		contents: [{
-			uri: "analyze://results",
-			mimeType: "application/json",
-			text: JSON.stringify({ message: "Use analyze or analyze_<command> tools for results.", commands: [...READ_ONLY_COMMANDS] }, null, 2),
-		}],
+		contents: [
+			{
+				uri: "analyze://results",
+				mimeType: "application/json",
+				text: JSON.stringify(
+					{
+						message: "Use analyze or analyze_<command> tools for results.",
+						commands: [...READ_ONLY_COMMANDS],
+					},
+					null,
+					2,
+				),
+			},
+		],
 	}),
 );
 

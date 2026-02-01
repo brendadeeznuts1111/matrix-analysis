@@ -328,9 +328,4 @@ if (import.meta.main) {
 	}
 }
 
-export {
-	runPreCommitChecks,
-	DEFAULT_CONFIG,
-	type PreCommitConfig,
-	type CheckResult,
-};
+export { runPreCommitChecks, DEFAULT_CONFIG, type PreCommitConfig, type CheckResult };

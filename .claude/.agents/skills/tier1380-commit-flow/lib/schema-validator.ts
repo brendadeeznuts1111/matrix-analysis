@@ -137,9 +137,7 @@ function isSchemaField(value: unknown): value is SchemaField {
 	return typeof value === "object" && value !== null && "type" in value;
 }
 
-function isFieldRequired(
-	fieldSchema: SchemaType | SchemaField | Schema,
-): boolean {
+function isFieldRequired(fieldSchema: SchemaType | SchemaField | Schema): boolean {
 	if (typeof fieldSchema === "string") {
 		return true; // Simple type shorthand implies required
 	}

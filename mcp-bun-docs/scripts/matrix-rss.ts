@@ -1,11 +1,11 @@
 #!/usr/bin/env bun
+import { existsSync, mkdirSync } from "node:fs";
 /**
  * Tier-1380 RSS hydration — v1.3.7 changelog feed
  *
  * Usage: bun run matrix:rss --source=bun-sh-releases --output=./feeds/bun-v1.3.7.xml
  */
 import { BUN_CHANGELOG_RSS, BUN_DOCS_VERSION } from "../lib.ts";
-import { existsSync, mkdirSync } from "node:fs";
 
 async function fetchBunRss(source: string): Promise<string> {
 	if (source === "bun-sh-releases" || source === "bun.com") {
@@ -31,11 +31,17 @@ function filterForVersion(xml: string, version: string): string {
 
 async function main(): Promise<void> {
 	const args = process.argv.slice(2);
-	const source = args.find((a) => a.startsWith("--source="))?.split("=")[1] ?? "bun-sh-releases";
-	const output = args.find((a) => a.startsWith("--output="))?.split("=")[1] ?? `./feeds/bun-v${BUN_DOCS_VERSION}.xml`;
-	const version = args.find((a) => a.startsWith("--version="))?.split("=")[1] ?? BUN_DOCS_VERSION;
+	const source =
+		args.find((a) => a.startsWith("--source="))?.split("=")[1] ?? "bun-sh-releases";
+	const output =
+		args.find((a) => a.startsWith("--output="))?.split("=")[1] ??
+		`./feeds/bun-v${BUN_DOCS_VERSION}.xml`;
+	const version =
+		args.find((a) => a.startsWith("--version="))?.split("=")[1] ?? BUN_DOCS_VERSION;
 
-	console.log(`\n  🔷 Tier-1380 RSS Hydration\n  Source: ${source}\n  Output: ${output}\n`);
+	console.log(
+		`\n  🔷 Tier-1380 RSS Hydration\n  Source: ${source}\n  Output: ${output}\n`,
+	);
 
 	const xml = await fetchBunRss(source).catch((e) => {
 		console.error("  ✗ Fetch failed:", e.message);

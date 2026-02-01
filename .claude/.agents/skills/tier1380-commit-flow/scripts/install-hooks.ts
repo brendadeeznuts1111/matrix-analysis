@@ -214,21 +214,13 @@ if (import.meta.main) {
 			await installHooks(config);
 
 			console.log("Configuration:");
-			console.log(
-				`  Pre-commit:         ${config.enablePreCommit ? "✅" : "❌"}`,
-			);
+			console.log(`  Pre-commit:         ${config.enablePreCommit ? "✅" : "❌"}`);
 			console.log(
 				`  Prepare-commit-msg: ${config.enablePrepareCommitMsg ? "✅" : "❌"}`,
 			);
-			console.log(
-				`  Commit-msg:         ${config.enableCommitMsg ? "✅" : "❌"}`,
-			);
-			console.log(
-				`  Post-commit:        ${config.enablePostCommit ? "✅" : "❌"}`,
-			);
-			console.log(
-				`  Pre-push:           ${config.enablePrePush ? "✅" : "❌"}`,
-			);
+			console.log(`  Commit-msg:         ${config.enableCommitMsg ? "✅" : "❌"}`);
+			console.log(`  Post-commit:        ${config.enablePostCommit ? "✅" : "❌"}`);
+			console.log(`  Pre-push:           ${config.enablePrePush ? "✅" : "❌"}`);
 			console.log(`  Auto-fix:           ${config.autoFix ? "✅" : "❌"}`);
 			console.log();
 			console.log("Hooks installed successfully!");

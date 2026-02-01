@@ -29,8 +29,12 @@ const msFalse = performance.now() - t1;
 
 console.log(`Run ${N.toLocaleString()} times with a warmup:\n`);
 console.log(`[${msTrue.toFixed(2)}ms] ${size.toLocaleString()} bytes .includes true`);
-console.log(`[${(msFalse / 1000).toFixed(2)}s] ${size.toLocaleString()} bytes .includes false`);
+console.log(
+	`[${(msFalse / 1000).toFixed(2)}s] ${size.toLocaleString()} bytes .includes false`,
+);
 
 // 1M buffer demo (changelog snippet)
 const buf1m = Buffer.from("a".repeat(1_000_000) + "needle");
-console.log(`\n1M buffer: indexOf=${buf1m.indexOf("needle")} includes=${buf1m.includes("needle")}`);
+console.log(
+	`\n1M buffer: indexOf=${buf1m.indexOf("needle")} includes=${buf1m.includes("needle")}`,
+);

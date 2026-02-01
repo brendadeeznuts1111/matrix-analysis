@@ -8,7 +8,7 @@
  * @see https://github.com/oven-sh/bun/pull/{PR_NUMBER} (close_range syscall)
  */
 
-import { spawn } from "bun";
+import type { spawn } from "bun";
 
 // ANSI colors
 const c = {
@@ -121,10 +121,7 @@ function benchmarkSpawnSync(iterations = 100): SpawnStats {
 }
 
 /** Safe spawn wrapper with validation */
-export function spawnSafe(
-	command: string[],
-	options: Parameters<typeof spawn>[1] = {},
-) {
+export function spawnSafe(command: string[], options: Parameters<typeof spawn>[1] = {}) {
 	// Validate command
 	if (!command || command.length === 0) {
 		throw new Error("Empty command");
@@ -238,7 +235,9 @@ function printSystemInfo(info: SystemInfo): void {
 
 /** Print benchmark results */
 function printBenchmark(stats: SpawnStats, info: SystemInfo): void {
-	console.log(`\n${c.bold}⏱️  Spawn Performance (${stats.samples} iterations)${c.reset}\n`);
+	console.log(
+		`\n${c.bold}⏱️  Spawn Performance (${stats.samples} iterations)${c.reset}\n`,
+	);
 
 	const getStatus = (mean: number, hasOptimization: boolean): string => {
 		if (hasOptimization) {
@@ -269,9 +268,7 @@ function printBenchmark(stats: SpawnStats, info: SystemInfo): void {
 	// Recommendations
 	if (!info.hasCloseRange && info.platform === "linux") {
 		console.log(`${c.yellow}💡 Recommendations:${c.reset}`);
-		console.log(
-			`   • Upgrade to glibc ≥ 2.34 and kernel ≥ 5.9 for 20-30x speedup`,
-		);
+		console.log(`   • Upgrade to glibc ≥ 2.34 and kernel ≥ 5.9 for 20-30x speedup`);
 		console.log(`   • Current performance is normal for older systems\n`);
 	} else if (info.hasCloseRange && stats.mean > 2) {
 		console.log(`${c.yellow}⚠️  Warning:${c.reset}`);
@@ -346,28 +343,20 @@ ${c.bold}EXAMPLES:${c.reset}
 					Platform: "Linux (close_range)",
 					Expected: "<1ms",
 					Your: formatMs(stats.mean),
-					Status:
-						info.hasCloseRange && stats.mean < 1
-							? `${c.green}✓${c.reset}`
-							: "",
+					Status: info.hasCloseRange && stats.mean < 1 ? `${c.green}✓${c.reset}` : "",
 				},
 				{
 					Platform: "Linux (fallback)",
 					Expected: "5-15ms",
 					Your: formatMs(stats.mean),
-					Status:
-						!info.hasCloseRange && stats.mean < 15
-							? `${c.green}✓${c.reset}`
-							: "",
+					Status: !info.hasCloseRange && stats.mean < 15 ? `${c.green}✓${c.reset}` : "",
 				},
 				{
 					Platform: "macOS ARM64",
 					Expected: "5-10ms",
 					Your: formatMs(stats.mean),
 					Status:
-						info.platform === "darwin" && stats.mean < 10
-							? `${c.green}✓${c.reset}`
-							: "",
+						info.platform === "darwin" && stats.mean < 10 ? `${c.green}✓${c.reset}` : "",
 				},
 			]),
 		);

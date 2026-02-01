@@ -3,8 +3,8 @@
  * RSS parser tests — parseRSS (Bun-safe, no DOMParser).
  */
 
-import { describe, expect, it, spyOn, beforeEach, afterEach } from "bun:test";
-import { parseRSS, safeRSSPreview, type RSSFeed, type RSSItem } from "./rss.ts";
+import { afterEach, beforeEach, describe, expect, it, spyOn } from "bun:test";
+import { parseRSS, type RSSFeed, type RSSItem, safeRSSPreview } from "./rss.ts";
 
 let fetchSpy: ReturnType<typeof spyOn> | null = null;
 
@@ -31,7 +31,9 @@ const SAMPLE_RSS = `<?xml version="1.0"?>
 
 describe("parseRSS", () => {
 	beforeEach(() => {
-		fetchSpy = spyOn(globalThis, "fetch").mockResolvedValue(new Response(SAMPLE_RSS)) as ReturnType<typeof spyOn>;
+		fetchSpy = spyOn(globalThis, "fetch").mockResolvedValue(
+			new Response(SAMPLE_RSS),
+		) as ReturnType<typeof spyOn>;
 	});
 	afterEach(() => {
 		if (fetchSpy) fetchSpy.mockRestore();
@@ -63,20 +65,30 @@ describe("parseRSS", () => {
 
 	it("throws on non-ok response", async () => {
 		fetchSpy!.mockResolvedValueOnce(new Response("", { status: 404 }));
-		await expect(parseRSS("https://example.com/feed.xml")).rejects.toThrow("RSS fetch failed: 404");
+		await expect(parseRSS("https://example.com/feed.xml")).rejects.toThrow(
+			"RSS fetch failed: 404",
+		);
 	});
 
 	it("calls onAudit with audit metadata", async () => {
 		let captured: { fetchTimeMs: number; sizeBytes: number } | null = null;
-		await parseRSS("https://example.com/feed.xml", { onAudit: (a) => { captured = a; } });
+		await parseRSS("https://example.com/feed.xml", {
+			onAudit: (a) => {
+				captured = a;
+			},
+		});
 		expect(captured).not.toBeNull();
 		expect(captured!.fetchTimeMs).toBeGreaterThanOrEqual(0);
 		expect(captured!.sizeBytes).toBeGreaterThan(0);
 	});
 
 	it("throws when response contains parsererror", async () => {
-		fetchSpy!.mockResolvedValueOnce(new Response("<xml><parsererror>bad</parsererror></xml>"));
-		await expect(parseRSS("https://example.com/feed.xml")).rejects.toThrow("parsererror");
+		fetchSpy!.mockResolvedValueOnce(
+			new Response("<xml><parsererror>bad</parsererror></xml>"),
+		);
+		await expect(parseRSS("https://example.com/feed.xml")).rejects.toThrow(
+			"parsererror",
+		);
 	});
 });
 
@@ -94,7 +106,9 @@ describe("safeRSSPreview", () => {
 		expect(out).toEndWith("…");
 		expect(out).not.toContain(long);
 		const inner = out.slice(0, -1);
-		expect(Bun.stringWidth(inner, { countAnsiEscapeCodes: false })).toBeLessThanOrEqual(86);
+		expect(Bun.stringWidth(inner, { countAnsiEscapeCodes: false })).toBeLessThanOrEqual(
+			86,
+		);
 	});
 
 	it("respects word boundaries when wordAware is true", () => {
@@ -102,7 +116,9 @@ describe("safeRSSPreview", () => {
 		const out = safeRSSPreview(long, { maxCols: 20, reserve: 3, wordAware: true });
 		expect(out).toEndWith("…");
 		const inner = out.slice(0, -1);
-		expect(Bun.stringWidth(inner, { countAnsiEscapeCodes: false })).toBeLessThanOrEqual(17);
+		expect(Bun.stringWidth(inner, { countAnsiEscapeCodes: false })).toBeLessThanOrEqual(
+			17,
+		);
 		expect(inner.trimEnd()).toBe(inner); // no trailing space from word break
 	});
 
@@ -124,7 +140,11 @@ describe("safeRSSPreview", () => {
 
 	it("does not call onViolation when within limit", () => {
 		let called = false;
-		safeRSSPreview("short", { onViolation: () => { called = true; } });
+		safeRSSPreview("short", {
+			onViolation: () => {
+				called = true;
+			},
+		});
 		expect(called).toBe(false);
 	});
 
@@ -133,6 +153,8 @@ describe("safeRSSPreview", () => {
 		const out = safeRSSPreview(long, { maxCols: 40, reserve: 2 });
 		expect(out).toEndWith("…");
 		const inner = out.slice(0, -1);
-		expect(Bun.stringWidth(inner, { countAnsiEscapeCodes: false })).toBeLessThanOrEqual(38);
+		expect(Bun.stringWidth(inner, { countAnsiEscapeCodes: false })).toBeLessThanOrEqual(
+			38,
+		);
 	});
 });

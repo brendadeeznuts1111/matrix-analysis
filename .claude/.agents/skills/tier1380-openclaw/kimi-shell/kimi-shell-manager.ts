@@ -159,12 +159,7 @@ class KimiShellManager {
 	 * Switch active profile
 	 */
 	async switchProfile(profile: string): Promise<boolean> {
-		const profilePath = join(
-			homedir(),
-			".matrix",
-			"profiles",
-			`${profile}.json`,
-		);
+		const profilePath = join(homedir(), ".matrix", "profiles", `${profile}.json`);
 
 		try {
 			await $`test -f ${profilePath}`.quiet();
@@ -207,9 +202,7 @@ class KimiShellManager {
 		console.log("=".repeat(50));
 
 		console.log("\n📊 Session:");
-		console.log(
-			`  Started: ${new Date(this.state.sessionStart).toLocaleString()}`,
-		);
+		console.log(`  Started: ${new Date(this.state.sessionStart).toLocaleString()}`);
 		console.log(`  Uptime: ${uptimeMin}m`);
 		console.log(`  Commands: ${this.state.commandCount}`);
 

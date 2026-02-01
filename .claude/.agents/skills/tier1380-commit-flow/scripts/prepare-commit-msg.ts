@@ -35,14 +35,11 @@ async function generateCommitTemplate(): Promise<string> {
 	}
 
 	// Get staged files to suggest component
-	const stagedFiles = await $`git diff --cached --name-only`
-		.text()
-		.catch(() => "");
+	const stagedFiles = await $`git diff --cached --name-only`.text().catch(() => "");
 	const files = stagedFiles.trim().split("\n");
 
 	for (const file of files) {
-		if (file.includes("registry") || file.includes("r2"))
-			component = "REGISTRY";
+		if (file.includes("registry") || file.includes("r2")) component = "REGISTRY";
 		if (file.includes("chrome")) component = "CHROME";
 		if (file.includes("matrix")) component = "MATRIX";
 		if (file.includes("skill")) component = "SKILLS";
@@ -89,9 +86,7 @@ if (import.meta.main) {
 	const commitSource = Bun.argv[3]; // message, template, merge, squash, commit
 
 	if (!commitMsgFile) {
-		console.log(
-			"Usage: prepare-commit-msg.ts <commit-msg-file> [commit-source]",
-		);
+		console.log("Usage: prepare-commit-msg.ts <commit-msg-file> [commit-source]");
 		process.exit(1);
 	}
 

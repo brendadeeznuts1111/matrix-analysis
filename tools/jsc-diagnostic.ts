@@ -13,13 +13,45 @@ defineCommand({
 	description: "Inspect JavaScriptCore runtime: heap, GC, JIT, transpiler, imports",
 	usage: "bun tools/jsc-diagnostic.ts [options] [file]",
 	options: {
-		heap: { type: "boolean", default: false, description: "Show heap stats and object type breakdown" },
-		gc: { type: "boolean", default: false, description: "Run full GC and report freed memory" },
-		profile: { type: "boolean", default: false, description: "Profile a file's default export function" },
-		describe: { type: "boolean", short: "d", default: false, description: "Describe internal types of module exports" },
-		transpile: { type: "boolean", short: "t", default: false, description: "Show transpiled JS output of a file" },
-		imports: { type: "boolean", short: "i", default: false, description: "Scan and list a file's imports/exports" },
-		all: { type: "boolean", short: "a", default: false, description: "Run all diagnostics" },
+		heap: {
+			type: "boolean",
+			default: false,
+			description: "Show heap stats and object type breakdown",
+		},
+		gc: {
+			type: "boolean",
+			default: false,
+			description: "Run full GC and report freed memory",
+		},
+		profile: {
+			type: "boolean",
+			default: false,
+			description: "Profile a file's default export function",
+		},
+		describe: {
+			type: "boolean",
+			short: "d",
+			default: false,
+			description: "Describe internal types of module exports",
+		},
+		transpile: {
+			type: "boolean",
+			short: "t",
+			default: false,
+			description: "Show transpiled JS output of a file",
+		},
+		imports: {
+			type: "boolean",
+			short: "i",
+			default: false,
+			description: "Scan and list a file's imports/exports",
+		},
+		all: {
+			type: "boolean",
+			short: "a",
+			default: false,
+			description: "Run all diagnostics",
+		},
 	},
 	async run(values, positionals) {
 		const showHeap = !!values["heap"] || !!values["all"];
@@ -32,17 +64,33 @@ defineCommand({
 		const targetFile = positionals[0];
 
 		// Default to --all if no flags given
-		const noFlags = !showHeap && !showGC && !showProfile && !showDescribe && !showTranspile && !showImports && !showAll;
+		const noFlags =
+			!showHeap &&
+			!showGC &&
+			!showProfile &&
+			!showDescribe &&
+			!showTranspile &&
+			!showImports &&
+			!showAll;
 
 		if (noFlags || showHeap) {
 			console.log(`\n${fmt.bold("Heap Stats")}`);
 			const heap = jsc.heapStats();
 			const rows = [
 				{ metric: "Heap Size", value: `${(heap.heapSize / 1024 / 1024).toFixed(2)} MB` },
-				{ metric: "Heap Capacity", value: `${(heap.heapCapacity / 1024 / 1024).toFixed(2)} MB` },
-				{ metric: "Utilization", value: `${((heap.heapSize / heap.heapCapacity) * 100).toFixed(1)}%` },
+				{
+					metric: "Heap Capacity",
+					value: `${(heap.heapCapacity / 1024 / 1024).toFixed(2)} MB`,
+				},
+				{
+					metric: "Utilization",
+					value: `${((heap.heapSize / heap.heapCapacity) * 100).toFixed(1)}%`,
+				},
 				{ metric: "Object Count", value: heap.objectCount.toLocaleString() },
-				{ metric: "Protected Objects", value: heap.protectedObjectCount.toLocaleString() },
+				{
+					metric: "Protected Objects",
+					value: heap.protectedObjectCount.toLocaleString(),
+				},
 				{ metric: "Memory Pressure", value: `${jsc.memoryPressure().toFixed(1)}%` },
 			];
 			console.log(Bun.inspect.table(rows, ["metric", "value"]));
@@ -71,7 +119,10 @@ defineCommand({
 				{ metric: "Freed", value: `${gc.freedMB} MB` },
 				{ metric: "Objects Before", value: pre.objectCount.toLocaleString() },
 				{ metric: "Objects After", value: post.objectCount.toLocaleString() },
-				{ metric: "Objects Collected", value: (pre.objectCount - post.objectCount).toLocaleString() },
+				{
+					metric: "Objects Collected",
+					value: (pre.objectCount - post.objectCount).toLocaleString(),
+				},
 			];
 			console.log(Bun.inspect.table(gcRows, ["metric", "value"]));
 		}
@@ -80,9 +131,16 @@ defineCommand({
 			console.log(`\n${fmt.bold("Profiling")} ${targetFile}`);
 			try {
 				const mod = await import(resolve(targetFile));
-				const fn = mod.default ?? mod.main ?? Object.values(mod).find((v) => typeof v === "function");
+				const fn =
+					mod.default ??
+					mod.main ??
+					Object.values(mod).find((v) => typeof v === "function");
 				if (typeof fn !== "function") {
-					console.error(fmt.fail("No callable export found (expected default, main, or first function)"));
+					console.error(
+						fmt.fail(
+							"No callable export found (expected default, main, or first function)",
+						),
+					);
 					process.exit(EXIT_CODES.USAGE_ERROR);
 				}
 
@@ -96,7 +154,10 @@ defineCommand({
 
 				console.log(`\n${fmt.bold("JIT Compile Stats")}`);
 				const compileRows = [
-					{ metric: "Total Compile Time", value: `${info.totalCompileTimeMs.toFixed(3)} ms` },
+					{
+						metric: "Total Compile Time",
+						value: `${info.totalCompileTimeMs.toFixed(3)} ms`,
+					},
 					{ metric: "DFG Compiles", value: info.dfgCompiles.toString() },
 					{ metric: "Reopt Retries", value: info.reoptRetries.toString() },
 				];
@@ -128,9 +189,10 @@ defineCommand({
 					export: name,
 					type: typeof value,
 					jscType: jsc.describe(value),
-					size: typeof value === "object" && value !== null
-						? `${jsc.sizeOf(value)} bytes`
-						: "-",
+					size:
+						typeof value === "object" && value !== null
+							? `${jsc.sizeOf(value)} bytes`
+							: "-",
 				}));
 				console.log(Bun.inspect.table(descRows, ["export", "type", "jscType", "size"]));
 			} catch (err) {

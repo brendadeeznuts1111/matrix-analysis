@@ -7,8 +7,8 @@
 
 import {
 	fetchManifest,
-	validateManifest,
 	MCP_MANIFEST_URL,
+	validateManifest,
 } from "../../bun-mcp-manifest.ts";
 
 async function main(): Promise<void> {

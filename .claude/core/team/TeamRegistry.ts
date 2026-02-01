@@ -33,9 +33,7 @@ export interface ProfileWithTeam {
 const PROFILES_DIR = `${Bun.env.HOME}/.matrix/profiles`;
 
 /** Read a single profile JSON. Returns null on any error. */
-async function readProfile(
-	profileName: string,
-): Promise<ProfileWithTeam | null> {
+async function readProfile(profileName: string): Promise<ProfileWithTeam | null> {
 	const file = Bun.file(`${PROFILES_DIR}/${profileName}.json`);
 	if (!(await file.exists())) return null;
 	return file.json().catch(() => null);
@@ -154,9 +152,7 @@ export async function demoteMember(
 /**
  * Get a single member profile with team data.
  */
-export async function getMember(
-	profileName: string,
-): Promise<ProfileWithTeam | null> {
+export async function getMember(profileName: string): Promise<ProfileWithTeam | null> {
 	return readProfile(profileName);
 }
 

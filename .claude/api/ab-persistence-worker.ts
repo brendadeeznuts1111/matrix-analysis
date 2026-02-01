@@ -29,8 +29,7 @@ type WorkerMessage = PersistMessage | LoadMessage | PingMessage;
 
 // ── SQLite Setup ────────────────────────────────────────────────────────────
 
-const DB_PATH =
-	process.env.AB_SNAPSHOT_DB_PATH || "./.claude/data/ab-snapshots.db";
+const DB_PATH = process.env.AB_SNAPSHOT_DB_PATH || "./.claude/data/ab-snapshots.db";
 
 let db: Database | null = null;
 
@@ -46,9 +45,7 @@ function getDb(): Database {
         created_at INTEGER DEFAULT (unixepoch())
       )
     `);
-		db.run(
-			"CREATE INDEX IF NOT EXISTS idx_snapshots_created ON snapshots(created_at)",
-		);
+		db.run("CREATE INDEX IF NOT EXISTS idx_snapshots_created ON snapshots(created_at)");
 	}
 	return db;
 }
@@ -98,10 +95,9 @@ self.onmessage = (event: MessageEvent<WorkerMessage>) => {
 			const database = getDb();
 
 			const row = database
-				.query<
-					{ data: Uint8Array; variant: string; pool_size: number },
-					[string]
-				>("SELECT data, variant, pool_size FROM snapshots WHERE id = ?")
+				.query<{ data: Uint8Array; variant: string; pool_size: number }, [string]>(
+					"SELECT data, variant, pool_size FROM snapshots WHERE id = ?",
+				)
 				.get(sessionId);
 
 			if (!row) {
@@ -114,8 +110,7 @@ self.onmessage = (event: MessageEvent<WorkerMessage>) => {
 				break;
 			}
 
-			const data =
-				row.data instanceof Uint8Array ? row.data : new Uint8Array(row.data);
+			const data = row.data instanceof Uint8Array ? row.data : new Uint8Array(row.data);
 			const decompressed = Bun.zstdDecompressSync(data);
 			const { deserialize } = require("bun:jsc");
 			const state = deserialize(decompressed.buffer) as ABSnapshotState;

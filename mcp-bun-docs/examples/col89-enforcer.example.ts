@@ -15,9 +15,9 @@
 
 import {
 	COL89_MAX,
-	MIN_GB9C_VERSION,
 	type Col89ViolationAudit,
 	getDocLinkWidth,
+	MIN_GB9C_VERSION,
 } from "../lib.ts";
 
 const PREVIEW_LEN = 40;
@@ -40,14 +40,16 @@ function enforceCol89WithUnicodeSafety(lines: string[]): {
 	auditRepo: Col89ViolationAudit[];
 	summary: Col89EnforcerSummary;
 } {
-	const version =
-		typeof Bun !== "undefined" && Bun.version != null ? Bun.version : "";
+	const version = typeof Bun !== "undefined" && Bun.version != null ? Bun.version : "";
 	const satisfies =
 		typeof Bun !== "undefined" &&
-		typeof (Bun as { semver?: { satisfies: (v: string, r: string) => boolean } }).semver?.satisfies === "function"
-			? (Bun as { semver: { satisfies: (v: string, r: string) => boolean } }).semver.satisfies
+		typeof (Bun as { semver?: { satisfies: (v: string, r: string) => boolean } }).semver
+			?.satisfies === "function"
+			? (Bun as { semver: { satisfies: (v: string, r: string) => boolean } }).semver
+					.satisfies
 			: null;
-	const unicodeAware: boolean = satisfies !== null && !!version && satisfies(version, MIN_GB9C_VERSION);
+	const unicodeAware: boolean =
+		satisfies !== null && !!version && satisfies(version, MIN_GB9C_VERSION);
 
 	if (!unicodeAware && version) {
 		console.warn(
@@ -60,7 +62,10 @@ function enforceCol89WithUnicodeSafety(lines: string[]): {
 
 	for (let i = 0; i < lines.length; i++) {
 		const line = lines[i];
-		const t0 = typeof Bun !== "undefined" && typeof Bun.nanoseconds === "function" ? Bun.nanoseconds() : 0;
+		const t0 =
+			typeof Bun !== "undefined" && typeof Bun.nanoseconds === "function"
+				? Bun.nanoseconds()
+				: 0;
 		const width = stringWidth(line);
 		const perfNs =
 			typeof Bun !== "undefined" && typeof Bun.nanoseconds === "function"
@@ -73,7 +78,9 @@ function enforceCol89WithUnicodeSafety(lines: string[]): {
 		}
 
 		ok.push(false);
-		const jsc = typeof Bun !== "undefined" && (Bun as { jsc?: { estimateShallowMemoryUsageOf?: (obj: unknown) => number } }).jsc;
+		const jsc =
+			typeof Bun !== "undefined" &&
+			(Bun as { jsc?: { estimateShallowMemoryUsageOf?: (obj: unknown) => number } }).jsc;
 		const memBytes =
 			jsc && typeof jsc.estimateShallowMemoryUsageOf === "function"
 				? jsc.estimateShallowMemoryUsageOf(line)
@@ -93,9 +100,7 @@ function enforceCol89WithUnicodeSafety(lines: string[]): {
 	}
 
 	const totalMem =
-		auditRepo.length > 0
-			? auditRepo.reduce((s, a) => s + (a.mem_bytes ?? 0), 0)
-			: 0;
+		auditRepo.length > 0 ? auditRepo.reduce((s, a) => s + (a.mem_bytes ?? 0), 0) : 0;
 	const summary: Col89EnforcerSummary = {
 		lines_checked: lines.length,
 		violation_count: auditRepo.length,
@@ -120,17 +125,45 @@ const { ok, auditRepo, summary } = enforceCol89WithUnicodeSafety(TEST_LINES);
 console.log("Col-89 check (max %d columns):\n", COL89_MAX);
 for (let i = 0; i < TEST_LINES.length; i++) {
 	const w = getDocLinkWidth(TEST_LINES[i]);
-	console.log("  [%s] width=%d  %s", ok[i] ? "OK" : "VIOLATION", w, TEST_LINES[i].slice(0, 50) + (TEST_LINES[i].length > 50 ? "…" : ""));
+	console.log(
+		"  [%s] width=%d  %s",
+		ok[i] ? "OK" : "VIOLATION",
+		w,
+		TEST_LINES[i].slice(0, 50) + (TEST_LINES[i].length > 50 ? "…" : ""),
+	);
 }
 
 if (auditRepo.length > 0) {
-	const cols = ["event", "index", "computed_width", "unicode_aware", "bun_version", "perf_ns", "mem_bytes", "recommendation"].filter(
-		(c) => c !== "mem_bytes" || auditRepo.some((a) => a.mem_bytes != null),
-	);
+	const cols = [
+		"event",
+		"index",
+		"computed_width",
+		"unicode_aware",
+		"bun_version",
+		"perf_ns",
+		"mem_bytes",
+		"recommendation",
+	].filter((c) => c !== "mem_bytes" || auditRepo.some((a) => a.mem_bytes != null));
 	console.log("\nViolations (Bun.inspect.table):\n");
 	const tableStr =
-		typeof Bun !== "undefined" && typeof Bun.inspect !== "undefined" && typeof Bun.inspect.table === "function"
-			? Bun.inspect.table(auditRepo, cols.length ? cols : ["event", "index", "computed_width", "unicode_aware", "bun_version", "perf_ns", "recommendation"], { colors: true })
+		typeof Bun !== "undefined" &&
+		typeof Bun.inspect !== "undefined" &&
+		typeof Bun.inspect.table === "function"
+			? Bun.inspect.table(
+					auditRepo,
+					cols.length
+						? cols
+						: [
+								"event",
+								"index",
+								"computed_width",
+								"unicode_aware",
+								"bun_version",
+								"perf_ns",
+								"recommendation",
+							],
+					{ colors: true },
+				)
 			: JSON.stringify(auditRepo, null, 2);
 	console.log(tableStr);
 
@@ -144,24 +177,44 @@ if (auditRepo.length > 0) {
 	console.log("\nSummary: 0 violations of %d line(s) checked.", summary.lines_checked);
 }
 
-const exportAudit = typeof process !== "undefined" && process.env["EXPORT_COL89_AUDIT"] === "1";
-if (exportAudit && typeof Bun !== "undefined" && (auditRepo.length > 0 || process.env["EXPORT_COL89_AUDIT_ALWAYS"] === "1")) {
+const exportAudit =
+	typeof process !== "undefined" && process.env["EXPORT_COL89_AUDIT"] === "1";
+if (
+	exportAudit &&
+	typeof Bun !== "undefined" &&
+	(auditRepo.length > 0 || process.env["EXPORT_COL89_AUDIT_ALWAYS"] === "1")
+) {
 	const stripANSI =
 		typeof Bun.stripANSI === "function"
 			? Bun.stripANSI
 			: (s: string) => s.replace(/\u001b\[[0-9;]*m/g, "");
 	const tableStr =
 		typeof Bun.inspect !== "undefined" && typeof Bun.inspect.table === "function"
-			? Bun.inspect.table(auditRepo, ["event", "index", "computed_width", "unicode_aware", "bun_version", "perf_ns", "mem_bytes", "recommendation"].filter(
-					(c) => c !== "mem_bytes" || auditRepo.some((a) => a.mem_bytes != null),
-				), { colors: false })
+			? Bun.inspect.table(
+					auditRepo,
+					[
+						"event",
+						"index",
+						"computed_width",
+						"unicode_aware",
+						"bun_version",
+						"perf_ns",
+						"mem_bytes",
+						"recommendation",
+					].filter(
+						(c) => c !== "mem_bytes" || auditRepo.some((a) => a.mem_bytes != null),
+					),
+					{ colors: false },
+				)
 			: JSON.stringify(auditRepo, null, 2);
 	const summaryBlock = [
 		"| Metric | Value |",
 		"|--------|-------|",
 		`| Lines checked | ${summary.lines_checked} |`,
 		`| Violations | ${summary.violation_count} |`,
-		...(summary.total_mem != null ? [`| Total shallow mem | ${summary.total_mem} B |`] : []),
+		...(summary.total_mem != null
+			? [`| Total shallow mem | ${summary.total_mem} B |`]
+			: []),
 	].join("\n");
 	const md = `# Tier-1380 Col-89 Audit\n\n## Summary\n\n${summaryBlock}\n\n## Violations\n\n${stripANSI(tableStr)}\n`;
 	await Bun.write("col89-audit.md", md);

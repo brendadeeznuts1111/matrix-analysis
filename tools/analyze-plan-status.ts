@@ -60,7 +60,9 @@ function getDefaultStages(): Record<string, string> {
 	return { ...STAGE_STATUS };
 }
 
-export async function updateAnalyzePlanStatus(update?: PlanStatusUpdate): Promise<PlanStatus> {
+export async function updateAnalyzePlanStatus(
+	update?: PlanStatusUpdate,
+): Promise<PlanStatus> {
 	const cwd = process.cwd();
 	const planPath = cwd + "/" + PLAN_PATH;
 	const mcpPath = cwd + "/" + MCP_RESOURCE_PATH;

@@ -124,9 +124,7 @@ function generateDescription(files: string[], types: string[]): string {
 		extensions.set(ext, (extensions.get(ext) || 0) + 1);
 	}
 
-	const mainExt = Array.from(extensions.entries()).sort(
-		(a, b) => b[1] - a[1],
-	)[0]?.[0];
+	const mainExt = Array.from(extensions.entries()).sort((a, b) => b[1] - a[1])[0]?.[0];
 
 	if (files.length === 1) {
 		const filename =
@@ -199,12 +197,8 @@ if (import.meta.main) {
 
 	console.log();
 	console.log("Analysis:");
-	console.log(
-		`  Domain:     ${analysis.domains.join(", ") || "PLATFORM (default)"}`,
-	);
-	console.log(
-		`  Component:  ${analysis.components.join(", ") || "MATRIX (default)"}`,
-	);
+	console.log(`  Domain:     ${analysis.domains.join(", ") || "PLATFORM (default)"}`);
+	console.log(`  Component:  ${analysis.components.join(", ") || "MATRIX (default)"}`);
 	console.log(`  Types:      ${analysis.types.join(", ") || "Update"}`);
 	console.log(`  Tier:       ${analysis.tier}`);
 	console.log();
@@ -228,9 +222,4 @@ if (import.meta.main) {
 	);
 }
 
-export {
-	analyzeChanges,
-	generateDescription,
-	generateSuggestions,
-	type ChangeAnalysis,
-};
+export { analyzeChanges, generateDescription, generateSuggestions, type ChangeAnalysis };

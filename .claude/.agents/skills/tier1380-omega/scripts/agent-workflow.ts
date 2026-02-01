@@ -197,8 +197,7 @@ export function checkUnicode(): UnicodeCheckResult {
 			});
 			result.test_results.col89_wrap = wrapped.split("\n").every((line) => {
 				return (
-					Bun.stringWidth(line, { countAnsiEscapeCodes: false }) <=
-					COL_89_MAX_WIDTH
+					Bun.stringWidth(line, { countAnsiEscapeCodes: false }) <= COL_89_MAX_WIDTH
 				);
 			});
 		}
@@ -224,9 +223,7 @@ export function formatUnicodeReport(result: UnicodeCheckResult): string {
 	lines.push("");
 
 	lines.push(`GB9c Support:      ${result.gb9c_support ? "✅ YES" : "❌ NO"}`);
-	lines.push(
-		`Col-89 Enforcement: ${result.col89_enforcement ? "✅ YES" : "❌ NO"}`,
-	);
+	lines.push(`Col-89 Enforcement: ${result.col89_enforcement ? "✅ YES" : "❌ NO"}`);
 	lines.push("");
 
 	lines.push("Indic Scripts Supported:");
@@ -239,12 +236,8 @@ export function formatUnicodeReport(result: UnicodeCheckResult): string {
 	lines.push(
 		`  Devanagari (क्ष): ${result.test_results.devanagari ? "✅" : "❌"} (width: 2)`,
 	);
-	lines.push(
-		`  Emoji ZWJ:         ${result.test_results.emoji_zwj ? "✅" : "❌"}`,
-	);
-	lines.push(
-		`  Col-89 Wrap:       ${result.test_results.col89_wrap ? "✅" : "❌"}`,
-	);
+	lines.push(`  Emoji ZWJ:         ${result.test_results.emoji_zwj ? "✅" : "❌"}`);
+	lines.push(`  Col-89 Wrap:       ${result.test_results.col89_wrap ? "✅" : "❌"}`);
 	lines.push("");
 
 	if (!result.valid) {
@@ -535,9 +528,7 @@ if (import.meta.main) {
 				if (Bun.argv.includes("--upload")) {
 					console.log("\n📤 Uploading to R2...");
 					try {
-						const { uploadCol89Report } = await import(
-							"./agent-r2-integration"
-						);
+						const { uploadCol89Report } = await import("./agent-r2-integration");
 						const result = await uploadCol89Report(audits, {
 							tier: "1380",
 						});
@@ -587,9 +578,7 @@ if (import.meta.main) {
 			console.log("  check-version, version  Check Bun semver compatibility");
 			console.log("  check-unicode, unicode  Verify Unicode/Col-89 support");
 			console.log("  check-all, init         Run all initialization checks");
-			console.log(
-				"  col89 <text>            Check if text is Col-89 compliant",
-			);
+			console.log("  col89 <text>            Check if text is Col-89 compliant");
 			console.log("  width <text>            Get Unicode-aware string width");
 			console.log("  wrap <text>             Wrap text to 89 columns");
 			console.log("  indic                   Run Indic GB9c test suite");

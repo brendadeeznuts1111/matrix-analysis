@@ -33,22 +33,13 @@ const DOMAIN_EMOJI: Record<string, string> = {
 	SKILLS: "🎯",
 };
 
-const _TYPE_ORDER = [
-	"FEAT",
-	"FIX",
-	"PERF",
-	"REFACTOR",
-	"DOCS",
-	"TEST",
-	"CHORE",
-];
+const _TYPE_ORDER = ["FEAT", "FIX", "PERF", "REFACTOR", "DOCS", "TEST", "CHORE"];
 
 async function getCommits(
 	since?: string,
 ): Promise<Array<{ hash: string; message: string; date: string }>> {
 	const range = since ? `${since}..HEAD` : "-50";
-	const log =
-		await $`git log ${range} --pretty=format:"%H|%s|%ad" --date=short`.text();
+	const log = await $`git log ${range} --pretty=format:"%H|%s|%ad" --date=short`.text();
 
 	return log
 		.trim()
@@ -83,8 +74,7 @@ function parseTier1380Commit(message: string): {
 	}
 
 	// Standard: [DOMAIN][COMPONENT:NAME][TIER:1380] Subject
-	const standardPattern =
-		/^\[([A-Z]+)\]\[COMPONENT:([A-Z]+)\]\[TIER:(\d+)\]\s*(.+)$/;
+	const standardPattern = /^\[([A-Z]+)\]\[COMPONENT:([A-Z]+)\]\[TIER:(\d+)\]\s*(.+)$/;
 	const stdMatch = message.match(standardPattern);
 
 	if (stdMatch) {

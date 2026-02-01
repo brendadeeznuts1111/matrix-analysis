@@ -115,9 +115,7 @@ export function createStorageRouter({ getS3Client, logger }) {
 
 					const now = Date.now();
 					const requests = global.rateLimitStore.get(clientIP) || [];
-					const recentRequests = requests.filter(
-						(time) => now - time < 60000,
-					); // Last minute
+					const recentRequests = requests.filter((time) => now - time < 60000); // Last minute
 
 					if (recentRequests.length >= 10) {
 						return Response.json(
@@ -136,9 +134,7 @@ export function createStorageRouter({ getS3Client, logger }) {
 						metadataDirective: "REPLACE",
 					});
 
-					logger.info(
-						`Updated Content-Disposition for ${fileKey}: ${disposition}`,
-					);
+					logger.info(`Updated Content-Disposition for ${fileKey}: ${disposition}`);
 
 					return Response.json(
 						{

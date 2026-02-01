@@ -4,10 +4,7 @@
  */
 
 import { describe, expect, it } from "bun:test";
-import {
-	PROTECTED_BRANCHES,
-	validateBranchName,
-} from "../scripts/branch-validator";
+import { PROTECTED_BRANCHES, validateBranchName } from "../scripts/branch-validator";
 
 describe("Branch name validation", () => {
 	it("should validate main branch", () => {

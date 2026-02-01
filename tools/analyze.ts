@@ -24,7 +24,10 @@ const DEFAULT_LIMIT = 25;
 const GLOB_PATTERN = "**/*.{ts,tsx}";
 
 /** Lazy-load mcp-bun-docs for xref (optional dependency). */
-async function getDocResolver(): Promise<{ getDocEntry: (term: string) => { path: string } | null; buildDocUrl: (path: string) => string } | null> {
+async function getDocResolver(): Promise<{
+	getDocEntry: (term: string) => { path: string } | null;
+	buildDocUrl: (path: string) => string;
+} | null> {
 	try {
 		const lib = await import("../mcp-bun-docs/lib.ts");
 		return { getDocEntry: lib.getDocEntry, buildDocUrl: lib.buildDocUrl };
@@ -54,9 +57,17 @@ export async function loadConfig(): Promise<AnalyzeConfig> {
 				...(Array.isArray(data.roots) && { roots: data.roots as string[] }),
 				...(typeof data.limit === "number" ? { limit: data.limit } : {}),
 				...(Array.isArray(data.ignore) ? { ignore: data.ignore as string[] } : {}),
-				...(data.complexity && typeof data.complexity === "object" && (data.complexity as Record<string, unknown>).threshold != null ? {
-					complexity: { threshold: Number((data.complexity as Record<string, unknown>).threshold) },
-				} : {}),
+				...(data.complexity &&
+				typeof data.complexity === "object" &&
+				(data.complexity as Record<string, unknown>).threshold != null
+					? {
+							complexity: {
+								threshold: Number(
+									(data.complexity as Record<string, unknown>).threshold,
+								),
+							},
+						}
+					: {}),
 			};
 			return config;
 		}
@@ -68,15 +79,19 @@ export async function loadConfig(): Promise<AnalyzeConfig> {
 		const f = Bun.file(tomlPath);
 		if (await f.exists()) {
 			const text = await f.text();
-			const analyzeMatch = text.match(/\[analyze\]\s*([\s\S]*?)(?=\[|\z)/);
+			const analyzeMatch = text.match(/\[analyze\]\s*([\s\S]*?)(?=\[|z)/);
 			if (analyzeMatch) {
 				const block = analyzeMatch[1];
 				const rootsM = block.match(/roots\s*=\s*\[([^\]]+)\]/);
-				if (rootsM) config.roots = rootsM[1].split(",").map((s) => s.replace(/["']/g, "").trim());
+				if (rootsM)
+					config.roots = rootsM[1].split(",").map((s) => s.replace(/["']/g, "").trim());
 				const limitM = block.match(/limit\s*=\s*(\d+)/);
 				if (limitM) config.limit = Number.parseInt(limitM[1], 10);
 				const ignoreM = block.match(/ignore\s*=\s*\[([^\]]+)\]/);
-				if (ignoreM) config.ignore = ignoreM[1].split(",").map((s) => s.replace(/["']/g, "").trim());
+				if (ignoreM)
+					config.ignore = ignoreM[1]
+						.split(",")
+						.map((s) => s.replace(/["']/g, "").trim());
 				const threshM = block.match(/threshold\s*=\s*(\d+)/);
 				if (threshM) config.complexity = { threshold: Number.parseInt(threshM[1], 10) };
 			}
@@ -103,7 +118,10 @@ export function matchesIgnore(path: string, patterns: string[]): boolean {
 	return false;
 }
 
-export function parseArgs(argv: string[], config: AnalyzeConfig = {}): {
+export function parseArgs(
+	argv: string[],
+	config: AnalyzeConfig = {},
+): {
 	cmd: string;
 	rest: string[];
 	roots: string[];
@@ -117,9 +135,23 @@ export function parseArgs(argv: string[], config: AnalyzeConfig = {}): {
 	const rest = argv.slice(2);
 	let cmd = rest[0] ?? "";
 
-	const knownCommands = ["scan", "types", "props", "deps", "classes", "strength", "complexity", "rename", "polish", "coverage", "xref"];
+	const knownCommands = [
+		"scan",
+		"types",
+		"props",
+		"deps",
+		"classes",
+		"strength",
+		"complexity",
+		"rename",
+		"polish",
+		"coverage",
+		"xref",
+	];
 	const benchMode = rest.includes("--bench");
-	const coverageMode = rest.includes("--coverage") && (cmd === "" || cmd === "scan" || !knownCommands.includes(cmd));
+	const coverageMode =
+		rest.includes("--coverage") &&
+		(cmd === "" || cmd === "scan" || !knownCommands.includes(cmd));
 	const explicitHelp = cmd === "-h" || cmd === "--help";
 
 	if (benchMode) {
@@ -128,8 +160,15 @@ export function parseArgs(argv: string[], config: AnalyzeConfig = {}): {
 			rest: rest.filter((a) => a !== "--bench" && !a.startsWith("--bench-format=")),
 			roots: (() => {
 				const rootsArg = rest.find((a) => a.startsWith("--roots="));
-				return rootsArg ? rootsArg.slice("--roots=".length).split(",").map((s) => s.trim()).filter(Boolean)
-					: (config.roots?.length ? config.roots : [...DEFAULT_ROOTS]);
+				return rootsArg
+					? rootsArg
+							.slice("--roots=".length)
+							.split(",")
+							.map((s) => s.trim())
+							.filter(Boolean)
+					: config.roots?.length
+						? config.roots
+						: [...DEFAULT_ROOTS];
 			})(),
 			all: false,
 			limit: config.limit ?? DEFAULT_LIMIT,
@@ -165,24 +204,45 @@ export function parseArgs(argv: string[], config: AnalyzeConfig = {}): {
 
 	const rootsArg = rest.find((a) => a.startsWith("--roots="));
 	const roots = rootsArg
-		? rootsArg.slice("--roots=".length).split(",").map((s) => s.trim()).filter(Boolean)
-		: (config.roots?.length ? config.roots : [...DEFAULT_ROOTS]);
+		? rootsArg
+				.slice("--roots=".length)
+				.split(",")
+				.map((s) => s.trim())
+				.filter(Boolean)
+		: config.roots?.length
+			? config.roots
+			: [...DEFAULT_ROOTS];
 
 	const all = rest.includes("--all");
 	const limitArg = rest.find((a) => a.startsWith("--limit="));
-	const limit = limitArg ? Math.max(1, Number.parseInt(limitArg.slice("--limit=".length), 10) || DEFAULT_LIMIT) : (config.limit ?? DEFAULT_LIMIT);
+	const limit = limitArg
+		? Math.max(
+				1,
+				Number.parseInt(limitArg.slice("--limit=".length), 10) || DEFAULT_LIMIT,
+			)
+		: (config.limit ?? DEFAULT_LIMIT);
 
 	const formatArg = rest.find((a) => a.startsWith("--format="));
 	const formatRaw = formatArg?.slice("--format=".length) ?? "table";
-	const format = (["table", "json", "tree", "dot"].includes(formatRaw) ? formatRaw : "table") as Format;
+	const format = (
+		["table", "json", "tree", "dot"].includes(formatRaw) ? formatRaw : "table"
+	) as Format;
 
 	const metrics = rest.includes("--metrics") || !rest.includes("--no-metrics");
 
 	const depthArg = rest.find((a) => a.startsWith("--depth="));
-	const depth = depthArg ? Number.parseInt(depthArg.slice("--depth=".length), 10) || null : null;
+	const depth = depthArg
+		? Number.parseInt(depthArg.slice("--depth=".length), 10) || null
+		: null;
 
 	const ignoreArg = rest.find((a) => a.startsWith("--ignore="));
-	const ignorePatterns = ignoreArg ? ignoreArg.slice("--ignore=".length).split(",").map((s) => s.trim()).filter(Boolean) : (config.ignore ?? []);
+	const ignorePatterns = ignoreArg
+		? ignoreArg
+				.slice("--ignore=".length)
+				.split(",")
+				.map((s) => s.trim())
+				.filter(Boolean)
+		: (config.ignore ?? []);
 
 	const restForCmd = knownCommands.includes(rest[0] ?? "") ? rest.slice(1) : rest;
 	return {
@@ -262,7 +322,8 @@ export async function runScan(opts: ReturnType<typeof parseArgs>): Promise<void>
 		try {
 			for await (const f of glob.scan({ cwd: root, onlyFiles: true })) {
 				const path = root === "." ? f : `${root}/${f}`;
-				if (opts.ignorePatterns.length && matchesIgnore(path, opts.ignorePatterns)) continue;
+				if (opts.ignorePatterns.length && matchesIgnore(path, opts.ignorePatterns))
+					continue;
 				if (opts.depth != null) {
 					const segs = path.split("/").length;
 					const rootSegs = root === "." ? 0 : root.split("/").length;
@@ -274,7 +335,10 @@ export async function runScan(opts: ReturnType<typeof parseArgs>): Promise<void>
 				const row: ScanRow = { file: path, lines };
 				if (opts.metrics) {
 					row.imports = (text.match(/^import\s+.+from\s+['"]/gm) || []).length;
-					row.exports = (text.match(/^export\s+(const|function|class|interface|type|enum|async)/gm) || []).length;
+					row.exports = (
+						text.match(/^export\s+(const|function|class|interface|type|enum|async)/gm) ||
+						[]
+					).length;
 				}
 				rows.push(row);
 			}
@@ -292,13 +356,22 @@ export async function runScan(opts: ReturnType<typeof parseArgs>): Promise<void>
 	}
 
 	console.log("📂 Structure scan (top " + opts.limit + " by lines)\n");
-	const cols = opts.metrics ? ["file", "lines", "imports", "exports"] : ["file", "lines"];
-	console.log(Bun.inspect.table(slice, cols as (keyof ScanRow)[], { colors: process.stdout.isTTY && !process.env.NO_COLOR }));
+	const cols = opts.metrics
+		? ["file", "lines", "imports", "exports"]
+		: ["file", "lines"];
+	console.log(
+		Bun.inspect.table(slice, cols as (keyof ScanRow)[], {
+			colors: process.stdout.isTTY && !process.env.NO_COLOR,
+		}),
+	);
 	console.log("\nTotal files scanned:", rows.length);
 }
 
 /** Extract property/member names from type body (interface/class/type alias). Heuristic. */
-export function extractProps(text: string, kind: "interface" | "type" | "class"): string[] {
+export function extractProps(
+	text: string,
+	kind: "interface" | "type" | "class",
+): string[] {
 	const props: string[] = [];
 	if (kind === "interface" || kind === "type") {
 		const keyMatch = text.match(/\b(\w+)\s*[?:]/g);
@@ -313,7 +386,10 @@ export function extractProps(text: string, kind: "interface" | "type" | "class")
 		const methodMatch = text.match(/(?:^\s*(?:async\s+)?(?:get|set)\s+)?(\w+)\s*[=(]/gm);
 		if (methodMatch) {
 			for (const m of methodMatch) {
-				const name = m.replace(/\s*[=(].*$/, "").replace(/^(?:async|get|set)\s+/, "").trim();
+				const name = m
+					.replace(/\s*[=(].*$/, "")
+					.replace(/^(?:async|get|set)\s+/, "")
+					.trim();
 				if (name && name !== "constructor") props.push(name);
 			}
 		}
@@ -353,9 +429,10 @@ export async function runTypes(opts: ReturnType<typeof parseArgs>): Promise<void
 	const withProps = opts.rest.includes("--props") || opts.cmd === "props";
 	const kindArg = opts.rest.find((a) => a.startsWith("--kind="));
 	const kindValue = kindArg ? kindArg.slice("--kind=".length) : null;
-	const kindFilter: KindFilter = kindValue && KIND_VALUES.includes(kindValue as any)
-		? (kindValue as KindFilter)
-		: null;
+	const kindFilter: KindFilter =
+		kindValue && KIND_VALUES.includes(kindValue as any)
+			? (kindValue as KindFilter)
+			: null;
 	const glob = new Bun.Glob(GLOB_PATTERN);
 	const roots = opts.all ? ["."] : opts.roots;
 	const types: { name: string; file: string; kind: string; props?: string }[] = [];
@@ -364,7 +441,8 @@ export async function runTypes(opts: ReturnType<typeof parseArgs>): Promise<void
 		try {
 			for await (const f of glob.scan({ cwd: root, onlyFiles: true })) {
 				const path = root === "." ? f : `${root}/${f}`;
-				if (opts.ignorePatterns.length && matchesIgnore(path, opts.ignorePatterns)) continue;
+				if (opts.ignorePatterns.length && matchesIgnore(path, opts.ignorePatterns))
+					continue;
 				const text = await Bun.file(path).text();
 				const iface = [...text.matchAll(/export\s+interface\s+(\w+)/g)];
 				const typeAlias = [...text.matchAll(/export\s+type\s+(\w+)\s*=/g)];
@@ -417,7 +495,13 @@ export async function runTypes(opts: ReturnType<typeof parseArgs>): Promise<void
 	}
 
 	const filtered = kindFilter ? types.filter((t) => t.kind === kindFilter) : types;
-	let slice = filtered.slice(0, opts.limit) as { name: string; file: string; kind: string; props?: string; docUrl?: string }[];
+	const slice = filtered.slice(0, opts.limit) as {
+		name: string;
+		file: string;
+		kind: string;
+		props?: string;
+		docUrl?: string;
+	}[];
 	if (opts.rest.includes("--xref")) {
 		const resolver = await getDocResolver();
 		if (resolver) {
@@ -430,16 +514,35 @@ export async function runTypes(opts: ReturnType<typeof parseArgs>): Promise<void
 				}
 			}
 			if (opts.format === "json") {
-				console.log(JSON.stringify({ total: filtered.length, kind: kindFilter ?? "all", types: slice, xref: xrefList }, null, 2));
+				console.log(
+					JSON.stringify(
+						{
+							total: filtered.length,
+							kind: kindFilter ?? "all",
+							types: slice,
+							xref: xrefList,
+						},
+						null,
+						2,
+					),
+				);
 				return;
 			}
 		}
 	}
 	if (opts.format === "json") {
-		console.log(JSON.stringify({ total: filtered.length, kind: kindFilter ?? "all", types: slice }, null, 2));
+		console.log(
+			JSON.stringify(
+				{ total: filtered.length, kind: kindFilter ?? "all", types: slice },
+				null,
+				2,
+			),
+		);
 		return;
 	}
-	let cols: string[] = withProps ? ["name", "kind", "props", "file"] : ["name", "kind", "file"];
+	let cols: string[] = withProps
+		? ["name", "kind", "props", "file"]
+		: ["name", "kind", "file"];
 	if (slice.some((r) => r.docUrl)) cols = [...cols, "docUrl"];
 	if (withProps && opts.format === "table") {
 		slice.forEach((r) => {
@@ -447,12 +550,24 @@ export async function runTypes(opts: ReturnType<typeof parseArgs>): Promise<void
 		});
 	}
 	const kindLabel = kindFilter ? " (" + kindFilter + " only)" : "";
-	console.log(withProps ? "📐 Types and properties (top " + opts.limit + kindLabel + ")\n" : "📐 Exported types (top " + opts.limit + kindLabel + ")\n");
-	console.log(Bun.inspect.table(slice, cols as (keyof (typeof types)[0])[], { colors: process.stdout.isTTY && !process.env.NO_COLOR }));
+	console.log(
+		withProps
+			? "📐 Types and properties (top " + opts.limit + kindLabel + ")\n"
+			: "📐 Exported types (top " + opts.limit + kindLabel + ")\n",
+	);
+	console.log(
+		Bun.inspect.table(slice, cols as (keyof (typeof types)[0])[], {
+			colors: process.stdout.isTTY && !process.env.NO_COLOR,
+		}),
+	);
 	console.log("\nTotal types:", filtered.length);
 }
 
-function resolveSpecToPath(fromPath: string, spec: string, normalizedToPath: Map<string, string>): string | null {
+function resolveSpecToPath(
+	fromPath: string,
+	spec: string,
+	normalizedToPath: Map<string, string>,
+): string | null {
 	if (!spec.startsWith(".") && !spec.startsWith("/")) return null; // skip node/bun packages
 	const dir = fromPath.includes("/") ? fromPath.replace(/\/[^/]+$/, "") : ".";
 	const candidate = (dir === "." ? spec : `${dir}/${spec}`).replace(/\/\.\//g, "/");
@@ -514,13 +629,16 @@ export async function runDeps(opts: ReturnType<typeof parseArgs>): Promise<void>
 		try {
 			for await (const f of glob.scan({ cwd: root, onlyFiles: true })) {
 				const path = root === "." ? f : `${root}/${f}`;
-				if (opts.ignorePatterns.length && matchesIgnore(path, opts.ignorePatterns)) continue;
+				if (opts.ignorePatterns.length && matchesIgnore(path, opts.ignorePatterns))
+					continue;
 				allPaths.push(path);
 				const text = await Bun.file(path).text();
-				const imps = (text.match(/^import\s+.+from\s+['"]([^'"]+)['"]/gm) || []).map((line) => {
-					const m = line.match(/from\s+['"]([^'"]+)['"]/);
-					return m ? m[1] : "";
-				}).filter(Boolean);
+				const imps = (text.match(/^import\s+.+from\s+['"]([^'"]+)['"]/gm) || [])
+					.map((line) => {
+						const m = line.match(/from\s+['"]([^'"]+)['"]/);
+						return m ? m[1] : "";
+					})
+					.filter(Boolean);
 				if (imps.length) importsByFile.set(path, imps);
 			}
 		} catch {
@@ -571,8 +689,16 @@ export async function runDeps(opts: ReturnType<typeof parseArgs>): Promise<void>
 
 	console.log("📦 Imports (sample)\n");
 	const entries = [...importsByFile.entries()].slice(0, opts.limit);
-	const rows = entries.map(([file, imps]) => ({ file, imports: imps.length, sample: imps.slice(0, 3).join(", ") }));
-	console.log(Bun.inspect.table(rows, ["file", "imports", "sample"], { colors: process.stdout.isTTY && !process.env.NO_COLOR }));
+	const rows = entries.map(([file, imps]) => ({
+		file,
+		imports: imps.length,
+		sample: imps.slice(0, 3).join(", "),
+	}));
+	console.log(
+		Bun.inspect.table(rows, ["file", "imports", "sample"], {
+			colors: process.stdout.isTTY && !process.env.NO_COLOR,
+		}),
+	);
 	console.log("\nTotal files with imports:", importsByFile.size);
 
 	if (circular) {
@@ -592,18 +718,24 @@ export async function runDeps(opts: ReturnType<typeof parseArgs>): Promise<void>
 /** Simple complexity approximation based on code patterns */
 function approxComplexity(text: string): number {
 	// Count various complexity indicators
-	const conditions = (text.match(/\b(if|else|switch|case|for|while|try|catch)\b/g) || []).length;
+	const conditions = (text.match(/\b(if|else|switch|case|for|while|try|catch)\b/g) || [])
+		.length;
 	const nested = (text.match(/\b(if|for|while)\b.*\b(if|for|while)\b/gs) || []).length;
 	const functions = (text.match(/\b(function|=>|class)\b/g) || []).length;
 	const returns = (text.match(/\b(return)\b/g) || []).length;
 
 	// Basic complexity score
-	return conditions + (nested * 2) + functions + Math.floor(returns / 2);
+	return conditions + nested * 2 + functions + Math.floor(returns / 2);
 }
 
-export async function runComplexity(opts: ReturnType<typeof parseArgs>, config: AnalyzeConfig): Promise<void> {
+export async function runComplexity(
+	opts: ReturnType<typeof parseArgs>,
+	config: AnalyzeConfig,
+): Promise<void> {
 	const thresholdArg = opts.rest.find((a) => a.startsWith("--threshold="));
-	const threshold = thresholdArg ? Math.max(1, Number.parseInt(thresholdArg.slice("--threshold=".length), 10) || 10) : (config.complexity?.threshold ?? 10);
+	const threshold = thresholdArg
+		? Math.max(1, Number.parseInt(thresholdArg.slice("--threshold=".length), 10) || 10)
+		: (config.complexity?.threshold ?? 10);
 	const glob = new Bun.Glob(GLOB_PATTERN);
 	const roots = opts.all ? ["."] : opts.roots;
 	const rows: { file: string; lines: number; complexity: number }[] = [];
@@ -612,7 +744,8 @@ export async function runComplexity(opts: ReturnType<typeof parseArgs>, config: 
 		try {
 			for await (const f of glob.scan({ cwd: root, onlyFiles: true })) {
 				const path = root === "." ? f : `${root}/${f}`;
-				if (opts.ignorePatterns.length && matchesIgnore(path, opts.ignorePatterns)) continue;
+				if (opts.ignorePatterns.length && matchesIgnore(path, opts.ignorePatterns))
+					continue;
 				const text = await Bun.file(path).text();
 				const lines = text.split(/\n/).length;
 				const complexity = approxComplexity(text);
@@ -626,17 +759,25 @@ export async function runComplexity(opts: ReturnType<typeof parseArgs>, config: 
 	const slice = rows.slice(0, opts.limit);
 
 	if (opts.format === "json") {
-		console.log(JSON.stringify({ threshold, total: rows.length, files: slice }, null, 2));
+		console.log(
+			JSON.stringify({ threshold, total: rows.length, files: slice }, null, 2),
+		);
 		return;
 	}
 	console.log("📊 Complexity (threshold ≥ " + threshold + ", top " + opts.limit + ")\n");
-	console.log(Bun.inspect.table(slice, ["file", "lines", "complexity"], { colors: process.stdout.isTTY && !process.env.NO_COLOR }));
+	console.log(
+		Bun.inspect.table(slice, ["file", "lines", "complexity"], {
+			colors: process.stdout.isTTY && !process.env.NO_COLOR,
+		}),
+	);
 	console.log("\nFiles at or above threshold:", rows.length);
 }
 
 export async function runClasses(opts: ReturnType<typeof parseArgs>): Promise<void> {
 	// G1: --inheritance = alias for "show tree" when format is table/json
-	const useTree = opts.rest.includes("--inheritance") && (opts.format === "table" || opts.format === "json");
+	const useTree =
+		opts.rest.includes("--inheritance") &&
+		(opts.format === "table" || opts.format === "json");
 	const effectiveFormat = useTree ? "tree" : opts.format;
 
 	const glob = new Bun.Glob(GLOB_PATTERN);
@@ -648,9 +789,12 @@ export async function runClasses(opts: ReturnType<typeof parseArgs>): Promise<vo
 		try {
 			for await (const f of glob.scan({ cwd: root, onlyFiles: true })) {
 				const path = root === "." ? f : `${root}/${f}`;
-				if (opts.ignorePatterns.length && matchesIgnore(path, opts.ignorePatterns)) continue;
+				if (opts.ignorePatterns.length && matchesIgnore(path, opts.ignorePatterns))
+					continue;
 				const text = await Bun.file(path).text();
-				const matches = [...text.matchAll(/export\s+class\s+(\w+)(?:\s+extends\s+(\w+))?/g)];
+				const matches = [
+					...text.matchAll(/export\s+class\s+(\w+)(?:\s+extends\s+(\w+))?/g),
+				];
 				for (const m of matches) {
 					const name = m[1];
 					const ext = m[2] ?? "";
@@ -671,7 +815,13 @@ export async function runClasses(opts: ReturnType<typeof parseArgs>): Promise<vo
 			parentToChildren.set(row.extends, list);
 		}
 	}
-	const treeRoots = [...new Set(classList.filter((r) => !r.extends || !nameToFile.has(r.extends)).map((r) => r.name))];
+	const treeRoots = [
+		...new Set(
+			classList
+				.filter((r) => !r.extends || !nameToFile.has(r.extends))
+				.map((r) => r.name),
+		),
+	];
 
 	function buildTreeLines(parent: string, prefix: string): string[] {
 		const children = parentToChildren.get(parent) ?? [];
@@ -706,7 +856,12 @@ export async function runClasses(opts: ReturnType<typeof parseArgs>): Promise<vo
 		return;
 	}
 
-	let sliceWithXref = classList.slice(0, opts.limit) as { name: string; extends: string; file: string; docUrl?: string }[];
+	const sliceWithXref = classList.slice(0, opts.limit) as {
+		name: string;
+		extends: string;
+		file: string;
+		docUrl?: string;
+	}[];
 	if (opts.rest.includes("--xref")) {
 		const resolver = await getDocResolver();
 		if (resolver) {
@@ -719,18 +874,32 @@ export async function runClasses(opts: ReturnType<typeof parseArgs>): Promise<vo
 				}
 			}
 			if (effectiveFormat === "json") {
-				console.log(JSON.stringify({ total: classList.length, classes: sliceWithXref, xref: xrefList }, null, 2));
+				console.log(
+					JSON.stringify(
+						{ total: classList.length, classes: sliceWithXref, xref: xrefList },
+						null,
+						2,
+					),
+				);
 				return;
 			}
 		}
 	}
 	if (effectiveFormat === "json") {
-		console.log(JSON.stringify({ total: classList.length, classes: sliceWithXref }, null, 2));
+		console.log(
+			JSON.stringify({ total: classList.length, classes: sliceWithXref }, null, 2),
+		);
 		return;
 	}
-	const classCols: string[] = sliceWithXref.some((r) => r.docUrl) ? ["name", "extends", "file", "docUrl"] : ["name", "extends", "file"];
+	const classCols: string[] = sliceWithXref.some((r) => r.docUrl)
+		? ["name", "extends", "file", "docUrl"]
+		: ["name", "extends", "file"];
 	console.log("📊 Classes (top " + opts.limit + ")\n");
-	console.log(Bun.inspect.table(sliceWithXref, classCols, { colors: process.stdout.isTTY && !process.env.NO_COLOR }));
+	console.log(
+		Bun.inspect.table(sliceWithXref, classCols, {
+			colors: process.stdout.isTTY && !process.env.NO_COLOR,
+		}),
+	);
 	console.log("\nTotal classes:", classList.length);
 }
 
@@ -742,22 +911,38 @@ export async function runStrength(opts: ReturnType<typeof parseArgs>): Promise<v
 	const penalizeLines = opts.rest.includes("--penalize-lines");
 	const glob = new Bun.Glob(GLOB_PATTERN);
 	const roots = opts.all ? ["."] : opts.roots;
-	const rows: { file: string; score: number; lines: number; complexity: number; exports: number }[] = [];
+	const rows: {
+		file: string;
+		score: number;
+		lines: number;
+		complexity: number;
+		exports: number;
+	}[] = [];
 
 	for (const root of roots) {
 		try {
 			for await (const f of glob.scan({ cwd: root, onlyFiles: true })) {
 				const path = root === "." ? f : `${root}/${f}`;
-				if (opts.ignorePatterns.length && matchesIgnore(path, opts.ignorePatterns)) continue;
+				if (opts.ignorePatterns.length && matchesIgnore(path, opts.ignorePatterns))
+					continue;
 				const text = await Bun.file(path).text();
 				const lines = text.split(/\n/).length;
 				const complexity = approxComplexity(text);
-				const exports = (text.match(/^export\s+(const|function|class|interface|type|enum|async)/gm) || []).length;
+				const exports = (
+					text.match(/^export\s+(const|function|class|interface|type|enum|async)/gm) ||
+					[]
+				).length;
 				let score = complexity <= 0 ? exports * 100 : (exports / (1 + complexity)) * 100;
 				if (penalizeLines && lines > LINE_PENALTY_THRESHOLD) {
 					score *= LINE_PENALTY_THRESHOLD / lines;
 				}
-				rows.push({ file: path, score: Math.round(score * 10) / 10, lines, complexity, exports });
+				rows.push({
+					file: path,
+					score: Math.round(score * 10) / 10,
+					lines,
+					complexity,
+					exports,
+				});
 			}
 		} catch {
 			//
@@ -770,8 +955,16 @@ export async function runStrength(opts: ReturnType<typeof parseArgs>): Promise<v
 		console.log(JSON.stringify({ total: rows.length, weakest, files: slice }, null, 2));
 		return;
 	}
-	console.log(weakest ? "📉 Weakest components (top " + opts.limit + ")\n" : "📈 Strongest components (top " + opts.limit + ")\n");
-	console.log(Bun.inspect.table(slice, ["file", "score", "lines", "complexity", "exports"], { colors: process.stdout.isTTY && !process.env.NO_COLOR }));
+	console.log(
+		weakest
+			? "📉 Weakest components (top " + opts.limit + ")\n"
+			: "📈 Strongest components (top " + opts.limit + ")\n",
+	);
+	console.log(
+		Bun.inspect.table(slice, ["file", "score", "lines", "complexity", "exports"], {
+			colors: process.stdout.isTTY && !process.env.NO_COLOR,
+		}),
+	);
 	console.log("\nTotal files:", rows.length);
 }
 
@@ -782,11 +975,16 @@ export async function runRename(opts: ReturnType<typeof parseArgs>): Promise<voi
 	const dryRun = !opts.rest.includes("--auto");
 	const caseSensitive = opts.rest.includes("--case-sensitive");
 	if (!oldName || !newName) {
-		console.error("Usage: bun tools/analyze.ts rename <OldName> <NewName> [--dry-run] [--auto] [--case-sensitive]");
+		console.error(
+			"Usage: bun tools/analyze.ts rename <OldName> <NewName> [--dry-run] [--auto] [--case-sensitive]",
+		);
 		process.exit(1);
 	}
 	const flags = caseSensitive ? "g" : "gi";
-	const wordRe = new RegExp("\\b" + oldName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\b", flags);
+	const wordRe = new RegExp(
+		"\\b" + oldName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\b",
+		flags,
+	);
 	const glob = new Bun.Glob(GLOB_PATTERN);
 	const roots = opts.all ? ["."] : opts.roots;
 	const hits: { file: string; line: number; snippet: string }[] = [];
@@ -796,13 +994,18 @@ export async function runRename(opts: ReturnType<typeof parseArgs>): Promise<voi
 		try {
 			for await (const f of glob.scan({ cwd: root, onlyFiles: true })) {
 				const path = root === "." ? f : `${root}/${f}`;
-				if (opts.ignorePatterns.length && matchesIgnore(path, opts.ignorePatterns)) continue;
+				if (opts.ignorePatterns.length && matchesIgnore(path, opts.ignorePatterns))
+					continue;
 				const text = await Bun.file(path).text();
 				const lines = text.split("\n");
 				let hasMatch = false;
 				for (let i = 0; i < lines.length; i++) {
 					if (lines[i].match(wordRe)) {
-						hits.push({ file: path, line: i + 1, snippet: lines[i].trim().slice(0, 60) });
+						hits.push({
+							file: path,
+							line: i + 1,
+							snippet: lines[i].trim().slice(0, 60),
+						});
 						hasMatch = true;
 					}
 				}
@@ -820,8 +1023,18 @@ export async function runRename(opts: ReturnType<typeof parseArgs>): Promise<voi
 			return;
 		}
 		const slice = hits.slice(0, opts.limit);
-		console.log(Bun.inspect.table(slice, ["file", "line", "snippet"], { colors: process.stdout.isTTY && !process.env.NO_COLOR }));
-		console.log("\nTotal occurrences: " + hits.length + " in " + filesToEdit.length + " files. Run with --auto to apply.");
+		console.log(
+			Bun.inspect.table(slice, ["file", "line", "snippet"], {
+				colors: process.stdout.isTTY && !process.env.NO_COLOR,
+			}),
+		);
+		console.log(
+			"\nTotal occurrences: " +
+				hits.length +
+				" in " +
+				filesToEdit.length +
+				" files. Run with --auto to apply.",
+		);
 		return;
 	}
 
@@ -830,7 +1043,9 @@ export async function runRename(opts: ReturnType<typeof parseArgs>): Promise<voi
 		text = text.replace(wordRe, newName);
 		await Bun.write(path, text);
 	}
-	console.log("Renamed " + oldName + " → " + newName + " in " + filesToEdit.length + " files.");
+	console.log(
+		"Renamed " + oldName + " → " + newName + " in " + filesToEdit.length + " files.",
+	);
 }
 
 /** Collect binding names from a single import line (type-only imports excluded for simplicity). */
@@ -844,7 +1059,7 @@ function getImportBindings(line: string): string[] {
 	if (mNamed) {
 		for (const part of mNamed[1].split(",")) {
 			const as = part.match(/(\w+)\s+as\s+(\w+)/);
-			names.push(as ? as[2] : part.trim().split(/\s/)[0] ?? "");
+			names.push(as ? as[2] : (part.trim().split(/\s/)[0] ?? ""));
 		}
 	}
 	return names.filter(Boolean);
@@ -869,7 +1084,8 @@ export async function runPolish(opts: ReturnType<typeof parseArgs>): Promise<voi
 		try {
 			for await (const f of glob.scan({ cwd: root, onlyFiles: true })) {
 				const path = root === "." ? f : `${root}/${f}`;
-				if (opts.ignorePatterns.length && matchesIgnore(path, opts.ignorePatterns)) continue;
+				if (opts.ignorePatterns.length && matchesIgnore(path, opts.ignorePatterns))
+					continue;
 				const text = await Bun.file(path).text();
 				const lines = text.split("\n");
 				const newLines: string[] = [];
@@ -910,8 +1126,16 @@ export async function runPolish(opts: ReturnType<typeof parseArgs>): Promise<voi
 			return;
 		}
 		const slice = changes.slice(0, opts.limit);
-		console.log(Bun.inspect.table(slice, ["file", "removed"], { colors: process.stdout.isTTY && !process.env.NO_COLOR }));
-		console.log("\nTotal: " + changes.length + " unused import(s). Run with --fix-imports or --auto to remove.");
+		console.log(
+			Bun.inspect.table(slice, ["file", "removed"], {
+				colors: process.stdout.isTTY && !process.env.NO_COLOR,
+			}),
+		);
+		console.log(
+			"\nTotal: " +
+				changes.length +
+				" unused import(s). Run with --fix-imports or --auto to remove.",
+		);
 		return;
 	}
 	console.log("Removed " + changes.length + " unused import(s).");
@@ -942,10 +1166,19 @@ export async function runXref(opts: ReturnType<typeof parseArgs>): Promise<void>
 	console.log(resolver.buildDocUrl(entry.path));
 }
 
-const BENCH_COMMANDS = ["scan", "types", "deps", "complexity", "classes", "strength"] as const;
+const BENCH_COMMANDS = [
+	"scan",
+	"types",
+	"deps",
+	"complexity",
+	"classes",
+	"strength",
+] as const;
 
 async function runCoverage(opts: ReturnType<typeof parseArgs>): Promise<void> {
-	const passthrough = opts.rest.filter((a) => a !== "--coverage" && !a.startsWith("--roots="));
+	const passthrough = opts.rest.filter(
+		(a) => a !== "--coverage" && !a.startsWith("--roots="),
+	);
 	// Only pass --roots= dirs to bun test when user explicitly passed --roots= (else full suite)
 	const rootsExplicit = process.argv.some((a) => a.startsWith("--roots="));
 	const rootsToPass = rootsExplicit ? opts.roots : [];
@@ -960,13 +1193,23 @@ async function runCoverage(opts: ReturnType<typeof parseArgs>): Promise<void> {
 	process.exit(exitCode ?? 0);
 }
 
-async function runBench(opts: ReturnType<typeof parseArgs>, config: AnalyzeConfig): Promise<void> {
+async function runBench(
+	opts: ReturnType<typeof parseArgs>,
+	config: AnalyzeConfig,
+): Promise<void> {
 	const benchFormat = opts.rest.some((a) => a.startsWith("--bench-format="))
-		? (opts.rest.find((a) => a.startsWith("--bench-format="))!.slice("--bench-format=".length) as "table" | "json")
+		? (opts.rest
+				.find((a) => a.startsWith("--bench-format="))!
+				.slice("--bench-format=".length) as "table" | "json")
 		: "table";
 	const roots = opts.roots.join(",");
 	const scriptPath = import.meta.path;
-	const rows: { command: string; ms: number; files: number | string; filesPerSec: number | string }[] = [];
+	const rows: {
+		command: string;
+		ms: number;
+		files: number | string;
+		filesPerSec: number | string;
+	}[] = [];
 
 	for (const cmd of BENCH_COMMANDS) {
 		const t0 = Bun.nanoseconds();
@@ -980,25 +1223,44 @@ async function runBench(opts: ReturnType<typeof parseArgs>, config: AnalyzeConfi
 		try {
 			const out = await new Response(proc.stdout).text();
 			const j = JSON.parse(out) as Record<string, unknown>;
-			files = (typeof j.total === "number" ? j.total : (j.files as unknown[])?.length ?? 0) as number;
+			files = (
+				typeof j.total === "number" ? j.total : ((j.files as unknown[])?.length ?? 0)
+			) as number;
 		} catch {
 			files = "-";
 		}
-		const filesPerSec = typeof files === "number" && files > 0 && ms > 0 ? Math.round(files / (ms / 1000)) : "-";
+		const filesPerSec =
+			typeof files === "number" && files > 0 && ms > 0
+				? Math.round(files / (ms / 1000))
+				: "-";
 		rows.push({ command: cmd, ms: Math.round(ms), files, filesPerSec });
 	}
 
 	if (benchFormat === "json") {
-		console.log(JSON.stringify({ benchmark: "analyze", commands: rows, timestamp: Date.now() }, null, 2));
+		console.log(
+			JSON.stringify(
+				{ benchmark: "analyze", commands: rows, timestamp: Date.now() },
+				null,
+				2,
+			),
+		);
 	} else {
 		console.log("⏱️ Analyze benchmark (read-only commands)\n");
-		console.log(Bun.inspect.table(rows, ["command", "ms", "files", "filesPerSec"], { colors: process.stdout.isTTY && !process.env.NO_COLOR }));
+		console.log(
+			Bun.inspect.table(rows, ["command", "ms", "files", "filesPerSec"], {
+				colors: process.stdout.isTTY && !process.env.NO_COLOR,
+			}),
+		);
 	}
 
 	// Broadcast plan status to MCP realtime
 	try {
 		const { updateAnalyzePlanStatus } = await import("./analyze-plan-status.ts");
-		await updateAnalyzePlanStatus({ stage: "2.x", completed: ["2.1", "2.2"], message: "Bench harness + entry done" });
+		await updateAnalyzePlanStatus({
+			stage: "2.x",
+			completed: ["2.1", "2.2"],
+			message: "Bench harness + entry done",
+		});
 	} catch {
 		// Plan status updater optional
 	}

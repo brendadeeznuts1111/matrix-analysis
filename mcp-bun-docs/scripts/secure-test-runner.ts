@@ -21,11 +21,13 @@ export interface BunTestConfig {
 		preload?: string[];
 		timeout?: number;
 		smol?: boolean;
-		coverage?: boolean | {
-			reporter: ("text" | "lcov")[];
-			threshold: { lines: number; functions: number };
-			pathIgnore: string[];
-		};
+		coverage?:
+			| boolean
+			| {
+					reporter: ("text" | "lcov")[];
+					threshold: { lines: number; functions: number };
+					pathIgnore: string[];
+			  };
 	};
 	"test.ci"?: Partial<BunTestConfig["test"]>;
 	"test.staging"?: Partial<BunTestConfig["test"]>;
@@ -94,7 +96,9 @@ export class SecureTestRunner {
 		const content = readFileSync(testEnvPath, "utf8");
 		for (const pat of PROD_PATTERNS) {
 			if (pat.test(content)) {
-				throw new Error(`Environment isolation failed: .env.test contains prod-like pattern: ${pat}`);
+				throw new Error(
+					`Environment isolation failed: .env.test contains prod-like pattern: ${pat}`,
+				);
 			}
 		}
 	}
@@ -110,7 +114,8 @@ export class SecureTestRunner {
 
 	async runWithSecurity(context: "ci" | "local" | "staging"): Promise<number> {
 		const profileKey = `test.${context}` as keyof BunTestConfig;
-		const profile = (this.config[profileKey] as BunTestConfig["test"]) ?? this.config.test;
+		const profile =
+			(this.config[profileKey] as BunTestConfig["test"]) ?? this.config.test;
 
 		const envFile = `.env.${context}`;
 		const ok = await preTestAudit.verifyNoProdSecrets(envFile);
@@ -154,7 +159,9 @@ export class SecureTestRunner {
 
 const context = (process.argv[2] ?? "local") as "ci" | "local" | "staging";
 if (!["ci", "local", "staging"].includes(context)) {
-	console.error("Usage: bun mcp-bun-docs/scripts/secure-test-runner.ts [ci|local|staging]");
+	console.error(
+		"Usage: bun mcp-bun-docs/scripts/secure-test-runner.ts [ci|local|staging]",
+	);
 	process.exit(1);
 }
 

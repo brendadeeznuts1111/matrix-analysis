@@ -2,10 +2,14 @@
  * CLI commands for frontmatter extraction
  */
 
+import {
+	batchExtractFrontmatter,
+	generateIndex,
+	writeIndex,
+} from "../lib/frontmatter/batch";
 import { extractFrontmatter } from "../lib/frontmatter/extractor";
-import { normalizeFrontmatter } from "../lib/frontmatter/normalizer";
-import { batchExtractFrontmatter, generateIndex, writeIndex } from "../lib/frontmatter/batch";
 import { injectIntoHtml } from "../lib/frontmatter/inject";
+import { normalizeFrontmatter } from "../lib/frontmatter/normalizer";
 import type { FrontmatterSchema } from "../lib/frontmatter/validator";
 import { validateFrontmatter } from "../lib/frontmatter/validator";
 
@@ -92,7 +96,9 @@ export async function frontmatterDebug(filePath: string): Promise<void> {
 		}
 
 		// Show nested objects separately
-		const nested = Object.entries(normalized).filter(([, v]) => typeof v === "object" && v !== null);
+		const nested = Object.entries(normalized).filter(
+			([, v]) => typeof v === "object" && v !== null,
+		);
 		for (const [key, value] of nested) {
 			console.log(`${key}:`, JSON.stringify(value, null, 2));
 		}
@@ -140,9 +146,13 @@ export async function frontmatterBatch(
 	// Format breakdown
 	const formatCounts: Record<string, number> = {};
 	for (const entry of result.entries) {
-		formatCounts[entry.frontmatter.format] = (formatCounts[entry.frontmatter.format] || 0) + 1;
+		formatCounts[entry.frontmatter.format] =
+			(formatCounts[entry.frontmatter.format] || 0) + 1;
 	}
-	const formatRows = Object.entries(formatCounts).map(([format, count]) => ({ format, count }));
+	const formatRows = Object.entries(formatCounts).map(([format, count]) => ({
+		format,
+		count,
+	}));
 	console.log(Bun.inspect.table(formatRows, ["format", "count"]));
 
 	// Show errors if any
@@ -199,7 +209,9 @@ export async function frontmatterValidate(
 	} else {
 		console.log("Validation failed:");
 		for (const err of result.errors) {
-			console.log(`  ${err.field}: ${err.message}${err.actual ? ` (got: ${err.actual})` : ""}`);
+			console.log(
+				`  ${err.field}: ${err.message}${err.actual ? ` (got: ${err.actual})` : ""}`,
+			);
 		}
 		process.exit(1);
 	}
@@ -211,29 +223,43 @@ export async function frontmatterValidate(
  */
 function htmlToAnsi(html: string): string {
 	return html
-		.replace(/<h([1-6])[^>]*>(.*?)<\/h\1>/g, (_, level, text) =>
-			`\x1b[1;4m${"#".repeat(Number(level))} ${text}\x1b[0m\n`)
+		.replace(
+			/<h([1-6])[^>]*>(.*?)<\/h\1>/g,
+			(_, level, text) => `\x1b[1;4m${"#".repeat(Number(level))} ${text}\x1b[0m\n`,
+		)
 		.replace(/<p>([\s\S]*?)<\/p>/g, (_, text) => `${text}\n`)
 		.replace(/<strong>(.*?)<\/strong>/g, (_, text) => `\x1b[1m${text}\x1b[22m`)
 		.replace(/<em>(.*?)<\/em>/g, (_, text) => `\x1b[3m${text}\x1b[23m`)
 		.replace(/<del>(.*?)<\/del>/g, (_, text) => `\x1b[9m${text}\x1b[29m`)
 		.replace(/<code>(.*?)<\/code>/g, (_, text) => `\x1b[36m${text}\x1b[0m`)
-		.replace(/<pre><code[^>]*>([\s\S]*?)<\/code><\/pre>/g, (_, code) =>
-			`\x1b[2m${code.replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&")}\x1b[0m`)
-		.replace(/<a href="([^"]*)"[^>]*>(.*?)<\/a>/g, (_, href, text) =>
-			`\x1b[4;34m${text}\x1b[0m (${href})`)
+		.replace(
+			/<pre><code[^>]*>([\s\S]*?)<\/code><\/pre>/g,
+			(_, code) =>
+				`\x1b[2m${code.replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&")}\x1b[0m`,
+		)
+		.replace(
+			/<a href="([^"]*)"[^>]*>(.*?)<\/a>/g,
+			(_, href, text) => `\x1b[4;34m${text}\x1b[0m (${href})`,
+		)
 		.replace(/<li[^>]*>([\s\S]*?)<\/li>/g, (_, text) => `  - ${text.trim()}\n`)
-		.replace(/<blockquote>\s*([\s\S]*?)\s*<\/blockquote>/g, (_, text) =>
-			`\x1b[2m> ${text.trim()}\x1b[0m\n`)
+		.replace(
+			/<blockquote>\s*([\s\S]*?)\s*<\/blockquote>/g,
+			(_, text) => `\x1b[2m> ${text.trim()}\x1b[0m\n`,
+		)
 		.replace(/<hr\s*\/?>/g, `${"─".repeat(40)}\n`)
 		.replace(/<table>[\s\S]*?<\/table>/g, (match) => {
 			// Simple table rendering — extract cells
 			const rows = match.match(/<tr>[\s\S]*?<\/tr>/g) ?? [];
-			return rows.map((row) => {
-				const cells = (row.match(/<t[hd][^>]*>([\s\S]*?)<\/t[hd]>/g) ?? [])
-					.map((c) => c.replace(/<\/?t[hd][^>]*>/g, "").trim());
-				return `  ${cells.join("  |  ")}`;
-			}).join("\n") + "\n";
+			return (
+				rows
+					.map((row) => {
+						const cells = (row.match(/<t[hd][^>]*>([\s\S]*?)<\/t[hd]>/g) ?? []).map(
+							(c) => c.replace(/<\/?t[hd][^>]*>/g, "").trim(),
+						);
+						return `  ${cells.join("  |  ")}`;
+					})
+					.join("\n") + "\n"
+			);
 		})
 		.replace(/<img[^>]*alt="([^"]*)"[^>]*>/g, "[image: $1]")
 		.replace(/<[^>]+>/g, "")

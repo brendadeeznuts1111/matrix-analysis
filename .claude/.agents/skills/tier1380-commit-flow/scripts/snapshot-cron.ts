@@ -35,9 +35,7 @@ class SnapshotCron {
 			return;
 		}
 
-		console.log(
-			`🕐 Starting snapshot cron (every ${this.config.intervalHours}h)`,
-		);
+		console.log(`🕐 Starting snapshot cron (every ${this.config.intervalHours}h)`);
 
 		// Run immediately
 		await this.runSnapshotJob();
@@ -46,9 +44,7 @@ class SnapshotCron {
 		const intervalMs = this.config.intervalHours * 60 * 60 * 1000;
 		this.timer = setInterval(() => this.runSnapshotJob(), intervalMs);
 
-		console.log(
-			`   Next run: ${new Date(Date.now() + intervalMs).toISOString()}`,
-		);
+		console.log(`   Next run: ${new Date(Date.now() + intervalMs).toISOString()}`);
 	}
 
 	stop(): void {
@@ -181,8 +177,7 @@ if (import.meta.main) {
 		args.find((a) => a.startsWith("--interval="))?.split("=")[1] || "24",
 		10,
 	);
-	const dir =
-		args.find((a) => a.startsWith("--dir="))?.split("=")[1] || "./snapshots";
+	const dir = args.find((a) => a.startsWith("--dir="))?.split("=")[1] || "./snapshots";
 	const notifyUrl = args.find((a) => a.startsWith("--notify="))?.split("=")[1];
 	const once = args.includes("--once");
 

@@ -6,9 +6,7 @@
  */
 
 // Detect change scope from file paths
-const detectScope = (
-	files: string[],
-): { domain: string; component: string } => {
+const detectScope = (files: string[]): { domain: string; component: string } => {
 	const paths = files.join(" ");
 
 	// OpenClaw specific patterns

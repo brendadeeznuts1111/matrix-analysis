@@ -21,7 +21,16 @@ const DEFAULT_OPTIONS: Required<NormalizationOptions> = {
 	coerceDraft: true,
 };
 
-const DATE_FIELDS = new Set(["date", "published", "created", "updated", "modified", "publishedAt", "createdAt", "updatedAt"]);
+const DATE_FIELDS = new Set([
+	"date",
+	"published",
+	"created",
+	"updated",
+	"modified",
+	"publishedAt",
+	"createdAt",
+	"updatedAt",
+]);
 const ARRAY_FIELDS = new Set(["tags", "categories", "keywords", "authors"]);
 
 /**

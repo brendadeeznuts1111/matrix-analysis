@@ -3,12 +3,12 @@
  */
 
 import { afterAll, beforeAll, describe, expect, it } from "bun:test";
-import { extractFrontmatter } from "./extractor";
-import { normalizeFrontmatter } from "./normalizer";
-import { validateFrontmatter } from "./validator";
 import { batchExtractFrontmatter, generateIndex } from "./batch";
+import { extractFrontmatter } from "./extractor";
 import { generateHeadTags, injectIntoHtml } from "./inject";
+import { normalizeFrontmatter } from "./normalizer";
 import type { FrontmatterSchema } from "./validator";
+import { validateFrontmatter } from "./validator";
 
 // ─── Extractor ──────────────────────────────────────────────────────────────
 
@@ -256,14 +256,18 @@ describe("validateFrontmatter", () => {
 		const data = { title: 42, date: "2026-02-01" };
 		const result = validateFrontmatter(data, schema);
 		expect(result.valid).toBe(false);
-		expect(result.errors.some((e) => e.field === "title" && e.message.includes("Type"))).toBe(true);
+		expect(
+			result.errors.some((e) => e.field === "title" && e.message.includes("Type")),
+		).toBe(true);
 	});
 
 	it("should fail on too-short string", () => {
 		const data = { title: "Hi", date: "2026-02-01" };
 		const result = validateFrontmatter(data, schema);
 		expect(result.valid).toBe(false);
-		expect(result.errors.some((e) => e.field === "title" && e.message.includes("short"))).toBe(true);
+		expect(
+			result.errors.some((e) => e.field === "title" && e.message.includes("short")),
+		).toBe(true);
 	});
 
 	it("should fail on too-few array items", () => {
@@ -308,7 +312,11 @@ describe("generateHeadTags", () => {
 	});
 
 	it("should generate OpenGraph tags", () => {
-		const data = { title: "OG Test", description: "OG desc", image: "https://img.example.com/og.png" };
+		const data = {
+			title: "OG Test",
+			description: "OG desc",
+			image: "https://img.example.com/og.png",
+		};
 		const tags = generateHeadTags(data, { modes: ["opengraph"] });
 		expect(tags).toContain('property="og:title"');
 		expect(tags).toContain('property="og:description"');
@@ -316,7 +324,11 @@ describe("generateHeadTags", () => {
 	});
 
 	it("should generate JSON-LD", () => {
-		const data = { title: "LD Test", author: "Nola", date_iso: "2026-02-01T00:00:00.000Z" };
+		const data = {
+			title: "LD Test",
+			author: "Nola",
+			date_iso: "2026-02-01T00:00:00.000Z",
+		};
 		const tags = generateHeadTags(data, { modes: ["jsonld"] });
 		expect(tags).toContain("application/ld+json");
 		expect(tags).toContain('"@type": "Article"');
@@ -384,10 +396,7 @@ draft = true
 # Post Two`,
 		);
 
-		await Bun.write(
-			`${tmpDir}/plain.md`,
-			"# No Frontmatter\n\nJust content.",
-		);
+		await Bun.write(`${tmpDir}/plain.md`, "# No Frontmatter\n\nJust content.");
 	});
 
 	afterAll(async () => {

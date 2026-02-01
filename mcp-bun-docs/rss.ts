@@ -47,22 +47,40 @@ export function safeRSSPreview<T extends string>(
 	input: T,
 	options: SafeRSSPreviewOptions = {},
 ): string {
-	const { maxCols = 89, reserve = 3, wordAware = true, onViolation, logSlow = false } = options;
+	const {
+		maxCols = 89,
+		reserve = 3,
+		wordAware = true,
+		onViolation,
+		logSlow = false,
+	} = options;
 
 	const startNs =
-		typeof Bun !== "undefined" && typeof Bun.nanoseconds === "function" ? Bun.nanoseconds() : 0;
+		typeof Bun !== "undefined" && typeof Bun.nanoseconds === "function"
+			? Bun.nanoseconds()
+			: 0;
 
 	const stripANSI =
-		typeof Bun !== "undefined" && typeof Bun.stripANSI === "function" ? (s: string) => Bun.stripANSI(s) : (s: string) => s;
+		typeof Bun !== "undefined" && typeof Bun.stripANSI === "function"
+			? (s: string) => Bun.stripANSI(s)
+			: (s: string) => s;
 	const clean = stripANSI(input);
 
 	const stringWidth =
 		typeof Bun !== "undefined" && typeof Bun.stringWidth === "function"
-			? (s: string) => (Bun.stringWidth as (s: string, o?: { countAnsiEscapeCodes?: boolean }) => number)(s, { countAnsiEscapeCodes: false })
+			? (s: string) =>
+					(
+						Bun.stringWidth as (
+							s: string,
+							o?: { countAnsiEscapeCodes?: boolean },
+						) => number
+					)(s, { countAnsiEscapeCodes: false })
 			: (s: string) => s.length;
 
 	const escapeHTML =
-		typeof Bun !== "undefined" && typeof Bun.escapeHTML === "function" ? (s: string) => Bun.escapeHTML(s) : (s: string) => s;
+		typeof Bun !== "undefined" && typeof Bun.escapeHTML === "function"
+			? (s: string) => Bun.escapeHTML(s)
+			: (s: string) => s;
 
 	const width = stringWidth(clean);
 	if (width <= maxCols) {
@@ -102,9 +120,18 @@ export function safeRSSPreview<T extends string>(
 
 	const result = escapeHTML(truncated) + "…";
 
-	if (logSlow && startNs > 0 && typeof Bun !== "undefined" && typeof Bun.nanoseconds === "function") {
+	if (
+		logSlow &&
+		startNs > 0 &&
+		typeof Bun !== "undefined" &&
+		typeof Bun.nanoseconds === "function"
+	) {
 		const durationNs = Bun.nanoseconds() - startNs;
-		if (durationNs > 5000 && typeof console !== "undefined" && typeof console.debug === "function") {
+		if (
+			durationNs > 5000 &&
+			typeof console !== "undefined" &&
+			typeof console.debug === "function"
+		) {
 			console.debug(`safeRSSPreview took ${durationNs}ns for ${input.length} chars`);
 		}
 	}
@@ -181,7 +208,8 @@ function getLinkHrefOrText(block: string): string {
 }
 
 function getEnclosure(block: string): RSSItemEnclosure | undefined {
-	const re = /<enclosure[^>]+url=["']([^"']+)["'][^>]*(?:type=["']([^"']*)["'])?(?:length=["']([^"']*)["'])?/i;
+	const re =
+		/<enclosure[^>]+url=["']([^"']+)["'][^>]*(?:type=["']([^"']*)["'])?(?:length=["']([^"']*)["'])?/i;
 	const m = block.match(re);
 	if (!m) return undefined;
 	return { url: m[1].trim(), type: (m[2] ?? "").trim(), length: (m[3] ?? "").trim() };
@@ -190,11 +218,17 @@ function getEnclosure(block: string): RSSItemEnclosure | undefined {
 function parseItemBlock(itemBlock: string): RSSItem {
 	const title = getTagContent(itemBlock, "title") ?? "";
 	const link = getLinkHrefOrText(itemBlock) || (getTagContent(itemBlock, "link") ?? "");
-	const pubDate = getTagContent(itemBlock, "pubDate") ?? getTagContent(itemBlock, "published") ?? getTagContent(itemBlock, "updated");
-	const description = getTagContent(itemBlock, "description") ?? getTagContent(itemBlock, "summary");
-	const content = getTagContent(itemBlock, "content") ?? getTagContent(itemBlock, "content:encoded");
+	const pubDate =
+		getTagContent(itemBlock, "pubDate") ??
+		getTagContent(itemBlock, "published") ??
+		getTagContent(itemBlock, "updated");
+	const description =
+		getTagContent(itemBlock, "description") ?? getTagContent(itemBlock, "summary");
+	const content =
+		getTagContent(itemBlock, "content") ?? getTagContent(itemBlock, "content:encoded");
 	const guid = getTagContent(itemBlock, "guid") ?? getTagContent(itemBlock, "id");
-	const author = getTagContent(itemBlock, "author") ?? getTagContent(itemBlock, "dc:creator");
+	const author =
+		getTagContent(itemBlock, "author") ?? getTagContent(itemBlock, "dc:creator");
 	const enclosure = getEnclosure(itemBlock);
 	const categories: string[] = [];
 	const catRe = /<category[^>]*(?:term=["']([^"']+)["'])?[^>]*>([^<]*)<\/category>/gi;
@@ -223,18 +257,34 @@ function parseFeedFromText(text: string): RSSFeed {
 		throw new Error(`RSS parse error (parsererror detected): ${snippet}`);
 	}
 
-	const channelBlock = text.match(/<channel[^>]*>([\s\S]*?)<\/channel>/i)?.[1]
-		?? text.match(/<feed[^>]*>([\s\S]*?)<\/feed>/i)?.[1]
-		?? "";
+	const channelBlock =
+		text.match(/<channel[^>]*>([\s\S]*?)<\/channel>/i)?.[1] ??
+		text.match(/<feed[^>]*>([\s\S]*?)<\/feed>/i)?.[1] ??
+		"";
 
-	const title = getTagContent(channelBlock, "title") ?? getTagContent(text, "title") ?? "Untitled Feed";
-	const description = getTagContent(channelBlock, "description") ?? getTagContent(channelBlock, "subtitle") ?? "";
-	const link = getLinkHrefOrText(channelBlock) || getLinkHrefOrText(text) || (getTagContent(channelBlock, "link") ?? "");
-	const lastBuildDate = getTagContent(channelBlock, "lastBuildDate") ?? getTagContent(channelBlock, "updated") ?? undefined;
+	const title =
+		getTagContent(channelBlock, "title") ??
+		getTagContent(text, "title") ??
+		"Untitled Feed";
+	const description =
+		getTagContent(channelBlock, "description") ??
+		getTagContent(channelBlock, "subtitle") ??
+		"";
+	const link =
+		getLinkHrefOrText(channelBlock) ||
+		getLinkHrefOrText(text) ||
+		(getTagContent(channelBlock, "link") ?? "");
+	const lastBuildDate =
+		getTagContent(channelBlock, "lastBuildDate") ??
+		getTagContent(channelBlock, "updated") ??
+		undefined;
 
 	const itemMatches = [...text.matchAll(/<item[^>]*>([\s\S]*?)<\/item>/gi)];
 	const entryMatches = [...text.matchAll(/<entry[^>]*>([\s\S]*?)<\/entry>/gi)];
-	const blocks = itemMatches.length > 0 ? itemMatches.map((m) => m[1] ?? "") : entryMatches.map((m) => m[1] ?? "");
+	const blocks =
+		itemMatches.length > 0
+			? itemMatches.map((m) => m[1] ?? "")
+			: entryMatches.map((m) => m[1] ?? "");
 	const items = blocks.map(parseItemBlock);
 
 	return {
@@ -253,15 +303,26 @@ function parseFeedFromText(text: string): RSSFeed {
  * - try/catch + parsererror check
  * - Returns feed + audit (fetchTimeMs, sizeBytes, parseTimeMs)
  */
-export async function parseRSS(url: string, options: ParseRSSOptions = {}): Promise<RSSFeedResult> {
+export async function parseRSS(
+	url: string,
+	options: ParseRSSOptions = {},
+): Promise<RSSFeedResult> {
 	const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
-	const t0 = typeof Bun !== "undefined" && typeof Bun.nanoseconds === "function" ? Bun.nanoseconds() : Date.now() * 1e6;
+	const t0 =
+		typeof Bun !== "undefined" && typeof Bun.nanoseconds === "function"
+			? Bun.nanoseconds()
+			: Date.now() * 1e6;
 
 	let text: string;
 	let fromCache = false;
 
 	if (options.cacheDir && typeof Bun !== "undefined") {
-		const result = await fetchWithFileCache(url, options.cacheDir, options.cacheKey, timeoutMs);
+		const result = await fetchWithFileCache(
+			url,
+			options.cacheDir,
+			options.cacheKey,
+			timeoutMs,
+		);
 		text = result.body;
 		fromCache = result.fromCache;
 	} else {
@@ -278,21 +339,35 @@ export async function parseRSS(url: string, options: ParseRSSOptions = {}): Prom
 		text = await res.text();
 	}
 
-	const t1 = typeof Bun !== "undefined" && typeof Bun.nanoseconds === "function" ? Bun.nanoseconds() : Date.now() * 1e6;
+	const t1 =
+		typeof Bun !== "undefined" && typeof Bun.nanoseconds === "function"
+			? Bun.nanoseconds()
+			: Date.now() * 1e6;
 	const fetchTimeMs = (t1 - t0) / 1e6;
 	const sizeBytes = new TextEncoder().encode(text).length;
 
 	let feed: RSSFeed;
-	const parseT0 = typeof Bun !== "undefined" && typeof Bun.nanoseconds === "function" ? Bun.nanoseconds() : Date.now() * 1e6;
+	const parseT0 =
+		typeof Bun !== "undefined" && typeof Bun.nanoseconds === "function"
+			? Bun.nanoseconds()
+			: Date.now() * 1e6;
 	try {
 		feed = parseFeedFromText(text);
 	} catch (err) {
 		throw err instanceof Error ? err : new Error(String(err));
 	}
-	const parseT1 = typeof Bun !== "undefined" && typeof Bun.nanoseconds === "function" ? Bun.nanoseconds() : Date.now() * 1e6;
+	const parseT1 =
+		typeof Bun !== "undefined" && typeof Bun.nanoseconds === "function"
+			? Bun.nanoseconds()
+			: Date.now() * 1e6;
 	const parseTimeMs = (parseT1 - parseT0) / 1e6;
 
-	const audit: RSSFeedAudit = { fetchTimeMs, sizeBytes, parseTimeMs, ...(fromCache && { fromCache }) };
+	const audit: RSSFeedAudit = {
+		fetchTimeMs,
+		sizeBytes,
+		parseTimeMs,
+		...(fromCache && { fromCache }),
+	};
 	options.onAudit?.(audit);
 
 	return { feed, audit };

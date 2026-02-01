@@ -25,8 +25,7 @@ async function listSnapshots(snapshotDir: string): Promise<SnapshotInfo[]> {
 	const snapshots: SnapshotInfo[] = [];
 
 	try {
-		const files =
-			await $`ls -la ${snapshotDir}/*.tar.gz 2>/dev/null || echo ""`.text();
+		const files = await $`ls -la ${snapshotDir}/*.tar.gz 2>/dev/null || echo ""`.text();
 
 		for (const line of files.trim().split("\n")) {
 			const parts = line.trim().split(/\s+/);
@@ -42,9 +41,7 @@ async function listSnapshots(snapshotDir: string): Promise<SnapshotInfo[]> {
 			if (!match) continue;
 
 			const [, tenant, timestampStr] = match;
-			const timestamp = new Date(
-				timestampStr.replace(/-/g, ":").replace("T", " "),
-			);
+			const timestamp = new Date(timestampStr.replace(/-/g, ":").replace("T", " "));
 
 			snapshots.push({
 				path: `${snapshotDir}/${filename}`,
@@ -58,9 +55,7 @@ async function listSnapshots(snapshotDir: string): Promise<SnapshotInfo[]> {
 		// Directory doesn't exist or is empty
 	}
 
-	return snapshots.sort(
-		(a, b) => b.timestamp.getTime() - a.timestamp.getTime(),
-	);
+	return snapshots.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
 }
 
 function applyRetentionPolicy(
@@ -68,9 +63,7 @@ function applyRetentionPolicy(
 	policy: RetentionPolicy,
 ): { keep: SnapshotInfo[]; remove: SnapshotInfo[] } {
 	const now = new Date();
-	const cutoffDate = new Date(
-		now.getTime() - policy.maxAgeDays * 24 * 60 * 60 * 1000,
-	);
+	const cutoffDate = new Date(now.getTime() - policy.maxAgeDays * 24 * 60 * 60 * 1000);
 
 	const keep: SnapshotInfo[] = [];
 	const remove: SnapshotInfo[] = [];

@@ -4,11 +4,7 @@
  */
 
 import { describe, expect, it, mock } from "bun:test";
-import {
-	DEFAULT_CONFIG,
-	loadWidthData,
-	submitWidthViolation,
-} from "../lib/api-client";
+import { DEFAULT_CONFIG, loadWidthData, submitWidthViolation } from "../lib/api-client";
 
 describe("API Client", () => {
 	it("should have default config", () => {

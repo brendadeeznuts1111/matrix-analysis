@@ -5,9 +5,9 @@
  * Usage: bun run tier1380:seal --matrix=v1.3.7 --sign=ed25519 --output=./matrix-v1.3.7.lock
  */
 import {
-	BUN_DOCS_VERSION,
-	BUN_DOC_ENTRIES,
 	BUN_137_FEATURE_MATRIX,
+	BUN_DOC_ENTRIES,
+	BUN_DOCS_VERSION,
 	TIER_1380_COMPLIANCE,
 } from "../lib.ts";
 
@@ -25,9 +25,12 @@ async function signPayload(payload: string, _algo: string): Promise<string> {
 
 async function main(): Promise<void> {
 	const args = process.argv.slice(2);
-	const matrix = args.find((a) => a.startsWith("--matrix="))?.split("=")[1] ?? BUN_DOCS_VERSION;
+	const matrix =
+		args.find((a) => a.startsWith("--matrix="))?.split("=")[1] ?? BUN_DOCS_VERSION;
 	const sign = args.find((a) => a.startsWith("--sign="))?.split("=")[1] ?? "ed25519";
-	const output = args.find((a) => a.startsWith("--output="))?.split("=")[1] ?? `./matrix-${matrix.replace(/\./g, "-")}.lock`;
+	const output =
+		args.find((a) => a.startsWith("--output="))?.split("=")[1] ??
+		`./matrix-${matrix.replace(/\./g, "-")}.lock`;
 
 	const seal = {
 		matrix,
@@ -48,7 +51,9 @@ async function main(): Promise<void> {
 	};
 
 	await Bun.write(output, JSON.stringify(lock, null, 2));
-	console.log(`\n  🔷 Tier-1380 Seal\n  Matrix: ${matrix}\n  Output: ${output}\n  Checksum: ${checksum}\n`);
+	console.log(
+		`\n  🔷 Tier-1380 Seal\n  Matrix: ${matrix}\n  Output: ${output}\n  Checksum: ${checksum}\n`,
+	);
 }
 
 main();

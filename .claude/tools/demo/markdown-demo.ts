@@ -264,9 +264,7 @@ Serve any \`.md\` file as HTML by visiting its path.
 		},
 	});
 
-	console.log(
-		`Bun.markdown demo server listening on http://127.0.0.1:${server.port}`,
-	);
+	console.log(`Bun.markdown demo server listening on http://127.0.0.1:${server.port}`);
 	console.log("Visit http://127.0.0.1:3000/ for the index page");
 	console.log("Press Ctrl+C to stop");
 }
@@ -314,9 +312,7 @@ await Bun.write("file.html", html);
 
 	// Write markdown
 	await Bun.write(tmpMd, md);
-	console.log(
-		`Wrote markdown: ${tmpMd} (${new TextEncoder().encode(md).length} bytes)`,
-	);
+	console.log(`Wrote markdown: ${tmpMd} (${new TextEncoder().encode(md).length} bytes)`);
 
 	// Read + render
 	const readBack = await Bun.file(tmpMd).text();

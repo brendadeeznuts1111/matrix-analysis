@@ -28,9 +28,7 @@ class SnapshotNotifier {
 			fetch: (req) => this.handleRequest(req),
 		});
 
-		console.log(
-			`📡 Snapshot notifier running on http://localhost:${this.port}`,
-		);
+		console.log(`📡 Snapshot notifier running on http://localhost:${this.port}`);
 		console.log(`   SSE endpoint: http://localhost:${this.port}/events`);
 	}
 
@@ -91,12 +89,7 @@ class SnapshotNotifier {
 		console.log(logLine.length > 89 ? `${logLine.slice(0, 86)}…` : logLine);
 	}
 
-	notifyCreated(
-		tenant: string,
-		filename: string,
-		sha256: string,
-		size: number,
-	): void {
+	notifyCreated(tenant: string, filename: string, sha256: string, size: number): void {
 		this.broadcast({
 			type: "created",
 			tenant,

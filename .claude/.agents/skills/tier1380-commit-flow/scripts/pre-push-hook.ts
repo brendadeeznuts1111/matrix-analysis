@@ -114,8 +114,7 @@ async function checkLargeFiles(): Promise<string[]> {
 		for (const file of files.trim().split("\n")) {
 			if (!file) continue;
 
-			const size =
-				await $`git cat-file -s :"${file}" 2>/dev/null || echo 0`.text();
+			const size = await $`git cat-file -s :"${file}" 2>/dev/null || echo 0`.text();
 			const sizeBytes = Number(size.trim());
 
 			if (sizeBytes > 10 * 1024 * 1024) {

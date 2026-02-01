@@ -22,9 +22,7 @@ async function createTenantSnapshot(
 
 	// Check if violations table exists
 	const tableCheck = db
-		.query(
-			"SELECT name FROM sqlite_master WHERE type='table' AND name='violations'",
-		)
+		.query("SELECT name FROM sqlite_master WHERE type='table' AND name='violations'")
 		.get();
 
 	let violations: Array<Record<string, unknown>> = [];
@@ -87,9 +85,7 @@ async function createTenantSnapshot(
 
 	// Col-89 safe log
 	const logLine = `Snapshot: ${filename} | Size: ${Math.round(bytes.byteLength / 1024)} KiB | SHA-256: ${sha256.slice(0, 16)}…`;
-	console.log(
-		Bun.stringWidth(logLine) > 89 ? `${logLine.slice(0, 86)}…` : logLine,
-	);
+	console.log(Bun.stringWidth(logLine) > 89 ? `${logLine.slice(0, 86)}…` : logLine);
 
 	return { path, sha256, size: bytes.byteLength, filename };
 }

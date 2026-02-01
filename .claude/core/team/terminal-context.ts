@@ -243,10 +243,7 @@ export function getInlinedPublicEnv(): Record<string, string> {
 
 const activeSessions = new Map<string, TerminalSession>();
 
-export function registerSession(
-	sessionId: string,
-	session: TerminalSession,
-): void {
+export function registerSession(sessionId: string, session: TerminalSession): void {
 	activeSessions.set(sessionId, session);
 }
 
@@ -287,9 +284,7 @@ export function getSessionStats(): {
 // ═══════════════════════════════════════════════════════════════════════════
 
 async function cleanupSessions(signal: string) {
-	console.log(
-		`🛑 ${signal}: Closing ${activeSessions.size} terminal sessions...`,
-	);
+	console.log(`🛑 ${signal}: Closing ${activeSessions.size} terminal sessions...`);
 	for (const [id, session] of activeSessions) {
 		try {
 			await session.proc.kill();

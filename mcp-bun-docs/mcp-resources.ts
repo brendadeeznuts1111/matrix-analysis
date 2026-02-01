@@ -3,11 +3,11 @@
  * @col_93 balanced_braces
  */
 import {
+	BINARY_PERF_METRICS,
+	BUN_137_COMPLETE_MATRIX,
+	BUN_137_FEATURE_MATRIX,
 	BUN_DOCS_BASE,
 	BUN_DOCS_VERSION,
-	BUN_137_FEATURE_MATRIX,
-	BUN_137_COMPLETE_MATRIX,
-	BINARY_PERF_METRICS,
 } from "./lib.ts";
 
 export const MATRIX_ACP_RESOURCES = [
@@ -25,7 +25,10 @@ export const MATRIX_ACP_RESOURCES = [
 		uri: "bun://docs/matrix/v1.3.7-complete",
 		mimeType: "application/json",
 		name: "Tier-1380 Complete Matrix (28 entries)",
-		metadata: { bunVersion: BUN_DOCS_VERSION, entryCount: BUN_137_COMPLETE_MATRIX.length },
+		metadata: {
+			bunVersion: BUN_DOCS_VERSION,
+			entryCount: BUN_137_COMPLETE_MATRIX.length,
+		},
 	},
 	{
 		uri: "bun://docs/matrix/perf-baselines",
@@ -36,7 +39,9 @@ export const MATRIX_ACP_RESOURCES = [
 			"",
 			"| Op | Before | After | Use Case |",
 			"|----|--------|-------|----------|",
-			...BINARY_PERF_METRICS.map((m) => `| ${m.op} | ${m.before} | ${m.after} | ${m.use} |`),
+			...BINARY_PERF_METRICS.map(
+				(m) => `| ${m.op} | ${m.before} | ${m.after} | ${m.use} |`,
+			),
 			"",
 			"**Buffer.swap64 baseline:** 0.56µs/64KB",
 		].join("\n"),

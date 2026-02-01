@@ -62,10 +62,7 @@ function generateFix(violation: Violation): string {
 	return Bun.wrapAnsi(violation.content, 89, { wordWrap: true, trim: true });
 }
 
-function generateTextReport(
-	violations: Violation[],
-	options: ReportOptions,
-): string {
+function generateTextReport(violations: Violation[], options: ReportOptions): string {
 	let report = "Col-89 Violation Report\n";
 	report += "═══════════════════════════════════════════════════\n\n";
 	report += `Total violations: ${violations.length}\n`;
@@ -134,9 +131,8 @@ if (import.meta.main) {
 	const format = (args.find((a) => a.startsWith("--format="))?.split("=")[1] ||
 		"text") as ReportOptions["format"];
 	const output = args.find((a) => a.startsWith("--output="))?.split("=")[1];
-	const severity = (args
-		.find((a) => a.startsWith("--severity="))
-		?.split("=")[1] || "all") as ReportOptions["severity"];
+	const severity = (args.find((a) => a.startsWith("--severity="))?.split("=")[1] ||
+		"all") as ReportOptions["severity"];
 	const includeFix = args.includes("--fix");
 
 	console.log("╔════════════════════════════════════════════════════════╗");
@@ -145,9 +141,7 @@ if (import.meta.main) {
 	console.log();
 
 	// Get staged files
-	const stagedOutput = await $`git diff --cached --name-only`
-		.text()
-		.catch(() => "");
+	const stagedOutput = await $`git diff --cached --name-only`.text().catch(() => "");
 	const files = stagedOutput.trim().split("\n").filter(Boolean);
 
 	if (files.length === 0) {

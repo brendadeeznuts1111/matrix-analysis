@@ -193,9 +193,4 @@ if (import.meta.main) {
 	process.exit(result.valid ? 0 : 1);
 }
 
-export {
-	validateBranchName,
-	getCurrentBranch,
-	suggestBranchName,
-	PROTECTED_BRANCHES,
-};
+export { validateBranchName, getCurrentBranch, suggestBranchName, PROTECTED_BRANCHES };

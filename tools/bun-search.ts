@@ -1,11 +1,12 @@
 #!/usr/bin/env bun
+
 /**
  * Bun Package Search Tool
  * Searches the npm registry for packages
  */
 
-import { EXIT_CODES } from "../.claude/lib/exit-codes.ts";
 import { defineCommand, fmt } from "../.claude/lib/cli.ts";
+import { EXIT_CODES } from "../.claude/lib/exit-codes.ts";
 
 defineCommand({
 	name: "bun-search",
@@ -31,8 +32,12 @@ defineCommand({
 		for (const pkg of data.objects || []) {
 			const p = pkg.package;
 			console.log(`  ${p.name}@${p.version}`);
-			console.log(`   ${p.description?.slice(0, 80) || "No description"}${p.description?.length > 80 ? "..." : ""}`);
-			console.log(`   Downloads: ${pkg.downloads?.weekly?.toLocaleString() || "N/A"}/week`);
+			console.log(
+				`   ${p.description?.slice(0, 80) || "No description"}${p.description?.length > 80 ? "..." : ""}`,
+			);
+			console.log(
+				`   Downloads: ${pkg.downloads?.weekly?.toLocaleString() || "N/A"}/week`,
+			);
 			console.log(`   https://www.npmjs.com/package/${p.name}\n`);
 		}
 

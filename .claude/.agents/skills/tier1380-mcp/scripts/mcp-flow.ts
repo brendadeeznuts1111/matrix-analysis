@@ -150,10 +150,7 @@ const FLOWS: Record<string, Flow> = {
 };
 
 // Tool implementations
-async function executeTool(
-	name: string,
-	args: Record<string, any> = {},
-): Promise<any> {
+async function executeTool(name: string, args: Record<string, any> = {}): Promise<any> {
 	const _bridgePath = `${process.env.HOME}/.kimi/tools/unified-shell-bridge.ts`;
 
 	switch (name) {
@@ -220,8 +217,7 @@ async function executeTool(
 
 		case "profile_switch": {
 			const cliPath = `${process.env.HOME}/.claude/core/terminal/cli.ts`;
-			const result =
-				await $`bun run ${cliPath} switch ${args.profile}`.nothrow();
+			const result = await $`bun run ${cliPath} switch ${args.profile}`.nothrow();
 			return {
 				stdout: result.stdout.toString(),
 				stderr: result.stderr.toString(),
@@ -273,8 +269,7 @@ async function executeTool(
 		}
 
 		case "cron_list": {
-			const result =
-				await $`crontab -l 2>/dev/null || echo "No crontab"`.nothrow();
+			const result = await $`crontab -l 2>/dev/null || echo "No crontab"`.nothrow();
 			return { crontab: result.stdout.toString() };
 		}
 
@@ -322,10 +317,7 @@ async function executeFlow(
 		if (step.args) {
 			for (const [key, value] of Object.entries(step.args)) {
 				if (typeof value === "string") {
-					args[key] = value.replace(
-						/\$\{(\w+)\}/g,
-						(_, name) => params[name] || "",
-					);
+					args[key] = value.replace(/\$\{(\w+)\}/g, (_, name) => params[name] || "");
 				} else {
 					args[key] = value;
 				}
@@ -335,8 +327,7 @@ async function executeFlow(
 		try {
 			const result = await executeTool(step.tool, args);
 			const success =
-				!result.error &&
-				(result.exitCode === undefined || result.exitCode === 0);
+				!result.error && (result.exitCode === undefined || result.exitCode === 0);
 
 			results.push({ step: step.name, success, result });
 

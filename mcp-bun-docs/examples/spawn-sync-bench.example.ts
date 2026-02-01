@@ -10,5 +10,9 @@ const N = 100;
 const start = performance.now();
 for (let i = 0; i < N; i++) Bun.spawnSync(["true"]);
 const ms = performance.now() - start;
-console.log(`Bun.spawnSync(["true"]) × ${N}: ${ms.toFixed(2)}ms (${(ms / N).toFixed(3)}ms/spawn)`);
-console.log(ms < 1 ? "✓ close_range() path (Linux fixed)" : "~ legacy FD iteration (or non-Linux)");
+console.log(
+	`Bun.spawnSync(["true"]) × ${N}: ${ms.toFixed(2)}ms (${(ms / N).toFixed(3)}ms/spawn)`,
+);
+console.log(
+	ms < 1 ? "✓ close_range() path (Linux fixed)" : "~ legacy FD iteration (or non-Linux)",
+);

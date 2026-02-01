@@ -46,9 +46,7 @@ const DEFAULT_OPTIONS: Required<LoadOptions> = {
 /**
  * Load width data from API with retry logic
  */
-export async function loadWidthData(
-	options: LoadOptions = {},
-): Promise<WidthData> {
+export async function loadWidthData(options: LoadOptions = {}): Promise<WidthData> {
 	const opts = { ...DEFAULT_OPTIONS, ...options };
 	let lastError: Error | undefined;
 

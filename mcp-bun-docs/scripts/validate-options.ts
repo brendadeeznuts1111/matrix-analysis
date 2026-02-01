@@ -7,7 +7,14 @@
 
 import { BUN_TEST_CLI_OPTIONS, renderCliMatrix } from "../lib.ts";
 
-const REQUIRED_KEYS = ["Name", "Pattern", "Version", "Topic", "Type", "Example"] as const;
+const REQUIRED_KEYS = [
+	"Name",
+	"Pattern",
+	"Version",
+	"Topic",
+	"Type",
+	"Example",
+] as const;
 const VALID_TYPES = ["string", "number", "boolean", "string[]"];
 const SEMVER = /^\d+\.\d+\.\d+$/;
 
@@ -26,8 +33,7 @@ function validateOptions(): { valid: number; errors: string[] } {
 				errors.push(`${prefix} missing ${key}`);
 		}
 
-		if (!row.Name.startsWith("--"))
-			errors.push(`${prefix} Name must start with --`);
+		if (!row.Name.startsWith("--")) errors.push(`${prefix} Name must start with --`);
 		if (!SEMVER.test(row.Version))
 			errors.push(`${prefix} Version must be semver (e.g. 1.3.7)`);
 		if (!VALID_TYPES.includes(row.Type))
