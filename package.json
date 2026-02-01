@@ -412,7 +412,9 @@
     "organize:cleanup": "bun run .factory-wager/scripts/cleanup-untracked.ts",
     "reality:audit": "bun run .factory-wager/config/reality-config.ts",
     "reality:status": "bun run .factory-wager/fw-reality-status-simple.ts",
-    "reality:check": "bun run .factory-wager/config/reality-config.ts && bun run .factory-wager/fw-reality-status-simple.ts"
+    "reality:check": "bun run .factory-wager/config/reality-config.ts && bun run .factory-wager/fw-reality-status-simple.ts",
+    "factory-wager": "bun run .factory-wager/factory-wager-cli.ts",
+    "fw": "bun run .factory-wager/factory-wager-cli.ts"
   },
   "dependencies": {
     "@modelcontextprotocol/server-filesystem": "latest",
