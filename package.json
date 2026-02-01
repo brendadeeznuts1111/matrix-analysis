@@ -420,7 +420,10 @@
     "analyze:reality": "bun run .factory-wager/fw-analyze-with-reality.ts",
     "analyze:config": "bun run .factory-wager/fw-analyze-with-reality.ts config.yaml",
     "changelog:reality": "bun run .factory-wager/fw-changelog-with-reality.ts",
-    "changelog:diff": "bun run .factory-wager/fw-changelog-with-reality.ts --from HEAD^ --to HEAD"
+    "changelog:diff": "bun run .factory-wager/fw-changelog-with-reality.ts --from HEAD^ --to HEAD",
+    "nexus:reality": "bun run .factory-wager/fw-nexus-status-with-reality.ts",
+    "nexus:status": "bun run .factory-wager/fw-nexus-status-with-reality.ts --config config.yaml",
+    "nexus:watch": "bun run .factory-wager/fw-nexus-status-with-reality.ts --watch --alert 70"
   },
   "dependencies": {
     "@modelcontextprotocol/server-filesystem": "latest",
