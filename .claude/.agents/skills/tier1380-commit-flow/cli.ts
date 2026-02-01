@@ -15,7 +15,7 @@ const COMMANDS = {
 		script: "generate-message.ts",
 		args: "",
 	},
-	validate: {
+	"validate-msg": {
 		description: "Validate commit message format",
 		script: "validate-message.ts",
 		args: "<message>",
@@ -120,6 +120,11 @@ const COMMANDS = {
 		script: "snapshot-cron.ts",
 		args: "[--interval=24] [--dir=./snapshots] [--once]",
 	},
+	validate: {
+		description: "Validate with Bun.deepMatch schema",
+		script: "../lib/schema-validator.ts",
+		args: "[--schema=commit|snapshot] [--json=input]",
+	},
 } as const;
 
 type Command = keyof typeof COMMANDS;
@@ -216,7 +221,7 @@ if (import.meta.main) {
 	const shortcuts: Record<string, Command> = {
 		c: "commit",
 		g: "generate-msg",
-		v: "validate",
+		v: "validate-msg",
 		chk: "check",
 		h: "hooks",
 		d: "dashboard",
@@ -235,6 +240,7 @@ if (import.meta.main) {
 		snap: "snapshot-create",
 		notify: "snapshot-notify",
 		cron: "snapshot-cron",
+		val: "validate",
 	};
 
 	const resolvedCommand = shortcuts[command] || (command as Command);
