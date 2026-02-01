@@ -1,14 +1,14 @@
 {
 	"$schema": "https://biomejs.dev/schemas/2.3.13/schema.json",
 	"files": {
-		"ignore": [
-			"node_modules",
-			"dist",
-			"out",
-			".output",
-			"coverage",
-			"bun.lock",
-			"data/*.db"
+		"includes": [
+			"src/**",
+			".claude/**",
+			"tools/**",
+			"cli/**",
+			"mcp-bun-docs/**",
+			"!node_modules/**",
+			"!dist/**"
 		]
 	},
 	"formatter": {
@@ -46,7 +46,7 @@
 				"noUndeclaredVariables": "error"
 			},
 			"suspicious": {
-				"noConsoleLog": "warn",
+				"noConsole": "warn",
 				"noDebugger": "error"
 			}
 		}

@@ -20,9 +20,9 @@
     "./commands/*": "./src/commands/*.ts"
   },
   "scripts": {
-    "lint": "biome check .",
-    "lint:fix": "biome check --write .",
-    "format": "biome format --write .",
+    "lint": "biome check src/ .claude/ tools/ cli/ mcp-bun-docs/",
+    "lint:fix": "biome check --write src/ .claude/ tools/ cli/ mcp-bun-docs/",
+    "format": "biome format --write src/ .claude/ tools/ cli/ mcp-bun-docs/",
     "typecheck": "tsc --noEmit",
     "mcp:inspector": "bun x @modelcontextprotocol/inspector",
     "mcp:bun-docs": "bun mcp-bun-docs/index.ts",
