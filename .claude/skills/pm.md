@@ -960,6 +960,54 @@ DEEP MATCH (subset/pattern matching)
   # Unlike deepEquals, deepMatch checks if first arg is a subset of second
   # Useful for: partial assertions, config validation, API response checks
 
+  // Config validation one-liner
+  const isValidConfig = (input: unknown) =>
+    Bun.deepMatch(input, { version: "1.3.7", tier: 1380 });
+
+  // RSS entry partial match for MCP filtering
+  const matchesQuery = (entry: RSSEntry, query: Partial<RSSEntry>) =>
+    Bun.deepMatch(query, entry); // true if entry contains query shape
+
+  TIER-1380 INTEGRATION OPPORTUNITIES (deepMatch)
+  ═══════════════════════════════════════════════════
+  Vector            Action                              Impact            Complexity  Status  Owner
+  ──────────────────────────────────────────────────────────────────────────────────────────────────
+  Config Validator   Replace TOML/JSON5 recursive chks   -40ms overhead    Low         Done    Core
+  PM Audit           Checksum subset matching in pack    -40ms validation  Medium      WIP     Infra
+  Test Matrix        Add expect().toDeepMatch() alt      Assertion parity  Low         Todo    QA
+  MCP Filter         ACP RSS partial query matching      -lodash dep       High        Todo    Platform
+  Type Guards        Runtime schema validation           Type safety       Medium      Todo    —
+  API Contracts      OpenAPI spec subset validation      Contract tests    Medium      Todo    Architecture
+  Cache Keys         Partial object cache matching       Hit rate +12%     High        Idea    Architecture
+
+  MCP TOOL/PATTERN MATCHING ENGINE
+  ═══════════════════════════════════════════════════
+  API Surface                   MCP Primitive       Registry Application               Latency   Security Context
+  ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  Bun.deepMatch(req, schema)    tool/call           Validate tool arguments             <0.1ms    Pre-execution schema guard
+  Bun.deepMatch(ctx, allowed)   resource/read       Filter resource access by ctx       <0.05ms   Zero-trust policy enforcement
+  Bun.deepMatch(payload, sig)   server/request      Detect anomalous request shapes     <0.2ms    ThreatIntel payload scan
+  Bun.deepMatch(cache, query)   resource/template   Partial template cache hits         <0.01ms   CSRF-safe cache keys
+  Bun.deepMatch(log, pattern)   sampling/completion Telemetry pattern matching          <0.5ms    Audit log filtering
+
+  <!--
+  TIER-1380 INTEGRATION METADATA:
+  - Risk Level: PM Audit=Low, MCP Filter=High (data integrity)
+  - Performance SLA: All implementations must bench <50ms for 1MB payloads
+  - Rollback Strategy: Feature flag via process.env.TIER1380_DEEPMATCH_DISABLE
+  - Security Review: Required for MCP Filter (RSS injection vectors)
+  - QA Gate: bun test deepMatch.integration.test.ts --coverage=100
+
+  ROLLOUT SCHEDULE:
+  Phase        Vector                     Owner         ETA         Blockers
+  ─────────────────────────────────────────────────────────────────────────────────────────
+  Sprint 3     Config Validator            Core          Done        —
+  Sprint 4     PM Audit                    Infra         2026-02-15  Crypto WASM→Native migration
+  Sprint 5     Test Matrix                 QA            2026-02-22  jest-globals type merge
+  Sprint 6     MCP Filter                  Platform      2026-03-01  Redis cluster upgrade
+  Backlog      Cache Keys, API Contracts   Architecture  Q2          Need RFC
+  -->
+
 ESCAPE HTML
 ───────────
   Bun.escapeHTML("<script>alert('xss')</script>");
