@@ -9,6 +9,7 @@ import { profileUse } from "./commands/profileUse";
 import { linksCheck, linksQuick } from "./commands/linksCheck";
 import { openclawStatus, openclawHealth, openclawInfo } from "./commands/openclawStatus";
 import { profilePathAdd, profilePathRemove, profilePathList } from "./commands/profilePath";
+import { frontmatterDebug, frontmatterBatch, frontmatterValidate, frontmatterRender } from "./commands/frontmatter";
 import { DEFAULT_HOST, OPENCLAW_GATEWAY_PORT } from "./constants";
 import { EXIT_CODES } from "../.claude/lib/exit-codes.ts";
 import { fmt } from "../.claude/lib/cli.ts";
@@ -29,6 +30,12 @@ ${fmt.bold("🔧 Profile Commands:")}
   profile:path:add <name> <var> <path>  Add a directory to a path variable
   profile:path:remove <name> <var> <path>  Remove a directory from a path variable
   profile:path:list <name>     List configured path variables
+
+${fmt.bold("📝 Frontmatter Commands:")}
+  fm:debug <file>               Extract and display frontmatter from a file
+  fm:batch <dir>                Batch extract from all .md files in directory
+  fm:validate <file> <schema>   Validate frontmatter against a JSON schema
+  fm:render <file>              Render markdown to HTML with metadata injection
 
 ${fmt.bold("🔗 Link Checking Commands:")}
   links:check                   Check all links in documentation
@@ -54,6 +61,16 @@ ${fmt.bold("⚙️  Options for profile:path:add:")}
 ${fmt.bold("⚙️  Options for profile:path:list:")}
   --variable <name>        Show only one variable
   --resolved               Expand \${VAR} refs and check existence
+
+${fmt.bold("⚙️  Options for fm:batch:")}
+  --index-json <path>    Write metadata index to JSON file
+  --schema <path>        Validate against JSON schema
+  --pattern <glob>       File pattern (default: **/*.md)
+
+${fmt.bold("⚙️  Options for fm:render:")}
+  --output, -o <file>    Write HTML to file instead of stdout
+  --site-url <url>       Base URL for OpenGraph/JSON-LD links
+  --ansi                 Render to terminal with ANSI formatting
 
 ${fmt.bold("⚙️  Options for profile:diff:")}
   --all, -a              Show unchanged variables too
@@ -137,6 +154,11 @@ async function main(): Promise<void> {
 			json: { type: "boolean", short: "j" },
 			watch: { type: "boolean", short: "w" },
 			interval: { type: "string", short: "i" },
+			"index-json": { type: "string" },
+			schema: { type: "string" },
+			pattern: { type: "string" },
+			"site-url": { type: "string" },
+			ansi: { type: "boolean", default: false },
 		},
 		allowPositionals: true,
 		strict: false,
@@ -252,6 +274,50 @@ async function main(): Promise<void> {
 
 		case "links:quick":
 			await linksQuick(values["directory"] as string || '.');
+			break;
+
+		case "fm:debug":
+			if (positionals.length < 1) {
+				console.error(fmt.fail("File path is required"));
+				console.error("Usage: bun run matrix -- fm:debug <file>");
+				process.exit(EXIT_CODES.USAGE_ERROR);
+			}
+			await frontmatterDebug(positionals[0]);
+			break;
+
+		case "fm:batch":
+			if (positionals.length < 1) {
+				console.error(fmt.fail("Directory path is required"));
+				console.error("Usage: bun run matrix -- fm:batch <dir> [--index-json <path>] [--schema <path>]");
+				process.exit(EXIT_CODES.USAGE_ERROR);
+			}
+			await frontmatterBatch(positionals[0], {
+				indexJson: values["index-json"] as string | undefined,
+				schema: values["schema"] as string | undefined,
+				pattern: values["pattern"] as string | undefined,
+			});
+			break;
+
+		case "fm:validate":
+			if (positionals.length < 2) {
+				console.error(fmt.fail("File path and schema path are required"));
+				console.error("Usage: bun run matrix -- fm:validate <file> <schema>");
+				process.exit(EXIT_CODES.USAGE_ERROR);
+			}
+			await frontmatterValidate(positionals[0], positionals[1]);
+			break;
+
+		case "fm:render":
+			if (positionals.length < 1) {
+				console.error(fmt.fail("File path is required"));
+				console.error("Usage: bun run matrix -- fm:render <file> [--output <path>] [--site-url <url>] [--ansi]");
+				process.exit(EXIT_CODES.USAGE_ERROR);
+			}
+			await frontmatterRender(positionals[0], {
+				output: values["output"] as string | undefined,
+				siteUrl: values["site-url"] as string | undefined,
+				ansi: !!values["ansi"],
+			});
 			break;
 
 		case "openclaw:status":
