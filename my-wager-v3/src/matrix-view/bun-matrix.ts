@@ -1,6 +1,13 @@
 // Bun Min Version Matrix - Tier-1380 Infrastructure
 // Comprehensive API documentation matrix with RSS integration
 
+import {
+  CACHE_TTL_5MIN_MS,
+  TOP_N_SLICE,
+  LOW_PERF_THRESHOLD,
+  EVOLUTION_PERIODS,
+} from "../tension-field/constants";
+
 export interface Version {
   major: number;
   minor: number;
@@ -116,7 +123,7 @@ class BunMatrixStore {
     const cached = this.metricsCache.get(cacheKey);
 
     // Cache for 5 minutes
-    if (cached && (Date.now() - cached.timestamp) < 300000) {
+    if (cached && (Date.now() - cached.timestamp) < CACHE_TTL_5MIN_MS) {
       return cached.data;
     }
 
@@ -176,7 +183,7 @@ class BunMatrixStore {
       performanceByCategory: this.getPerformanceByCategory(entries),
       topPerformers: withPerf
         .sort((a, b) => (b.perfProfile?.opsSec || 0) - (a.perfProfile?.opsSec || 0))
-        .slice(0, 5)
+        .slice(0, TOP_N_SLICE)
         .map(e => ({ api: e.term, ops: e.perfProfile?.opsSec })),
       baselineImprovements: this.getBaselineImprovements(entries)
     };
@@ -347,7 +354,7 @@ class BunMatrixStore {
       uniqueRelatedTerms: Object.keys(termFrequency).length,
       mostReferenced: Object.entries(termFrequency)
         .sort(([, a], [, b]) => b - a)
-        .slice(0, 5)
+        .slice(0, TOP_N_SLICE)
         .map(([term, count]) => ({ term, count })),
       avgRelatedTerms: relatedTerms.length / entries.length
     };
@@ -389,7 +396,7 @@ class BunMatrixStore {
     return {
       count: improvements.length,
       avgImprovement: improvements.reduce((sum, e) => sum + e.improvement, 0) / improvements.length,
-      topImprovements: improvements.sort((a, b) => b.improvement - a.improvement).slice(0, 5)
+      topImprovements: improvements.sort((a, b) => b.improvement - a.improvement).slice(0, TOP_N_SLICE)
     };
   }
 
@@ -409,8 +416,8 @@ class BunMatrixStore {
     const sorted = entries.sort((a, b) => this.compareVersions(a.bunMinVersion, b.bunMinVersion));
     const evolution = [];
 
-    for (let i = 0; i < sorted.length; i += Math.ceil(sorted.length / 5)) {
-      const chunk = sorted.slice(i, i + Math.ceil(sorted.length / 5));
+    for (let i = 0; i < sorted.length; i += Math.ceil(sorted.length / EVOLUTION_PERIODS)) {
+      const chunk = sorted.slice(i, i + Math.ceil(sorted.length / EVOLUTION_PERIODS));
       const version = chunk[0].bunMinVersion;
       const security = {
         high: chunk.filter(e => e.security.classification === 'high').length,
@@ -592,7 +599,7 @@ class BunMatrixStore {
     const cached = this.rssCache.get(cacheKey);
 
     // Cache for 5 minutes
-    if (cached && (now.getTime() - cached.lastFetch.getTime()) < 300000) {
+    if (cached && (now.getTime() - cached.lastFetch.getTime()) < CACHE_TTL_5MIN_MS) {
       return;
     }
 
@@ -1128,7 +1135,7 @@ export class BunMatrixViewer {
     }
 
     const lowUsageEntries = entries.filter(e =>
-      e.perfProfile?.opsSec && e.perfProfile.opsSec < 10000
+      e.perfProfile?.opsSec && e.perfProfile.opsSec < LOW_PERF_THRESHOLD
     );
     if (lowUsageEntries.length > 0) {
       console.log('  • Consider optimizing low-performance APIs');

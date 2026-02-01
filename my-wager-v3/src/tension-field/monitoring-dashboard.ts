@@ -5,6 +5,14 @@ import { TensionVisualizer } from './visualizer.js';
 import { AdvancedAnomalyDetector } from './anomaly-detector.js';
 import { TensionPredictionEngine } from './prediction-engine.js';
 import { EXIT_CODES } from "../../../.claude/lib/exit-codes.ts";
+import {
+  METRICS_COLLECTION_INTERVAL_MS,
+  BROADCAST_INTERVAL_MS,
+  CLIENT_INACTIVE_TIMEOUT_MS,
+  PORT_MCP_DEFAULT,
+  PORT_VISUALIZER,
+  RECENT_METRICS_SNAPSHOT_SIZE,
+} from "./constants";
 
 interface DashboardClient {
   ws: any;
@@ -40,9 +48,9 @@ export class LiveMonitoringDashboard {
   private metrics: MonitoringMetrics[] = [];
   private readonly MAX_METRICS = 1000;
 
-  constructor(port: number = 3002) {
+  constructor(port: number = PORT_MCP_DEFAULT) {
     this.wss = new WebSocketServer({ port });
-    this.visualizer = new TensionVisualizer(3001);
+    this.visualizer = new TensionVisualizer(PORT_VISUALIZER);
     this.anomalyDetector = new AdvancedAnomalyDetector();
     this.predictionEngine = new TensionPredictionEngine();
 
@@ -94,7 +102,7 @@ export class LiveMonitoringDashboard {
     if (this.metrics.length > 0) {
       client.ws.send(JSON.stringify({
         type: 'initial-metrics',
-        data: this.metrics.slice(-50)
+        data: this.metrics.slice(-RECENT_METRICS_SNAPSHOT_SIZE)
       }));
     }
 
@@ -293,7 +301,7 @@ export class LiveMonitoringDashboard {
         Object.values(tensions).map(v => v + (Math.random() - 0.5) * 10)
       );
 
-      await Bun.sleep(2000); // Collect every 2 seconds
+      await Bun.sleep(METRICS_COLLECTION_INTERVAL_MS);
     }
   }
 
@@ -322,12 +330,12 @@ export class LiveMonitoringDashboard {
       // Cleanup inactive clients
       this.cleanupInactiveClients();
 
-    }, 1000); // Broadcast every second
+    }, BROADCAST_INTERVAL_MS);
   }
 
   private cleanupInactiveClients(): void {
     const now = Date.now();
-    const timeout = 5 * 60 * 1000; // 5 minutes
+    const timeout = CLIENT_INACTIVE_TIMEOUT_MS;
 
     this.clients.forEach((client, id) => {
       if (now - client.lastActivity > timeout) {
@@ -999,7 +1007,7 @@ export class LiveMonitoringDashboard {
 
 // CLI interface
 if (import.meta.main) {
-  const dashboard = new LiveMonitoringDashboard(3002);
+  const dashboard = new LiveMonitoringDashboard(PORT_MCP_DEFAULT);
 
   // Generate HTML dashboard
   const html = dashboard.generateDashboardHTML();

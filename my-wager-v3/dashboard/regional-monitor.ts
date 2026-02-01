@@ -7,6 +7,12 @@ import { secureMessageChannel } from '../packages/test/secure-message-channel';
 import { serve } from 'bun';
 import { readFileSync, writeFileSync, existsSync } from 'fs';
 import { join } from 'path';
+import {
+  PORT_MCP_DEFAULT,
+  WS_PING_TIMEOUT_MS,
+  RECONNECT_TIMEOUT_MS,
+  REGIONAL_UPDATE_INTERVAL_MS,
+} from '../src/tension-field/constants';
 
 interface RegionStatus {
   region: string;
@@ -628,7 +634,7 @@ function generateDashboard(): string {
             connectionStatus.textContent = '🔴 Disconnected';
             connectionStatus.className = 'connection-status disconnected';
             // Attempt to reconnect after 3 seconds
-            setTimeout(() => location.reload(), 3000);
+            setTimeout(() => location.reload(), ${RECONNECT_TIMEOUT_MS});
         };
 
         ws.onmessage = (event) => {
@@ -730,7 +736,7 @@ function generateDashboard(): string {
             if (ws.readyState === WebSocket.OPEN) {
                 ws.send(JSON.stringify({ type: 'ping' }));
             }
-        }, 5000);
+        }, ${WS_PING_TIMEOUT_MS});
     </script>
 </body>
 </html>`;
@@ -738,7 +744,7 @@ function generateDashboard(): string {
 
 // Start the server
 const server = serve({
-  port: 3002,
+  port: PORT_MCP_DEFAULT,
   fetch(req) {
     const url = new URL(req.url);
 
@@ -931,6 +937,6 @@ setInterval(() => {
     status: 'active',
     metrics: monitor.getRegionStatus(randomRegion)?.metrics
   });
-}, 10000); // Update every 10 seconds
+}, REGIONAL_UPDATE_INTERVAL_MS);
 
 export { RegionalMonitor, broadcastToDashboard };

@@ -2,6 +2,8 @@
 // Configuration constants for Tension Field Analysis
 // [TENSION-CONFIG-001]
 
+export { PORT_MCP_DEFAULT } from "./constants/ports";
+
 export const TENSION_CONSTANTS = {
   // Data management
   MAX_DATA_POINTS: 10000,
