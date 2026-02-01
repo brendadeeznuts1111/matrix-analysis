@@ -1,5 +1,6 @@
 // mcp-tools/sse-alerts.ts — Production-grade SSE violation stream
 import { validateToolCall, ThreatIntelligenceService, SecureCookieManager } from './validate.js';
+import { R2ViolationLogger, ViolationLogEntry, getR2Logger } from './r2-storage.js';
 
 export interface WidthViolation {
   timestamp: number;
@@ -161,10 +162,37 @@ export async function broadcastViolation(violation: WidthViolation) {
     console.error(`❌ Failed to log audit entry:`, error);
   }
 
-  // 2. Mock Redis broadcast for SSE distribution
+  // 2. Store in R2 for persistent storage
+  try {
+    const r2Logger = getR2Logger();
+    if (r2Logger) {
+      const logEntry: ViolationLogEntry = {
+        id: crypto.randomUUID(),
+        timestamp: violation.timestamp,
+        violation,
+        metadata: {
+          region: process.env.CLOUDFLARE_REGION || 'unknown',
+          sessionId: crypto.randomUUID().slice(0, 8)
+        }
+      };
+
+      const r2Result = await r2Logger.uploadViolationLog(logEntry);
+      if (r2Result.success) {
+        console.log(`📦 R2 storage successful: ${r2Result.url}`);
+      } else {
+        console.warn(`⚠️ R2 storage failed: ${r2Result.error}`);
+      }
+    } else {
+      console.log(`ℹ️ R2 logger not initialized - skipping persistent storage`);
+    }
+  } catch (error) {
+    console.error(`❌ R2 storage error:`, error);
+  }
+
+  // 3. Mock Redis broadcast for SSE distribution
   console.log(`📡 Broadcasting to channel: ${VIOLATION_CHANNEL}`);
 
-  // 3. Broadcast to connected SSE clients
+  // 4. Broadcast to connected SSE clients
   for (const [connId, conn] of CONNECTIONS) {
     if (conn.tenant === "*" || conn.tenant === violation.tenant) {
       try {
@@ -180,7 +208,7 @@ export async function broadcastViolation(violation: WidthViolation) {
     }
   }
 
-  // 4. Threat intelligence correlation (detect spam/abuse)
+  // 5. Threat intelligence correlation (detect spam/abuse)
   if (violation.column > 120) {
     await ThreatIntelligenceService.logAnomaly({
       type: "extreme_width_violation",
@@ -190,7 +218,7 @@ export async function broadcastViolation(violation: WidthViolation) {
     });
   }
 
-  // 5. Update real-time metrics
+  // 6. Update real-time metrics
   await updateViolationMetrics(violation);
 }
 

@@ -13,6 +13,7 @@
     "sse": "bun run sse-alerts.ts",
     "monitor": "bun run monitor-violations.ts",
     "demo-sse": "bun run demo-sse.ts",
+    "r2-demo": "bun run demo-r2.ts",
     "schema:validate": "bun -e 'const schema = require(\"./schema.json\"); console.log(\"✅ Schema valid\")'"
   },
   "dependencies": {
