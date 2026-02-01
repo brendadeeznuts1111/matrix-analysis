@@ -5,8 +5,10 @@ import {
   printEnvChanges,
   printConflicts,
   printExportStatements,
+  printPathWarnings,
   detectConflicts,
 } from "../lib/output";
+import { resolvePaths } from "../lib/pathResolver";
 import { EXIT_CODES } from "../../.claude/lib/exit-codes.ts";
 
 export interface ProfileUseOptions {
@@ -53,6 +55,16 @@ export async function profileUse(
     MATRIX_PROFILE_NAME: profile.name,
     MATRIX_PROFILE_VERSION: profile.version,
   };
+
+  // Resolve path variables and merge into env
+  const pathResult = resolvePaths(profile.paths, Bun.env, rawEnvVars);
+  for (const [key, value] of Object.entries(pathResult.resolved)) {
+    rawEnvVars[key] = value;
+  }
+
+  if (pathResult.warnings.length > 0 && (options.dryRun || options.validateRules)) {
+    printPathWarnings(pathResult.warnings);
+  }
 
   const envVars = resolveSecretRefs(rawEnvVars);
 

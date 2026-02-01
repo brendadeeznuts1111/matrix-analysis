@@ -95,4 +95,69 @@ export async function profileDiff(
       console.log(`    ${rightName}: ${maskValue(d.key, d.right!)}`);
     }
   }
+
+  // Compare path variables
+  const leftPaths = left.paths || {};
+  const rightPaths = right.paths || {};
+  const allPathVars = new Set([
+    ...Object.keys(leftPaths),
+    ...Object.keys(rightPaths),
+  ]);
+
+  if (allPathVars.size > 0) {
+    const pathAdded: string[] = [];
+    const pathRemoved: string[] = [];
+    const pathChanged: string[] = [];
+
+    for (const v of [...allPathVars].sort()) {
+      const lc = leftPaths[v];
+      const rc = rightPaths[v];
+
+      if (!lc && rc) {
+        pathAdded.push(v);
+      } else if (lc && !rc) {
+        pathRemoved.push(v);
+      } else if (lc && rc) {
+        const lPre = JSON.stringify(lc.prepend || []);
+        const rPre = JSON.stringify(rc.prepend || []);
+        const lApp = JSON.stringify(lc.append || []);
+        const rApp = JSON.stringify(rc.append || []);
+        if (lPre !== rPre || lApp !== rApp) {
+          pathChanged.push(v);
+        }
+      }
+    }
+
+    if (pathAdded.length > 0 || pathRemoved.length > 0 || pathChanged.length > 0) {
+      console.log(`\n${fmt.bold("Path Variables:")}\n`);
+
+      if (pathAdded.length > 0) {
+        for (const v of pathAdded) {
+          const rc = rightPaths[v];
+          console.log(`  ${fmt.ok('+')} ${v}`);
+          if (rc.prepend?.length) console.log(`      prepend: ${rc.prepend.join(", ")}`);
+          if (rc.append?.length) console.log(`      append: ${rc.append.join(", ")}`);
+        }
+      }
+
+      if (pathRemoved.length > 0) {
+        for (const v of pathRemoved) {
+          const lc = leftPaths[v];
+          console.log(`  ${fmt.fail('-')} ${v}`);
+          if (lc.prepend?.length) console.log(`      prepend: ${lc.prepend.join(", ")}`);
+          if (lc.append?.length) console.log(`      append: ${lc.append.join(", ")}`);
+        }
+      }
+
+      if (pathChanged.length > 0) {
+        for (const v of pathChanged) {
+          const lc = leftPaths[v];
+          const rc = rightPaths[v];
+          console.log(`  ${fmt.warn('~')} ${v}`);
+          console.log(`    ${leftName}: prepend=[${(lc.prepend || []).join(", ")}] append=[${(lc.append || []).join(", ")}]`);
+          console.log(`    ${rightName}: prepend=[${(rc.prepend || []).join(", ")}] append=[${(rc.append || []).join(", ")}]`);
+        }
+      }
+    }
+  }
 }

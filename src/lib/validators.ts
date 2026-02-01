@@ -40,6 +40,50 @@ export function validateProfile(profile: Profile): ValidationResult {
     }
   }
 
+  // Validate paths structure
+  if (profile.paths !== undefined) {
+    if (typeof profile.paths !== "object" || Array.isArray(profile.paths)) {
+      errors.push("paths must be an object mapping variable names to { prepend?, append? }");
+    } else {
+      for (const [varName, config] of Object.entries(profile.paths)) {
+        if (typeof config !== "object" || config === null || Array.isArray(config)) {
+          errors.push(`paths.${varName} must be an object with optional prepend/append arrays`);
+          continue;
+        }
+
+        for (const field of ["prepend", "append"] as const) {
+          const arr = (config as Record<string, unknown>)[field];
+          if (arr === undefined) continue;
+          if (!Array.isArray(arr)) {
+            errors.push(`paths.${varName}.${field} must be an array of strings`);
+            continue;
+          }
+          for (let i = 0; i < arr.length; i++) {
+            if (typeof arr[i] !== "string") {
+              errors.push(`paths.${varName}.${field}[${i}] must be a string`);
+            } else {
+              // Warn about unresolved refs in path entries
+              const pathVarPattern = /\$\{([^}]+)\}/g;
+              for (const m of (arr[i] as string).matchAll(pathVarPattern)) {
+                if (Bun.env[m[1]] === undefined) {
+                  warnings.push(`Unresolved variable in paths.${varName}.${field}: \${${m[1]}}`);
+                }
+              }
+            }
+          }
+        }
+
+        // Warn about unexpected keys
+        const validKeys = new Set(["prepend", "append"]);
+        for (const key of Object.keys(config as object)) {
+          if (!validKeys.has(key)) {
+            warnings.push(`paths.${varName} has unexpected key "${key}"`);
+          }
+        }
+      }
+    }
+  }
+
   return {
     passed: errors.length === 0,
     errors,

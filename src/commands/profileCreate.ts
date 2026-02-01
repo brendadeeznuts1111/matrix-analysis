@@ -1,4 +1,4 @@
-import { getProfilesDir, loadProfile, listProfiles } from "../lib/profileLoader";
+import { getProfilesDir, loadProfile, listProfiles, saveProfile } from "../lib/profileLoader";
 import type { Profile } from "../lib/profileLoader";
 import { EXIT_CODES } from "../../.claude/lib/exit-codes.ts";
 
@@ -70,8 +70,8 @@ export async function profileCreate(
     profile.env.NODE_ENV = options.env;
   }
 
-  // Ensure profiles directory exists
-  await Bun.write(profilePath, JSON.stringify(profile, null, 2) + "\n");
+  // Save profile
+  await saveProfile(name, profile);
 
   console.log(`\x1b[32m✓ Created profile "${name}"\x1b[0m`);
   console.log(`  Path: ${profilePath}`);

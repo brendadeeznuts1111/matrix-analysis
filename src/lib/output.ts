@@ -151,3 +151,18 @@ export function printExportStatements(env: Record<string, string>): void {
     console.log(`export ${key}='${escapedValue}'`);
   }
 }
+
+export interface PathWarningDisplay {
+  variable: string;
+  dir: string;
+  reason: string;
+}
+
+export function printPathWarnings(warnings: PathWarningDisplay[]): void {
+  if (warnings.length === 0) return;
+
+  console.log(`\n${colors.yellow}⚠ Path warnings (${warnings.length}):${colors.reset}`);
+  for (const w of warnings) {
+    console.log(`  ${colors.yellow}⚠${colors.reset} ${w.variable}: ${w.dir} — ${w.reason}`);
+  }
+}

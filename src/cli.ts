@@ -8,6 +8,7 @@ import { profileShow } from "./commands/profileShow";
 import { profileUse } from "./commands/profileUse";
 import { linksCheck, linksQuick } from "./commands/linksCheck";
 import { openclawStatus, openclawHealth, openclawInfo } from "./commands/openclawStatus";
+import { profilePathAdd, profilePathRemove, profilePathList } from "./commands/profilePath";
 import { DEFAULT_HOST, OPENCLAW_GATEWAY_PORT } from "./constants";
 import { EXIT_CODES } from "../.claude/lib/exit-codes.ts";
 import { fmt } from "../.claude/lib/cli.ts";
@@ -25,6 +26,9 @@ ${fmt.bold("🔧 Profile Commands:")}
   profile:diff <left> <right>   Compare two profiles
   profile:create <name>         Create a new profile
   profile:export <name>         Export profile to .env format
+  profile:path:add <name> <var> <path>  Add a directory to a path variable
+  profile:path:remove <name> <var> <path>  Remove a directory from a path variable
+  profile:path:list <name>     List configured path variables
 
 ${fmt.bold("🔗 Link Checking Commands:")}
   links:check                   Check all links in documentation
@@ -42,6 +46,14 @@ ${fmt.bold("⚙️  Options for profile:use:")}
   --dry-run              Preview changes without applying
   --environment, -e      Override NODE_ENV value
   --force, -f            Apply despite conflicts or warnings
+
+${fmt.bold("⚙️  Options for profile:path:add:")}
+  --append                 Add to end instead of beginning
+  --force, -f              Allow duplicates
+
+${fmt.bold("⚙️  Options for profile:path:list:")}
+  --variable <name>        Show only one variable
+  --resolved               Expand \${VAR} refs and check existence
 
 ${fmt.bold("⚙️  Options for profile:diff:")}
   --all, -a              Show unchanged variables too
@@ -112,6 +124,9 @@ async function main(): Promise<void> {
 			from: { type: "string" },
 			output: { type: "string", short: "o" },
 			description: { type: "string", short: "d" },
+			append: { type: "boolean", default: false },
+			variable: { type: "string" },
+			resolved: { type: "boolean", default: false },
 			resolve: { type: "boolean", short: "r", default: false },
 			quote: { type: "boolean", short: "q", default: false },
 			all: { type: "boolean", short: "a", default: false },
@@ -177,6 +192,39 @@ async function main(): Promise<void> {
 				env: values["environment"] as string | undefined,
 				description: values["description"] as string | undefined,
 				force: !!values["force"],
+			});
+			break;
+
+		case "profile:path:add":
+			if (positionals.length < 3) {
+				console.error(fmt.fail("Profile name, variable, and path are required"));
+				console.error("Usage: bun run matrix -- profile:path:add <name> <variable> <path> [--append]");
+				process.exit(EXIT_CODES.USAGE_ERROR);
+			}
+			await profilePathAdd(positionals[0], positionals[1], positionals[2], {
+				append: !!values["append"],
+				force: !!values["force"],
+			});
+			break;
+
+		case "profile:path:remove":
+			if (positionals.length < 3) {
+				console.error(fmt.fail("Profile name, variable, and path are required"));
+				console.error("Usage: bun run matrix -- profile:path:remove <name> <variable> <path>");
+				process.exit(EXIT_CODES.USAGE_ERROR);
+			}
+			await profilePathRemove(positionals[0], positionals[1], positionals[2]);
+			break;
+
+		case "profile:path:list":
+			if (positionals.length < 1) {
+				console.error(fmt.fail("Profile name is required"));
+				console.error("Usage: bun run matrix -- profile:path:list <name> [--variable <var>] [--resolved]");
+				process.exit(EXIT_CODES.USAGE_ERROR);
+			}
+			await profilePathList(positionals[0], {
+				variable: values["variable"] as string | undefined,
+				resolved: !!values["resolved"],
 			});
 			break;
 

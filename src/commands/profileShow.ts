@@ -43,4 +43,17 @@ export async function profileShow(name: string): Promise<void> {
     }));
 
   console.log(Bun.inspect.table(rows, undefined, { colors: !process.env.NO_COLOR }));
+
+  if (profile.paths && Object.keys(profile.paths).length > 0) {
+    console.log(`\n${colors.bold}Path Variables:${colors.reset}`);
+    for (const [variable, config] of Object.entries(profile.paths)) {
+      console.log(`  ${variable}:`);
+      if (config.prepend && config.prepend.length > 0) {
+        console.log(`    prepend: ${config.prepend.join(", ")}`);
+      }
+      if (config.append && config.append.length > 0) {
+        console.log(`    append: ${config.append.join(", ")}`);
+      }
+    }
+  }
 }

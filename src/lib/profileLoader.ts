@@ -1,4 +1,5 @@
 import type { TeamInfo } from "../../.claude/core/team/types.ts";
+import type { PathVarConfig } from "./pathResolver";
 
 export interface Profile {
   name: string;
@@ -8,6 +9,7 @@ export interface Profile {
   description?: string;
   environment?: string;
   env: Record<string, string>;
+  paths?: Record<string, PathVarConfig>;
   team?: TeamInfo;
 }
 
@@ -41,6 +43,14 @@ export async function loadProfile(name: string): Promise<Profile | null> {
   }
 
   return content as Profile;
+}
+
+export async function saveProfile(
+  name: string,
+  profile: Profile
+): Promise<void> {
+  const profilePath = `${getProfilesDir()}/${name}.json`;
+  await Bun.write(profilePath, JSON.stringify(profile, null, 2) + "\n");
 }
 
 export function resolveSecretRefs(
