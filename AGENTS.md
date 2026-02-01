@@ -174,6 +174,8 @@ bun run tier1380:audit clean            # Clear audit data
 
 # Tier-1380 System Information
 bun run tier1380:sysinfo                # Full system summary
+bun run tier1380:sysinfo --json         # JSON output
+bun run tier1380:sysinfo --health       # Component health check
 
 # Bun docs (mcp-bun-docs)
 bun run docs:search -- "<query>"       # Search Bun docs (markdown)
