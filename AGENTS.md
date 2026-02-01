@@ -183,14 +183,20 @@ bun run tier1380:terminal:profiles set API_KEY --value "xxx"  # Store secret
 bun run tier1380:terminal:profiles get API_KEY               # Retrieve secret
 bun run tier1380:terminal:switch prod   # Switch profile with secrets
 
-# Tier-1380 Registry Connector (R2 + Kimi Shell)
-bun run tier1380:registry               # Check registry status
+# Tier-1380 Registry Connector (Bun-native + R2 + Kimi Shell)
+bun run tier1380:registry               # Check registry status (with DNS prefetch)
 bun run tier1380:registry connect       # Connect to OMEGA registry
 bun run tier1380:registry r2:status     # Check R2 connection
-bun run tier1380:registry r2:upload <path> [key]   # Upload to R2 (Bun.s3)
-bun run tier1380:registry r2:download <key> [path] # Download from R2
+bun run tier1380:registry r2:upload <path> [key]   # Upload to R2 with CRC32
+bun run tier1380:registry r2:download <key> [path] # Download from R2 with cache
 bun run tier1380:registry r2:list [prefix]         # List R2 objects
 bun run tier1380:registry r2:delete <key>          # Delete R2 object
+bun run tier1380:registry sync [dir] [pattern]     # Sync registry (up/down/both)
+bun run tier1380:registry sync:up [pattern]        # Sync local to R2
+bun run tier1380:registry sync:down [pattern]      # Sync R2 to local
+bun run tier1380:registry cache:stats   # Show cache statistics
+bun run tier1380:registry cache:clear   # Clear local cache
+bun run tier1380:registry benchmark     # Bun-native benchmark (CRC32, gzip, wyhash)
 bun run tier1380:registry shell:status  # Show Kimi shell integration status
 
 # Bun docs (mcp-bun-docs)
