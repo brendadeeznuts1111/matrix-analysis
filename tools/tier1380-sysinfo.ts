@@ -2,6 +2,7 @@
 /**
  * Tier-1380 System Information Summary
  * Comprehensive overview of all infrastructure components
+ * Usage: bun run tier1380:sysinfo [--json] [--health]
  */
 
 import { Database } from "bun:sqlite";
@@ -15,17 +16,15 @@ const GLYPHS = {
   AUDIT: "⊟",
   RUN: "▶",
   LOCK: "🔒",
+  WARN: "⚠",
+  OK: "✓",
+  FAIL: "✗",
 };
 
-// ─── Color Helpers ────────────────────────────────
-const c = {
-  green: (s: string) => `\x1b[32m${s}\x1b[39m`,
-  red: (s: string) => `\x1b[31m${s}\x1b[39m`,
-  yellow: (s: string) => `\x1b[33m${s}\x1b[39m`,
-  cyan: (s: string) => `\x1b[36m${s}\x1b[39m`,
-  bold: (s: string) => `\x1b[1m${s}\x1b[22m`,
-  dim: (s: string) => `\x1b[90m${s}\x1b[39m`,
-};
+// ─── Parse Args ───────────────────────────────────
+const args = process.argv.slice(2);
+const jsonMode = args.includes("--json");
+const healthMode = args.includes("--health");
 
 // ─── Component Checkers ───────────────────────────
 async function checkPort(port: number, host = "127.0.0.1"): Promise<boolean> {
@@ -50,6 +49,7 @@ async function getOpenClawInfo() {
     port: 18789,
     tailscale: "nolas-mac-mini.tailb53dda.ts.net",
     config: config ? "✓" : "✗",
+    healthy: config !== null,
   };
 }
 
@@ -64,6 +64,7 @@ async function getMatrixAgentInfo() {
     name: config?.name || "matrix-agent",
     model: config?.agents?.defaults?.model?.primary || "unknown",
     config: config ? "✓" : "✗",
+    healthy: config !== null,
   };
 }
 
@@ -81,13 +82,14 @@ async function getProfileInfo() {
     count: profiles.length,
     profiles: profiles.slice(0, 5),
     all: profiles,
+    healthy: profiles.length > 0,
   };
 }
 
 async function getAuditInfo() {
   const dbPath = "./data/tier1380.db";
   if (!existsSync(dbPath)) {
-    return { violations: 0, executions: 0, packages: 0 };
+    return { violations: 0, executions: 0, packages: 0, healthy: true };
   }
 
   try {
@@ -97,19 +99,37 @@ async function getAuditInfo() {
     const packages = (db.query("SELECT COUNT(*) as c FROM packages").get() as any).c;
     db.close();
 
-    return { violations, executions, packages };
+    return { violations, executions, packages, healthy: true };
   } catch {
-    return { violations: 0, executions: 0, packages: 0 };
+    return { violations: 0, executions: 0, packages: 0, healthy: false };
   }
 }
 
 async function getCronInfo() {
   try {
-    const result = await $`crontab -l 2>/dev/null || echo ""`;
-    const jobs = result.stdout.trim().split("\n").filter(l => l.trim() && !l.startsWith("#"));
-    return { count: jobs.length, jobs: jobs.slice(0, 3) };
+    const proc = Bun.spawn(["bash", "-c", "crontab -l 2>/dev/null || echo ''"], {
+      stdout: "pipe",
+      stderr: "pipe",
+    });
+    const stdout = await new Response(proc.stdout).text();
+    await proc.exited;
+    const jobs = stdout.trim().split("\n").filter((l) => l.trim() && !l.startsWith("#"));
+    return { count: jobs.length, jobs: jobs.slice(0, 3), healthy: true };
   } catch {
-    return { count: 0, jobs: [] };
+    return { count: 0, jobs: [], healthy: false };
+  }
+}
+
+async function getGitInfo() {
+  try {
+    const proc = Bun.spawn(["bash", "-c", "git rev-parse --short HEAD 2>/dev/null || echo 'unknown'"], {
+      stdout: "pipe",
+    });
+    const commit = (await new Response(proc.stdout).text()).trim();
+    await proc.exited;
+    return { commit, healthy: commit !== "unknown" };
+  } catch {
+    return { commit: "unknown", healthy: false };
   }
 }
 
@@ -117,115 +137,203 @@ async function getBunInfo() {
   return {
     version: Bun.version,
     revision: Bun.revision,
-    mem: "N/A", // Bun.memoryUsage not available in v1.3.7
+    healthy: true,
   };
 }
 
+// ─── Health Check ─────────────────────────────────
+async function runHealthCheck(): Promise<void> {
+  const results: { component: string; status: "healthy" | "degraded" | "failing"; details: string }[] = [];
+
+  // Check OpenClaw
+  const openclaw = await getOpenClawInfo();
+  results.push({
+    component: "OpenClaw Gateway",
+    status: openclaw.running ? "healthy" : "failing",
+    details: openclaw.running ? `Port ${openclaw.port} responding` : `Port ${openclaw.port} not responding`,
+  });
+
+  // Check Matrix Agent
+  const agent = await getMatrixAgentInfo();
+  results.push({
+    component: "Matrix Agent",
+    status: agent.healthy ? "healthy" : "failing",
+    details: agent.healthy ? `Config found (${agent.version})` : "Config not found",
+  });
+
+  // Check Profiles
+  const profiles = await getProfileInfo();
+  results.push({
+    component: "Environment Profiles",
+    status: profiles.count > 0 ? "healthy" : "degraded",
+    details: `${profiles.count} profiles available`,
+  });
+
+  // Check Audit Database
+  const audit = await getAuditInfo();
+  results.push({
+    component: "Audit System",
+    status: audit.healthy ? "healthy" : "degraded",
+    details: `${audit.violations} violations, ${audit.executions} executions`,
+  });
+
+  // Check Cron
+  const cron = await getCronInfo();
+  results.push({
+    component: "Cron Jobs",
+    status: cron.healthy ? "healthy" : "degraded",
+    details: `${cron.count} jobs configured`,
+  });
+
+  // Display results
+  console.log(`\n${GLYPHS.DRIFT} Tier-1380 Health Check\n`);
+  console.log("-".repeat(70));
+
+  for (const r of results) {
+    const icon = r.status === "healthy" ? GLYPHS.OK : r.status === "degraded" ? GLYPHS.WARN : GLYPHS.FAIL;
+    const statusColor = r.status === "healthy" ? "\x1b[32m" : r.status === "degraded" ? "\x1b[33m" : "\x1b[31m";
+    const reset = "\x1b[39m";
+    console.log(`${icon} ${r.component.padEnd(25)} ${statusColor}${r.status.toUpperCase()}${reset}`);
+    console.log(`   ${r.details}`);
+  }
+
+  console.log("-".repeat(70));
+
+  const healthy = results.filter((r) => r.status === "healthy").length;
+  const total = results.length;
+
+  if (healthy === total) {
+    console.log(`\n${GLYPHS.LOCKED} All ${total} components healthy`);
+  } else {
+    console.log(`\n${GLYPHS.WARN} ${healthy}/${total} components healthy`);
+  }
+  console.log();
+
+  process.exit(healthy === total ? 0 : 1);
+}
+
 // ─── Main Display ─────────────────────────────────
-async function main() {
-  console.log(c.bold(`\n${GLYPHS.DRIFT} Tier-1380 System Information Summary\n`));
+async function main(): Promise<void> {
+  // Run health check mode
+  if (healthMode) {
+    await runHealthCheck();
+    return;
+  }
+
+  // Gather all data
+  const [bun, openclaw, agent, profiles, audit, cron, git] = await Promise.all([
+    getBunInfo(),
+    getOpenClawInfo(),
+    getMatrixAgentInfo(),
+    getProfileInfo(),
+    getAuditInfo(),
+    getCronInfo(),
+    getGitInfo(),
+  ]);
+
+  // JSON output mode
+  if (jsonMode) {
+    console.log(
+      JSON.stringify(
+        {
+          timestamp: new Date().toISOString(),
+          bun,
+          openclaw,
+          matrixAgent: agent,
+          profiles,
+          audit,
+          cron,
+          git,
+        },
+        null,
+        2
+      )
+    );
+    return;
+  }
+
+  // Terminal output
+  console.log(`\n${GLYPHS.DRIFT} Tier-1380 System Information Summary\n`);
 
   // Header
-  console.log(c.dim("-".repeat(70)));
-  console.log(c.bold("  Runtime Environment"));
-  console.log(c.dim("-".repeat(70)));
-
-  const bun = await getBunInfo();
-  console.log(`  Bun Version:     ${c.cyan(bun.version)} (${bun.revision.slice(0, 8)})`);
-  console.log(`  Memory Usage:    ${bun.mem}`);
+  console.log("-".repeat(70));
+  console.log("  Runtime Environment");
+  console.log("-".repeat(70));
+  console.log(`  Bun Version:     ${bun.version} (${bun.revision.slice(0, 8)})`);
   console.log(`  Working Dir:     ${process.cwd()}`);
   console.log(`  Home Dir:        ${process.env.HOME}`);
+  console.log(`  Git Commit:      ${git.commit}`);
 
   // OpenClaw
-  console.log(c.dim("\n─".repeat(70)));
-  console.log(c.bold("  OpenClaw Gateway"));
-  console.log(c.dim("-".repeat(70)));
-
-  const openclaw = await getOpenClawInfo();
-  const status = openclaw.running ? c.green("● Running") : c.red("● Stopped");
-  console.log(`  Status:          ${status}`);
+  console.log("\n" + "-".repeat(70));
+  console.log("  OpenClaw Gateway");
+  console.log("-".repeat(70));
+  const ocStatus = openclaw.running ? `${GLYPHS.OK} Running` : `${GLYPHS.FAIL} Stopped`;
+  console.log(`  Status:          ${ocStatus}`);
   console.log(`  Version:         ${openclaw.version}`);
   console.log(`  Local Port:      ${openclaw.port}`);
   console.log(`  Tailscale:       ${openclaw.tailscale}`);
-  console.log(`  Config:          ${openclaw.config === "✓" ? c.green(openclaw.config) : c.red(openclaw.config)}`);
+  console.log(`  Config:          ${openclaw.config}`);
 
   // Matrix Agent
-  console.log(c.dim("\n─".repeat(70)));
-  console.log(c.bold("  Matrix Agent"));
-  console.log(c.dim("-".repeat(70)));
-
-  const agent = await getMatrixAgentInfo();
+  console.log("\n" + "-".repeat(70));
+  console.log("  Matrix Agent");
+  console.log("-".repeat(70));
   console.log(`  Name:            ${agent.name}`);
   console.log(`  Version:         ${agent.version}`);
-  console.log(`  Config:          ${agent.config === "✓" ? c.green(agent.config) : c.red(agent.config)}`);
-  console.log(`  Primary Model:   ${c.dim(agent.model)}`);
+  console.log(`  Config:          ${agent.config}`);
+  console.log(`  Primary Model:   ${agent.model}`);
 
   // Profiles
-  console.log(c.dim("\n─".repeat(70)));
-  console.log(c.bold("  Environment Profiles"));
-  console.log(c.dim("-".repeat(70)));
-
-  const profiles = await getProfileInfo();
+  console.log("\n" + "-".repeat(70));
+  console.log("  Environment Profiles");
+  console.log("-".repeat(70));
   console.log(`  Total Profiles:  ${profiles.count}`);
   if (profiles.count > 0) {
-    console.log(`  Recent:          ${profiles.profiles.join(", ")}${profiles.count > 5 ? " …" : ""}`);
+    console.log(`  Recent:          ${profiles.profiles.join(", ")}${profiles.count > 5 ? " ..." : ""}`);
   }
 
   // Audit System
-  console.log(c.dim("\n─".repeat(70)));
-  console.log(c.bold("  Tier-1380 Audit System"));
-  console.log(c.dim("-".repeat(70)));
-
-  const audit = await getAuditInfo();
-  const vColor = audit.violations > 0 ? c.yellow(String(audit.violations)) : c.green("0");
-  console.log(`  Col-89 Violations:  ${vColor}`);
+  console.log("\n" + "-".repeat(70));
+  console.log("  Tier-1380 Audit System");
+  console.log("-".repeat(70));
+  const vWarn = audit.violations > 0 ? GLYPHS.WARN + " " : GLYPHS.OK + " ";
+  console.log(`  Col-89 Violations:  ${vWarn}${audit.violations}`);
   console.log(`  Secure Executions:  ${audit.executions}`);
   console.log(`  Packages Verified:  ${audit.packages}`);
 
   // Cron Jobs
-  console.log(c.dim("\n─".repeat(70)));
-  console.log(c.bold("  Scheduled Tasks (Cron)"));
-  console.log(c.dim("-".repeat(70)));
-
-  const cron = await getCronInfo();
+  console.log("\n" + "-".repeat(70));
+  console.log("  Scheduled Tasks (Cron)");
+  console.log("-".repeat(70));
   console.log(`  Active Jobs:     ${cron.count}`);
   if (cron.jobs.length > 0) {
     cron.jobs.forEach((job, i) => {
-      const cmd = job.length > 50 ? job.slice(0, 47) + "…" : job;
-      console.log(`  ${i + 1}. ${c.dim(cmd)}`);
+      const cmd = job.length > 50 ? job.slice(0, 47) + "..." : job;
+      console.log(`  ${i + 1}. ${cmd}`);
     });
-    if (cron.count > 3) console.log(`     … and ${cron.count - 3} more`);
+    if (cron.count > 3) console.log(`     ... and ${cron.count - 3} more`);
   }
 
   // Quick Links
-  console.log(c.dim("\n─".repeat(70)));
-  console.log(c.bold("  Quick Commands"));
-  console.log(c.dim("-".repeat(70)));
-
-  console.log(`  ${c.cyan("bun run tier1380:sysinfo")}        Show this summary`);
-  console.log(`  ${c.cyan("bun run matrix:openclaw:status")}  Check OpenClaw status`);
-  console.log(`  ${c.cyan("bun run tier1380:audit db")}       View audit database`);
-  console.log(`  ${c.cyan("bun run tier1380:exec:stats")}    View execution stats`);
-  console.log(`  ${c.cyan("bun run mcp:status")}            Run MCP health check`);
+  console.log("\n" + "-".repeat(70));
+  console.log("  Quick Commands");
+  console.log("-".repeat(70));
+  console.log(`  bun run tier1380:sysinfo          Show this summary`);
+  console.log(`  bun run tier1380:sysinfo --json   JSON output`);
+  console.log(`  bun run tier1380:sysinfo --health Health check`);
+  console.log(`  bun run matrix:openclaw:status    Check OpenClaw status`);
+  console.log(`  bun run tier1380:audit db         View audit database`);
+  console.log(`  bun run tier1380:exec:stats       View execution stats`);
 
   // Footer
-  console.log(c.dim("\n─".repeat(70)));
-  console.log(c.dim(`  ${GLYPHS.LOCKED} Tier-1380 OMEGA System v1.0.0`));
-  console.log(c.dim("─".repeat(70) + "\n"));
-}
-
-// Shell helper
-async function $(strings: TemplateStringsArray, ...values: any[]) {
-  const cmd = strings.reduce((acc, str, i) => acc + str + (values[i] || ""), "");
-  const proc = Bun.spawn(["bash", "-c", cmd], { stdout: "pipe", stderr: "pipe" });
-  const stdout = await new Response(proc.stdout).text();
-  const stderr = await new Response(proc.stderr).text();
-  await proc.exited;
-  return { stdout, stderr, exitCode: proc.exitCode };
+  console.log("\n" + "-".repeat(70));
+  console.log(`  ${GLYPHS.LOCKED} Tier-1380 OMEGA System v1.0.0`);
+  console.log("-".repeat(70) + "\n");
 }
 
 if (import.meta.main) {
   main().catch(console.error);
 }
 
-export { getOpenClawInfo, getMatrixAgentInfo, getProfileInfo, getAuditInfo };
+export { getOpenClawInfo, getMatrixAgentInfo, getProfileInfo, getAuditInfo, runHealthCheck };
