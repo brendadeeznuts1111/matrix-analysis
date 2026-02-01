@@ -1541,6 +1541,154 @@ async function watchFiles(pattern: string = "./data/*"): Promise<void> {
 // Import fs for watch
 import * as fs from "fs";
 
+// ─── Bun.sleep Demo ───────────────────────────────
+async function sleepDemo(ms: number = 1000): Promise<void> {
+  console.log(`${GLYPHS.DRIFT} Bun.sleep() Demo\n`);
+  console.log("-".repeat(70));
+  
+  console.log(`  Sleeping for ${ms}ms...`);
+  const start = Bun.nanoseconds();
+  
+  await Bun.sleep(ms);
+  
+  const duration = Number(Bun.nanoseconds() - start) / 1000000;
+  console.log(`  Woke up after ${duration.toFixed(2)}ms`);
+  console.log(`  Drift: ${(duration - ms).toFixed(2)}ms`);
+  
+  // Chain multiple sleeps
+  console.log(`\n  Chained sleeps:`);
+  for (let i = 100; i <= 500; i += 100) {
+    process.stdout.write(`  ${i}ms... `);
+    await Bun.sleep(i);
+    console.log("done");
+  }
+  
+  console.log("-".repeat(70) + "\n");
+}
+
+// ─── Crypto HMAC (Bun.CryptoHasher) ───────────────
+async function cryptoHMAC(data: string = "registry-data", secret?: string): Promise<void> {
+  console.log(`${GLYPHS.LOCK} HMAC Generation (Bun.CryptoHasher)\n`);
+  console.log("-".repeat(70));
+  
+  const key = secret || await Bun.password.hash("registry-secret", { algorithm: "bcrypt" });
+  
+  console.log(`  Algorithm: sha256`);
+  console.log(`  Data: ${data}`);
+  
+  const start = Bun.nanoseconds();
+  
+  // Create HMAC using CryptoHasher
+  const hasher = new Bun.CryptoHasher("sha256", key);
+  hasher.update(data);
+  const hmac = hasher.digest("hex");
+  
+  const duration = Number(Bun.nanoseconds() - start) / 1000000;
+  
+  console.log(`\n  HMAC: ${hmac.slice(0, 32)}...`);
+  console.log(`  Time: ${duration.toFixed(3)}ms`);
+  
+  // Verify
+  const verifyHasher = new Bun.CryptoHasher("sha256", key);
+  verifyHasher.update(data);
+  const verifyHmac = verifyHasher.digest("hex");
+  
+  console.log(`  Verification: ${hmac === verifyHmac ? COLORS.success("MATCH") : COLORS.error("MISMATCH")}`);
+  
+  // Compare algorithms
+  console.log(`\n  Algorithm Comparison:`);
+  const algorithms = ["sha256", "sha512", "blake2b256"] as const;
+  
+  for (const algo of algorithms) {
+    const start = Bun.nanoseconds();
+    const h = new Bun.CryptoHasher(algo, key);
+    h.update(data.repeat(100));
+    h.digest("hex");
+    const dur = Number(Bun.nanoseconds() - start) / 1000;
+    console.log(`    ${algo}: ${dur.toFixed(2)}µs`);
+  }
+  
+  console.log("-".repeat(70) + "\n");
+}
+
+// ─── UUID Generation (Bun.randomUUIDv7) ───────────
+function generateUUIDs(count: number = 5): void {
+  console.log(`${GLYPHS.DRIFT} UUID Generation (Bun.randomUUIDv7)\n`);
+  console.log("-".repeat(70));
+  
+  console.log(`  Generating ${count} UUIDv7s:\n`);
+  
+  const uuids: string[] = [];
+  const timestamps: number[] = [];
+  
+  for (let i = 0; i < count; i++) {
+    const start = Bun.nanoseconds();
+    const uuid = Bun.randomUUIDv7();
+    const duration = Number(Bun.nanoseconds() - start) / 1000;
+    
+    uuids.push(uuid);
+    timestamps.push(Date.now());
+    
+    console.log(`  ${i + 1}. ${uuid} (${duration.toFixed(2)}µs)`);
+    
+    if (i < count - 1) {
+      Bun.sleepSync(10); // Small delay to show timestamp difference
+    }
+  }
+  
+  // Show timestamp extraction (UUIDv7 embeds timestamp)
+  console.log(`\n  Timestamp Analysis:`);
+  console.log(`  First: ${new Date(timestamps[0]).toISOString()}`);
+  console.log(`  Last:  ${new Date(timestamps[timestamps.length - 1]).toISOString()}`);
+  
+  // Check uniqueness
+  const unique = new Set(uuids).size === uuids.length;
+  console.log(`\n  Uniqueness: ${unique ? COLORS.success("ALL UNIQUE") : COLORS.error("DUPLICATES FOUND")}`);
+  
+  console.log("-".repeat(70) + "\n");
+}
+
+// ─── Bun Environment Info ─────────────────────────
+function showBunInfo(): void {
+  console.log(`${GLYPHS.DRIFT} Bun Environment Information\n`);
+  console.log("-".repeat(70));
+  
+  console.log(`  Bun Version:   ${Bun.version}`);
+  console.log(`  Bun Revision:  ${Bun.revision.slice(0, 16)}...`);
+  console.log(`  Is Main:       ${import.meta.main}`);
+  console.log(`  Executable:    ${Bun.which("bun")}`);
+  console.log(`  Platform:      ${process.platform}`);
+  console.log(`  Architecture:  ${process.arch}`);
+  
+  // Memory usage
+  const mem = process.memoryUsage();
+  console.log(`\n  Memory Usage:`);
+  console.log(`    RSS:         ${formatBytes(mem.rss)}`);
+  console.log(`    Heap Used:   ${formatBytes(mem.heapUsed)}`);
+  console.log(`    Heap Total:  ${formatBytes(mem.heapTotal)}`);
+  console.log(`    External:    ${formatBytes(mem.external || 0)}`);
+  
+  // Bun-specific features check
+  console.log(`\n  Bun-native Features Available:`);
+  const features = [
+    { name: "Bun.s3", available: typeof Bun.s3 !== "undefined" },
+    { name: "Bun.password", available: typeof Bun.password !== "undefined" },
+    { name: "Bun.CryptoHasher", available: typeof Bun.CryptoHasher !== "undefined" },
+    { name: "Bun.randomUUIDv7", available: typeof Bun.randomUUIDv7 !== "undefined" },
+    { name: "Bun.color", available: typeof Bun.color !== "undefined" },
+    { name: "Bun.semver", available: typeof Bun.semver !== "undefined" },
+    { name: "Bun.dns", available: typeof Bun.dns !== "undefined" },
+    { name: "Bun.TOML", available: typeof Bun.TOML !== "undefined" },
+    { name: "Bun.Transpiler", available: typeof Bun.Transpiler !== "undefined" },
+  ];
+  
+  features.forEach(f => {
+    console.log(`    ${f.available ? GLYPHS.OK : GLYPHS.FAIL} ${f.name}`);
+  });
+  
+  console.log("-".repeat(70) + "\n");
+}
+
 // ─── Main ─────────────────────────────────────────
 async function main(): Promise<void> {
   const args = process.argv.slice(2);
@@ -1723,6 +1871,25 @@ async function main(): Promise<void> {
       await watchFiles(args[1] || "./data/*");
       break;
 
+    // Bun-native Demos
+    case "demo:sleep":
+      await sleepDemo(parseInt(args[1]) || 1000);
+      break;
+
+    case "demo:hmac":
+      await cryptoHMAC(args[1], args[2]);
+      break;
+
+    case "demo:uuid":
+      generateUUIDs(parseInt(args[1]) || 5);
+      break;
+
+    // Info Commands
+    case "info":
+    case "bun:info":
+      showBunInfo();
+      break;
+
     case "help":
     default:
       console.log(`
@@ -1766,8 +1933,14 @@ Utilities:
   bin:check            Detect required binaries (Bun.which)
   password:hash [pwd]  Hash password (Bun.password - argon2id)
   rss:generate         Generate RSS feed (Bun.escapeHTML)
+  info                 Show Bun environment info
+
+Demo Commands:
   demo:peek            Demo Bun.peek() async inspection
   demo:path [file]     Demo path operations (path module)
+  demo:sleep [ms]      Demo Bun.sleep() delays
+  demo:hmac [data]     Demo HMAC generation (CryptoHasher)
+  demo:uuid [count]    Demo UUIDv7 generation
 
 Server & IPC:
   server:start [port]  Start TCP registry server (Bun.listen)
@@ -1792,6 +1965,9 @@ Examples:
   bun run tier1380:registry bin:check
 
 Bun-native Features:
+  • Bun.sleep() - Precise async delays
+  • Bun.CryptoHasher - HMAC/SHA hashing
+  • Bun.randomUUIDv7() - UUID generation
   • Bun.listen() - TCP socket server for registry API
   • Bun.spawn(ipc) - Worker processes with IPC
   • fs.watch() - File system monitoring

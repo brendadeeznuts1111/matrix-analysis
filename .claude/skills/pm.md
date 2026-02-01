@@ -2,7 +2,7 @@
 name: pm
 description: "Use when user wants to manage packages, run shell commands, spawn processes, or use Bun runtime APIs: add, remove, update, audit, publish, bunx, $shell, spawn, file I/O, inspect (with advanced patterns), and more"
 user-invocable: true
-version: 3.2.0
+version: 3.3.0
 ---
 
 # Bun Package Manager (/pm)
@@ -72,6 +72,9 @@ ADD PACKAGE
   bun add <package>@^3.0.0              # Version range
   bun add <package>@latest              # Latest tag
   bun add lodash dayjs zod              # Multiple packages
+  bun add @myorg/utils                     # Scoped package
+  bun add @myorg/utils@^2.0.0             # Scoped with version range
+  bun add @scope/a @scope/b @scope/c      # Multiple scoped from same org
   bun add --only-missing <pkg>          # Only if not in package.json
   bun add --trust <pkg>                 # Trust and run lifecycle scripts
   bun add --analyze <file>               # Analyze & install deps from source file
@@ -108,6 +111,7 @@ REMOVE PACKAGE
 ──────────────
   bun remove <package>
   bun remove lodash dayjs              # Multiple
+  bun remove @myorg/utils                 # Scoped package
 
 ===============================================================================
                              UPDATE COMMANDS
@@ -117,6 +121,7 @@ BASIC UPDATE
 ────────────
   bun update                           # Update all
   bun update lodash                    # Update specific
+  bun update @myorg/utils                 # Update scoped package
   bun update --latest                  # Ignore semver constraints
   bun update --force                   # Force reinstall all
   bun update --dry-run                 # Preview changes
@@ -188,6 +193,8 @@ WHY (dependency explanation)
   bun why <package>                    # Show why package is installed
   bun why react                        # Single package
   bun why "@types/*"                   # Glob pattern
+  bun why @myorg/utils                    # Scoped package
+  bun why "@myorg/*"                      # Scoped glob (quote for shell)
   bun why express --top                # Top-level deps only
   bun why express --depth 2            # Limit tree depth
 
@@ -325,6 +332,8 @@ PACKAGE FLAG (binary differs from package name)
 ───────────────────────────────────────────────
   bunx -p renovate renovate-config-validator
   bunx --package @angular/cli ng new my-app
+  bunx @myorg/cli init                    # Run scoped package directly
+  bunx -p @myorg/tools my-tool --flag     # Scoped package flag
 
 FORCE BUN RUNTIME
 ─────────────────
@@ -354,10 +363,25 @@ PUBLISH
 ───────
   bun publish                          # Publish to registry
   bun publish --tag beta               # Publish with tag
+  bun publish --tag next               # Publish with next tag
   bun publish --access public          # Public scoped package
   bun publish --access restricted      # Private scoped package
   bun publish --dry-run                # Preview publish
   bun publish --otp 123456             # With 2FA code
+  bun publish --auth-type legacy       # Auth type (legacy | web)
+  bun publish --registry <url>         # Publish to specific registry
+  bun publish --tolerate-republish     # Don't error on duplicate version
+  bun publish --no-summary             # Skip publish summary output
+  bun publish --silent                 # Suppress all output
+
+PUBLISH SCOPED PACKAGES
+───────────────────────
+  bun publish --access public          # Required for first scoped publish
+  # Or set in package.json:
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://npm.myorg.com/"
+  }
 
 ===============================================================================
                            CACHE MANAGEMENT
@@ -383,8 +407,8 @@ PUBLISH
                           NETWORK & REGISTRY
 ===============================================================================
 
-CLI FLAGS
-─────────
+CLI FLAGS (install & publish)
+─────────────────────────────
   --registry <url>                       # Use specific registry
   --network-concurrency <n>              # Max concurrent requests (default: 48)
   --ca <cert>                            # CA signing certificate
@@ -392,6 +416,11 @@ CLI FLAGS
   --prefer-offline                       # Prefer cached packages
   --no-cache                             # Bypass cache entirely
   --ignore-registry-errors               # Continue on registry failures
+  --verbose                              # Verbose logging
+  --silent                               # Suppress all output
+  --no-progress                          # Disable progress bar
+  --force                                # Force reinstall / overwrite
+  --no-verify                            # Skip integrity verification
 
 ===============================================================================
                        REGISTRY CONFIGURATION (bunfig.toml)
@@ -422,12 +451,46 @@ SCOPED REGISTRIES (private packages)
   # With token
   "@myorg" = { token = "$NPM_TOKEN", url = "https://registry.myorg.com/" }
 
-NPMRC SUPPORT
-─────────────
+MULTI-SCOPE CONFIGURATION
+─────────────────────────
+  [install.scopes]
+  "@frontend" = { token = "$FRONTEND_TOKEN", url = "https://npm.frontend.dev/" }
+  "@backend"  = { token = "$BACKEND_TOKEN",  url = "https://npm.backend.dev/" }
+  "@shared"   = { token = "$SHARED_TOKEN",   url = "https://npm.internal.corp/" }
+
+  # Table syntax (equivalent)
+  [install.scopes."@myorg"]
+  token = "$NPM_TOKEN"
+  url = "https://registry.myorg.com/"
+
+RESOLUTION ORDER
+────────────────
+  1. Scoped registry in bunfig.toml [install.scopes]
+  2. Scoped registry in .npmrc (@scope:registry=...)
+  3. Default registry in bunfig.toml [install] registry
+  4. $BUN_CONFIG_REGISTRY / $NPM_CONFIG_REGISTRY env var
+  5. https://registry.npmjs.org (fallback)
+
+NPMRC SUPPORT (v1.1.18+)
+─────────────────────────
   Bun reads .npmrc files automatically. Supported:
   - //registry.npmjs.org/:_authToken=${NPM_TOKEN}
   - @myorg:registry=https://registry.myorg.com/
   - registry=https://registry.npmjs.org/
+
+  Multi-scope .npmrc:
+  - @frontend:registry=https://npm.frontend.dev/
+  - //npm.frontend.dev/:_authToken=${FRONTEND_TOKEN}
+  - @backend:registry=https://npm.backend.dev/
+  - //npm.backend.dev/:_authToken=${BACKEND_TOKEN}
+
+PUBLISHCONFIG (package.json)
+────────────────────────────
+  "publishConfig": {
+    "registry": "https://npm.myorg.com/",
+    "access": "public",
+    "tag": "latest"
+  }
 
 ===============================================================================
                        BUN.INSPECT() - DEBUGGING & LOGGING
@@ -1025,6 +1088,12 @@ DEPRECATION CONTROL
   Audit needs lockfile   No bun.lock           Run bun install first
   Patch not applying     Missing patches/      Check patches directory exists
   Link not found         Not registered        Run bun link in package dir first
+  Scoped 404            Wrong registry        Add scope to bunfig.toml [install.scopes]
+  Scoped auth fail      Token mismatch        Check scope-specific token env var
+  Publish scope denied  First publish          Use --access public for scoped pkgs
+  Global bunfig ignored Bun bug (scopes)      Copy bunfig.toml to project root
+  bunx @scope/pkg fail  Registry not set       Add @scope to bunfig.toml or .npmrc
+  Dep confusion attack  No scoped registry     Pin scopes to private registry
 
 ===============================================================================
                           ENVIRONMENT VARIABLES
@@ -1040,5 +1109,10 @@ DEPRECATION CONTROL
   BUN_CONFIG_MAX_HTTP_HEADER_SIZE=<n>    # Max HTTP header size (bytes)
   BUN_CONFIG_DNS_RESULT_ORDER=<val>      # verbatim | ipv4first | ipv6first
   BUN_PORT=<port>                        # Default server port
+  NPM_CONFIG_REGISTRY=<url>               # npm-compat registry override
+  NPM_CONFIG_TOKEN=<token>                # npm-compat auth token (CI/CD)
+  NPM_TOKEN=<token>                       # .npmrc token interpolation
+  BUN_CONFIG_STRICT_SSL=0                  # Disable strict SSL (not recommended)
+  BUN_INSTALL_GLOBAL_DIR=<path>            # Custom global install directory
 
 ===============================================================================
