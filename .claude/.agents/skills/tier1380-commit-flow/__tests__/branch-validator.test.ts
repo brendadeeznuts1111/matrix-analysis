@@ -3,8 +3,11 @@
  * Tests for branch validator
  */
 
-import { describe, it, expect } from "bun:test";
-import { validateBranchName, PROTECTED_BRANCHES } from "../scripts/branch-validator";
+import { describe, expect, it } from "bun:test";
+import {
+	PROTECTED_BRANCHES,
+	validateBranchName,
+} from "../scripts/branch-validator";
 
 describe("Branch name validation", () => {
 	it("should validate main branch", () => {
@@ -56,7 +59,7 @@ describe("Branch name validation", () => {
 	});
 
 	it("should warn about long branch names", () => {
-		const result = validateBranchName("feature/TIER-1380-" + "a".repeat(50));
+		const result = validateBranchName(`feature/TIER-1380-${"a".repeat(50)}`);
 		expect(result.valid).toBe(true);
 		expect(result.warnings.some((w) => w.includes("50"))).toBe(true);
 	});

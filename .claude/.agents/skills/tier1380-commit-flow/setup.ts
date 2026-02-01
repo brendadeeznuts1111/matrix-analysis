@@ -13,13 +13,16 @@ interface SetupOptions {
 	runTests: boolean;
 }
 
-async function checkPrerequisites(): Promise<{ ok: boolean; issues: string[] }> {
+async function checkPrerequisites(): Promise<{
+	ok: boolean;
+	issues: string[];
+}> {
 	const issues: string[] = [];
 
 	// Check Bun version
 	const bunVersion = Bun.version;
 	const minVersion = "1.3.0";
-	if (!Bun.semver.satisfies(bunVersion, ">=" + minVersion)) {
+	if (!Bun.semver.satisfies(bunVersion, `>=${minVersion}`)) {
 		issues.push(`Bun ${bunVersion} is too old. Need >= ${minVersion}`);
 	}
 
@@ -41,7 +44,7 @@ async function checkPrerequisites(): Promise<{ ok: boolean; issues: string[] }> 
 }
 
 async function setupDatabase(): Promise<void> {
-	const dbPath = `${process.env.HOME}/.matrix/commit-history.db`;
+	const _dbPath = `${process.env.HOME}/.matrix/commit-history.db`;
 	const dbDir = `${process.env.HOME}/.matrix`;
 
 	await $`mkdir -p ${dbDir}`.quiet();
@@ -66,9 +69,12 @@ async function installGitHooks(): Promise<void> {
 async function createShellAlias(): Promise<void> {
 	const shell = process.env.SHELL || "/bin/bash";
 	const isZsh = shell.includes("zsh");
-	const rcFile = isZsh ? `${process.env.HOME}/.zshrc` : `${process.env.HOME}/.bashrc`;
+	const rcFile = isZsh
+		? `${process.env.HOME}/.zshrc`
+		: `${process.env.HOME}/.bashrc`;
 
-	const aliasLine = '\n# Tier-1380 OMEGA Commit Flow\nalias tier1380="bun ~/.kimi/skills/tier1380-commit-flow/cli.ts"\n';
+	const aliasLine =
+		'\n# Tier-1380 OMEGA Commit Flow\nalias tier1380="bun ~/.kimi/skills/tier1380-commit-flow/cli.ts"\n';
 
 	try {
 		const rcContent = await Bun.file(rcFile).text();
@@ -103,12 +109,16 @@ async function printNextSteps(): Promise<void> {
 	console.log();
 	console.log("Quick Start:");
 	console.log("  1. Stage your changes: git add .");
-	console.log("  2. Generate message:   bun ~/.kimi/skills/tier1380-commit-flow/cli.ts g");
-	console.log("  3. Commit:             bun ~/.kimi/skills/tier1380-commit-flow/cli.ts c \"[MSG]\"");
+	console.log(
+		"  2. Generate message:   bun ~/.kimi/skills/tier1380-commit-flow/cli.ts g",
+	);
+	console.log(
+		'  3. Commit:             bun ~/.kimi/skills/tier1380-commit-flow/cli.ts c "[MSG]"',
+	);
 	console.log();
 	console.log("Or with alias (after sourcing your shell config):");
 	console.log("  tier1380 g   # generate message");
-	console.log("  tier1380 c \"[RUNTIME][CHROME][TIER:1380] Fix entropy\"");
+	console.log('  tier1380 c "[RUNTIME][CHROME][TIER:1380] Fix entropy"');
 	console.log();
 	console.log("Documentation:");
 	console.log("  ~/.kimi/skills/tier1380-commit-flow/SKILL.md");

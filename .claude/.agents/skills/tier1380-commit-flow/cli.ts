@@ -74,7 +74,7 @@ const COMMANDS = {
 
 type Command = keyof typeof COMMANDS;
 
-const SCRIPT_DIR = import.meta.dir + "/scripts";
+const SCRIPT_DIR = `${import.meta.dir}/scripts`;
 
 function printHelp(): void {
 	console.log("╔════════════════════════════════════════════════════════╗");

@@ -37,7 +37,7 @@ async function runGovernanceChecks(scope: string): Promise<CheckResult[]> {
 	return results;
 }
 
-async function checkBiomeLint(scope: string): Promise<CheckResult> {
+async function checkBiomeLint(_scope: string): Promise<CheckResult> {
 	try {
 		await $`bunx @biomejs/biome check --staged`.quiet();
 		return { name: "Biome Lint", passed: true };
@@ -50,7 +50,7 @@ async function checkBiomeLint(scope: string): Promise<CheckResult> {
 	}
 }
 
-async function checkTypeScript(scope: string): Promise<CheckResult> {
+async function checkTypeScript(_scope: string): Promise<CheckResult> {
 	try {
 		await $`bun tsc --noEmit`.quiet();
 		return { name: "TypeScript", passed: true };
@@ -85,7 +85,7 @@ async function checkTests(scope: string): Promise<CheckResult> {
 
 async function checkSkillsCompliance(): Promise<CheckResult> {
 	try {
-		const result = await $`bun test tests/skills-standards.test.ts`.quiet();
+		const _result = await $`bun test tests/skills-standards.test.ts`.quiet();
 		return { name: "Skills Compliance (Col 89-95)", passed: true };
 	} catch {
 		return {

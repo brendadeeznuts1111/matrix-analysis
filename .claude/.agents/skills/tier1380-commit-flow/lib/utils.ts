@@ -4,8 +4,6 @@
  * Bun-native optimized helper functions
  */
 
-import { Database } from "bun:sqlite";
-
 // Col-89 enforcement using Bun.stringWidth
 export function assertCol89(text: string, context = "unknown"): boolean {
 	const width = Bun.stringWidth(text, { countAnsiEscapeCodes: false });
@@ -45,12 +43,18 @@ export class Timer {
 }
 
 // Table output using Bun.inspect.table
-export function printTable(data: Record<string, unknown>[], columns?: string[]): void {
+export function printTable(
+	data: Record<string, unknown>[],
+	columns?: string[],
+): void {
 	console.log(Bun.inspect.table(data, columns, { colors: true }));
 }
 
 // Color output using Bun.color
-export function colorize(text: string, color: "green" | "red" | "yellow" | "blue"): string {
+export function colorize(
+	text: string,
+	color: "green" | "red" | "yellow" | "blue",
+): string {
 	const colors = {
 		green: Bun.color("green", "ansi"),
 		red: Bun.color("red", "ansi"),
@@ -67,7 +71,11 @@ export function checkBunVersion(minVersion: string): boolean {
 }
 
 // Progress bar for terminal
-export function renderProgress(current: number, total: number, width = 40): string {
+export function renderProgress(
+	current: number,
+	total: number,
+	width = 40,
+): string {
 	const filled = Math.round((current / total) * width);
 	const bar = "█".repeat(filled) + "░".repeat(width - filled);
 	const pct = Math.round((current / total) * 100);
@@ -75,17 +83,23 @@ export function renderProgress(current: number, total: number, width = 40): stri
 }
 
 // Box drawing for terminal UI
-export function renderBox(title: string, content: string[], width = 60): string {
+export function renderBox(
+	title: string,
+	content: string[],
+	width = 60,
+): string {
 	const lines: string[] = [];
-	const top = "╔" + "═".repeat(width - 2) + "╗";
-	const bottom = "╚" + "═".repeat(width - 2) + "╝";
+	const top = `╔${"═".repeat(width - 2)}╗`;
+	const bottom = `╚${"═".repeat(width - 2)}╝`;
 
 	lines.push(top);
-	lines.push("║" + title.padStart((width + title.length) / 2).padEnd(width - 2) + "║");
-	lines.push("╠" + "═".repeat(width - 2) + "╣");
+	lines.push(
+		`║${title.padStart((width + title.length) / 2).padEnd(width - 2)}║`,
+	);
+	lines.push(`╠${"═".repeat(width - 2)}╣`);
 
 	for (const line of content) {
-		lines.push("║" + line.slice(0, width - 2).padEnd(width - 2) + "║");
+		lines.push(`║${line.slice(0, width - 2).padEnd(width - 2)}║`);
 	}
 
 	lines.push(bottom);
@@ -100,9 +114,15 @@ export async function getGitInfo(): Promise<{
 }> {
 	const { $ } = await import("bun");
 
-	const branch = await $`git branch --show-current`.text().catch(() => "unknown");
-	const remote = await $`git remote get-url origin`.text().catch(() => "unknown");
-	const lastCommit = await $`git log -1 --pretty=%h`.text().catch(() => "unknown");
+	const branch = await $`git branch --show-current`
+		.text()
+		.catch(() => "unknown");
+	const remote = await $`git remote get-url origin`
+		.text()
+		.catch(() => "unknown");
+	const lastCommit = await $`git log -1 --pretty=%h`
+		.text()
+		.catch(() => "unknown");
 
 	return {
 		branch: branch.trim(),
@@ -130,7 +150,9 @@ export async function processFiles<T>(
 		}
 	}
 
-	await Promise.all(Array.from({ length: Math.min(concurrency, files.length) }, worker));
+	await Promise.all(
+		Array.from({ length: Math.min(concurrency, files.length) }, worker),
+	);
 	return results;
 }
 

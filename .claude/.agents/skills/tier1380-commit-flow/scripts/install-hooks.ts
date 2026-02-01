@@ -134,7 +134,13 @@ async function uninstallHooks(): Promise<void> {
 	const gitDir = (await $`git rev-parse --git-dir`.text()).trim();
 	const hooksDir = `${gitDir}/hooks`;
 
-	const hooks = ["pre-commit", "prepare-commit-msg", "commit-msg", "post-commit", "pre-push"];
+	const hooks = [
+		"pre-commit",
+		"prepare-commit-msg",
+		"commit-msg",
+		"post-commit",
+		"pre-push",
+	];
 
 	console.log("🗑️  Uninstalling hooks...");
 	console.log();
@@ -159,7 +165,13 @@ async function checkStatus(): Promise<void> {
 	console.log("📋 Hook Status");
 	console.log();
 
-	const hooks = ["pre-commit", "prepare-commit-msg", "commit-msg", "post-commit", "pre-push"];
+	const hooks = [
+		"pre-commit",
+		"prepare-commit-msg",
+		"commit-msg",
+		"post-commit",
+		"pre-push",
+	];
 
 	for (const hook of hooks) {
 		const hookPath = `${hooksDir}/${hook}`;
@@ -167,7 +179,9 @@ async function checkStatus(): Promise<void> {
 			await $`test -f ${hookPath}`.quiet();
 			const content = await Bun.file(hookPath).text();
 			const isTier1380 = content.includes("Tier-1380 OMEGA");
-			console.log(`${isTier1380 ? "✅" : "⚠️"} ${hook}: ${isTier1380 ? "Tier-1380" : "Custom/other"}`);
+			console.log(
+				`${isTier1380 ? "✅" : "⚠️"} ${hook}: ${isTier1380 ? "Tier-1380" : "Custom/other"}`,
+			);
 		} catch {
 			console.log(`❌ ${hook}: Not installed`);
 		}
@@ -200,11 +214,21 @@ if (import.meta.main) {
 			await installHooks(config);
 
 			console.log("Configuration:");
-			console.log(`  Pre-commit:         ${config.enablePreCommit ? "✅" : "❌"}`);
-			console.log(`  Prepare-commit-msg: ${config.enablePrepareCommitMsg ? "✅" : "❌"}`);
-			console.log(`  Commit-msg:         ${config.enableCommitMsg ? "✅" : "❌"}`);
-			console.log(`  Post-commit:        ${config.enablePostCommit ? "✅" : "❌"}`);
-			console.log(`  Pre-push:           ${config.enablePrePush ? "✅" : "❌"}`);
+			console.log(
+				`  Pre-commit:         ${config.enablePreCommit ? "✅" : "❌"}`,
+			);
+			console.log(
+				`  Prepare-commit-msg: ${config.enablePrepareCommitMsg ? "✅" : "❌"}`,
+			);
+			console.log(
+				`  Commit-msg:         ${config.enableCommitMsg ? "✅" : "❌"}`,
+			);
+			console.log(
+				`  Post-commit:        ${config.enablePostCommit ? "✅" : "❌"}`,
+			);
+			console.log(
+				`  Pre-push:           ${config.enablePrePush ? "✅" : "❌"}`,
+			);
 			console.log(`  Auto-fix:           ${config.autoFix ? "✅" : "❌"}`);
 			console.log();
 			console.log("Hooks installed successfully!");
@@ -222,7 +246,9 @@ if (import.meta.main) {
 
 		default:
 			console.log("Usage:");
-			console.log("  install [--no-pre-commit] [--no-prepare-commit-msg] [--no-commit-msg] [--no-post-commit] [--no-pre-push] [--auto-fix]");
+			console.log(
+				"  install [--no-pre-commit] [--no-prepare-commit-msg] [--no-commit-msg] [--no-post-commit] [--no-pre-push] [--auto-fix]",
+			);
 			console.log("  uninstall");
 			console.log("  status");
 			break;

@@ -3,16 +3,10 @@
  * Tests for configuration management
  */
 
-import { describe, it, expect, beforeEach } from "bun:test";
-import {
-	DEFAULT_CONFIG,
-	loadConfig,
-	saveConfig,
-	setConfigValue,
-	getConfigValue,
-} from "../lib/config";
+import { describe, expect, it } from "bun:test";
+import { DEFAULT_CONFIG, getConfigValue, setConfigValue } from "../lib/config";
 
-const TEST_CONFIG_PATH = `/tmp/test-tier1380-config-${Date.now()}.json`;
+const _TEST_CONFIG_PATH = `/tmp/test-tier1380-config-${Date.now()}.json`;
 
 describe("Configuration", () => {
 	it("should have default values", () => {

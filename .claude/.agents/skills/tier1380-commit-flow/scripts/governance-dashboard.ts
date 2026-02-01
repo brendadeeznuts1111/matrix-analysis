@@ -29,22 +29,29 @@ function clearScreen(): void {
 
 function renderBox(title: string, content: string[], width = 60): string[] {
 	const lines: string[] = [];
-	const top = "╔" + "═".repeat(width - 2) + "╗";
-	const bottom = "╚" + "═".repeat(width - 2) + "╝";
+	const top = `╔${"═".repeat(width - 2)}╗`;
+	const bottom = `╚${"═".repeat(width - 2)}╝`;
 
 	lines.push(top);
-	lines.push("║" + title.padStart((width + title.length) / 2).padEnd(width - 2) + "║");
-	lines.push("╠" + "═".repeat(width - 2) + "╣");
+	lines.push(
+		`║${title.padStart((width + title.length) / 2).padEnd(width - 2)}║`,
+	);
+	lines.push(`╠${"═".repeat(width - 2)}╣`);
 
 	for (const line of content) {
-		lines.push("║" + line.slice(0, width - 2).padEnd(width - 2) + "║");
+		lines.push(`║${line.slice(0, width - 2).padEnd(width - 2)}║`);
 	}
 
 	lines.push(bottom);
 	return lines;
 }
 
-function renderGauge(label: string, value: number, max = 100, width = 40): string {
+function renderGauge(
+	label: string,
+	value: number,
+	max = 100,
+	width = 40,
+): string {
 	const filled = Math.round((value / max) * width);
 	const bar = "█".repeat(filled) + "░".repeat(width - filled);
 	const pct = Math.round((value / max) * 100);
@@ -56,33 +63,39 @@ function getState(): DashboardState {
 		const db = new Database(DB_PATH);
 
 		// Total commits
-		const commitsResult = db.query("SELECT COUNT(*) as count FROM commits").get() as {
+		const commitsResult = db
+			.query("SELECT COUNT(*) as count FROM commits")
+			.get() as {
 			count: number;
 		};
 
 		// Valid format percentage
-		const validResult = db.query("SELECT AVG(valid_format) as rate FROM commits").get() as {
+		const validResult = db
+			.query("SELECT AVG(valid_format) as rate FROM commits")
+			.get() as {
 			rate: number;
 		};
 
 		// Failed checks
-		const failedResult = db.query(
-			"SELECT COUNT(*) as count FROM precommit_checks WHERE failed > 0",
-		).get() as { count: number };
+		const failedResult = db
+			.query("SELECT COUNT(*) as count FROM precommit_checks WHERE failed > 0")
+			.get() as { count: number };
 
 		// Last commit
-		const lastResult = db.query(
-			"SELECT message, date FROM commits ORDER BY date DESC LIMIT 1",
-		).get() as { message: string; date: string } | null;
+		const lastResult = db
+			.query("SELECT message, date FROM commits ORDER BY date DESC LIMIT 1")
+			.get() as { message: string; date: string } | null;
 
 		// Trend (last 7 days)
-		const trendResult = db.query(`
+		const trendResult = db
+			.query(`
 			SELECT AVG(valid_format) * 100 as rate
 			FROM commits
 			WHERE date > datetime('now', '-7 days')
 			GROUP BY date(date)
 			ORDER BY date(date)
-		`).all() as { rate: number }[];
+		`)
+			.all() as { rate: number }[];
 
 		db.close();
 
@@ -146,7 +159,11 @@ async function renderDashboard(config: DashboardConfig): Promise<void> {
 	// Recent activity
 	const activityLines = renderBox(
 		"Recent Activity",
-		[`Last: ${state.lastCommit}`, "", `Failed Check Runs: ${state.failedChecks}`],
+		[
+			`Last: ${state.lastCommit}`,
+			"",
+			`Failed Check Runs: ${state.failedChecks}`,
+		],
 		70,
 	);
 	console.log(activityLines.join("\n"));
@@ -206,7 +223,8 @@ async function runInteractiveDashboard(config: DashboardConfig): Promise<void> {
 if (import.meta.main) {
 	const args = Bun.argv.slice(2);
 	const once = args.includes("--once");
-	const refreshInterval = Number(args.find((a) => a.startsWith("--interval="))?.split("=")[1]) || 5;
+	const refreshInterval =
+		Number(args.find((a) => a.startsWith("--interval="))?.split("=")[1]) || 5;
 
 	const config: DashboardConfig = {
 		refreshInterval,
@@ -223,4 +241,9 @@ if (import.meta.main) {
 	}
 }
 
-export { renderDashboard, runInteractiveDashboard, type DashboardConfig, type DashboardState };
+export {
+	renderDashboard,
+	runInteractiveDashboard,
+	type DashboardConfig,
+	type DashboardState,
+};

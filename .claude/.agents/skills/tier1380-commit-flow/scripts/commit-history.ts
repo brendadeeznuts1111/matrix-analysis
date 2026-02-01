@@ -59,7 +59,7 @@ async function recordCommit(entry: CommitEntry): Promise<void> {
 	const db = getDb();
 
 	db.query(`
-		INSERT OR REPLACE INTO commits 
+		INSERT OR REPLACE INTO commits
 		(hash, message, domain, component, tier, author, date, valid_format, passed_checks, total_checks)
 		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 	`).run(
@@ -84,7 +84,8 @@ async function syncFromGit(): Promise<number> {
 
 	try {
 		// Get recent commits
-		const log = await $`git log --pretty=format:"%H|%s|%an|%ad" --date=iso -50`.text();
+		const log =
+			await $`git log --pretty=format:"%H|%s|%an|%ad" --date=iso -50`.text();
 		const commits = log.trim().split("\n");
 
 		for (const line of commits) {
@@ -92,21 +93,36 @@ async function syncFromGit(): Promise<number> {
 			if (!hash || !message) continue;
 
 			// Parse message format
-			const match = message.match(/^\[([A-Z]+)\](?:\[COMPONENT:)?([A-Z]+)\]?(?:\[TIER:(\d+)\])?/);
+			const match = message.match(
+				/^\[([A-Z]+)\](?:\[COMPONENT:)?([A-Z]+)\]?(?:\[TIER:(\d+)\])?/,
+			);
 			const domain = match?.[1] || "UNKNOWN";
 			const component = match?.[2] || "UNKNOWN";
 			const tier = Number(match?.[3]) || 0;
 			const validFormat = !!match;
 
 			// Check if exists
-			const existing = db.query("SELECT id FROM commits WHERE hash = ?").get(hash);
+			const existing = db
+				.query("SELECT id FROM commits WHERE hash = ?")
+				.get(hash);
 			if (existing) continue;
 
 			db.query(`
-				INSERT INTO commits 
+				INSERT INTO commits
 				(hash, message, domain, component, tier, author, date, valid_format, passed_checks, total_checks)
 				VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-			`).run(hash, message, domain, component, tier, author, date, validFormat ? 1 : 0, 0, 0);
+			`).run(
+				hash,
+				message,
+				domain,
+				component,
+				tier,
+				author,
+				date,
+				validFormat ? 1 : 0,
+				0,
+				0,
+			);
 
 			count++;
 		}
@@ -118,50 +134,62 @@ async function syncFromGit(): Promise<number> {
 	return count;
 }
 
-function generateAnalytics(days = 30): AnalyticsResult {
+function generateAnalytics(_days = 30): AnalyticsResult {
 	const db = getDb();
 
 	// Total commits
-	const totalResult = db.query("SELECT COUNT(*) as count FROM commits").get() as { count: number };
+	const totalResult = db
+		.query("SELECT COUNT(*) as count FROM commits")
+		.get() as { count: number };
 
 	// Valid format rate
-	const validResult = db.query(
-		"SELECT AVG(valid_format) as rate FROM commits WHERE date > datetime('now', '-${days} days')",
-	).get() as { rate: number };
+	const validResult = db
+		.query(
+			`SELECT AVG(valid_format) as rate FROM commits WHERE date > datetime('now', '-${_days} days')`,
+		)
+		.get() as { rate: number };
 
 	// Average checks passed
-	const checksResult = db.query(
-		"SELECT AVG(CAST(passed_checks AS FLOAT) / total_checks) as avg FROM commits WHERE total_checks > 0",
-	).get() as { avg: number };
+	const checksResult = db
+		.query(
+			"SELECT AVG(CAST(passed_checks AS FLOAT) / total_checks) as avg FROM commits WHERE total_checks > 0",
+		)
+		.get() as { avg: number };
 
 	// Top domains
-	const topDomains = db.query(`
-		SELECT domain, COUNT(*) as count 
-		FROM commits 
-		GROUP BY domain 
-		ORDER BY count DESC 
+	const topDomains = db
+		.query(`
+		SELECT domain, COUNT(*) as count
+		FROM commits
+		GROUP BY domain
+		ORDER BY count DESC
 		LIMIT 5
-	`).all() as { domain: string; count: number }[];
+	`)
+		.all() as { domain: string; count: number }[];
 
 	// Top components
-	const topComponents = db.query(`
-		SELECT component, COUNT(*) as count 
-		FROM commits 
-		GROUP BY component 
-		ORDER BY count DESC 
+	const topComponents = db
+		.query(`
+		SELECT component, COUNT(*) as count
+		FROM commits
+		GROUP BY component
+		ORDER BY count DESC
 		LIMIT 5
-	`).all() as { component: string; count: number }[];
+	`)
+		.all() as { component: string; count: number }[];
 
 	// Compliance trend (last 14 days)
-	const trend = db.query(`
-		SELECT 
+	const trend = db
+		.query(`
+		SELECT
 			date(date) as day,
 			AVG(valid_format) * 100 as rate
-		FROM commits 
+		FROM commits
 		WHERE date > datetime('now', '-14 days')
 		GROUP BY day
 		ORDER BY day
-	`).all() as { date: string; rate: number }[];
+	`)
+		.all() as { date: string; rate: number }[];
 
 	db.close();
 
@@ -171,19 +199,24 @@ function generateAnalytics(days = 30): AnalyticsResult {
 		avgChecksPassed: Math.round((checksResult.avg || 0) * 100),
 		topDomains,
 		topComponents,
-		complianceTrend: trend.map((t) => ({ date: t.date, rate: Math.round(t.rate) })),
+		complianceTrend: trend.map((t) => ({
+			date: t.date,
+			rate: Math.round(t.rate),
+		})),
 	};
 }
 
 function displayHistory(limit = 20): void {
 	const db = getDb();
 
-	const commits = db.query(`
+	const commits = db
+		.query(`
 		SELECT hash, message, domain, component, tier, author, date, valid_format
 		FROM commits
 		ORDER BY date DESC
 		LIMIT ?
-	`).all(limit) as Array<{
+	`)
+		.all(limit) as Array<{
 		hash: string;
 		message: string;
 		domain: string;
@@ -261,8 +294,6 @@ if (import.meta.main) {
 			displayAnalytics();
 			break;
 		}
-
-		case "history":
 		default: {
 			displayHistory();
 			break;
@@ -270,4 +301,10 @@ if (import.meta.main) {
 	}
 }
 
-export { recordCommit, syncFromGit, generateAnalytics, type CommitEntry, type AnalyticsResult };
+export {
+	recordCommit,
+	syncFromGit,
+	generateAnalytics,
+	type CommitEntry,
+	type AnalyticsResult,
+};

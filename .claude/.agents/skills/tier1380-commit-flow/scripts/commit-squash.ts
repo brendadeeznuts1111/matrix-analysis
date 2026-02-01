@@ -14,22 +14,26 @@ interface CommitInfo {
 }
 
 async function getCommits(count = 10): Promise<CommitInfo[]> {
-	const log = await $`git log -${count} --pretty=format:"%h|%s|%an|%ad" --date=short`.text();
-	
-	return log.trim().split("\n").map((line) => {
-		const [hash, message, author, date] = line.split("|");
-		return { hash, message, author, date };
-	});
+	const log =
+		await $`git log -${count} --pretty=format:"%h|%s|%an|%ad" --date=short`.text();
+
+	return log
+		.trim()
+		.split("\n")
+		.map((line) => {
+			const [hash, message, author, date] = line.split("|");
+			return { hash, message, author, date };
+		});
 }
 
 async function squashCommits(count: number, message: string): Promise<boolean> {
 	try {
 		// Soft reset to target commit
 		await $`git reset --soft HEAD~${count}`.quiet();
-		
+
 		// Create new commit
 		await $`git commit -m ${message}`.quiet();
-		
+
 		return true;
 	} catch (error) {
 		console.error("❌ Squash failed:", error);
@@ -37,20 +41,25 @@ async function squashCommits(count: number, message: string): Promise<boolean> {
 	}
 }
 
-function validateSquashMessage(message: string): { valid: boolean; errors: string[] } {
+function validateSquashMessage(message: string): {
+	valid: boolean;
+	errors: string[];
+} {
 	const errors: string[] = [];
-	
+
 	// Check Tier-1380 format
 	const pattern = /^\[([A-Z]+)\](?:\[COMPONENT:([A-Z]+)\])?\[TIER:(\d+)\] /;
 	if (!pattern.test(message)) {
-		errors.push("Message should follow Tier-1380 format: [DOMAIN][COMPONENT:NAME][TIER:XXXX] Description");
+		errors.push(
+			"Message should follow Tier-1380 format: [DOMAIN][COMPONENT:NAME][TIER:XXXX] Description",
+		);
 	}
-	
+
 	// Check length
 	if (message.length > 72) {
 		errors.push(`Message is ${message.length} chars (recommended: ≤72)`);
 	}
-	
+
 	return { valid: errors.length === 0, errors };
 }
 
@@ -58,18 +67,20 @@ async function suggestSquashMessage(commits: CommitInfo[]): Promise<string> {
 	// Try to find common domain/component from commits
 	const domains = new Set<string>();
 	const components = new Set<string>();
-	
+
 	for (const commit of commits) {
-		const match = commit.message.match(/^\[([A-Z]+)\](?:\[COMPONENT:([A-Z]+)\])?/);
+		const match = commit.message.match(
+			/^\[([A-Z]+)\](?:\[COMPONENT:([A-Z]+)\])?/,
+		);
 		if (match) {
 			domains.add(match[1]);
 			if (match[2]) components.add(match[2]);
 		}
 	}
-	
+
 	const domain = Array.from(domains)[0] || "PLATFORM";
 	const component = Array.from(components)[0] || "MATRIX";
-	
+
 	return `[${domain}][COMPONENT:${component}][TIER:1380] ${commits.length} commits squashed`;
 }
 
@@ -77,48 +88,50 @@ async function suggestSquashMessage(commits: CommitInfo[]): Promise<string> {
 if (import.meta.main) {
 	const args = Bun.argv.slice(2);
 	const count = Number(args[0]) || 0;
-	
+
 	console.log("╔════════════════════════════════════════════════════════╗");
 	console.log("║     Tier-1380 OMEGA Commit Squash Helper               ║");
 	console.log("╚════════════════════════════════════════════════════════╝");
 	console.log();
-	
+
 	// Get recent commits
 	const commits = await getCommits(10);
-	
+
 	console.log("Recent commits:");
 	commits.slice(0, 5).forEach((commit, i) => {
 		console.log(`  ${i + 1}. ${commit.hash} ${commit.message.slice(0, 50)}`);
 	});
 	console.log();
-	
+
 	if (count === 0) {
 		console.log("Usage:");
 		console.log("  bun commit-squash.ts <count> [message]");
 		console.log();
 		console.log("Examples:");
-		console.log('  bun commit-squash.ts 3 "[RUNTIME][CHROME][TIER:1380] Add entropy feature"');
+		console.log(
+			'  bun commit-squash.ts 3 "[RUNTIME][CHROME][TIER:1380] Add entropy feature"',
+		);
 		console.log();
 		console.log("This will squash the last 3 commits into 1.");
 		process.exit(1);
 	}
-	
+
 	if (count > commits.length) {
 		console.log(`❌ Only ${commits.length} commits available`);
 		process.exit(1);
 	}
-	
+
 	// Get commits to squash
 	const toSquash = commits.slice(0, count);
-	
+
 	console.log(`Squashing ${count} commits:`);
 	for (const commit of toSquash) {
 		console.log(`  • ${commit.hash} ${commit.message}`);
 	}
 	console.log();
-	
+
 	// Get message
-	let message = args.slice(1).join(" ");
+	const message = args.slice(1).join(" ");
 	if (!message) {
 		const suggestion = await suggestSquashMessage(toSquash);
 		console.log(`Suggested message: ${suggestion}`);
@@ -127,7 +140,7 @@ if (import.meta.main) {
 		console.log(`  bun commit-squash.ts ${count} "${suggestion}"`);
 		process.exit(1);
 	}
-	
+
 	// Validate message
 	const validation = validateSquashMessage(message);
 	if (!validation.valid) {
@@ -137,13 +150,13 @@ if (import.meta.main) {
 		}
 		console.log();
 	}
-	
+
 	console.log(`New commit message: ${message}`);
 	console.log();
 	console.log("Run with --confirm to execute:");
 	console.log(`  bun commit-squash.ts ${count} "${message}" --confirm`);
 	console.log();
-	
+
 	if (args.includes("--confirm")) {
 		const success = await squashCommits(count, message);
 		if (success) {
@@ -158,4 +171,9 @@ if (import.meta.main) {
 	}
 }
 
-export { getCommits, squashCommits, validateSquashMessage, suggestSquashMessage };
+export {
+	getCommits,
+	squashCommits,
+	validateSquashMessage,
+	suggestSquashMessage,
+};

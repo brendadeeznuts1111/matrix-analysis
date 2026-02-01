@@ -23,7 +23,7 @@ interface CommitResult {
 }
 
 async function createCommit(options: CommitOptions): Promise<CommitResult> {
-	const errors: string[] = [];
+	const _errors: string[] = [];
 
 	// Validate message format
 	if (!options.noVerify) {
@@ -99,12 +99,16 @@ async function suggestMessage(): Promise<string | null> {
 
 	for (const file of fileList) {
 		// Domain detection
-		if (file.startsWith("src/") || file.includes("runtime")) domains.add("RUNTIME");
-		if (file.startsWith("tools/") || file.includes("registry")) domains.add("PLATFORM");
-		if (file.startsWith("skills/") || file.includes("skill")) domains.add("SKILLS");
+		if (file.startsWith("src/") || file.includes("runtime"))
+			domains.add("RUNTIME");
+		if (file.startsWith("tools/") || file.includes("registry"))
+			domains.add("PLATFORM");
+		if (file.startsWith("skills/") || file.includes("skill"))
+			domains.add("SKILLS");
 		if (file.startsWith("docs/")) domains.add("DOCS");
 		if (file.includes("test")) domains.add("TEST");
-		if (file.includes("security") || file.includes("auth")) domains.add("SECURITY");
+		if (file.includes("security") || file.includes("auth"))
+			domains.add("SECURITY");
 
 		// Component detection
 		if (file.includes("registry")) components.add("REGISTRY");
@@ -124,7 +128,7 @@ async function suggestMessage(): Promise<string | null> {
 
 	const domain = Array.from(domains)[0] || "PLATFORM";
 	const component = Array.from(components)[0] || "MATRIX";
-	const type = Array.from(types)[0] || "FEAT";
+	const _type = Array.from(types)[0] || "FEAT";
 
 	// Generate description
 	const ext = fileList[0]?.split(".").pop() || "";
@@ -147,11 +151,13 @@ if (import.meta.main) {
 	const sign = args.includes("--sign") || args.includes("-S");
 	const amend = args.includes("--amend");
 	const noVerify = args.includes("--no-verify") || args.includes("-n");
-	const coAuthorIdx = args.findIndex((a) => a === "--co-author" || a === "--co");
+	const coAuthorIdx = args.findIndex(
+		(a) => a === "--co-author" || a === "--co",
+	);
 	const coAuthor = coAuthorIdx >= 0 ? args[coAuthorIdx + 1] : undefined;
 
 	// Get message from args or suggest
-	let message = args.find((a) => !a.startsWith("--") && !a.startsWith("-"));
+	const message = args.find((a) => !a.startsWith("--") && !a.startsWith("-"));
 
 	console.log("╔════════════════════════════════════════════════════════╗");
 	console.log("║     Tier-1380 OMEGA Git Commit                         ║");

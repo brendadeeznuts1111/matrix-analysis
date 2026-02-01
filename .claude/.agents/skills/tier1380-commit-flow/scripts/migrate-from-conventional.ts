@@ -43,9 +43,9 @@ function parseConventionalCommit(message: string): ConventionalCommit | null {
 	// pattern: type(scope): subject
 	const pattern = /^(\w+)(?:\(([^)]+)\))?\s*:\s*(.+)$/;
 	const match = message.match(pattern);
-	
+
 	if (!match) return null;
-	
+
 	return {
 		hash: "",
 		message,
@@ -56,41 +56,56 @@ function parseConventionalCommit(message: string): ConventionalCommit | null {
 }
 
 function convertToTier1380(conv: ConventionalCommit): string {
-	const mapping = TYPE_MAPPING[conv.type] || { domain: "PLATFORM", type: "FEAT" };
-	const component = conv.scope ? (SCOPE_MAPPING[conv.scope] || conv.scope.toUpperCase()) : "MATRIX";
-	
+	const mapping = TYPE_MAPPING[conv.type] || {
+		domain: "PLATFORM",
+		type: "FEAT",
+	};
+	const component = conv.scope
+		? SCOPE_MAPPING[conv.scope] || conv.scope.toUpperCase()
+		: "MATRIX";
+
 	return `[${mapping.domain}][COMPONENT:${component}][TIER:1380] ${conv.subject}`;
 }
 
-async function getRecentCommits(count = 10): Promise<Array<{ hash: string; message: string }>> {
+async function getRecentCommits(
+	count = 10,
+): Promise<Array<{ hash: string; message: string }>> {
 	const log = await $`git log -${count} --pretty=format:"%H|%s"`.text();
-	
-	return log.trim().split("\n").filter(Boolean).map((line) => {
-		const [hash, ...messageParts] = line.split("|");
-		return { hash, message: messageParts.join("|") };
-	});
+
+	return log
+		.trim()
+		.split("\n")
+		.filter(Boolean)
+		.map((line) => {
+			const [hash, ...messageParts] = line.split("|");
+			return { hash, message: messageParts.join("|") };
+		});
 }
 
 // Main
 if (import.meta.main) {
 	const args = Bun.argv.slice(2);
 	const dryRun = !args.includes("--apply");
-	
+
 	console.log("╔════════════════════════════════════════════════════════╗");
 	console.log("║     Tier-1380 OMEGA Migration Tool                     ║");
-	console.log(`║     Mode: ${dryRun ? "DRY RUN (preview only)" : "LIVE (will apply changes)"}`.padEnd(55) + "║");
+	console.log(
+		`${`║     Mode: ${dryRun ? "DRY RUN (preview only)" : "LIVE (will apply changes)"}`.padEnd(
+			55,
+		)}║`,
+	);
 	console.log("╚════════════════════════════════════════════════════════╝");
 	console.log();
-	
+
 	const commits = await getRecentCommits(20);
-	
+
 	console.log(`Analyzing ${commits.length} recent commits...\n`);
-	
+
 	let convertedCount = 0;
-	
+
 	for (const commit of commits) {
 		const parsed = parseConventionalCommit(commit.message);
-		
+
 		if (parsed) {
 			const tier1380 = convertToTier1380(parsed);
 			console.log(`Original: ${commit.message.slice(0, 50)}`);
@@ -99,10 +114,10 @@ if (import.meta.main) {
 			convertedCount++;
 		}
 	}
-	
+
 	console.log(`Found ${convertedCount} conventional commits`);
 	console.log();
-	
+
 	if (dryRun) {
 		console.log("This was a dry run. No changes were made.");
 		console.log();
@@ -112,7 +127,9 @@ if (import.meta.main) {
 		console.log("⚠️  Warning: Rewriting history will change commit hashes!");
 		console.log("   Only do this on local branches before pushing.");
 	} else {
-		console.log("Apply mode not yet implemented. Use git rebase -i to manually rewrite.");
+		console.log(
+			"Apply mode not yet implemented. Use git rebase -i to manually rewrite.",
+		);
 		console.log();
 		console.log("Suggested commands:");
 		console.log("  git rebase -i HEAD~20");
@@ -120,4 +137,9 @@ if (import.meta.main) {
 	}
 }
 
-export { parseConventionalCommit, convertToTier1380, TYPE_MAPPING, SCOPE_MAPPING };
+export {
+	parseConventionalCommit,
+	convertToTier1380,
+	TYPE_MAPPING,
+	SCOPE_MAPPING,
+};

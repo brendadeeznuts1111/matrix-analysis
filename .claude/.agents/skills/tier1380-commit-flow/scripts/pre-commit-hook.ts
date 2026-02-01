@@ -1,11 +1,12 @@
 #!/usr/bin/env bun
+
 /**
  * Tier-1380 OMEGA Pre-Commit Hook
  * Comprehensive checks before allowing commits
  */
 
-import { $ } from "bun";
 import { Database } from "bun:sqlite";
+import { $ } from "bun";
 
 interface PreCommitConfig {
 	enableLint: boolean;
@@ -47,14 +48,21 @@ async function runPreCommitChecks(
 	config: PreCommitConfig = DEFAULT_CONFIG,
 ): Promise<CheckResult[]> {
 	const results: CheckResult[] = [];
-	const startTime = Bun.nanoseconds();
+	const _startTime = Bun.nanoseconds();
 
 	// Get staged files
 	const stagedFiles = await $`git diff --cached --name-only`.text();
 	const files = stagedFiles.trim().split("\n").filter(Boolean);
 
 	if (files.length === 0) {
-		return [{ name: "Staged Files", passed: false, duration: 0, details: "No files staged" }];
+		return [
+			{
+				name: "Staged Files",
+				passed: false,
+				duration: 0,
+				details: "No files staged",
+			},
+		];
 	}
 
 	console.log(`📦 Checking ${files.length} staged files...\n`);
@@ -115,7 +123,11 @@ async function scanSecrets(files: string[]): Promise<CheckResult> {
 			for (let i = 0; i < lines.length; i++) {
 				const line = lines[i];
 				for (const { pattern, name } of SECRET_PATTERNS) {
-					if (pattern.test(line) && !line.includes("// safe") && !line.includes("# safe")) {
+					if (
+						pattern.test(line) &&
+						!line.includes("// safe") &&
+						!line.includes("# safe")
+					) {
 						issues.push(`${file}:${i + 1}: Potential ${name}`);
 					}
 				}
@@ -137,7 +149,8 @@ async function checkCol89(files: string[]): Promise<CheckResult> {
 	const violations: string[] = [];
 
 	for (const file of files) {
-		if (!file.endsWith(".ts") && !file.endsWith(".js") && !file.endsWith(".md")) continue;
+		if (!file.endsWith(".ts") && !file.endsWith(".js") && !file.endsWith(".md"))
+			continue;
 
 		try {
 			const content = await Bun.file(file).text();
@@ -162,7 +175,10 @@ async function checkCol89(files: string[]): Promise<CheckResult> {
 		name: "Col-89 Compliance",
 		passed: violations.length === 0,
 		duration: 0,
-		details: violations.length > 0 ? `${violations.slice(0, 5).join("\n")}${violations.length > 5 ? `\n... and ${violations.length - 5} more` : ""}` : undefined,
+		details:
+			violations.length > 0
+				? `${violations.slice(0, 5).join("\n")}${violations.length > 5 ? `\n... and ${violations.length - 5} more` : ""}`
+				: undefined,
 	};
 }
 
@@ -179,7 +195,9 @@ async function runLintCheck(autoFix: boolean): Promise<CheckResult> {
 			name: "Biome Lint",
 			passed: false,
 			duration: 0,
-			details: autoFix ? "Lint errors remain after auto-fix" : "Run with --fix to auto-fix",
+			details: autoFix
+				? "Lint errors remain after auto-fix"
+				: "Run with --fix to auto-fix",
 		};
 	}
 }
@@ -240,7 +258,9 @@ if (import.meta.main) {
 
 	console.log("╔════════════════════════════════════════════════════════╗");
 	console.log("║     Tier-1380 OMEGA Pre-Commit Hook                    ║");
-	console.log(`║     Mode: ${quick ? "Quick (no tests/types)" : "Full"}`.padEnd(55) + "║");
+	console.log(
+		`${`║     Mode: ${quick ? "Quick (no tests/types)" : "Full"}`.padEnd(55)}║`,
+	);
 	console.log("╚════════════════════════════════════════════════════════╝");
 	console.log();
 
@@ -279,7 +299,11 @@ if (import.meta.main) {
 		`);
 		db.query(
 			"INSERT INTO precommit_checks (passed, failed, duration) VALUES (?, ?, ?)",
-		).run(passed, failed, results.reduce((a, b) => a + b.duration, 0));
+		).run(
+			passed,
+			failed,
+			results.reduce((a, b) => a + b.duration, 0),
+		);
 		db.close();
 	} catch {
 		// Ignore DB errors
@@ -300,8 +324,13 @@ if (import.meta.main) {
 		console.log();
 		console.log("✨ All checks passed! Ready to commit.");
 		console.log();
-		console.log("Next: git commit -m \"[MESSAGE]\"");
+		console.log('Next: git commit -m "[MESSAGE]"');
 	}
 }
 
-export { runPreCommitChecks, DEFAULT_CONFIG, type PreCommitConfig, type CheckResult };
+export {
+	runPreCommitChecks,
+	DEFAULT_CONFIG,
+	type PreCommitConfig,
+	type CheckResult,
+};

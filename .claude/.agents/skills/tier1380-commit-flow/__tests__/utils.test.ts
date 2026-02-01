@@ -3,16 +3,16 @@
  * Tests for Tier-1380 OMEGA Commit Flow utilities
  */
 
-import { describe, it, expect } from "bun:test";
+import { describe, expect, it } from "bun:test";
 import {
 	assertCol89,
-	wrapCol89,
 	calculateHash,
-	Timer,
-	renderProgress,
-	renderBox,
 	checkBunVersion,
 	colorize,
+	renderBox,
+	renderProgress,
+	Timer,
+	wrapCol89,
 } from "../lib/utils";
 
 describe("Col-89 enforcement", () => {
@@ -27,7 +27,7 @@ describe("Col-89 enforcement", () => {
 	});
 
 	it("should handle ANSI codes correctly", () => {
-		const text = "\x1b[32m" + "a".repeat(80) + "\x1b[0m";
+		const text = `\x1b[32m${"a".repeat(80)}\x1b[0m`;
 		expect(assertCol89(text)).toBe(true);
 	});
 });
@@ -38,7 +38,9 @@ describe("Text wrapping", () => {
 		const wrapped = wrapCol89(text);
 		const lines = wrapped.split("\n");
 		for (const line of lines) {
-			expect(Bun.stringWidth(line, { countAnsiEscapeCodes: false })).toBeLessThanOrEqual(89);
+			expect(
+				Bun.stringWidth(line, { countAnsiEscapeCodes: false }),
+			).toBeLessThanOrEqual(89);
 		}
 	});
 });
