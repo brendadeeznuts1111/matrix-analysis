@@ -93,14 +93,15 @@ class FactoryWagerVaultHealth {
     };
 
     try {
-      // Test basic Bun.secrets functionality with correct legacy format
+      // Test basic Bun.secrets functionality with correct v1.3.8 object format
       const testService = 'factory-wager-health';
       const testKey = 'health-check-test';
       const testValue = `test-${Date.now()}`;
 
-      await (Bun.secrets.set as any)(testService, testKey, testValue);
-      const retrieved = await (Bun.secrets.get as any)(testService, testKey);
-      await (Bun.secrets.delete as any)(testService, testKey);
+      // Use correct Bun.secrets API object format
+      await Bun.secrets.set({ service: testService, name: testKey, value: testValue });
+      const retrieved = await Bun.secrets.get({ service: testService, name: testKey });
+      await Bun.secrets.delete({ service: testService, name: testKey });
 
       if (retrieved === testValue) {
         check.status = 'healthy';
