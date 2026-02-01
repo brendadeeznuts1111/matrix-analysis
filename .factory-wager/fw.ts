@@ -14,16 +14,27 @@ const VERSION = "1.4.0-beta.20260201";
 const BUILD_DATE = new Date().toISOString();
 const BUN_VERSION = process.versions.bun;
 
-// Bun environment configuration
+// Bun environment configuration (official variables from bun.com/docs)
 const BUN_CONFIG = {
+  // Core Bun configuration
   VERBOSE_FETCH: Bun.env.BUN_CONFIG_VERBOSE_FETCH,
   MAX_HTTP_REQUESTS: Bun.env.BUN_CONFIG_MAX_HTTP_REQUESTS || "256",
   NO_CLEAR_TERMINAL: Bun.env.BUN_CONFIG_NO_CLEAR_TERMINAL_ON_RELOAD === "true",
   TRANSPILER_CACHE_PATH: Bun.env.BUN_RUNTIME_TRANSPILER_CACHE_PATH,
   OPTIONS: Bun.env.BUN_OPTIONS || "",
-  DO_NOT_TRACK: Bun.env.DO_NOT_TRACK === "1",
+
+  // Color and output control
   FORCE_COLOR: Bun.env.FORCE_COLOR === "1",
   NO_COLOR: Bun.env.NO_COLOR === "1",
+
+  // Security and networking
+  NODE_TLS_REJECT_UNAUTHORIZED: Bun.env.NODE_TLS_REJECT_UNAUTHORIZED,
+
+  // Telemetry and tracking
+  DO_NOT_TRACK: Bun.env.DO_NOT_TRACK === "1",
+
+  // System integration
+  TMPDIR: Bun.env.TMPDIR,
 };
 
 // FactoryWager environment configuration
@@ -139,10 +150,13 @@ async function displaySystemStatus(): Promise<void> {
     Max HTTP Requests: ${status.bunConfig.MAX_HTTP_REQUESTS}
     Verbose Fetch: ${status.bunConfig.VERBOSE_FETCH || "disabled"}
     No Clear Terminal: ${status.bunConfig.NO_CLEAR_TERMINAL ? "enabled" : "disabled"}
-    Do Not Track: ${status.bunConfig.DO_NOT_TRACK ? "enabled" : "disabled"}
+    Transpiler Cache: ${status.bunConfig.TRANSPILER_CACHE_PATH || "default"}
+    Bun Options: ${status.bunConfig.OPTIONS || "none"}
     Force Color: ${status.bunConfig.FORCE_COLOR ? "enabled" : "disabled"}
     No Color: ${status.bunConfig.NO_COLOR ? "enabled" : "disabled"}
-    Options: ${status.bunConfig.OPTIONS || "none"}
+    TLS Reject Unauthorized: ${status.bunConfig.NODE_TLS_REJECT_UNAUTHORIZED || "1"}
+    Do Not Track: ${status.bunConfig.DO_NOT_TRACK ? "enabled" : "disabled"}
+    Temp Directory: ${status.bunConfig.TMPDIR || "system default"}
 
     🏭 FactoryWager Configuration:
     Mode: ${status.fwConfig.MODE}
@@ -334,16 +348,35 @@ async function main(): Promise<void> {
           case "env":
           case "environment":
             console.log("🌍 Environment Configuration:");
-            console.log("\n🥟 Bun Configuration:");
-            Object.entries(BUN_CONFIG).forEach(([key, value]) => {
-              const displayValue = value === "" ? "none" : value === true ? "enabled" : value === false ? "disabled" : value;
-              console.log(`  ${key}: ${displayValue}`);
-            });
+            console.log("\n🥟 Bun Configuration (Official Variables):");
+            console.log("  Core Configuration:");
+            console.log(`    VERBOSE_FETCH: ${BUN_CONFIG.VERBOSE_FETCH || "disabled"} (curl/1/disabled)`);
+            console.log(`    MAX_HTTP_REQUESTS: ${BUN_CONFIG.MAX_HTTP_REQUESTS} (default: 256)`);
+            console.log(`    NO_CLEAR_TERMINAL: ${BUN_CONFIG.NO_CLEAR_TERMINAL ? "enabled" : "disabled"} (watch reload)`);
+            console.log(`    TRANSPILER_CACHE_PATH: ${BUN_CONFIG.TRANSPILER_CACHE_PATH || "default"} (cache directory)`);
+            console.log(`    BUN_OPTIONS: ${BUN_CONFIG.OPTIONS || "none"} (prepended args)`);
+            console.log("\n  Color & Output Control:");
+            console.log(`    FORCE_COLOR: ${BUN_CONFIG.FORCE_COLOR ? "enabled" : "disabled"} (force ANSI colors)`);
+            console.log(`    NO_COLOR: ${BUN_CONFIG.NO_COLOR ? "enabled" : "disabled"} (disable ANSI colors)`);
+            console.log("\n  Security & Networking:");
+            console.log(`    NODE_TLS_REJECT_UNAUTHORIZED: ${BUN_CONFIG.NODE_TLS_REJECT_UNAUTHORIZED || "1"} (SSL validation)`);
+            console.log("\n  Telemetry & Tracking:");
+            console.log(`    DO_NOT_TRACK: ${BUN_CONFIG.DO_NOT_TRACK ? "enabled" : "disabled"} (crash reports)`);
+            console.log("\n  System Integration:");
+            console.log(`    TMPDIR: ${BUN_CONFIG.TMPDIR || "system default"} (temp directory)`);
+
             console.log("\n🏭 FactoryWager Configuration:");
-            Object.entries(FW_CONFIG).forEach(([key, value]) => {
-              const displayValue = value === "" ? "none" : value === true ? "enabled" : value === false ? "disabled" : value;
-              console.log(`  ${key}: ${displayValue}`);
-            });
+            console.log("  Core Settings:");
+            console.log(`    MODE: ${FW_CONFIG.MODE} (operating mode)`);
+            console.log(`    LOG_LEVEL: ${FW_CONFIG.LOG_LEVEL} (logging level)`);
+            console.log(`    PROFILE: ${FW_CONFIG.PROFILE || "auto"} (active profile)`);
+            console.log("\n  Output Configuration:");
+            console.log(`    REPORT_FORMAT: ${FW_CONFIG.REPORT_FORMAT} (default format)`);
+            console.log(`    OUTPUT_DIR: ${FW_CONFIG.OUTPUT_DIR} (reports directory)`);
+            console.log(`    CONFIG_DIR: ${FW_CONFIG.CONFIG_DIR} (config directory)`);
+            console.log("\n  Feature Flags:");
+            console.log(`    AUDIT_MODE: ${FW_CONFIG.AUDIT_MODE ? "enabled" : "disabled"} (audit features)`);
+            console.log(`    DEBUG: ${FW_CONFIG.DEBUG ? "enabled" : "disabled"} (debug output)`);
             break;
           default:
             console.error("❌ Unknown config subcommand");
