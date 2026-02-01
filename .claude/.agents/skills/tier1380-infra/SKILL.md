@@ -1,8 +1,21 @@
+---
+name: tier1380-infra
+description: |
+  Tier-1380 Infrastructure Management - Service control, health monitoring,
+  context awareness, and resource management for the OMEGA protocol.
+
+  Use when: managing services, checking health, viewing infrastructure context,
+  or controlling resources across dev/staging/prod environments.
+
+  Triggers: "infra", "infrastructure", "service", "health", "monitoring",
+  "start", "stop", "restart", "status", "logs", "diagnose"
+---
+
 # Tier-1380 Infrastructure Management Skill
 
-> **Version:** 1.0.0  
-> **Tier:** 1380%  
-> **Domain:** factory-wager.com  
+> **Version:** 1.0.0
+> **Tier:** 1380%
+> **Domain:** factory-wager.com
 > **Purpose:** Comprehensive infrastructure management, monitoring, and control
 
 ## Overview
