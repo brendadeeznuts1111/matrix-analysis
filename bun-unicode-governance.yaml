@@ -1,0 +1,129 @@
+# bun.yaml - FactoryWager GOV Headers v4.3
+# Unicode Governance with Per-Column Override, Auto-Language Detection, and Pre-commit Validation
+
+rules:
+  header:
+    schema:
+      # ... existing fields ...
+
+    # ──────────────────────────────────────────────────────────────
+    # NEW: Per-column display width overrides (v4.1)
+    # Keys match the column "key" property in your renderer
+    # Values = forced display width in cells (overrides Bun.stringWidth)
+    #───────────────────────────────────────────────────────────────
+    column-width-override:
+      "#":          4
+      key:          20
+      value:        38          # ← most common override target
+      type:         10
+      version:      11
+      bunVer:       9
+      author:       14
+      authorHash:   10
+      status:       12
+      modified:     19
+
+      # Optional: wildcard / fallback for unknown columns
+      "*":          16
+
+    # When enabled, renderer MUST use these widths instead of measured
+    force-column-widths: true
+
+    # ──────────────────────────────────────────────────────────────
+    # NEW: Unicode rendering policy (v4.2)
+    # Controls how ambiguous-width characters are handled
+    #───────────────────────────────────────────────────────────────
+    unicode-rendering-policy:
+      # Possible policies:
+      #   narrow      - treat Ambiguous (A) as 1 cell (default – most conservative)
+      #   wide        - treat Ambiguous as 2 cells (East Asian legacy apps)
+      #   auto-lang   - use detected language/script to decide
+      #   auto-env    - use $LANG / $LC_CTYPE / terminal query
+      policy: auto-lang
+
+      # When policy = auto-lang, these scripts are considered wide
+      wide-scripts:
+        - Hangul
+        - Hiragana
+        - Katakana
+        - Han
+        - Yi
+        - Mongolian
+        - Tibetan
+        - Thai
+
+      # When policy = auto-lang, these locales force wide mode
+      wide-locales-prefix:
+        - zh
+        - ja
+        - ko
+        - vi
+        - th
+
+    # ──────────────────────────────────────────────────────────────
+    # NEW: Pre-commit validation (v4.3)
+    # Ensures Unicode governance compliance before commits
+    #───────────────────────────────────────────────────────────────
+    pre-commit-validation:
+      # Enable Unicode smoke test before commits
+      enable-unicode-smoke-test: true
+      
+      # Required test coverage
+      required-coverage:
+        - cjk-characters
+        - emoji-sequences
+        - zwj-sequences
+        - flag-sequences
+        - full-width-characters
+        - mixed-content
+      
+      # Performance requirements
+      performance-threshold:
+        max-ops-per-ms: 1000  # Minimum operations per millisecond
+        max-memory-usage: 10MB # Maximum memory usage for tests
+
+# Governance metadata
+governance:
+  version: "4.3"
+  rules:
+    - id: "FAC-UNI-041"
+      description: "Per-column unicode width overrides SHALL be respected when force-column-widths: true"
+      status: "ACTIVE"
+      hash: "sha256:abc123def456789012345678901234567890123456789012345678901234567890"
+    
+    - id: "FAC-UNI-042"
+      description: "Unicode ambiguous-width policy SHALL be respected; auto-lang mode SHALL prefer wide for CJK content"
+      status: "ACTIVE"
+      hash: "sha256:def789ghi012345678901234567890123456789012345678901234567890123456"
+    
+    - id: "FAC-UNI-043"
+      description: "Pre-commit hook unicode-smoke-test.ts SHALL execute successfully before any commit containing rendering logic"
+      status: "ACTIVE"
+      hash: "sha256:ghi345jkl678901234567890123456789012345678901234567890123456789012"
+
+# Performance metrics
+performance:
+  table-rendering:
+    target-rows-per-second: 100000
+    max-memory-usage: 50MB
+    unicode-optimization: true
+  
+  pre-commit-tests:
+    max-execution-time: 5000ms  # 5 seconds
+    parallel-execution: true
+
+# International settings
+international:
+  default-locale: "en"
+  supported-locales:
+    - "en"
+    - "zh"
+    - "ja"
+    - "ko"
+    - "vi"
+    - "th"
+  
+  character-sets:
+    - "GB18030"
+    - "Unicode-15.0"
+    - "Emoji-15.0"
