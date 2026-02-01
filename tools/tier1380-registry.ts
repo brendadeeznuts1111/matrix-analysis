@@ -1151,6 +1151,206 @@ async function restoreRegistry(backupFile: string): Promise<void> {
   console.log("-".repeat(70) + "\n");
 }
 
+// ─── Config Validation (Bun.deepEquals) ─────────────
+async function validateConfig(configPath: string, schemaPath?: string): Promise<void> {
+  console.log(`${GLYPHS.LOCK} Config Validation (Bun.deepEquals)\n`);
+  console.log("-".repeat(70));
+
+  if (!existsSync(configPath)) {
+    console.error(`${GLYPHS.FAIL} Config file not found: ${configPath}`);
+    process.exit(1);
+  }
+
+  const config = await Bun.file(configPath).json();
+  
+  console.log(`  Config: ${configPath}`);
+  console.log(`  Keys: ${Object.keys(config).join(", ")}`);
+
+  // Validate required fields
+  const requiredFields = ["version", "environment", "r2Bucket"];
+  const missing = requiredFields.filter(f => !(f in config));
+  
+  if (missing.length > 0) {
+    console.log(`\n${GLYPHS.FAIL} Missing required fields: ${missing.join(", ")}`);
+    process.exit(1);
+  }
+
+  // Compare with default config using Bun.deepEquals
+  const defaultConfig = {
+    version: REGISTRY_CONFIG.version,
+    environment: "local",
+    r2Bucket: R2_CONFIG.bucket,
+  };
+
+  const isMatch = Bun.deepEquals(
+    { version: config.version, environment: config.environment, r2Bucket: config.r2Bucket },
+    defaultConfig,
+    true
+  );
+
+  console.log(`\n  Bun.deepEquals check: ${isMatch ? COLORS.success("matches defaults") : COLORS.warning("differs from defaults")}`);
+
+  // Show string width for terminal formatting
+  const configStr = JSON.stringify(config, null, 2);
+  const maxLineWidth = Math.max(...configStr.split("\n").map(line => Bun.stringWidth(line, { countAnsiEscapeCodes: false })));
+  console.log(`  Max line width: ${maxLineWidth} cols (Col-89: ${maxLineWidth <= 89 ? COLORS.success("PASS") : COLORS.error("FAIL")})`);
+
+  console.log("-".repeat(70) + "\n");
+}
+
+// ─── Config Diff (Bun.deepEquals) ─────────────────
+async function diffConfigs(config1Path: string, config2Path: string): Promise<void> {
+  console.log(`${GLYPHS.DRIFT} Config Diff (Bun.deepEquals)\n`);
+  console.log("-".repeat(70));
+
+  if (!existsSync(config1Path) || !existsSync(config2Path)) {
+    console.error(`${GLYPHS.FAIL} One or both config files not found`);
+    process.exit(1);
+  }
+
+  const config1 = await Bun.file(config1Path).json();
+  const config2 = await Bun.file(config2Path).json();
+
+  console.log(`  Config 1: ${config1Path}`);
+  console.log(`  Config 2: ${config2Path}`);
+
+  const equal = Bun.deepEquals(config1, config2, true);
+
+  if (equal) {
+    console.log(`\n${GLYPHS.OK} ${COLORS.success("Configs are identical")}`);
+  } else {
+    console.log(`\n${GLYPHS.FAIL} ${COLORS.error("Configs differ")}`);
+    
+    // Show differences
+    const keys1 = Object.keys(config1);
+    const keys2 = Object.keys(config2);
+    
+    const onlyIn1 = keys1.filter(k => !(k in config2));
+    const onlyIn2 = keys2.filter(k => !(k in config1));
+    const different = keys1.filter(k => k in config2 && !Bun.deepEquals(config1[k], config2[k], true));
+
+    if (onlyIn1.length) console.log(`  Only in config1: ${onlyIn1.join(", ")}`);
+    if (onlyIn2.length) console.log(`  Only in config2: ${onlyIn2.join(", ")}`);
+    if (different.length) console.log(`  Different values: ${different.join(", ")}`);
+  }
+
+  console.log("-".repeat(70) + "\n");
+}
+
+// ─── Password Hash (Bun.password) ─────────────────
+async function hashPassword(password?: string): Promise<void> {
+  console.log(`${GLYPHS.LOCK} Password Hashing (Bun.password)\n`);
+  console.log("-".repeat(70));
+
+  const pwd = password || "default-password-change-me";
+  
+  console.log(`  Input: ${"*".repeat(pwd.length)}`);
+  console.log(`  Algorithm: argon2id (Bun.password default)`);
+
+  const start = Bun.nanoseconds();
+  const hash = await Bun.password.hash(pwd, {
+    algorithm: "argon2id",
+    memoryCost: 65536,
+    timeCost: 3,
+  });
+  const duration = Number(Bun.nanoseconds() - start) / 1000000;
+
+  console.log(`\n  Hash: ${hash.slice(0, 50)}...`);
+  console.log(`  Time: ${duration.toFixed(2)}ms`);
+
+  // Verify
+  const verifyStart = Bun.nanoseconds();
+  const valid = await Bun.password.verify(pwd, hash);
+  const verifyDuration = Number(Bun.nanoseconds() - verifyStart) / 1000000;
+
+  console.log(`\n  Verification: ${valid ? COLORS.success("VALID") : COLORS.error("INVALID")}`);
+  console.log(`  Verify time: ${verifyDuration.toFixed(2)}ms`);
+
+  console.log("-".repeat(70) + "\n");
+}
+
+// ─── RSS Feed Generation (Bun.escapeHTML) ─────────
+async function generateRSSFeed(): Promise<void> {
+  console.log(`${GLYPHS.DRIFT} Generating Registry RSS Feed\n`);
+  console.log("-".repeat(70));
+
+  // Get recent operations from SQLite
+  const operations = cacheDB.query(`
+    SELECT direction, key, size, datetime(timestamp, 'unixepoch') as time
+    FROM registry_sync_log
+    ORDER BY timestamp DESC
+    LIMIT 20
+  `).all() as any[];
+
+  const feedItems = operations.map(op => {
+    const title = Bun.escapeHTML(`${op.direction}: ${op.key}`);
+    const description = Bun.escapeHTML(`Size: ${formatBytes(op.size || 0)} at ${op.time}`);
+    return `
+    <item>
+      <title>${title}</title>
+      <description>${description}</description>
+      <pubDate>${op.time}</pubDate>
+      <guid>${Bun.hash.wyhash(Buffer.from(op.key + op.time)).toString(16)}</guid>
+    </item>`;
+  }).join("\n");
+
+  const rss = `<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>Tier-1380 Registry Activity</title>
+    <link>https://factory-wager.com/registry</link>
+    <description>OMEGA Registry synchronization activity feed</description>
+    <lastBuildDate>${new Date().toISOString()}</lastBuildDate>
+    ${feedItems}
+  </channel>
+</rss>`;
+
+  const rssPath = "./.registry-cache/activity.xml";
+  await Bun.write(rssPath, rss);
+
+  console.log(`  Generated: ${rssPath}`);
+  console.log(`  Items: ${operations.length}`);
+  console.log(`  Size: ${formatBytes(rss.length)}`);
+
+  // Show Col-89 compliance
+  const maxWidth = Math.max(...rss.split("\n").map(l => Bun.stringWidth(l, { countAnsiEscapeCodes: false })));
+  console.log(`  Col-89: ${maxWidth <= 89 ? COLORS.success("PASS") : COLORS.warning(`FAIL (${maxWidth})`)}`);
+
+  console.log("-".repeat(70) + "\n");
+}
+
+// ─── Async Peek Demo (Bun.peek) ───────────────────
+async function peekDemo(): Promise<void> {
+  console.log(`${GLYPHS.DRIFT} Bun.peek() Async Inspection Demo\n`);
+  console.log("-".repeat(70));
+
+  // Create a promise that resolves after a delay
+  const delayedPromise = new Promise<string>((resolve) => {
+    setTimeout(() => resolve("Registry data loaded"), 100);
+  });
+
+  // Check if resolved using Bun.peek (returns the value or a sentinel)
+  const peek1 = Bun.peek(delayedPromise);
+  console.log(`  Immediate peek: ${typeof peek1 === "object" ? "Promise (pending)" : peek1}`);
+
+  // Wait and check again
+  await new Promise(r => setTimeout(r, 150));
+  const peek2 = Bun.peek(delayedPromise);
+  console.log(`  After 150ms peek: ${peek2}`);
+
+  // Real use case: Check if cached data is ready
+  const cachePromise = getCachedEntry("test-key").catch(() => null);
+  const cachePeek = Bun.peek(cachePromise);
+  
+  if (cachePeek instanceof Promise) {
+    console.log(`  Cache lookup: async (not cached)`);
+  } else {
+    console.log(`  Cache lookup: ${cachePeek ? "sync (cached)" : "sync (miss)"}`);
+  }
+
+  console.log("-".repeat(70) + "\n");
+}
+
 // ─── Main ─────────────────────────────────────────
 async function main(): Promise<void> {
   const args = process.argv.slice(2);
@@ -1281,6 +1481,38 @@ async function main(): Promise<void> {
       await restoreRegistry(args[1]);
       break;
 
+    // Config Commands
+    case "config:validate":
+      if (!args[1]) {
+        console.error(`${GLYPHS.FAIL} Usage: bun run tier1380:registry config:validate <config-path>`);
+        process.exit(1);
+      }
+      await validateConfig(args[1], args[2]);
+      break;
+
+    case "config:diff":
+      if (!args[1] || !args[2]) {
+        console.error(`${GLYPHS.FAIL} Usage: bun run tier1380:registry config:diff <config1> <config2>`);
+        process.exit(1);
+      }
+      await diffConfigs(args[1], args[2]);
+      break;
+
+    // Password Hash
+    case "password:hash":
+      await hashPassword(args[1]);
+      break;
+
+    // RSS Feed
+    case "rss:generate":
+      await generateRSSFeed();
+      break;
+
+    // Demo Commands
+    case "demo:peek":
+      await peekDemo();
+      break;
+
     case "help":
     default:
       console.log(`
@@ -1322,6 +1554,13 @@ Backup & Restore:
 Utilities:
   benchmark            Run Bun-native benchmark suite
   bin:check            Detect required binaries (Bun.which)
+  password:hash [pwd]  Hash password (Bun.password - argon2id)
+  rss:generate         Generate RSS feed (Bun.escapeHTML)
+  demo:peek            Demo Bun.peek() async inspection
+
+Config Management:
+  config:validate <path>   Validate config (Bun.deepEquals)
+  config:diff <c1> <c2>    Compare configs (Bun.deepEquals)
 
 Kimi Shell Integration:
   shell:status         Show Kimi shell integration status
@@ -1340,6 +1579,11 @@ Bun-native Features:
   • Bun.dns.prefetch() - DNS pre-resolution for endpoints
   • Bun.semver.satisfies() - Version comparison
   • Bun.which() - Binary detection in PATH
+  • Bun.deepEquals() - Config comparison & validation
+  • Bun.stringWidth() - Terminal width (Col-89 compliance)
+  • Bun.escapeHTML() - RSS/XML generation
+  • Bun.password.hash() - Argon2id password hashing
+  • Bun.peek() - Async promise inspection
   • Bun.hash.crc32() - Integrity verification
   • Bun.hash.wyhash() - Fast hashing for cache keys
   • Bun.gzip/gunzip - Native compression

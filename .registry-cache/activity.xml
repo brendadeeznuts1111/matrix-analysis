@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>Tier-1380 Registry Activity</title>
+    <link>https://factory-wager.com/registry</link>
+    <description>OMEGA Registry synchronization activity feed</description>
+    <lastBuildDate>2026-02-01T05:10:41.403Z</lastBuildDate>
+    
+    <item>
+      <title>backup: ./backups/registry-backup-2026-02-01T05-06-36-950Z.tar.gz</title>
+      <description>Size: 4.26 KiB at 2026-02-01 05:06:36</description>
+      <pubDate>2026-02-01 05:06:36</pubDate>
+      <guid>ce24ceed4cdd7276</guid>
+    </item>
+  </channel>
+</rss>

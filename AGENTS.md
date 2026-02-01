@@ -202,6 +202,11 @@ bun run tier1380:registry bin:check     # Detect binaries (Bun.which)
 bun run tier1380:registry health:monitor [interval]  # Monitor health (default: 30s)
 bun run tier1380:registry backup [path] # Create registry backup (tar.gz)
 bun run tier1380:registry restore <file> # Restore registry from backup
+bun run tier1380:registry config:validate <path>  # Validate config (Bun.deepEquals)
+bun run tier1380:registry config:diff <c1> <c2>   # Compare configs (Bun.deepEquals)
+bun run tier1380:registry password:hash [pwd]     # Hash password (Bun.password)
+bun run tier1380:registry rss:generate  # Generate RSS feed (Bun.escapeHTML)
+bun run tier1380:registry demo:peek     # Demo Bun.peek() async inspection
 bun run tier1380:registry shell:status  # Show Kimi shell integration status
 
 # Bun docs (mcp-bun-docs)
