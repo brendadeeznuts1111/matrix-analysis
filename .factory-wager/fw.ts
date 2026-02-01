@@ -9,11 +9,123 @@ import { profileManager, ProfileUtils } from "./config/profiles.ts";
 import { PATHS } from "./config/paths.ts";
 import { readFileSync, existsSync } from "fs";
 
+// Version information using existing systems
+const VERSION = "1.4.0-beta.20260201";
+const BUILD_DATE = new Date().toISOString();
+const BUN_VERSION = process.versions.bun;
+
 // CLI Arguments parsing
 const args = process.argv.slice(2);
 const command = args[0];
 const subCommand = args[1];
 const options = args.slice(2);
+
+// Helper function to get git information
+async function getGitInfo(): Promise<{ commit?: string; branch?: string }> {
+  const info: { commit?: string; branch?: string } = {};
+
+  try {
+    const commitProcess = Bun.spawn(["git", "rev-parse", "HEAD"], {
+      stdout: "pipe",
+      stderr: "ignore",
+    });
+    const commitOutput = await new Response(commitProcess.stdout).text();
+    info.commit = commitOutput.trim() || undefined;
+  } catch {
+    // Git not available
+  }
+
+  try {
+    const branchProcess = Bun.spawn(["git", "rev-parse", "--abbrev-ref", "HEAD"], {
+      stdout: "pipe",
+      stderr: "ignore",
+    });
+    const branchOutput = await new Response(branchProcess.stdout).text();
+    info.branch = branchOutput.trim() || undefined;
+  } catch {
+    // Git not available
+  }
+
+  return info;
+}
+
+// Helper function to get system status
+async function getSystemStatus(): Promise<{
+  version: string;
+  buildDate: string;
+  bunVersion: string;
+  environment: string;
+  gitInfo: { commit?: string; branch?: string };
+  features: Record<string, boolean>;
+  configStatus: Record<string, boolean>;
+}> {
+  const gitInfo = await getGitInfo();
+  const activeProfile = profileManager.getActiveProfileName();
+
+  return {
+    version: VERSION,
+    buildDate: BUILD_DATE,
+    bunVersion: BUN_VERSION,
+    environment: process.env.NODE_ENV || "development",
+    gitInfo,
+    features: {
+      markdown_engine: existsSync(PATHS.MARKDOWN_ENGINE),
+      toml_config: existsSync(PATHS.REPORT_CONFIG),
+      profile_system: true,
+      cli_integration: true,
+      audit_system: existsSync(`${PATHS.AUDIT_DIR}/native-audit.ts`),
+      archive_system: existsSync(`${PATHS.CWD}/archive-api.ts`),
+    },
+    configStatus: {
+      report_config: existsSync(PATHS.REPORT_CONFIG),
+      column_config: existsSync(PATHS.COLUMN_CONFIG),
+      visibility_config: existsSync(PATHS.VISIBILITY_CONFIG),
+      types: existsSync(PATHS.TYPES_DIR),
+      profiles: activeProfile !== null,
+    }
+  };
+}
+
+// Helper function to display comprehensive status
+async function displaySystemStatus(): Promise<void> {
+  const status = await getSystemStatus();
+  const activeProfile = profileManager.getActiveProfileName();
+
+  console.log(`
+🏭 ═══════════════════════════════════════════════════════════════════════════════
+    FactoryWager System Status
+    ═══════════════════════════════════════════════════════════════════════════════
+
+    📋 Version Information:
+    Version: ${status.version}
+    Build Date: ${new Date(status.buildDate).toLocaleString()}
+    Environment: ${status.environment}
+    Bun Version: ${status.bunVersion}
+
+    ${status.gitInfo.commit ? `🔗 Git Commit: ${status.gitInfo.commit.substring(0, 8)}` : ""}
+    ${status.gitInfo.branch ? `🌿 Git Branch: ${status.gitInfo.branch}` : ""}
+
+    👤 Active Profile: ${activeProfile || "None"}
+
+    🚀 Features Status:
+    ${Object.entries(status.features)
+      .map(([feature, enabled]) => `    ${enabled ? '✅' : '❌'} ${feature.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}`)
+      .join('\n')}
+
+    ⚙️ Configuration Status:
+    ${Object.entries(status.configStatus)
+      .map(([config, exists]) => `    ${exists ? '✅' : '❌'} ${config.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}`)
+      .join('\n')}
+
+    📁 Key Paths:
+    Working Directory: ${process.cwd()}
+    Git Root: ${PATHS.GIT_ROOT}
+    Config Directory: ${PATHS.CONFIG_DIR}
+    Reports Directory: ${PATHS.REPORTS_DIR}
+
+════════════════════════════════════════════════════════════════════════════════ 🏭
+  `);
+}
 
 // Helper function to execute shell commands
 async function execCommand(cmd: string): Promise<void> {
@@ -183,20 +295,20 @@ async function main(): Promise<void> {
         switch (subCommand) {
           case "system":
           case "sys":
-            console.log("🖥️ FactoryWager System Status:");
-            console.log(`📁 Working Directory: ${process.cwd()}`);
-            console.log(`🔧 Git Root: ${PATHS.GIT_ROOT}`);
-            const activeProfile = profileManager.getActiveProfileName();
-            console.log(`👤 Active Profile: ${activeProfile || "None"}`);
+            await displaySystemStatus();
             break;
           case "health":
             console.log("🏥 FactoryWager Health Check:");
-            try {
-              const profiles = profileManager.getProfiles();
-              console.log(`✅ Profile System: ${Object.keys(profiles).length} profiles loaded`);
-            } catch (error) {
-              console.log("❌ Profile System: Error");
-            }
+            const status = await getSystemStatus();
+            const enabledFeatures = Object.values(status.features).filter(Boolean).length;
+            const totalFeatures = Object.keys(status.features).length;
+            const existingConfigs = Object.values(status.configStatus).filter(Boolean).length;
+            const totalConfigs = Object.keys(status.configStatus).length;
+
+            console.log(`✅ Features: ${enabledFeatures}/${totalFeatures} enabled`);
+            console.log(`✅ Configuration: ${existingConfigs}/${totalConfigs} files found`);
+            console.log(`✅ Version: ${status.version}`);
+            console.log(`✅ Environment: ${status.environment}`);
             console.log("🎯 Overall Health: GOOD");
             break;
           default:
@@ -222,9 +334,38 @@ async function main(): Promise<void> {
             break;
           case "version":
           case "v":
-            console.log("🏭 FactoryWager CLI");
-            console.log("Version: 1.0.0");
-            console.log("Bun Version:", process.versions.bun);
+            const gitInfo = await getGitInfo();
+            const activeProfile = profileManager.getActiveProfileName();
+
+            console.log(`
+🏭 ═══════════════════════════════════════════════════════════════════════════════
+    FactoryWager Version Information
+    ═══════════════════════════════════════════════════════════════════════════════
+
+    📋 Version: ${VERSION}
+    🏭 Name: FactoryWager CLI
+    📅 Build Date: ${new Date(BUILD_DATE).toLocaleString()}
+    🌍 Environment: ${process.env.NODE_ENV || "development"}
+    🥟 Bun Version: ${BUN_VERSION}
+
+    ${gitInfo.commit ? `🔗 Git Commit: ${gitInfo.commit.substring(0, 8)}` : ""}
+    ${gitInfo.branch ? `🌿 Git Branch: ${gitInfo.branch}` : ""}
+
+    👤 Active Profile: ${activeProfile || "None"}
+
+    🚀 Features:
+    ✅ Profile System
+    ✅ CLI Integration
+    ✅ TOML Configuration
+    ${existsSync(PATHS.MARKDOWN_ENGINE) ? "✅ Markdown Engine" : "❌ Markdown Engine"}
+    ${existsSync(`${PATHS.AUDIT_DIR}/native-audit.ts`) ? "✅ Audit System" : "❌ Audit System"}
+    ${existsSync(`${PATHS.CWD}/archive-api.ts`) ? "✅ Archive System" : "❌ Archive System"}
+
+    📁 Working Directory: ${process.cwd()}
+    🔧 Git Root: ${PATHS.GIT_ROOT}
+
+════════════════════════════════════════════════════════════════════════════════ 🏭
+            `);
             break;
           default:
             console.error("❌ Unknown util subcommand");
@@ -251,11 +392,20 @@ async function main(): Promise<void> {
         break;
 
       case "info":
-        const currentProfile = profileManager.getActiveProfileName();
+        const status = await getSystemStatus();
+        const activeProfile = profileManager.getActiveProfileName();
+
         console.log("🏭 FactoryWager Quick Info:");
-        console.log(`👤 Profile: ${currentProfile || "None"}`);
+        console.log(`👤 Profile: ${activeProfile || "None"}`);
+        console.log(`📋 Version: ${status.version}`);
         console.log(`📁 Directory: ${process.cwd()}`);
         console.log(`🔧 Mode: ${process.env.FW_MODE || "Unknown"}`);
+        console.log(`🌍 Environment: ${status.environment}`);
+        console.log(`🥟 Bun: ${status.bunVersion}`);
+
+        if (status.gitInfo.commit) {
+          console.log(`🔗 Git: ${status.gitInfo.commit.substring(0, 8)}`);
+        }
         break;
 
       case "welcome":
