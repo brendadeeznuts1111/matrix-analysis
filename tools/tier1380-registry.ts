@@ -1641,6 +1641,96 @@ export default config;
   console.log("-".repeat(70) + "\n");
 }
 
+// ─── Markdown Parser (Bun.markdown) ───────────────
+async function parseMarkdown(mdPath?: string): Promise<void> {
+  console.log(`${GLYPHS.DRIFT} Markdown Parser (Bun.markdown)\n`);
+  console.log("-".repeat(70));
+  
+  // Check if Bun.markdown is available (v1.3.8+)
+  if (typeof Bun.markdown === "undefined") {
+    console.log(`  ${GLYPHS.FAIL} Bun.markdown is not available in Bun ${Bun.version}`);
+    console.log(`  ${COLORS.info("This feature requires Bun v1.3.8 or later")}`);
+    console.log(`\n  Preview of what Bun.markdown will provide:`);
+    console.log(`    - CommonMark-compliant Markdown parser`);
+    console.log(`    - Converts Markdown → HTML`);
+    console.log(`    - Fast Zig-based implementation`);
+    console.log(`    - No external dependencies`);
+    console.log("-".repeat(70) + "\n");
+    return;
+  }
+  
+  const testMd = mdPath || "./.registry-cache/test-readme.md";
+  
+  // Create sample markdown if not exists
+  if (!existsSync(testMd)) {
+    const sampleMd = `# Tier-1380 Registry
+
+## Features
+
+- **DNS Prefetch** - Fast endpoint resolution
+- **R2 Integration** - Cloudflare object storage
+- **Bun-native APIs** - Maximum performance
+
+## Quick Start
+
+\`\`\`bash
+bun run tier1380:registry check
+bun run tier1380:registry r2:upload file.txt
+\`\`\`
+
+## Configuration
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| port   | 8787    | TCP server port |
+| bucket | fw-registry | R2 bucket name |
+
+> **Note**: Requires Bun v1.3.7+
+
+[Documentation](https://factory-wager.com/docs)
+`;
+    await Bun.write(testMd, sampleMd);
+    console.log(`  Created sample markdown: ${testMd}`);
+  }
+  
+  const content = await Bun.file(testMd).text();
+  
+  // Parse markdown
+  const start = Bun.nanoseconds();
+  const html = Bun.markdown(content, {
+    allowDangerousHtml: false,
+    preserveTrailingSpaces: false,
+  });
+  const duration = Number(Bun.nanoseconds() - start) / 1000000;
+  
+  console.log(`\n  Parsed in ${duration.toFixed(2)}ms`);
+  console.log(`\n  Input: ${formatBytes(content.length)} markdown`);
+  console.log(`  Output: ${formatBytes(html.length)} HTML`);
+  
+  // Count elements
+  const headings = (content.match(/^#{1,6}\s/gm) || []).length;
+  const codeBlocks = (content.match(/```/g) || []).length / 2;
+  const links = (content.match(/\[.+?\]\(.+?\)/g) || []).length;
+  const tables = (content.match(/\|/g) || []).length / 2;
+  
+  console.log(`\n  Elements detected:`);
+  console.log(`    Headings: ${headings}`);
+  console.log(`    Code blocks: ${codeBlocks}`);
+  console.log(`    Links: ${links}`);
+  console.log(`    Table cells: ${tables}`);
+  
+  // Save HTML output
+  const htmlPath = testMd.replace(/\.md$/, ".html");
+  await Bun.write(htmlPath, html);
+  console.log(`\n  ${GLYPHS.OK} HTML saved: ${htmlPath}`);
+  
+  // Show preview
+  console.log(`\n  HTML Preview (first 300 chars):`);
+  console.log("  " + html.slice(0, 300).split("\n").join("\n  ") + "...");
+  
+  console.log("-".repeat(70) + "\n");
+}
+
 // ─── Environment Manager (Bun.env) ────────────────
 function manageEnv(): void {
   console.log(`${GLYPHS.DRIFT} Environment Manager (Bun.env)\n`);
@@ -2041,6 +2131,10 @@ async function main(): Promise<void> {
       await transpileCode(args.slice(1).join(" "));
       break;
 
+    case "demo:markdown":
+      await parseMarkdown(args[1]);
+      break;
+
     case "demo:env":
       manageEnv();
       break;
@@ -2104,6 +2198,7 @@ Demo Commands:
   demo:uuid [count]    Demo UUIDv7 generation
   demo:toml [file]     Demo TOML parsing (Bun.TOML)
   demo:transpile [code] Demo code transpilation (Bun.Transpiler)
+  demo:markdown [file] Demo markdown parsing (Bun.markdown)
   demo:env             Demo environment management (Bun.env)
 
 Server & IPC:

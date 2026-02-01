@@ -144,6 +144,7 @@
     "tier1380:registry:demo:uuid": "bun tools/tier1380-registry.ts demo:uuid",
     "tier1380:registry:demo:toml": "bun tools/tier1380-registry.ts demo:toml",
     "tier1380:registry:demo:transpile": "bun tools/tier1380-registry.ts demo:transpile",
+    "tier1380:registry:demo:markdown": "bun tools/tier1380-registry.ts demo:markdown",
     "tier1380:registry:demo:env": "bun tools/tier1380-registry.ts demo:env",
     "tier1380:registry:server:start": "bun tools/tier1380-registry.ts server:start",
     "tier1380:registry:worker:spawn": "bun tools/tier1380-registry.ts worker:spawn",

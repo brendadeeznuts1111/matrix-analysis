@@ -54,6 +54,7 @@ Unified package management using Bun's native PM commands.
   Bun.sleep(ms)                Async sleep
   Bun.which(bin)               Find executable path
   Bun.deepEquals(a, b)         Deep equality check
+  Bun.deepMatch(a, b)          Subset/pattern match
   Bun.escapeHTML(str)          Escape HTML entities
   Bun.stringWidth(str)         Unicode-aware string width
 
@@ -948,6 +949,16 @@ DEEP EQUALS
 ───────────
   Bun.deepEquals(obj1, obj2);          # true/false
   Bun.deepEquals([1, 2], [1, 2]);  # true
+
+DEEP MATCH (subset/pattern matching)
+─────────────────────────────────────
+  Bun.deepMatch(subset, object);       # true if object contains subset
+  Bun.deepMatch({ a: 1 }, { a: 1, b: 2 });        # true
+  Bun.deepMatch({ a: 1, b: 2 }, { a: 1 });        # false (subset has extra)
+  Bun.deepMatch({ x: { y: 1 } }, { x: { y: 1, z: 2 }, w: 3 });  # true (nested)
+
+  # Unlike deepEquals, deepMatch checks if first arg is a subset of second
+  # Useful for: partial assertions, config validation, API response checks
 
 ESCAPE HTML
 ───────────
