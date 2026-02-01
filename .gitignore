@@ -102,6 +102,10 @@ bunfig.toml
 !.claude/tools/**
 !.claude/core/
 !.claude/core/**
+!.claude/.agents/
+!.claude/.agents/**
+!.claude/api/
+!.claude/api/**
 .claude.json*
 .cline/
 .cloudflared/
@@ -163,6 +167,10 @@ docs/tablformating/
 dotfiles/
 go/
 skills/
+!.claude/skills/
+!.claude/skills/*.md
+!.claude/.agents/skills/
+!.claude/.agents/skills/**
 /test/
 # Project directories (if not meant to be tracked)
 Projects/

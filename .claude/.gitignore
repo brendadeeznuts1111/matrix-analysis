@@ -90,6 +90,8 @@ cache/
 !tools/demo/markdown-demo.ts
 !core/team/
 !core/team/**
+!.agents/skills/*/scripts/
+!.agents/skills/*/scripts/**
 
 # ----------------------------------------------------------------------------
 # TELEMETRY & METRICS (NDJSON, large data files)
