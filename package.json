@@ -147,6 +147,7 @@
     "tier1380:registry:demo:markdown": "bun tools/tier1380-registry.ts demo:markdown",
     "tier1380:registry:demo:env": "bun tools/tier1380-registry.ts demo:env",
     "tier1380:registry:server:start": "bun tools/tier1380-registry.ts server:start",
+    "tier1380:registry:http:start": "bun tools/tier1380-registry.ts http:start",
     "tier1380:registry:worker:spawn": "bun tools/tier1380-registry.ts worker:spawn",
     "tier1380:registry:watch": "bun tools/tier1380-registry.ts watch",
     "tier1380:registry:info": "bun tools/tier1380-registry.ts info",

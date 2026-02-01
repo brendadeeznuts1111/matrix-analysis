@@ -1459,6 +1459,142 @@ async function startRegistryServer(port: number = 8787): Promise<void> {
   await new Promise(() => {});
 }
 
+// ─── HTTP Server (Bun.serve) ──────────────────────
+let httpServer: ReturnType<typeof Bun.serve> | null = null;
+
+async function startHTTPServer(port: number = 3000): Promise<void> {
+  console.log(`${GLYPHS.CONNECT} Starting HTTP Registry Server on port ${port}\n`);
+  console.log("-".repeat(70));
+
+  const stats = {
+    requests: 0,
+    startTime: Date.now(),
+  };
+
+  httpServer = Bun.serve({
+    port: port,
+    hostname: "127.0.0.1",
+    
+    async fetch(request) {
+      stats.requests++;
+      const url = new URL(request.url);
+      const pathname = url.pathname;
+      
+      // CORS headers
+      const corsHeaders = {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type",
+      };
+      
+      if (request.method === "OPTIONS") {
+        return new Response(null, { headers: corsHeaders });
+      }
+
+      // Router
+      switch (pathname) {
+        case "/":
+        case "/status":
+          return new Response(JSON.stringify({
+            status: "ok",
+            version: REGISTRY_CONFIG.version,
+            uptime: Date.now() - stats.startTime,
+            requests: stats.requests,
+            timestamp: new Date().toISOString(),
+          }), {
+            headers: { "Content-Type": "application/json", ...corsHeaders },
+          });
+
+        case "/version":
+          return new Response(JSON.stringify({
+            version: REGISTRY_CONFIG.version,
+            bun: Bun.version,
+            revision: Bun.revision.slice(0, 16),
+          }), {
+            headers: { "Content-Type": "application/json", ...corsHeaders },
+          });
+
+        case "/cache":
+          const cache = cacheDB.query("SELECT COUNT(*) as count, SUM(size) as total FROM registry_cache").get() as any;
+          return new Response(JSON.stringify({
+            entries: cache.count || 0,
+            totalSize: cache.total || 0,
+          }), {
+            headers: { "Content-Type": "application/json", ...corsHeaders },
+          });
+
+        case "/r2/status":
+          const r2Connected = await checkR2Connection();
+          return new Response(JSON.stringify({
+            connected: r2Connected,
+            bucket: R2_CONFIG.bucket,
+            endpoint: R2_CONFIG.endpoint,
+          }), {
+            headers: { "Content-Type": "application/json", ...corsHeaders },
+            status: r2Connected ? 200 : 503,
+          });
+
+        case "/health":
+          return new Response(JSON.stringify({ status: "healthy" }), {
+            headers: { "Content-Type": "application/json", ...corsHeaders },
+          });
+
+        default:
+          return new Response(JSON.stringify({ error: "Not found" }), {
+            status: 404,
+            headers: { "Content-Type": "application/json", ...corsHeaders },
+          });
+      }
+    },
+
+    websocket: {
+      open(ws) {
+        console.log(`  [${new Date().toISOString()}] WebSocket connected`);
+        ws.send(JSON.stringify({ type: "welcome", version: REGISTRY_CONFIG.version }));
+      },
+      message(ws, message) {
+        console.log(`  [${new Date().toISOString()}] WebSocket message:`, message);
+        
+        try {
+          const data = JSON.parse(message as string);
+          
+          if (data.type === "subscribe") {
+            ws.send(JSON.stringify({ type: "subscribed", channel: data.channel }));
+          } else if (data.type === "ping") {
+            ws.send(JSON.stringify({ type: "pong", time: Date.now() }));
+          } else {
+            ws.send(JSON.stringify({ type: "echo", data }));
+          }
+        } catch {
+          ws.send(JSON.stringify({ type: "error", message: "Invalid JSON" }));
+        }
+      },
+      close(ws, code, reason) {
+        console.log(`  [${new Date().toISOString()}] WebSocket closed: ${code} ${reason}`);
+      },
+    },
+  });
+
+  console.log(`  ${GLYPHS.OK} HTTP Server: http://127.0.0.1:${port}`);
+  console.log(`  ${GLYPHS.OK} WebSocket: ws://127.0.0.1:${port}`);
+  console.log(`\n  Endpoints:`);
+  console.log(`    GET /status      - Server status`);
+  console.log(`    GET /version     - Version info`);
+  console.log(`    GET /cache       - Cache statistics`);
+  console.log(`    GET /r2/status   - R2 connection status`);
+  console.log(`    GET /health      - Health check`);
+  console.log(`    WebSocket /      - Real-time updates`);
+  console.log(`\n  Press Ctrl+C to stop`);
+
+  process.on("SIGINT", () => {
+    console.log(`\n${GLYPHS.OK} Stopping HTTP server...`);
+    httpServer?.stop();
+    process.exit(0);
+  });
+
+  await new Promise(() => {});
+}
+
 // ─── Spawn Worker with IPC ──────────────────────────
 async function spawnWorker(task: string = "benchmark"): Promise<void> {
   console.log(`${GLYPHS.DRIFT} Spawning Worker with IPC (Bun.spawn)\n`);
@@ -2100,6 +2236,11 @@ async function main(): Promise<void> {
       await startRegistryServer(serverPort);
       break;
 
+    case "http:start":
+      const httpPort = parseInt(args[1]) || 3000;
+      await startHTTPServer(httpPort);
+      break;
+
     // Worker Commands
     case "worker:spawn":
       await spawnWorker(args[1] || "benchmark");
@@ -2203,6 +2344,7 @@ Demo Commands:
 
 Server & IPC:
   server:start [port]  Start TCP registry server (Bun.listen)
+  http:start [port]    Start HTTP/WebSocket server (Bun.serve)
   worker:spawn [task]  Spawn worker with IPC (Bun.spawn)
   watch [pattern]      Watch files for changes (fs.watch)
 
@@ -2267,4 +2409,6 @@ export {
   calculateCRC32,
   compressData,
   decompressData,
+  startHTTPServer,
+  startRegistryServer,
 };

@@ -217,6 +217,7 @@ bun run tier1380:registry demo:transpile      # Demo code transpilation
 bun run tier1380:registry demo:markdown       # Demo markdown parsing
 bun run tier1380:registry demo:env      # Demo environment (Bun.env)
 bun run tier1380:registry server:start [port]  # Start TCP server (Bun.listen)
+bun run tier1380:registry http:start [port]    # Start HTTP/WebSocket (Bun.serve)
 bun run tier1380:registry worker:spawn [task]  # Spawn worker with IPC
 bun run tier1380:registry watch [pattern]      # Watch files (fs.watch)
 bun run tier1380:registry shell:status  # Show Kimi shell integration status
