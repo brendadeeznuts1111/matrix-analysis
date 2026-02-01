@@ -1,69 +1,33 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuites name="bun test" tests="40" assertions="102" failures="0" skipped="0" time="0.07159">
-  <testsuite name="src/lib/frontmatter/frontmatter.test.ts" file="src/lib/frontmatter/frontmatter.test.ts" tests="40" assertions="102" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-    <testsuite name="extractFrontmatter" file="src/lib/frontmatter/frontmatter.test.ts" line="15" tests="12" assertions="35" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-      <testsuite name="YAML frontmatter" file="src/lib/frontmatter/frontmatter.test.ts" line="16" tests="4" assertions="13" failures="0" skipped="0" time="0.011" hostname="Mac.attlocal.net">
-        <testcase name="should parse standard YAML frontmatter" classname="YAML frontmatter &amp;gt; extractFrontmatter" time="0.008591" file="src/lib/frontmatter/frontmatter.test.ts" line="17" assertions="6" />
-        <testcase name="should handle YAML with various value types" classname="YAML frontmatter &amp;gt; extractFrontmatter" time="0.00123" file="src/lib/frontmatter/frontmatter.test.ts" line="35" assertions="4" />
-        <testcase name="should handle empty YAML block" classname="YAML frontmatter &amp;gt; extractFrontmatter" time="0.000291" file="src/lib/frontmatter/frontmatter.test.ts" line="50" assertions="1" />
-        <testcase name="should report malformed YAML errors" classname="YAML frontmatter &amp;gt; extractFrontmatter" time="0.002516" file="src/lib/frontmatter/frontmatter.test.ts" line="59" assertions="2" />
+<testsuites name="bun test" tests="16" assertions="34" failures="0" skipped="0" time="0.028644">
+  <testsuite name="tools/typescript-type-fixes.test.ts" file="tools/typescript-type-fixes.test.ts" tests="16" assertions="34" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+    <testsuite name="TypeScript Type Fixes - Bun v1.3.6" file="tools/typescript-type-fixes.test.ts" line="9" tests="12" assertions="27" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+      <testsuite name="1. Bun.build() autoload options" file="tools/typescript-type-fixes.test.ts" line="10" tests="3" assertions="6" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+        <testcase name="should accept autoloadTsconfig option" classname="1. Bun.build() autoload options &amp;gt; TypeScript Type Fixes - Bun v1.3.6" time="0.000181" file="tools/typescript-type-fixes.test.ts" line="11" assertions="2" />
+        <testcase name="should accept autoloadPackageJson option" classname="1. Bun.build() autoload options &amp;gt; TypeScript Type Fixes - Bun v1.3.6" time="0.000077" file="tools/typescript-type-fixes.test.ts" line="25" assertions="2" />
+        <testcase name="should accept both options together" classname="1. Bun.build() autoload options &amp;gt; TypeScript Type Fixes - Bun v1.3.6" time="0.000047" file="tools/typescript-type-fixes.test.ts" line="37" assertions="2" />
       </testsuite>
-      <testsuite name="TOML frontmatter" file="src/lib/frontmatter/frontmatter.test.ts" line="70" tests="2" assertions="8" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-        <testcase name="should parse TOML frontmatter" classname="TOML frontmatter &amp;gt; extractFrontmatter" time="0.000279" file="src/lib/frontmatter/frontmatter.test.ts" line="71" assertions="5" />
-        <testcase name="should handle TOML arrays and tables" classname="TOML frontmatter &amp;gt; extractFrontmatter" time="0" file="src/lib/frontmatter/frontmatter.test.ts" line="86" assertions="3" />
+      <testsuite name="2. bun:sqlite .run() return type" file="tools/typescript-type-fixes.test.ts" line="51" tests="5" assertions="14" failures="0" skipped="0" time="0.002" hostname="Mac.attlocal.net">
+        <testcase name="should return Changes object with correct types" classname="2. bun:sqlite .run() return type &amp;gt; TypeScript Type Fixes - Bun v1.3.6" time="0.002478" file="tools/typescript-type-fixes.test.ts" line="54" assertions="4" />
+        <testcase name="should return number for changes property" classname="2. bun:sqlite .run() return type &amp;gt; TypeScript Type Fixes - Bun v1.3.6" time="0.000129" file="tools/typescript-type-fixes.test.ts" line="67" assertions="2" />
+        <testcase name="should return number for lastInsertRowid property" classname="2. bun:sqlite .run() return type &amp;gt; TypeScript Type Fixes - Bun v1.3.6" time="0.000214" file="tools/typescript-type-fixes.test.ts" line="78" assertions="2" />
+        <testcase name="should track multiple insertions correctly" classname="2. bun:sqlite .run() return type &amp;gt; TypeScript Type Fixes - Bun v1.3.6" time="0.000173" file="tools/typescript-type-fixes.test.ts" line="89" assertions="3" />
+        <testcase name="should handle prepared statements with .run()" classname="2. bun:sqlite .run() return type &amp;gt; TypeScript Type Fixes - Bun v1.3.6" time="0.000476" file="tools/typescript-type-fixes.test.ts" line="102" assertions="3" />
       </testsuite>
-      <testsuite name="JSON frontmatter" file="src/lib/frontmatter/frontmatter.test.ts" line="102" tests="2" assertions="7" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-        <testcase name="should parse JSON frontmatter" classname="JSON frontmatter &amp;gt; extractFrontmatter" time="0" file="src/lib/frontmatter/frontmatter.test.ts" line="103" assertions="5" />
-        <testcase name="should handle nested JSON objects" classname="JSON frontmatter &amp;gt; extractFrontmatter" time="0" file="src/lib/frontmatter/frontmatter.test.ts" line="119" assertions="2" />
-      </testsuite>
-      <testsuite name="no frontmatter" file="src/lib/frontmatter/frontmatter.test.ts" line="134" tests="3" assertions="6" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-        <testcase name="should return format &apos;none&apos; for plain markdown" classname="no frontmatter &amp;gt; extractFrontmatter" time="0" file="src/lib/frontmatter/frontmatter.test.ts" line="135" assertions="3" />
-        <testcase name="should handle empty string" classname="no frontmatter &amp;gt; extractFrontmatter" time="0" file="src/lib/frontmatter/frontmatter.test.ts" line="143" assertions="2" />
-        <testcase name="should handle null/undefined input" classname="no frontmatter &amp;gt; extractFrontmatter" time="0" file="src/lib/frontmatter/frontmatter.test.ts" line="149" assertions="1" />
-      </testsuite>
-      <testsuite name="format priority" file="src/lib/frontmatter/frontmatter.test.ts" line="155" tests="1" assertions="1" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-        <testcase name="should prefer YAML over TOML when --- appears first" classname="format priority &amp;gt; extractFrontmatter" time="0.000534" file="src/lib/frontmatter/frontmatter.test.ts" line="156" assertions="1" />
+      <testsuite name="3. FileSink.write() return type" file="tools/typescript-type-fixes.test.ts" line="116" tests="4" assertions="7" failures="0" skipped="0" time="0.001" hostname="Mac.attlocal.net">
+        <testcase name="should return number for synchronous writes" classname="3. FileSink.write() return type &amp;gt; TypeScript Type Fixes - Bun v1.3.6" time="0.001236" file="tools/typescript-type-fixes.test.ts" line="117" assertions="2" />
+        <testcase name="should return Promise&lt;number&gt; for async writes" classname="3. FileSink.write() return type &amp;gt; TypeScript Type Fixes - Bun v1.3.6" time="0.000871" file="tools/typescript-type-fixes.test.ts" line="130" assertions="1" />
+        <testcase name="should properly type union return (number | Promise&lt;number&gt;)" classname="3. FileSink.write() return type &amp;gt; TypeScript Type Fixes - Bun v1.3.6" time="0.000636" file="tools/typescript-type-fixes.test.ts" line="150" assertions="1" />
+        <testcase name="should handle multiple writes" classname="3. FileSink.write() return type &amp;gt; TypeScript Type Fixes - Bun v1.3.6" time="0.000674" file="tools/typescript-type-fixes.test.ts" line="167" assertions="3" />
       </testsuite>
     </testsuite>
-    <testsuite name="normalizeFrontmatter" file="src/lib/frontmatter/frontmatter.test.ts" line="169" tests="8" assertions="11" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-      <testcase name="should convert date to ISO 8601" classname="normalizeFrontmatter" time="0.000634" file="src/lib/frontmatter/frontmatter.test.ts" line="170" assertions="2" />
-      <testcase name="should handle published field as date" classname="normalizeFrontmatter" time="0.000582" file="src/lib/frontmatter/frontmatter.test.ts" line="177" assertions="1" />
-      <testcase name="should coerce string tags to array" classname="normalizeFrontmatter" time="0.000451" file="src/lib/frontmatter/frontmatter.test.ts" line="183" assertions="1" />
-      <testcase name="should coerce string categories to array" classname="normalizeFrontmatter" time="0.000066" file="src/lib/frontmatter/frontmatter.test.ts" line="189" assertions="1" />
-      <testcase name="should leave array tags as-is" classname="normalizeFrontmatter" time="0.000055" file="src/lib/frontmatter/frontmatter.test.ts" line="195" assertions="1" />
-      <testcase name="should coerce draft string to boolean" classname="normalizeFrontmatter" time="0.000035" file="src/lib/frontmatter/frontmatter.test.ts" line="201" assertions="2" />
-      <testcase name="should apply SEO mapping when enabled" classname="normalizeFrontmatter" time="0.000052" file="src/lib/frontmatter/frontmatter.test.ts" line="209" assertions="2" />
-      <testcase name="should not mutate original data" classname="normalizeFrontmatter" time="0" file="src/lib/frontmatter/frontmatter.test.ts" line="217" assertions="1" />
+    <testsuite name="TypeScript Type Fix Examples" file="tools/typescript-type-fixes.test.ts" line="192" tests="3" assertions="7" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+      <testcase name="demonstrates Bun.build() autoload types" classname="TypeScript Type Fix Examples" time="0.000047" file="tools/typescript-type-fixes.test.ts" line="193" assertions="2" />
+      <testcase name="demonstrates bun:sqlite Changes type" classname="TypeScript Type Fix Examples" time="0.000264" file="tools/typescript-type-fixes.test.ts" line="207" assertions="4" />
+      <testcase name="demonstrates FileSink.write() return type" classname="TypeScript Type Fix Examples" time="0.000179" file="tools/typescript-type-fixes.test.ts" line="224" assertions="1" />
     </testsuite>
-    <testsuite name="validateFrontmatter" file="src/lib/frontmatter/frontmatter.test.ts" line="227" tests="7" assertions="15" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-      <testcase name="should pass valid data" classname="validateFrontmatter" time="0.000278" file="src/lib/frontmatter/frontmatter.test.ts" line="235" assertions="2" />
-      <testcase name="should fail on missing required fields" classname="validateFrontmatter" time="0.00005" file="src/lib/frontmatter/frontmatter.test.ts" line="247" assertions="3" />
-      <testcase name="should fail on type mismatch" classname="validateFrontmatter" time="0.000021" file="src/lib/frontmatter/frontmatter.test.ts" line="255" assertions="2" />
-      <testcase name="should fail on too-short string" classname="validateFrontmatter" time="0" file="src/lib/frontmatter/frontmatter.test.ts" line="262" assertions="2" />
-      <testcase name="should fail on too-few array items" classname="validateFrontmatter" time="0" file="src/lib/frontmatter/frontmatter.test.ts" line="269" assertions="2" />
-      <testcase name="should support enum validation" classname="validateFrontmatter" time="0" file="src/lib/frontmatter/frontmatter.test.ts" line="276" assertions="2" />
-      <testcase name="should support pattern validation" classname="validateFrontmatter" time="0.0002" file="src/lib/frontmatter/frontmatter.test.ts" line="287" assertions="2" />
-    </testsuite>
-    <testsuite name="generateHeadTags" file="src/lib/frontmatter/frontmatter.test.ts" line="301" tests="5" assertions="13" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-      <testcase name="should generate meta tags" classname="generateHeadTags" time="0.000354" file="src/lib/frontmatter/frontmatter.test.ts" line="302" assertions="3" />
-      <testcase name="should generate OpenGraph tags" classname="generateHeadTags" time="0" file="src/lib/frontmatter/frontmatter.test.ts" line="310" assertions="3" />
-      <testcase name="should generate JSON-LD" classname="generateHeadTags" time="0" file="src/lib/frontmatter/frontmatter.test.ts" line="318" assertions="3" />
-      <testcase name="should generate HTML comment" classname="generateHeadTags" time="0.000182" file="src/lib/frontmatter/frontmatter.test.ts" line="326" assertions="2" />
-      <testcase name="should escape HTML in values" classname="generateHeadTags" time="0.000552" file="src/lib/frontmatter/frontmatter.test.ts" line="333" assertions="2" />
-    </testsuite>
-    <testsuite name="injectIntoHtml" file="src/lib/frontmatter/frontmatter.test.ts" line="341" tests="2" assertions="5" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-      <testcase name="should inject before &lt;/head&gt;" classname="injectIntoHtml" time="0.000029" file="src/lib/frontmatter/frontmatter.test.ts" line="342" assertions="2" />
-      <testcase name="should wrap with &lt;head&gt; if missing" classname="injectIntoHtml" time="0.000023" file="src/lib/frontmatter/frontmatter.test.ts" line="350" assertions="3" />
-    </testsuite>
-    <testsuite name="batch extraction" file="src/lib/frontmatter/frontmatter.test.ts" line="362" tests="5" assertions="13" failures="0" skipped="0" time="0.003" hostname="Mac.attlocal.net">
-      <testcase name="should process all markdown files in directory" classname="batch extraction" time="0.001526" file="src/lib/frontmatter/frontmatter.test.ts" line="397" assertions="4" />
-      <testcase name="should detect correct formats per file" classname="batch extraction" time="0.001273" file="src/lib/frontmatter/frontmatter.test.ts" line="405" assertions="3" />
-      <testcase name="should generate index with frontmatter entries only" classname="batch extraction" time="0.001066" file="src/lib/frontmatter/frontmatter.test.ts" line="413" assertions="2" />
-      <testcase name="should include file hashes" classname="batch extraction" time="0.00099" file="src/lib/frontmatter/frontmatter.test.ts" line="420" assertions="3" />
-      <testcase name="should validate against schema when provided" classname="batch extraction" time="0.000418" file="src/lib/frontmatter/frontmatter.test.ts" line="427" assertions="1" />
-    </testsuite>
-    <testsuite name="end-to-end integration" file="src/lib/frontmatter/frontmatter.test.ts" line="439" tests="1" assertions="10" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-      <testcase name="should extract, normalize, validate, and inject into rendered HTML" classname="end-to-end integration" time="0.000279" file="src/lib/frontmatter/frontmatter.test.ts" line="440" assertions="10" />
+    <testsuite name="Cleanup" file="tools/typescript-type-fixes.test.ts" line="243" tests="1" assertions="0" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+      <testcase name="should cleanup test files" classname="Cleanup" time="0.000057" file="tools/typescript-type-fixes.test.ts" line="244" assertions="0" />
     </testsuite>
   </testsuite>
 </testsuites>

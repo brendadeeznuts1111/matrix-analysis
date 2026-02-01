@@ -5,7 +5,7 @@ export function renderInfrastructureDashboard(report: InfrastructureReport): voi
   const useColor = report.system.capabilities.color;
   const c = (hsl: string) => useColor ? (Bun as any).color(hsl, "ansi-16m") : "";
   const reset = "\x1b[0m";
-  
+
   // HSL Palette
   const header = c("hsl(220, 60%, 70%)");
   const border = c("hsl(220, 20%, 30%)");
@@ -30,10 +30,10 @@ export function renderInfrastructureDashboard(report: InfrastructureReport): voi
   console.log(`  Platform: ${cyan}${report.system.platform.os} ${report.system.platform.arch}${reset} | ` +
               `Cores: ${gold}${report.system.platform.cpus}${reset} | ` +
               `Memory: ${report.system.memory.rss / 1024 / 1024 | 0}MB`);
-  
+
   // Domain Section
   console.log(`\n${header}  DOMAIN: ${report.domain.name}${reset}`);
-  report.domain.endpoints.forEach(ep => {
+  report.domain.endpoints.forEach((ep: any) => {
     const statusColor = ep.healthy ? green : red;
     const statusIcon = ep.healthy ? "✓" : "✗";
     console.log(`  ${statusColor}${statusIcon}${reset} ${ep.endpoint.padEnd(40)} ` +
@@ -45,7 +45,7 @@ export function renderInfrastructureDashboard(report: InfrastructureReport): voi
   if (report.registry.reachable) {
     console.log(`  ${green}●${reset} ${report.registry.url} ${dim}(${report.registry.latency})${reset}`);
     console.log(`  ${dim}Packages: ${report.registry.totalPackages} | Sampling integrity...${reset}`);
-    
+
     // Tabular package list (v4.3 format)
     const cols = [
       { name: "Package", w: 20, align: "left" as const },
@@ -54,16 +54,16 @@ export function renderInfrastructureDashboard(report: InfrastructureReport): voi
       { name: "Hash", w: 10, align: "left" as const },
       { name: "CRC32", w: 10, align: "center" as const },
     ];
-    
+
     // Header row
-    const headerRow = cols.map(col => 
+    const headerRow = cols.map(col =>
       col.name.padEnd(col.w).slice(0, col.w)
     ).join(" │ ");
     console.log(`  ${dim}${headerRow}${reset}`);
     console.log(`  ${dim}${cols.map(c => "─".repeat(c.w)).join("─┼─")}${reset}`);
-    
+
     // Data rows
-    report.registry.packages.forEach(pkg => {
+    report.registry.packages.forEach((pkg: any) => {
       const crcColor = pkg.crcValid ? green : red;
       const crcIcon = pkg.crcValid ? "✓" : "✗";
       const row = [
@@ -87,8 +87,8 @@ export function renderInfrastructureDashboard(report: InfrastructureReport): voi
                 `Size: ${cyan}${report.r2.totalSizeMB} MB${reset} | ` +
                 `Avg: ${report.r2.avgSizeKB} KB`);
     console.log(`  Latest: ${magenta}${report.r2.sampleObject}${reset} ` +
-                `${report.r2.integrity.checked ? 
-                  (report.r2.integrity.valid ? green + "✓ Integrity" : red + "✗ Corrupt") 
+                `${report.r2.integrity.checked ?
+                  (report.r2.integrity.valid ? green + "✓ Integrity" : red + "✗ Corrupt")
                   : dim + "○ No CRC"}`);
   } else {
     console.log(`  ${red}✗${reset} ${report.r2.bucket} ${red}(${report.r2.error})${reset}`);
@@ -96,8 +96,8 @@ export function renderInfrastructureDashboard(report: InfrastructureReport): voi
 
   // Overall Status
   line("─");
-  const overallStatus = report.overall 
-    ? `${green}OPERATIONAL${reset}` 
+  const overallStatus = report.overall
+    ? `${green}OPERATIONAL${reset}`
     : `${red}DEGRADED${reset}`;
   console.log(`\n  STATUS: ${overallStatus} ${dim}| Probe v4.3.1 | CRC32 Hardware: ${report.system.capabilities.crc32 ? "YES" : "NO"}${reset}`);
   line("═");

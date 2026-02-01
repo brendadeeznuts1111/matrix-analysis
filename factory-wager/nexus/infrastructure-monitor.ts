@@ -275,3 +275,5 @@ interface InfrastructureReport {
   r2: R2Health;
   overall: boolean;
 }
+
+export { InfrastructureReport };

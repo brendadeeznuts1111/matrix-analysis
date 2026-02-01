@@ -256,6 +256,8 @@ class NexusCLI {
     console.log('  system          Show detailed system information');
     console.log('  probe           Quick system probe (table format)');
     console.log('  infra           Run infrastructure health check');
+    console.log('  dashboard       Run infrastructure check with dashboard');
+    console.log('  demo            Show dashboard demo with scenarios');
     console.log('  stress          Run complete stress test suite');
     console.log('  100k            Run targeted 100k row test');
     console.log('  help            Show this help message\n');
@@ -264,6 +266,8 @@ class NexusCLI {
     console.log('  nexus system    # Show system capabilities');
     console.log('  nexus probe     # Quick capability check');
     console.log('  nexus infra     # Check infrastructure health');
+    console.log('  nexus dashboard # Beautiful dashboard visualization');
+    console.log('  nexus demo      # Dashboard demo with scenarios');
     console.log('  nexus stress    # Full stress test suite');
     console.log('  nexus 100k      # 100k row validation test\n');
 
@@ -292,6 +296,12 @@ async function main() {
       break;
     case 'infra':
       await cli.checkInfrastructure();
+      break;
+    case 'dashboard':
+      await cli.checkInfrastructureWithDashboard();
+      break;
+    case 'demo':
+      await cli.runDashboardDemo();
       break;
     case 'stress':
       await cli.runStressTest();
