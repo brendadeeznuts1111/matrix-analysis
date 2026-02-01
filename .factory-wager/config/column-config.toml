@@ -1,0 +1,243 @@
+# FactoryWager Report Column Configuration
+# Defines display and behavior properties for all report columns
+
+[columns]
+[columns.0]
+name = "id"
+type = "identifier"
+min_width = "14ch"
+width_ratio = 1.0
+weight = 600
+align = "left"
+sortable = true
+filterable = true
+export = true
+description = "Unique identifier"
+
+[columns.1]
+name = "status"
+type = "enum"
+min_width = "10ch"
+width_ratio = 0.8
+weight = 500
+align = "center"
+sortable = true
+filterable = true
+export = true
+description = "Current status"
+
+[columns.2]
+name = "priority"
+type = "enum"
+min_width = "6ch"
+width_ratio = 0.5
+weight = 500
+align = "center"
+sortable = true
+filterable = true
+export = true
+description = "Priority level"
+
+[columns.3]
+name = "category"
+type = "taxonomy"
+min_width = "12ch"
+width_ratio = 1.0
+weight = 400
+align = "left"
+sortable = true
+filterable = true
+export = true
+description = "Category classification"
+
+[columns.4]
+name = "owner"
+type = "owner"
+min_width = "14ch"
+width_ratio = 1.2
+weight = 400
+align = "left"
+sortable = true
+filterable = true
+export = true
+description = "Responsible party"
+
+[columns.5]
+name = "title"
+type = "text"
+min_width = "30ch"
+width_ratio = 2.5
+weight = 400
+align = "left"
+sortable = true
+filterable = true
+export = true
+description = "Summary title"
+
+[columns.6]
+name = "progress"
+type = "percent"
+min_width = "8ch"
+width_ratio = 0.6
+weight = 400
+align = "right"
+sortable = true
+filterable = true
+export = true
+description = "Completion percentage"
+
+[columns.7]
+name = "metric"
+type = "numeric"
+min_width = "12ch"
+width_ratio = 1.0
+weight = 400
+align = "right"
+sortable = true
+filterable = true
+export = true
+description = "Key metric value"
+
+[columns.8]
+name = "trend"
+type = "trend"
+min_width = "6ch"
+width_ratio = 0.4
+weight = 400
+align = "center"
+sortable = true
+filterable = true
+export = true
+description = "Trend direction"
+
+[columns.9]
+name = "severity"
+type = "severity"
+min_width = "8ch"
+width_ratio = 0.6
+weight = 500
+align = "center"
+sortable = true
+filterable = true
+export = true
+description = "Severity level"
+
+[columns.10]
+name = "tags"
+type = "array"
+min_width = "18ch"
+width_ratio = 1.5
+weight = 400
+align = "left"
+sortable = true
+filterable = true
+export = true
+description = "Associated tags"
+
+[columns.11]
+name = "component"
+type = "string"
+min_width = "14ch"
+width_ratio = 1.2
+weight = 400
+align = "left"
+sortable = true
+filterable = true
+export = true
+description = "Component name"
+
+[columns.12]
+name = "duration"
+type = "duration"
+min_width = "10ch"
+width_ratio = 0.8
+weight = 400
+align = "right"
+sortable = true
+filterable = true
+export = true
+description = "Time duration"
+
+[columns.13]
+name = "effort"
+type = "fibonacci"
+min_width = "6ch"
+width_ratio = 0.4
+weight = 400
+align = "center"
+sortable = true
+filterable = true
+export = true
+description = "Effort estimate"
+
+[columns.14]
+name = "risk"
+type = "risk"
+min_width = "6ch"
+width_ratio = 0.4
+weight = 400
+align = "center"
+sortable = true
+filterable = true
+export = true
+description = "Risk level"
+
+[columns.15]
+name = "dueDate"
+type = "date"
+min_width = "11ch"
+width_ratio = 0.9
+weight = 400
+align = "right"
+sortable = true
+filterable = true
+export = true
+description = "Due date"
+
+[columns.16]
+name = "created"
+type = "datetime"
+min_width = "16ch"
+width_ratio = 1.4
+weight = 400
+align = "right"
+sortable = true
+filterable = true
+export = true
+description = "Creation timestamp"
+
+[columns.17]
+name = "updated"
+type = "datetime"
+min_width = "16ch"
+width_ratio = 1.4
+weight = 400
+align = "right"
+sortable = true
+filterable = true
+export = true
+description = "Last update timestamp"
+
+[columns.18]
+name = "source"
+type = "origin"
+min_width = "14ch"
+width_ratio = 1.2
+weight = 400
+align = "left"
+sortable = true
+filterable = true
+export = true
+description = "Source origin"
+
+[columns.19]
+name = "flags"
+type = "flags"
+min_width = "14ch"
+width_ratio = 1.2
+weight = 400
+align = "left"
+sortable = true
+filterable = true
+export = true
+description = "Status flags"

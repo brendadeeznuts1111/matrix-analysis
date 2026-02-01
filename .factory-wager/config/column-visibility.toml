@@ -1,0 +1,17 @@
+# FactoryWager Column Visibility Configuration
+# Defines which columns should be hidden by default in reports
+
+[column_visibility]
+hidden = [
+  "category", 
+  "owner", 
+  "metric", 
+  "trend", 
+  "tags", 
+  "duration", 
+  "effort", 
+  "risk", 
+  "created", 
+  "updated", 
+  "source"
+]

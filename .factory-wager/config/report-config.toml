@@ -1,0 +1,523 @@
+# ────────────────────────────────────────────────────────────────────────────────
+# 20-Column Universal Status & Summary Report Architecture
+# Bun-compatible TOML configuration
+# ────────────────────────────────────────────────────────────────────────────────
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SECTION: Columns
+# ═══════════════════════════════════════════════════════════════════════════════
+
+[columns]
+
+[columns.id]
+name = "id"
+type = "identifier"
+min_width = 14
+width_ratio = 1.0
+weight = 600
+align = "left"
+sortable = true
+filterable = true
+export = true
+description = "Unique identifier"
+
+[columns.status]
+name = "status"
+type = "enum"
+min_width = 10
+width_ratio = 0.8
+weight = 500
+align = "center"
+sortable = true
+filterable = true
+export = true
+description = "Current status"
+
+[columns.priority]
+name = "priority"
+type = "enum"
+min_width = 6
+width_ratio = 0.5
+weight = 500
+align = "center"
+sortable = true
+filterable = true
+export = true
+description = "Priority level"
+
+[columns.category]
+name = "category"
+type = "taxonomy"
+min_width = 12
+width_ratio = 1.0
+weight = 400
+align = "left"
+sortable = true
+filterable = true
+export = true
+description = "Category classification"
+
+[columns.owner]
+name = "owner"
+type = "owner"
+min_width = 14
+width_ratio = 1.2
+weight = 400
+align = "left"
+sortable = true
+filterable = true
+export = true
+description = "Responsible party"
+
+[columns.title]
+name = "title"
+type = "text"
+min_width = 30
+width_ratio = 2.5
+weight = 400
+align = "left"
+sortable = true
+filterable = true
+export = true
+description = "Summary title"
+
+[columns.progress]
+name = "progress"
+type = "percent"
+min_width = 8
+width_ratio = 0.6
+weight = 400
+align = "right"
+sortable = true
+filterable = true
+export = true
+description = "Completion percentage"
+
+[columns.metric]
+name = "metric"
+type = "numeric"
+min_width = 12
+width_ratio = 1.0
+weight = 400
+align = "right"
+sortable = true
+filterable = true
+export = true
+description = "Key metric value"
+
+[columns.trend]
+name = "trend"
+type = "trend"
+min_width = 6
+width_ratio = 0.4
+weight = 400
+align = "center"
+sortable = true
+filterable = true
+export = true
+description = "Trend direction"
+
+[columns.severity]
+name = "severity"
+type = "severity"
+min_width = 8
+width_ratio = 0.6
+weight = 500
+align = "center"
+sortable = true
+filterable = true
+export = true
+description = "Severity level"
+
+[columns.tags]
+name = "tags"
+type = "array"
+min_width = 18
+width_ratio = 1.5
+weight = 400
+align = "left"
+sortable = true
+filterable = true
+export = true
+description = "Associated tags"
+
+[columns.component]
+name = "component"
+type = "string"
+min_width = 14
+width_ratio = 1.2
+weight = 400
+align = "left"
+sortable = true
+filterable = true
+export = true
+description = "Component name"
+
+[columns.duration]
+name = "duration"
+type = "duration"
+min_width = 10
+width_ratio = 0.8
+weight = 400
+align = "right"
+sortable = true
+filterable = true
+export = true
+description = "Time duration"
+
+[columns.effort]
+name = "effort"
+type = "fibonacci"
+min_width = 6
+width_ratio = 0.4
+weight = 400
+align = "center"
+sortable = true
+filterable = true
+export = true
+description = "Effort estimate"
+
+[columns.risk]
+name = "risk"
+type = "risk"
+min_width = 6
+width_ratio = 0.4
+weight = 400
+align = "center"
+sortable = true
+filterable = true
+export = true
+description = "Risk level"
+
+[columns.dueDate]
+name = "dueDate"
+type = "date"
+min_width = 11
+width_ratio = 0.9
+weight = 400
+align = "right"
+sortable = true
+filterable = true
+export = true
+description = "Due date"
+
+[columns.created]
+name = "created"
+type = "datetime"
+min_width = 16
+width_ratio = 1.4
+weight = 400
+align = "right"
+sortable = true
+filterable = true
+export = true
+description = "Creation timestamp"
+
+[columns.updated]
+name = "updated"
+type = "datetime"
+min_width = 16
+width_ratio = 1.4
+weight = 400
+align = "right"
+sortable = true
+filterable = true
+export = true
+description = "Last update timestamp"
+
+[columns.source]
+name = "source"
+type = "origin"
+min_width = 14
+width_ratio = 1.2
+weight = 400
+align = "left"
+sortable = true
+filterable = true
+export = true
+description = "Source origin"
+
+[columns.flags]
+name = "flags"
+type = "flags"
+min_width = 14
+width_ratio = 1.2
+weight = 400
+align = "left"
+sortable = true
+filterable = true
+export = true
+description = "Status flags"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SECTION: Enum Values
+# ═══════════════════════════════════════════════════════════════════════════════
+
+[enums.status]
+pending = { color = "#6e7781", icon = "⏳" }
+in_progress = { color = "#bf8700", icon = "🔄" }
+review = { color = "#8250df", icon = "👀" }
+approved = { color = "#1a7f37", icon = "✅" }
+completed = { color = "#1a7f37", icon = "🎉" }
+blocked = { color = "#cf222e", icon = "🚫" }
+cancelled = { color = "#6e7781", icon = "❌" }
+on_hold = { color = "#bf8700", icon = "⏸️" }
+
+[enums.priority]
+P0 = { color = "#cf222e", icon = "🔴", order = 0 }
+P1 = { color = "#bf8700", icon = "🟠", order = 1 }
+P2 = { color = "#bf8700", icon = "🟡", order = 2 }
+P3 = { color = "#1a7f37", icon = "🟢", order = 3 }
+P4 = { color = "#6e7781", icon = "⚪", order = 4 }
+
+[enums.trend]
+up = { icon = "↗", meaning = "Improving" }
+down = { icon = "↘", meaning = "Declining" }
+stable = { icon = "→", meaning = "Stable" }
+peak = { icon = "↗", meaning = "At peak" }
+valley = { icon = "↘", meaning = "At valley" }
+volatile = { icon = "~", meaning = "Volatile" }
+unknown = { icon = "◇", meaning = "No data" }
+
+[enums.severity]
+critical = { color = "#cf222e", response = "< 15 min" }
+high = { color = "#bf8700", response = "< 1 hour" }
+medium = { color = "#bf8700", response = "< 4 hours" }
+low = { color = "#1a7f37", response = "< 24 hours" }
+info = { color = "#6e7781", response = "< 1 week" }
+
+[enums.risk]
+critical = { color = "#cf222e", impact = "High", probability = "High" }
+high = { color = "#cf222e", impact = "High", probability = "Medium" }
+medium = { color = "#bf8700", impact = "Medium", probability = "Medium" }
+low = { color = "#1a7f37", impact = "Low", probability = "Medium" }
+none = { color = "#6e7781", impact = "None", probability = "None" }
+
+[enums.effort]
+1 = { points = 1, complexity = "Trivial" }
+2 = { points = 2, complexity = "Simple" }
+3 = { points = 3, complexity = "Easy" }
+5 = { points = 5, complexity = "Medium" }
+8 = { points = 8, complexity = "Complex" }
+13 = { points = 13, complexity = "Very Complex" }
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SECTION: Default View
+# ═══════════════════════════════════════════════════════════════════════════════
+
+[view.default]
+columns = ["id", "status", "priority", "title", "progress", "severity", "component", "dueDate", "flags"]
+
+[view.pinned]
+left = ["id", "priority", "title"]
+
+[view.hidden]
+columns = ["category", "owner", "metric", "trend", "tags", "duration", "effort", "risk", "created", "updated", "source"]
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SECTION: Sort Configuration
+# ═══════════════════════════════════════════════════════════════════════════════
+
+[sort]
+nulls = "last"
+
+[[sort.columns]]
+column = "priority"
+direction = "asc"
+
+[[sort.columns]]
+column = "severity"
+direction = "desc"
+
+[[sort.columns]]
+column = "dueDate"
+direction = "asc"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SECTION: Filter Presets
+# ═══════════════════════════════════════════════════════════════════════════════
+
+[filter.presets]
+
+[filter.presets.critical]
+column = "severity"
+operator = "eq"
+value = "critical"
+
+[filter.presets.blocked]
+column = "status"
+operator = "eq"
+value = "blocked"
+
+[filter.presets.overdue]
+column = "dueDate"
+operator = "lt"
+value = "2026-01-01"
+
+[filter.presets.high_priority]
+column = "priority"
+operator = "in"
+value = ["P0", "P1"]
+
+[filter.presets.my_tasks]
+column = "owner"
+operator = "contains"
+value = "@nolarose"
+
+[filter.presets.recent]
+column = "updated"
+operator = "gte"
+value = "2026-01-01"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SECTION: Grouping Presets
+# ═══════════════════════════════════════════════════════════════════════════════
+
+[grouping.presets]
+
+[grouping.presets.by_category]
+column = "category"
+collapsed = false
+
+[grouping.presets.by_status]
+column = "status"
+collapsed = false
+
+[grouping.presets.by_priority]
+column = "priority"
+collapsed = false
+
+[grouping.presets.by_owner]
+column = "owner"
+collapsed = false
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SECTION: Export Configuration
+# ═══════════════════════════════════════════════════════════════════════════════
+
+[export]
+
+[export.csv]
+enabled = true
+delimiter = ","
+quote = "\""
+headers = true
+
+[export.json]
+enabled = true
+
+[export.markdown]
+enabled = true
+
+[export.excel]
+enabled = true
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SECTION: Theme
+# ═══════════════════════════════════════════════════════════════════════════════
+
+[theme]
+mode = "light"
+
+[theme.colors]
+text = "#24292f"
+border = "#d0d7de"
+header_bg = "#f6f8fa"
+row_hover = "rgba(208, 215, 222, 0.32)"
+row_alt = "#f6f8fa"
+
+[theme.colors.status]
+pending = "#6e7781"
+in_progress = "#bf8700"
+review = "#8250df"
+completed = "#1a7f37"
+blocked = "#cf222e"
+
+[theme.colors.priority]
+P0 = "#cf222e"
+P1 = "#bf8700"
+P2 = "#bf8700"
+P3 = "#1a7f37"
+P4 = "#6e7781"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SECTION: Typography
+# ═══════════════════════════════════════════════════════════════════════════════
+
+[typography]
+font_size = "13px"
+line_height = 32
+cell_padding_x = 8
+cell_padding_y = 4
+
+[typography.fonts]
+sans = ["-apple-system", "BlinkMacSystemFont", "Segoe UI", "Roboto", "sans-serif"]
+mono = ["ui-monospace", "SFMono-Regular", "Menlo", "Monaco", "Consolas", "monospace"]
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SECTION: Performance
+# ═══════════════════════════════════════════════════════════════════════════════
+
+[performance]
+render_max_ms = 200
+filter_sort_max_ms = 50
+virtual_scroll_fps = 60
+
+[virtual_scroll]
+item_height = 32
+overscan = 10
+container_height = 600
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SECTION: Accessibility
+# ═══════════════════════════════════════════════════════════════════════════════
+
+[a11y]
+enabled = true
+keyboard_nav = true
+announce_changes = true
+reduced_motion = true
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SECTION: Use Cases
+# ═══════════════════════════════════════════════════════════════════════════════
+
+[use_cases]
+
+[use_cases.sprint_status]
+columns = ["id", "status", "title", "owner", "progress", "dueDate", "flags"]
+
+[use_cases.incident_report]
+columns = ["id", "severity", "title", "owner", "duration", "status", "updated"]
+
+[use_cases.daily_standup]
+columns = ["id", "status", "title", "owner", "progress", "blockers"]
+
+[use_cases.deploy_summary]
+columns = ["id", "status", "version", "deployedAt", "owner", "source"]
+
+[use_cases.security_audit]
+columns = ["id", "severity", "finding", "risk", "status", "remediation"]
+
+[use_cases.budget_report]
+columns = ["id", "category", "budgeted", "actual", "variance", "trend"]
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SECTION: Data Schema (for validation)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+[schema]
+version = "2.0"
+
+[schema.row]
+required = ["id", "status", "title"]
+
+[schema.row.status]
+enum = ["pending", "in_progress", "review", "approved", "completed", "blocked", "cancelled", "on_hold"]
+
+[schema.row.priority]
+pattern = "^P[0-4]$"
+
+[schema.row.progress]
+min = 0
+max = 100
