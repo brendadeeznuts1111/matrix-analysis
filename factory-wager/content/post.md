@@ -40,19 +40,19 @@ anchors:
 
 ---
 
-## Document 2: Runtime Configuration (Uses aliases from Doc 1)
+# Document 2: Runtime Configuration (Uses aliases from Doc 1)
 
-_document_index: 1
-is_config: true
+*document_index: 1*
+*is_config: true*
 
-### Column 12: YAML Alias Resolution Tracking
+## Column 12: YAML Alias Resolution Tracking
 
 theme_primary: *primary_color      # Alias to Doc 1 anchor
-theme_success: *success_color      # Resolves to hsl(145, 80%, 45%)
-created: *created_ts               # Alias reuse of timestamp
-version: *ver                      # Alias to version anchor
+*theme_success: *success_color*      # Resolves to hsl(145, 80%, 45%)
+*created: *created_ts*               # Alias reuse of timestamp
+*version: *ver*                      # Alias to version anchor
 tags: *common_tags                 # Alias to tags array
-author: *author_nola               # Alias with author hash inheritance
+*author: *author_nola*               # Alias with author hash inheritance
 
 ### Environment Interpolation (New Column 10: Interpolation)
 
