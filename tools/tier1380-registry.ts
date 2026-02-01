@@ -32,6 +32,21 @@ const GLYPHS = {
   COMPRESS: "🗜️",
   DNS: "🌐",
   HASH: "#️⃣",
+  WATCH: "👁️",
+  HEALTH: "❤️",
+  BACKUP: "💾",
+  RESTORE: "📂",
+  LOCK: "🔒",
+  WEBSOCKET: "🔌",
+};
+
+// ─── Bun.color Terminal Colors ────────────────────
+const COLORS = {
+  success: (s: string) => typeof Bun !== "undefined" && Bun.color ? Bun.color("#00ff00", "ansi") + s + "\x1b[0m" : s,
+  error: (s: string) => typeof Bun !== "undefined" && Bun.color ? Bun.color("#ff0000", "ansi") + s + "\x1b[0m" : s,
+  warning: (s: string) => typeof Bun !== "undefined" && Bun.color ? Bun.color("#ffff00", "ansi") + s + "\x1b[0m" : s,
+  info: (s: string) => typeof Bun !== "undefined" && Bun.color ? Bun.color("#00ffff", "ansi") + s + "\x1b[0m" : s,
+  highlight: (s: string) => typeof Bun !== "undefined" && Bun.color ? Bun.color("#ff00ff", "ansi") + s + "\x1b[0m" : s,
 };
 
 // ─── Registry Configuration ───────────────────────
@@ -924,6 +939,218 @@ async function kimiShellStatus(): Promise<void> {
   console.log("-".repeat(70) + "\n");
 }
 
+// ─── Version Compare (Bun.semver) ─────────────────
+async function compareVersions(version1: string, version2: string = REGISTRY_CONFIG.version): Promise<void> {
+  console.log(`${GLYPHS.DRIFT} Version Comparison\n`);
+  console.log("-".repeat(70));
+
+  const v1 = parseVersion(version1);
+  const v2 = parseVersion(version2);
+
+  console.log(`  Version 1: ${version1}`);
+  console.log(`  Version 2: ${version2}`);
+
+  // Use Bun.semver if available
+  if (typeof Bun !== "undefined" && Bun.semver) {
+    const satisfies1 = Bun.semver.satisfies(version1, `>=${version2}`);
+    const satisfies2 = Bun.semver.satisfies(version2, `>=${version1}`);
+    
+    console.log(`\n  Bun.semver Analysis:`);
+    console.log(`    ${version1} >= ${version2}: ${satisfies1}`);
+    console.log(`    ${version2} >= ${version1}: ${satisfies2}`);
+  }
+
+  // Manual comparison
+  let comparison = 0;
+  if (v1.major !== v2.major) comparison = v1.major - v2.major;
+  else if (v1.minor !== v2.minor) comparison = v1.minor - v2.minor;
+  else comparison = v1.patch - v2.patch;
+
+  console.log(`\n  Result: ${comparison > 0 ? COLORS.success(version1 + " is newer") : comparison < 0 ? COLORS.error(version1 + " is older") : COLORS.info("Versions are equal")}`);
+
+  console.log("-".repeat(70) + "\n");
+}
+
+// ─── Binary Detection (Bun.which) ─────────────────
+async function detectBinaries(): Promise<void> {
+  console.log(`${GLYPHS.DRIFT} Registry Binary Detection\n`);
+  console.log("-".repeat(70));
+
+  const binaries = ["bun", "wrangler", "aws", "git", "curl", "wget", "tar", "gzip"];
+  
+  const results = binaries.map(bin => {
+    const path = Bun.which(bin);
+    return { Binary: bin, Path: path || COLORS.error("not found") };
+  });
+
+  console.log(Bun.inspect.table(results));
+
+  // Check critical binaries for registry operations
+  const critical = ["bun", "wrangler"];
+  const missing = critical.filter(bin => !Bun.which(bin));
+  
+  if (missing.length > 0) {
+    console.log(COLORS.warning(`\n  Warning: Missing critical binaries: ${missing.join(", ")}`));
+  } else {
+    console.log(COLORS.success(`\n  ${GLYPHS.OK} All critical binaries found`));
+  }
+
+  console.log("-".repeat(70) + "\n");
+}
+
+// ─── Health Monitor ───────────────────────────────
+async function healthMonitor(interval: number = 30): Promise<void> {
+  console.log(`${GLYPHS.HEALTH} Starting Registry Health Monitor (${interval}s interval)\n`);
+  console.log("Press Ctrl+C to stop\n");
+
+  let checks = 0;
+  let failures = 0;
+
+  const check = async () => {
+    checks++;
+    const timestamp = new Date().toISOString();
+    const status = await checkRegistry();
+    
+    const icon = status.connected ? GLYPHS.OK : GLYPHS.FAIL;
+    const color = status.connected ? COLORS.success : COLORS.error;
+    
+    if (!status.connected) failures++;
+    
+    const line = `[${timestamp}] ${icon} Registry: ${status.connected ? "UP" : "DOWN"} | R2: ${status.r2Status} | Cache: ${status.cacheStatus} | Failures: ${failures}/${checks}`;
+    console.log(color(line));
+
+    // Log to SQLite
+    cacheDB.prepare(
+      "INSERT INTO registry_sync_log (direction, key, size, duration_ms) VALUES (?, ?, ?, ?)"
+    ).run("health", status.connected ? "up" : "down", failures, Number(status.latencyNs) / 1000000);
+  };
+
+  // Initial check
+  await check();
+
+  // Set up interval
+  const intervalId = setInterval(check, interval * 1000);
+
+  // Handle graceful shutdown
+  process.on("SIGINT", () => {
+    clearInterval(intervalId);
+    console.log(`\n${GLYPHS.OK} Health monitor stopped. ${checks} checks, ${failures} failures.`);
+    process.exit(0);
+  });
+}
+
+// ─── Registry Backup ──────────────────────────────
+async function backupRegistry(outputPath?: string): Promise<void> {
+  console.log(`${GLYPHS.BACKUP} Creating Registry Backup\n`);
+  console.log("-".repeat(70));
+
+  const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+  const backupFile = outputPath || `./backups/registry-backup-${timestamp}.tar.gz`;
+  
+  // Ensure backup directory exists
+  const backupDir = backupFile.split("/").slice(0, -1).join("/") || ".";
+  if (!existsSync(backupDir)) {
+    mkdirSync(backupDir, { recursive: true });
+  }
+
+  // Collect files to backup
+  const filesToBackup = [
+    REGISTRY_CONFIG.dbPath,
+    `${REGISTRY_CONFIG.cacheDir}/registry-cache.db`,
+  ].filter(existsSync);
+
+  console.log(`  Files to backup: ${filesToBackup.length}`);
+  filesToBackup.forEach(f => console.log(`    ${GLYPHS.OK} ${f}`));
+
+  // Create backup using tar
+  const startTime = Bun.nanoseconds();
+  
+  try {
+    // Create tar archive
+    const tarProc = Bun.spawn(["tar", "-czf", backupFile, ...filesToBackup], {
+      stdout: "pipe",
+      stderr: "pipe",
+    });
+    await tarProc.exited;
+
+    if (tarProc.exitCode !== 0) {
+      throw new Error(`tar failed: ${await new Response(tarProc.stderr).text()}`);
+    }
+
+    const durationMs = Number(Bun.nanoseconds() - startTime) / 1000000;
+    const backupSize = (await Bun.file(backupFile).stat()).size;
+
+    console.log(`\n${GLYPHS.OK} Backup created: ${backupFile}`);
+    console.log(`  Size: ${formatBytes(backupSize)}`);
+    console.log(`  Time: ${durationMs.toFixed(2)}ms`);
+
+    // Calculate checksum
+    const backupData = await Bun.file(backupFile).bytes();
+    const crc32 = Bun.hash.crc32(backupData);
+    console.log(`  CRC32: ${crc32.toString(16).toUpperCase()}`);
+
+    // Log backup
+    cacheDB.prepare(
+      "INSERT INTO registry_sync_log (direction, key, size, crc32, duration_ms) VALUES (?, ?, ?, ?, ?)"
+    ).run("backup", backupFile, backupSize, crc32, Math.round(durationMs));
+
+  } catch (error) {
+    console.error(`${GLYPHS.FAIL} Backup failed:`, error);
+    process.exit(1);
+  }
+
+  console.log("-".repeat(70) + "\n");
+}
+
+// ─── Registry Restore ─────────────────────────────
+async function restoreRegistry(backupFile: string): Promise<void> {
+  console.log(`${GLYPHS.RESTORE} Restoring Registry from Backup\n`);
+  console.log("-".repeat(70));
+
+  if (!existsSync(backupFile)) {
+    console.error(`${GLYPHS.FAIL} Backup file not found: ${backupFile}`);
+    process.exit(1);
+  }
+
+  const backupSize = (await Bun.file(backupFile).stat()).size;
+  console.log(`  Backup: ${backupFile}`);
+  console.log(`  Size: ${formatBytes(backupSize)}`);
+
+  // Verify checksum if stored
+  const backupData = await Bun.file(backupFile).bytes();
+  const crc32 = Bun.hash.crc32(backupData);
+  console.log(`  Current CRC32: ${crc32.toString(16).toUpperCase()}`);
+
+  const startTime = Bun.nanoseconds();
+
+  try {
+    // Extract backup
+    const tarProc = Bun.spawn(["tar", "-xzf", backupFile], {
+      stdout: "pipe",
+      stderr: "pipe",
+    });
+    await tarProc.exited;
+
+    if (tarProc.exitCode !== 0) {
+      throw new Error(`tar extraction failed: ${await new Response(tarProc.stderr).text()}`);
+    }
+
+    const durationMs = Number(Bun.nanoseconds() - startTime) / 1000000;
+    console.log(`\n${GLYPHS.OK} Restore complete (${durationMs.toFixed(2)}ms)`);
+
+    // Log restore
+    cacheDB.prepare(
+      "INSERT INTO registry_sync_log (direction, key, size, crc32, duration_ms) VALUES (?, ?, ?, ?, ?)"
+    ).run("restore", backupFile, backupSize, crc32, Math.round(durationMs));
+
+  } catch (error) {
+    console.error(`${GLYPHS.FAIL} Restore failed:`, error);
+    process.exit(1);
+  }
+
+  console.log("-".repeat(70) + "\n");
+}
+
 // ─── Main ─────────────────────────────────────────
 async function main(): Promise<void> {
   const args = process.argv.slice(2);
@@ -1020,10 +1247,44 @@ async function main(): Promise<void> {
       await kimiShellStatus();
       break;
 
+    // Version Commands
+    case "version:compare":
+    case "v:cmp":
+      if (!args[1]) {
+        console.error(`${GLYPHS.FAIL} Usage: bun run tier1380:registry version:compare <version1> [version2]`);
+        process.exit(1);
+      }
+      await compareVersions(args[1], args[2]);
+      break;
+
+    // Binary Detection
+    case "bin:check":
+      await detectBinaries();
+      break;
+
+    // Health Monitor
+    case "health:monitor":
+      const interval = parseInt(args[1]) || 30;
+      await healthMonitor(interval);
+      break;
+
+    // Backup/Restore
+    case "backup":
+      await backupRegistry(args[1]);
+      break;
+
+    case "restore":
+      if (!args[1]) {
+        console.error(`${GLYPHS.FAIL} Usage: bun run tier1380:registry restore <backup-file>`);
+        process.exit(1);
+      }
+      await restoreRegistry(args[1]);
+      break;
+
     case "help":
     default:
       console.log(`
-${GLYPHS.DRIFT} Tier-1380 OMEGA Registry Connector v2.0
+${GLYPHS.DRIFT} Tier-1380 OMEGA Registry Connector v2.1
 
 Usage:
   bun run tier1380:registry [command] [options]
@@ -1031,6 +1292,7 @@ Usage:
 Registry Commands:
   check                Check registry connection and status (with DNS prefetch)
   version              Show current registry version
+  version:compare <v1> [v2]  Compare versions (uses Bun.semver)
   connect              Connect to registry (with logging)
   history              Show version history
 
@@ -1038,7 +1300,7 @@ R2 Commands:
   r2:upload <path> [key]   Upload file to R2 with CRC32 + compression
   r2:download <key> [path] Download file from R2 with cache support
   r2:list [prefix]         List R2 objects
-  r2:delete <key>          Delete R2 object
+  r2:delete <key]          Delete R2 object
   r2:status                Check R2 connection status
 
 Sync Commands:
@@ -1050,8 +1312,16 @@ Cache Commands:
   cache:stats          Show cache statistics
   cache:clear          Clear local cache
 
-Benchmark:
+Health & Monitoring:
+  health:monitor [interval]  Monitor registry health (default: 30s)
+
+Backup & Restore:
+  backup [output-path]   Create registry backup (tar.gz)
+  restore <backup-file>  Restore registry from backup
+
+Utilities:
   benchmark            Run Bun-native benchmark suite
+  bin:check            Detect required binaries (Bun.which)
 
 Kimi Shell Integration:
   shell:status         Show Kimi shell integration status
@@ -1059,17 +1329,22 @@ Kimi Shell Integration:
 Examples:
   bun run tier1380:registry check
   bun run tier1380:registry r2:upload ./data.tar.gz --compress
-  bun run tier1380:registry r2:download config.json ./config.json
-  bun run tier1380:registry sync up "*.json"
+  bun run tier1380:registry version:compare 4.0.0 3.26.4
+  bun run tier1380:registry health:monitor 60
+  bun run tier1380:registry backup ./backups/registry-$(date +%Y%m%d).tar.gz
+  bun run tier1380:registry restore ./backups/registry-20260131.tar.gz
   bun run tier1380:registry benchmark
-  bun run tier1380:registry cache:stats
+  bun run tier1380:registry bin:check
 
 Bun-native Features:
   • Bun.dns.prefetch() - DNS pre-resolution for endpoints
+  • Bun.semver.satisfies() - Version comparison
+  • Bun.which() - Binary detection in PATH
   • Bun.hash.crc32() - Integrity verification
   • Bun.hash.wyhash() - Fast hashing for cache keys
   • Bun.gzip/gunzip - Native compression
   • Bun.nanoseconds() - High-precision timing
+  • Bun.color() - Terminal colors
   • Bun.s3 - R2 object storage
   • Bun:sqlite - Local cache database
 `);

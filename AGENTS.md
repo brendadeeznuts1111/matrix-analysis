@@ -197,6 +197,11 @@ bun run tier1380:registry sync:down [pattern]      # Sync R2 to local
 bun run tier1380:registry cache:stats   # Show cache statistics
 bun run tier1380:registry cache:clear   # Clear local cache
 bun run tier1380:registry benchmark     # Bun-native benchmark (CRC32, gzip, wyhash)
+bun run tier1380:registry version:compare <v1> [v2]  # Compare versions (Bun.semver)
+bun run tier1380:registry bin:check     # Detect binaries (Bun.which)
+bun run tier1380:registry health:monitor [interval]  # Monitor health (default: 30s)
+bun run tier1380:registry backup [path] # Create registry backup (tar.gz)
+bun run tier1380:registry restore <file> # Restore registry from backup
 bun run tier1380:registry shell:status  # Show Kimi shell integration status
 
 # Bun docs (mcp-bun-docs)
