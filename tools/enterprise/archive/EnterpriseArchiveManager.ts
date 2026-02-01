@@ -330,9 +330,7 @@ export class EnterpriseArchiveManager {
 	}
 
 	// ─── Private Helper Methods ────────────────────────────────────────────────────
-	private async collectFiles(
-		sourcePath: string,
-	): Promise<{
+	private async collectFiles(sourcePath: string): Promise<{
 		files: { [key: string]: Uint8Array };
 		fileCount: number;
 		totalSize: number;

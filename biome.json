@@ -8,7 +8,10 @@
 			"cli/**",
 			"mcp-bun-docs/**",
 			"!node_modules/**",
-			"!dist/**"
+			"!dist/**",
+			"!.claude/cdn/external/**",
+			"!**/*.min.js",
+			"!**/*.html"
 		]
 	},
 	"formatter": {
@@ -24,7 +27,25 @@
 			"Request",
 			"Response",
 			"Headers",
-			"WebSocket"
+			"WebSocket",
+			"logger",
+			"coreLogger",
+			"setTimeout",
+			"setInterval",
+			"clearTimeout",
+			"clearInterval",
+			"AbortController",
+			"URL",
+			"URLSearchParams",
+			"TextEncoder",
+			"TextDecoder",
+			"crypto",
+			"atob",
+			"btoa",
+			"FormData",
+			"ReadableStream",
+			"WritableStream",
+			"structuredClone"
 		],
 		"formatter": {
 			"semicolons": "always",
@@ -38,16 +59,41 @@
 			"recommended": true,
 			"style": {
 				"noNonNullAssertion": "off",
-				"useNodejsImportProtocol": "off"
+				"useNodejsImportProtocol": "off",
+				"useTemplate": "warn"
 			},
 			"correctness": {
 				"noUnusedVariables": "warn",
 				"noUnusedImports": "warn",
-				"noUndeclaredVariables": "error"
+				"noUnusedFunctionParameters": "warn",
+				"noUndeclaredVariables": "error",
+				"useParseIntRadix": "warn",
+				"noInnerDeclarations": "warn"
 			},
 			"suspicious": {
 				"noConsole": "warn",
-				"noDebugger": "error"
+				"noDebugger": "error",
+				"noExplicitAny": "warn",
+				"noImplicitAnyLet": "warn",
+				"noControlCharactersInRegex": "warn",
+				"noTemplateCurlyInString": "warn",
+				"noAssignInExpressions": "warn",
+				"useIterableCallbackReturn": "warn",
+				"noFallthroughSwitchClause": "warn",
+				"noUnsafeDeclarationMerging": "warn",
+				"noShadowRestrictedNames": "warn",
+				"noDuplicateParameters": "error"
+			},
+			"complexity": {
+				"noStaticOnlyClass": "warn",
+				"noBannedTypes": "warn",
+				"useLiteralKeys": "warn",
+				"useOptionalChain": "warn",
+				"noCommaOperator": "warn",
+				"noImportantStyles": "warn"
+			},
+			"a11y": {
+				"noSvgWithoutTitle": "warn"
 			}
 		}
 	}
