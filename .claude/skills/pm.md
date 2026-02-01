@@ -1162,6 +1162,10 @@ DEPRECATION CONTROL
   8. Trust deps explicitly:             bun add --trust <pkg>
   9. Migrate from npm/yarn:             bun pm migrate
   10. Debug dependency issues:          bun why <pkg>
+  11. Supply chain protection:        bun install --minimum-release-age=3d
+  12. Use deepMatch for subsets:       Bun.deepMatch(subset, obj) not lodash
+  13. Pin scoped registries:           bunfig.toml [install.scopes] for private pkgs
+  14. Enforce bunfig in projects:      Copy bunfig.toml to project root
 
 ===============================================================================
                              COMMON ISSUES
@@ -1185,6 +1189,8 @@ DEPRECATION CONTROL
   Global bunfig ignored Bun bug (scopes)      Copy bunfig.toml to project root
   bunx @scope/pkg fail  Registry not set       Add @scope to bunfig.toml or .npmrc
   Dep confusion attack  No scoped registry     Pin scopes to private registry
+  deepMatch false pos   Wrong arg order       First arg is subset, second is target
+  deepEquals vs Match   Wrong API chosen       deepEquals=exact, deepMatch=subset
 
 ===============================================================================
                           ENVIRONMENT VARIABLES
