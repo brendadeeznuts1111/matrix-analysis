@@ -52,11 +52,12 @@ config/telegram-topics.yaml      # Topic definitions & routing
 config/project-topics.yaml       # Project mappings
 ```
 
-### Scripts (11 files)
+### Scripts (12 files)
 ```
 scripts/lib/bytes.ts             # Byte-safe utilities ⭐
 scripts/lib/jsc-monitor.ts       # JSC performance monitoring ⭐
 scripts/lib/color.ts             # Bun.color() API ⭐
+scripts/test-integration.ts      # Integration test suite
 scripts/topic-manager.ts         # Topic management
 scripts/channel-monitor.ts       # Real-time monitoring
 scripts/project-integration.ts   # Project mapping
@@ -200,6 +201,11 @@ kimi channel watch            # Watch mode
 kimi channel stats            # Statistics
 ```
 
+### Test Suite
+```bash
+kimi test                     # Run full integration test suite
+```
+
 ### Performance (JSC)
 ```bash
 kimi perf memory              # JSC memory report
@@ -242,6 +248,23 @@ CLI Commands:           100%  ✅
 
 ## 🧪 Test Results
 
+### Automated Test Suite
+```bash
+kimi test  # 25 automated tests
+```
+
+**Test Coverage:**
+- ✅ Configuration validation (4 tests)
+- ✅ Bytes utilities (3 tests)
+- ✅ Color utilities (4 tests)
+- ✅ JSC monitoring (2 tests)
+- ✅ Git hooks (3 tests)
+- ✅ CLI integration (6 tests)
+- ✅ Bun API (3 tests)
+
+**Result: 25/25 passed ✅**
+
+### Manual Verification
 ```bash
 ✅ bun scripts/topic-manager.ts list
 ✅ bun scripts/project-integration.ts list
@@ -251,9 +274,11 @@ CLI Commands:           100%  ✅
 ✅ bun scripts/project-watch.ts status
 ✅ bun scripts/lib/bytes.ts info <file>
 ✅ bun scripts/lib/jsc-monitor.ts memory
+✅ bun scripts/lib/color.ts topics
 ✅ bun kimi-shell/kimi-cli.ts topic list
 ✅ bun kimi-shell/kimi-cli.ts project list
 ✅ bun kimi-shell/kimi-cli.ts integration
+✅ bun kimi-shell/kimi-cli.ts test
 ```
 
 ---

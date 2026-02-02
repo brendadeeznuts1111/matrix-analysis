@@ -297,6 +297,9 @@ const passesAA = meetsWCAG("#4CAF50", "white");   // true
 ## 🧪 Testing
 
 ```bash
+# Run full integration test suite
+kimi test
+
 # Test topic routing
 kimi topic route "ERROR: database failed"
 kimi topic route "feat: new feature"
