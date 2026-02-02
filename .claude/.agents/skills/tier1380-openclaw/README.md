@@ -114,6 +114,21 @@ kimi channel watch            # Watch mode
 kimi channel stats            # Statistics
 ```
 
+### Performance Monitoring (JSC)
+
+```bash
+kimi perf memory              # Show JSC memory report
+kimi perf gc                  # Force garbage collection
+kimi perf profile             # Run profiler test
+kimi perf monitor [file]      # Monitor file read memory
+```
+
+Uses Bun's JavaScriptCore API for low-level performance monitoring:
+- Heap usage tracking
+- Memory delta monitoring
+- JSC sampling profiler (when available)
+- Object size estimation
+
 ## 📊 Telegram Topics
 
 | ID | Name | Icon | Priority | Purpose |
@@ -191,6 +206,37 @@ for await (const line of streamLines(path, { maxLines: 1000 })) {
 }
 
 await appendToFile(logPath, data, { rotate: true, maxSize: 10MB });
+```
+
+### JSC Performance Monitoring
+
+Uses Bun's JavaScriptCore API for low-level performance analysis:
+
+```typescript
+// scripts/lib/jsc-monitor.ts
+import { 
+  getMemoryUsage, 
+  profileFunction, 
+  monitorMemory,
+  serializeForIPC 
+} from "./lib/jsc-monitor.ts";
+
+// Get memory stats
+const mem = getMemoryUsage();
+console.log(`Heap: ${formatBytes(mem.heapUsed)}`);
+
+// Profile a function
+const { result, profile } = profileFunction(() => {
+  return heavyComputation();
+}, 100); // sample interval in microseconds
+
+// Monitor memory during operation
+const { result, memoryDelta } = await monitorMemory(async () => {
+  return await processLargeFile();
+}, "file-processing");
+
+// Serialize for IPC (structured clone algorithm)
+const buffer = serializeForIPC(largeObject);
 ```
 
 ## 🧪 Testing
