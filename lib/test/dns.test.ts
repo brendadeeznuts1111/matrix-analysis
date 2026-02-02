@@ -1,5 +1,6 @@
 import { describe, it, expect } from "bun:test";
-import { lookup, prefetch } from "../dns.ts";
+import { lookup, prefetch, getCacheStats } from "../dns.ts";
+import type { DNSCacheStats } from "../dns.ts";
 
 describe("dns", () => {
   describe("BN-096: DNS Lookup", () => {
@@ -32,6 +33,36 @@ describe("dns", () => {
 
     it("should accept port parameter", () => {
       expect(() => prefetch("localhost", 80)).not.toThrow();
+    });
+  });
+
+  describe("BN-124: DNS Cache Stats", () => {
+    it("should return cache stats object", () => {
+      const stats = getCacheStats();
+      expect(stats).toBeDefined();
+      expect(typeof stats.cacheHitsCompleted).toBe("number");
+      expect(typeof stats.cacheHitsInflight).toBe("number");
+      expect(typeof stats.cacheMisses).toBe("number");
+      expect(typeof stats.size).toBe("number");
+      expect(typeof stats.errors).toBe("number");
+      expect(typeof stats.totalCount).toBe("number");
+    });
+
+    it("should return non-negative values", () => {
+      const stats = getCacheStats();
+      expect(stats.cacheHitsCompleted).toBeGreaterThanOrEqual(0);
+      expect(stats.cacheHitsInflight).toBeGreaterThanOrEqual(0);
+      expect(stats.cacheMisses).toBeGreaterThanOrEqual(0);
+      expect(stats.size).toBeGreaterThanOrEqual(0);
+      expect(stats.errors).toBeGreaterThanOrEqual(0);
+      expect(stats.totalCount).toBeGreaterThanOrEqual(0);
+    });
+
+    it("should be callable multiple times", () => {
+      const a = getCacheStats();
+      const b = getCacheStats();
+      expect(a).toBeDefined();
+      expect(b).toBeDefined();
     });
   });
 });

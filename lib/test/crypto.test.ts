@@ -1,6 +1,7 @@
 import { describe, it, expect } from "bun:test";
 import {
   ARGON2_CONFIGS,
+  BCRYPT_CONFIGS,
   hashPassword,
   verifyPassword,
   hashPasswordSync,
@@ -15,7 +16,7 @@ import {
   UUID_NAMESPACES,
   deepMatch,
 } from "../crypto.ts";
-import type { HashLevel, Algorithm } from "../crypto.ts";
+import type { HashLevel, Algorithm, BcryptOptions } from "../crypto.ts";
 
 describe("crypto", () => {
   describe("BN-035: ARGON2_CONFIGS", () => {
@@ -180,6 +181,52 @@ describe("crypto", () => {
 
     it("should return false for different length strings", () => {
       expect(timingSafeEqual("short", "longer-string")).toBe(false);
+    });
+  });
+
+  describe("BN-125: Bcrypt Password Hashing", () => {
+    it("should have bcrypt config", () => {
+      expect(BCRYPT_CONFIGS.bcrypt).toBeDefined();
+      expect(BCRYPT_CONFIGS.bcrypt.algorithm).toBe("bcrypt");
+      expect(BCRYPT_CONFIGS.bcrypt.cost).toBe(10);
+    });
+
+    it("should hash with bcrypt async", async () => {
+      const hash = await hashPassword("bcrypt-test", "bcrypt");
+      expect(hash).not.toBeNull();
+      expect(hash).toContain("$2b$");
+    });
+
+    it("should verify bcrypt hash async", async () => {
+      const hash = await hashPassword("bcrypt-verify", "bcrypt");
+      expect(hash).not.toBeNull();
+      const valid = await verifyPassword("bcrypt-verify", hash!);
+      expect(valid).toBe(true);
+    });
+
+    it("should reject wrong password with bcrypt", async () => {
+      const hash = await hashPassword("correct-bcrypt", "bcrypt");
+      expect(hash).not.toBeNull();
+      const valid = await verifyPassword("wrong-bcrypt", hash!);
+      expect(valid).toBe(false);
+    });
+
+    it("should hash with bcrypt sync", () => {
+      const hash = hashPasswordSync("bcrypt-sync", "bcrypt");
+      expect(hash).not.toBeNull();
+      expect(hash).toContain("$2b$");
+    });
+
+    it("should verify bcrypt hash sync", () => {
+      const hash = hashPasswordSync("bcrypt-sync-verify", "bcrypt");
+      expect(hash).not.toBeNull();
+      const valid = verifyPasswordSync("bcrypt-sync-verify", hash!);
+      expect(valid).toBe(true);
+    });
+
+    it("should include bcrypt in HashLevel type", () => {
+      const level: HashLevel = "bcrypt";
+      expect(level).toBe("bcrypt");
     });
   });
 

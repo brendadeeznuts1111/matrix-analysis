@@ -186,3 +186,6 @@ export * as buildMod from "./build.ts";
 export * as archive from "./archive.ts";
 export * as glob from "./glob.ts";
 export * as sink from "./sink.ts";
+export * as csrf from "./csrf.ts";
+export * as jsc from "./jsc.ts";
+export * as html from "./html.ts";

@@ -52,9 +52,10 @@ config/telegram-topics.yaml      # Topic definitions & routing
 config/project-topics.yaml       # Project mappings
 ```
 
-### Scripts (9 files)
+### Scripts (10 files)
 ```
 scripts/lib/bytes.ts             # Byte-safe utilities ⭐
+scripts/lib/jsc-monitor.ts       # JSC performance monitoring ⭐
 scripts/topic-manager.ts         # Topic management
 scripts/channel-monitor.ts       # Real-time monitoring
 scripts/project-integration.ts   # Project mapping
@@ -198,6 +199,14 @@ kimi channel watch            # Watch mode
 kimi channel stats            # Statistics
 ```
 
+### Performance (JSC)
+```bash
+kimi perf memory              # JSC memory report
+kimi perf gc                  # Force garbage collection
+kimi perf profile             # Run profiler test
+kimi perf monitor [file]      # Monitor file read memory
+```
+
 ---
 
 ## 📊 Integration Health
@@ -209,6 +218,7 @@ Git Hooks Installed:     3/3  ✅
 Topic Configuration:     4/4  ✅
 Super Topics:            3/3  ✅
 Byte-Safe Operations:   100%  ✅
+JSC Performance Tools:   Yes  ✅
 CLI Commands:           100%  ✅
 ```
 
@@ -224,6 +234,7 @@ CLI Commands:           100%  ✅
 ✅ bun scripts/topic-git-hooks.ts list
 ✅ bun scripts/project-watch.ts status
 ✅ bun scripts/lib/bytes.ts info <file>
+✅ bun scripts/lib/jsc-monitor.ts memory
 ✅ bun kimi-shell/kimi-cli.ts topic list
 ✅ bun kimi-shell/kimi-cli.ts project list
 ✅ bun kimi-shell/kimi-cli.ts integration

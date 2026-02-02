@@ -30,3 +30,19 @@ export const lookup = async (
 export const prefetch = (hostname: string, port?: number): void => {
   dns.prefetch(hostname, port ?? 443);
 };
+
+// -----------------------------------------------------------------------------
+// BN-124: DNS Cache Stats
+// -----------------------------------------------------------------------------
+export interface DNSCacheStats {
+  cacheHitsCompleted: number;
+  cacheHitsInflight: number;
+  cacheMisses: number;
+  size: number;
+  errors: number;
+  totalCount: number;
+}
+
+export const getCacheStats = (): DNSCacheStats => {
+  return dns.getCacheStats() as DNSCacheStats;
+};

@@ -8,7 +8,7 @@ import { timingSafeEqual as nodeTimingSafe } from "crypto";
 // ─────────────────────────────────────────────────────────────────────────────
 // BN-035: Password Hashing
 // ─────────────────────────────────────────────────────────────────────────────
-export type HashLevel = "production" | "highSecurity" | "balanced" | "development";
+export type HashLevel = "production" | "highSecurity" | "balanced" | "development" | "bcrypt";
 
 export const ARGON2_CONFIGS = {
   production: {
@@ -37,11 +37,26 @@ export const ARGON2_CONFIGS = {
   },
 } as const;
 
+// ─────────────────────────────────────────────────────────────────────────────
+// BN-125: Bcrypt Password Hashing
+// ─────────────────────────────────────────────────────────────────────────────
+export interface BcryptOptions {
+  algorithm: "bcrypt";
+  cost?: number;
+}
+
+export const BCRYPT_CONFIGS = {
+  bcrypt: { algorithm: "bcrypt" as const, cost: 10 },
+} as const;
+
 export const hashPassword = async (
   password: string,
   level: HashLevel = "production",
 ): Promise<string | null> => {
   try {
+    if (level === "bcrypt") {
+      return await Bun.password.hash(password, BCRYPT_CONFIGS.bcrypt);
+    }
     const config = ARGON2_CONFIGS[level];
     return await Bun.password.hash(password, config);
   } catch {
@@ -130,6 +145,9 @@ export const hashPasswordSync = (
   level: HashLevel = "production",
 ): string | null => {
   try {
+    if (level === "bcrypt") {
+      return Bun.password.hashSync(password, BCRYPT_CONFIGS.bcrypt);
+    }
     const config = ARGON2_CONFIGS[level];
     return Bun.password.hashSync(password, config);
   } catch {
