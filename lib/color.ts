@@ -61,8 +61,8 @@ export const convert = (
   format: ColorFormat = "hex"
 ): string | null => {
   try {
-    const result = Bun.color(input as Parameters<typeof Bun.color>[0], format as "hex");
-    return result ?? null;
+    const result = (Bun.color as Function)(input, format);
+    return typeof result === "string" ? result : null;
   } catch {
     return null;
   }
@@ -79,7 +79,7 @@ export const toHsl = (hex: string): string | null =>
 
 export const toHex8 = (input: string | number | [number, number, number, number?]): string | null => {
   try {
-    const rgba = Bun.color(input as Parameters<typeof Bun.color>[0], "[rgba]" as "hex") as unknown as number[] | null;
+    const rgba = (Bun.color as Function)(input, "[rgba]") as number[] | null;
     if (!rgba || rgba.length < 3) return null;
     const hex = (n: number) => Math.round(n).toString(16).padStart(2, "0");
     const [r, g, b, a = 255] = rgba;

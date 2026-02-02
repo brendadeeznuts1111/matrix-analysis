@@ -187,14 +187,15 @@ async function executeCommand(command: string, args: string[]): Promise<number> 
   const scriptPath = join(import.meta.dir, config.script);
 
   try {
-    const result = await $`bun ${scriptPath} ${args}`.nothrow();
-    if (result.stdout) {
-      console.log(result.stdout.toString());
-    }
-    if (result.stderr) {
-      console.error(result.stderr.toString());
-    }
-    return result.exitCode;
+    // Scripts handle their own console output via console.log
+    // We just need to execute and return exit code
+    const proc = Bun.spawn(["bun", scriptPath, ...args], {
+      stdout: "inherit",
+      stderr: "inherit",
+    });
+    
+    const exitCode = await proc.exited;
+    return exitCode;
   } catch (error) {
     console.error(`Error executing ${command}:`, error);
     return 1;

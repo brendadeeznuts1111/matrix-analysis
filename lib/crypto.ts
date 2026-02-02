@@ -40,9 +40,13 @@ export const ARGON2_CONFIGS = {
 export const hashPassword = async (
   password: string,
   level: HashLevel = "production",
-): Promise<string> => {
-  const config = ARGON2_CONFIGS[level];
-  return await Bun.password.hash(password, config);
+): Promise<string | null> => {
+  try {
+    const config = ARGON2_CONFIGS[level];
+    return await Bun.password.hash(password, config);
+  } catch {
+    return null;
+  }
 };
 
 export const verifyPassword = async (
@@ -124,9 +128,13 @@ export const deepMatch = (value: unknown, pattern: unknown): boolean =>
 export const hashPasswordSync = (
   password: string,
   level: HashLevel = "production",
-): string => {
-  const config = ARGON2_CONFIGS[level];
-  return Bun.password.hashSync(password, config);
+): string | null => {
+  try {
+    const config = ARGON2_CONFIGS[level];
+    return Bun.password.hashSync(password, config);
+  } catch {
+    return null;
+  }
 };
 
 export const verifyPasswordSync = (

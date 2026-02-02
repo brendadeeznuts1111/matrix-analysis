@@ -52,14 +52,13 @@ export interface FileStat {
 
 export const stat = async (path: string): Promise<FileStat | null> => {
   try {
-    const file = Bun.file(path);
-    if (!(await file.exists())) return null;
-    const { size, lastModified, type } = file;
+    const { stat: fsStat } = await import("node:fs/promises");
+    const s = await fsStat(path);
     return {
-      size,
-      mtime: new Date(lastModified),
-      isFile: type !== "application/octet-stream" || size > 0 || (await file.exists()),
-      isDirectory: false,
+      size: s.size,
+      mtime: s.mtime,
+      isFile: s.isFile(),
+      isDirectory: s.isDirectory(),
     };
   } catch {
     return null;

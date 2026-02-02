@@ -10,7 +10,9 @@
 export const fibCache = new Map<number, number>([[0, 0], [1, 1]]);
 
 export const fib = (n: number): number => {
-  if (n < 0) return 0;
+  if (!Number.isFinite(n) || n < 0) return 0;
+  n = Math.floor(n);
+  if (n > 1476) return Infinity; // fib(1477) overflows Number.MAX_VALUE
   if (fibCache.has(n)) return fibCache.get(n)!;
   let [a, b] = [0, 1];
   for (let i = 2; i <= n; i++) [a, b] = [b, a + b];
