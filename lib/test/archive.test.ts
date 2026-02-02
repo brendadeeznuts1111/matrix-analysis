@@ -50,5 +50,21 @@ describe("archive", () => {
     it("should return null for invalid archive data", async () => {
       expect(await read(new Uint8Array([0, 1, 2]))).toBeNull();
     });
+
+    it("should return null for list on invalid data", async () => {
+      expect(await list(new Uint8Array([0, 1, 2]))).toBeNull();
+    });
+
+    it("should return null for extract on invalid data", async () => {
+      expect(await extract(new Uint8Array([0, 1, 2]), "any.txt")).toBeNull();
+    });
+
+    it("should return null for extractBytes on invalid data", async () => {
+      expect(await extractBytes(new Uint8Array([0, 1, 2]), "any.txt")).toBeNull();
+    });
+
+    it("should return null for extractBytes missing filename", async () => {
+      expect(await extractBytes(tarData, "nope.txt")).toBeNull();
+    });
   });
 });

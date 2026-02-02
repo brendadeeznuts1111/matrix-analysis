@@ -108,6 +108,16 @@ const COMMANDS = {
     script: "../scripts/channel-monitor.ts",
     subcommands: ["dashboard", "watch", "stats"],
   },
+  project: {
+    description: "Project integration",
+    script: "../scripts/project-integration.ts",
+    subcommands: ["list", "groups", "show", "current", "route", "notify"],
+  },
+  webhook: {
+    description: "GitHub webhook bridge",
+    script: "../scripts/github-webhook-bridge.ts",
+    subcommands: ["simulate", "server", "test"],
+  },
 };
 
 const COLORS = {

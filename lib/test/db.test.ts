@@ -44,6 +44,11 @@ describe("db", () => {
       expect(result.journal_mode).toBe("memory");
       db!.close();
     });
+
+    it("should return null for invalid db path", () => {
+      const db = open("/nonexistent/deeply/nested/impossible/path/db.sqlite");
+      expect(db).toBeNull();
+    });
   });
 
   describe("BN-066: Transaction Wrapper", () => {

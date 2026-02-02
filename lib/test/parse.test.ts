@@ -94,6 +94,12 @@ describe("parse", () => {
       const result = await loadFile<{ name: string }>(tmpPath);
       expect(result).toEqual({ name: "test" });
     });
+
+    it("should return null for corrupted JSON file", async () => {
+      const tmpPath = "/tmp/test-parse-corrupted.json";
+      await Bun.write(tmpPath, "{{{{not json at all}}}}");
+      expect(await loadFile(tmpPath)).toBeNull();
+    });
   });
 
   describe("BN-033: yaml", () => {

@@ -60,6 +60,13 @@ describe("env", () => {
     });
   });
 
+  describe("BN-050b: getRequired", () => {
+    it("should return value when set", () => {
+      process.env.TEST_VAR = "required-val";
+      expect(getRequired("TEST_VAR")).toBe("required-val");
+    });
+  });
+
   describe("BN-051: Typed Getters", () => {
     it("should parse number from env", () => {
       process.env.TEST_NUM = "42";

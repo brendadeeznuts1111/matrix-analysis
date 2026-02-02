@@ -92,6 +92,10 @@ describe("color", () => {
       expect(toHex("notacolor")).toBeNull();
     });
 
+    it("should return null for convert with invalid input", () => {
+      expect(convert("not-a-valid-color-at-all-xyz", "hex")).toBeNull();
+    });
+
     it("should support explicit format", () => {
       const result = convert("red", "HEX");
       expect(result).toBe("#FF0000");

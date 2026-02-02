@@ -23,5 +23,23 @@ describe("build", () => {
       expect(output).not.toBeNull();
       expect(output).toContain("hello");
     });
+
+    it("should return null for bundleToString with missing file", async () => {
+      expect(await bundleToString("/tmp/nonexistent-build-xyz.ts")).toBeNull();
+    });
+
+    it("should build with minify option", async () => {
+      const tmpFile = "/tmp/test-build-minify.ts";
+      await Bun.write(tmpFile, 'export const longVariableName = 42;\nconsole.log(longVariableName);\n');
+      const result = await build({ entrypoints: [tmpFile], minify: true });
+      expect(result.success).toBe(true);
+    });
+
+    it("should build with external option", async () => {
+      const tmpFile = "/tmp/test-build-external.ts";
+      await Bun.write(tmpFile, 'import fs from "fs";\nconsole.log(fs);\n');
+      const result = await build({ entrypoints: [tmpFile], external: ["fs"] });
+      expect(result.success).toBe(true);
+    });
   });
 });

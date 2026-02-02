@@ -19,6 +19,7 @@ import {
   deflate,
   inflate,
   concatBuffers,
+  toFormData,
 } from "../stream.ts";
 
 const makeStream = (text: string): ReadableStream =>
@@ -156,6 +157,10 @@ describe("stream", () => {
       expect(zstdDecompressSync(new Uint8Array([0, 1, 2, 3]))).toBeNull();
       expect(gunzip(new Uint8Array([0, 1, 2, 3]))).toBeNull();
     });
+
+    it("should return null for invalid async zstd decompress", async () => {
+      expect(await zstdDecompress(new Uint8Array([0, 1, 2, 3]))).toBeNull();
+    });
   });
 
   describe("BN-097: Deflate/Inflate", () => {
@@ -172,6 +177,11 @@ describe("stream", () => {
     it("should return null for invalid inflate", () => {
       expect(inflate(new Uint8Array([0, 1, 2, 3]))).toBeNull();
     });
+
+    it("should return null for invalid deflate input", () => {
+      // deflate() accepts string/Uint8Array/ArrayBuffer, but null will catch
+      expect(deflate(null as any)).toBeNull();
+    });
   });
 
   describe("BN-098: Buffer Utilities", () => {
@@ -186,6 +196,24 @@ describe("stream", () => {
     it("should handle empty array", () => {
       const result = concatBuffers([]);
       expect(result.byteLength).toBe(0);
+    });
+  });
+
+  describe("BN-040b: toFormData", () => {
+    it("should parse multipart form data from stream", async () => {
+      const boundary = "----TestBoundary123";
+      const body = [
+        `------TestBoundary123`,
+        `Content-Disposition: form-data; name="field1"`,
+        ``,
+        `value1`,
+        `------TestBoundary123--`,
+        ``,
+      ].join("\r\n");
+      const stream = fromText(body);
+      const fd = await toFormData(stream, boundary);
+      expect(fd).toBeInstanceOf(FormData);
+      expect(fd.get("field1")).toBe("value1");
     });
   });
 });

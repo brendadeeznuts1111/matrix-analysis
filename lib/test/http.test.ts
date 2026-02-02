@@ -10,6 +10,9 @@ import {
   cachedJsonResponse,
   streamResponse,
   serve,
+  fetchProxy,
+  fetchUnixSocket,
+  preconnect,
 } from "../http.ts";
 
 let server: ReturnType<typeof Bun.serve>;
@@ -152,6 +155,22 @@ describe("http", () => {
       const res = streamResponse(stream);
       expect(res.status).toBe(200);
       expect(res.headers.get("content-type")).toBe("application/octet-stream");
+    });
+  });
+
+  describe("BN-112: Fetch Extensions", () => {
+    it("should return null for unreachable proxy", async () => {
+      const res = await fetchProxy(`${baseUrl}/json`, "http://127.0.0.1:1");
+      expect(res).toBeNull();
+    });
+
+    it("should return null for unreachable unix socket", async () => {
+      const res = await fetchUnixSocket("http://localhost/test", "/tmp/nonexistent-socket.sock");
+      expect(res).toBeNull();
+    });
+
+    it("should call preconnect without throwing", () => {
+      expect(() => preconnect("https://example.com")).not.toThrow();
     });
   });
 

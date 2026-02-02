@@ -2,6 +2,7 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 
 import { describe, it, expect } from "bun:test";
+import { spyOn } from "bun:test";
 import {
   bench,
   benchSync,
@@ -14,6 +15,7 @@ import {
   benchSha256,
   benchFileWrite,
   getRuntimeMetrics,
+  printRuntimeMetrics,
   jsonResponse,
   cachedJsonResponse,
   streamResponse,
@@ -173,6 +175,12 @@ describe("runtime metrics", () => {
   it("heapMB is reasonable (<500MB)", () => {
     const m = getRuntimeMetrics();
     expect(m.heapMB).toBeLessThan(500);
+  });
+
+  it("printRuntimeMetrics should not throw", () => {
+    const spy = spyOn(console, "log").mockImplementation(() => {});
+    expect(() => printRuntimeMetrics()).not.toThrow();
+    spy.mockRestore();
   });
 });
 

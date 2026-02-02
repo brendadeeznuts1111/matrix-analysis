@@ -83,6 +83,7 @@
     "docs:reference": "bun tools/bun-docs.ts reference",
     "docs:latest": "bun tools/bun-docs.ts latest",
     "docs:version": "bun tools/bun-docs.ts version",
+    "feedback": "bun tools/bun-feedback.ts",
     "analyze": "bun tools/analyze.ts",
     "analyze:scan": "bun tools/analyze.ts scan",
     "analyze:types": "bun tools/analyze.ts types",

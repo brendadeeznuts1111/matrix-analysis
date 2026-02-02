@@ -39,5 +39,18 @@ describe("markdown", () => {
     it("should render be an alias for html", () => {
       expect(render("# Test")).toBe(html("# Test"));
     });
+
+    it("should handle empty string", () => {
+      const result = html("");
+      expect(result).not.toBeNull();
+      expect(typeof result).toBe("string");
+    });
+
+    it("should handle complex markdown", () => {
+      const md = "# Title\n\n> blockquote\n\n| col1 | col2 |\n|------|------|\n| a | b |\n";
+      const result = html(md);
+      expect(result).not.toBeNull();
+      expect(result).toContain("Title");
+    });
   });
 });

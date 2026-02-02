@@ -31,6 +31,10 @@ describe("transpiler", () => {
       expect(result).not.toBeNull();
       expect(result).toContain("const x = ");
     });
+
+    it("should return null for invalid async transpile", async () => {
+      expect(await transpileAsync("const {{{{{", "ts")).toBeNull();
+    });
   });
 
   describe("BN-106b: Import/Export Scanning", () => {
@@ -44,6 +48,10 @@ describe("transpiler", () => {
 
     it("should return empty for no imports", () => {
       expect(scanImports("const x = 1;", "ts")).toEqual([]);
+    });
+
+    it("should return empty for invalid import scan", () => {
+      expect(scanImports("const {{{{{", "ts")).toEqual([]);
     });
 
     it("should scan exports", () => {

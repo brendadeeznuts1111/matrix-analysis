@@ -11,6 +11,7 @@ import {
   resolveSync,
   pathToFileURL,
   fileURLToPath,
+  openInEditor,
   which,
 } from "../runtime.ts";
 
@@ -97,6 +98,10 @@ describe("runtime", () => {
 
     it("should return null for nonexistent command", () => {
       expect(which("nonexistent-command-xyz-123")).toBeNull();
+    });
+
+    it("should export openInEditor function", () => {
+      expect(typeof openInEditor).toBe("function");
     });
   });
 });

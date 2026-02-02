@@ -46,5 +46,13 @@ describe("semver", () => {
     it("should check requireVersion against current Bun", () => {
       expect(requireVersion("1.0.0")).toBe(true);
     });
+
+    it("should return false for requireVersion with high version", () => {
+      expect(requireVersion("999.0.0")).toBe(false);
+    });
+
+    it("should return 0 for order with invalid semver", () => {
+      expect(order("", "")).toBe(0);
+    });
   });
 });

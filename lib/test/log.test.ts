@@ -73,6 +73,24 @@ describe("log", () => {
       expect(logSpy).toHaveBeenCalled();
       logSpy.mockRestore();
     });
+
+    it("should create child of child with compound prefix", () => {
+      const logSpy = spyOn(console, "log").mockImplementation(() => {});
+      const log = createLogger({ level: "debug", prefix: "app" });
+      const child = log.child("db");
+      const grandchild = child.child("pool");
+      grandchild.debug("connected");
+      expect(logSpy).toHaveBeenCalled();
+      logSpy.mockRestore();
+    });
+
+    it("should emit debug when level is debug", () => {
+      const logSpy = spyOn(console, "log").mockImplementation(() => {});
+      const log = createLogger({ level: "debug" });
+      log.debug("trace message");
+      expect(logSpy).toHaveBeenCalled();
+      logSpy.mockRestore();
+    });
   });
 
   describe("BN-088: Default Logger", () => {

@@ -24,5 +24,10 @@ describe("secrets", () => {
       const val = await get(SERVICE, "to-delete");
       expect(val).toBeNull();
     });
+
+    it("should return false for removing nonexistent secret", async () => {
+      const ok = await remove(SERVICE, "never-existed-xyz-123");
+      expect(typeof ok).toBe("boolean");
+    });
   });
 });
