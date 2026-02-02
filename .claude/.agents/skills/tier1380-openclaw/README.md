@@ -121,6 +121,10 @@ kimi perf memory              # Show JSC memory report
 kimi perf gc                  # Force garbage collection
 kimi perf profile             # Run profiler test
 kimi perf monitor [file]      # Monitor file read memory
+kimi perf timezone [tz]       # Get/set timezone
+kimi perf describe [value]    # Describe a value
+kimi perf snapshot            # Full performance snapshot (JSON)
+kimi perf drain               # Drain pending microtasks
 ```
 
 Uses Bun's JavaScriptCore API for low-level performance monitoring:
