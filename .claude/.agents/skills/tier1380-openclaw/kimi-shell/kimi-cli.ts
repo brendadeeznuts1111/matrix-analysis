@@ -98,6 +98,11 @@ const COMMANDS = {
     script: "../../../../../../matrix-agent/integrations/openclaw-bridge.ts",
     subcommands: ["init", "status", "telegram", "sync", "proxy"],
   },
+  topic: {
+    description: "Telegram topic manager",
+    script: "../scripts/topic-manager.ts",
+    subcommands: ["list", "super", "channels", "routing", "route", "all"],
+  },
 };
 
 const COLORS = {
