@@ -117,3 +117,25 @@ export const UUID_NAMESPACES = {
 // ─────────────────────────────────────────────────────────────────────────────
 export const deepMatch = (value: unknown, pattern: unknown): boolean =>
   Bun.deepMatch(pattern, value);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// BN-095: Synchronous Password Hashing
+// ─────────────────────────────────────────────────────────────────────────────
+export const hashPasswordSync = (
+  password: string,
+  level: HashLevel = "production",
+): string => {
+  const config = ARGON2_CONFIGS[level];
+  return Bun.password.hashSync(password, config);
+};
+
+export const verifyPasswordSync = (
+  password: string,
+  hash: string,
+): boolean => {
+  try {
+    return Bun.password.verifySync(password, hash);
+  } catch {
+    return false;
+  }
+};

@@ -3,6 +3,8 @@ import {
   ARGON2_CONFIGS,
   hashPassword,
   verifyPassword,
+  hashPasswordSync,
+  verifyPasswordSync,
   needsRehash,
   digest,
   deepEquals,
@@ -147,6 +149,23 @@ describe("crypto", () => {
 
     it("should match nested patterns", () => {
       expect(deepMatch({ a: { b: 1, c: 2 } }, { a: { b: 1 } })).toBe(true);
+    });
+  });
+
+  describe("BN-095: Sync Password Hashing", () => {
+    it("should hash and verify synchronously", () => {
+      const hash = hashPasswordSync("sync-pass", "development");
+      expect(hash).toContain("$argon2id$");
+      expect(verifyPasswordSync("sync-pass", hash)).toBe(true);
+    });
+
+    it("should reject wrong password synchronously", () => {
+      const hash = hashPasswordSync("correct", "development");
+      expect(verifyPasswordSync("wrong", hash)).toBe(false);
+    });
+
+    it("should return false for invalid hash in verifySync", () => {
+      expect(verifyPasswordSync("test", "not-a-hash")).toBe(false);
     });
   });
 

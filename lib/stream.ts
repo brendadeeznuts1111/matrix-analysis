@@ -122,3 +122,39 @@ export const gunzip = (data: Uint8Array | ArrayBuffer): Uint8Array | null => {
     return null;
   }
 };
+
+// ─────────────────────────────────────────────────────────────────────────────
+// BN-097: Deflate/Inflate (raw zlib)
+// ─────────────────────────────────────────────────────────────────────────────
+export const deflate = (data: string | Uint8Array | ArrayBuffer): Uint8Array | null => {
+  try {
+    return Bun.deflateSync(data);
+  } catch {
+    return null;
+  }
+};
+
+export const inflate = (data: Uint8Array | ArrayBuffer): Uint8Array | null => {
+  try {
+    return Bun.inflateSync(data);
+  } catch {
+    return null;
+  }
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// BN-098: Buffer Utilities
+// ─────────────────────────────────────────────────────────────────────────────
+export const concatBuffers = (
+  buffers: (ArrayBuffer | Uint8Array)[]
+): ArrayBuffer =>
+  Bun.concatArrayBuffers(buffers);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// BN-040b: Stream to FormData
+// ─────────────────────────────────────────────────────────────────────────────
+export const toFormData = (
+  s: ReadableStream,
+  boundary: string
+): Promise<FormData> =>
+  Bun.readableStreamToFormData(s, boundary);

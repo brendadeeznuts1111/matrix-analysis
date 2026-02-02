@@ -12,6 +12,9 @@ import {
   copyFile,
   glob,
   globAll,
+  globSync,
+  globAllSync,
+  mmap,
   readAll,
   readAllJson,
 } from "../file.ts";
@@ -196,6 +199,39 @@ describe("file", () => {
       const results = await readAllJson<{ x: number }>([p1, p2]);
       expect(results[0].data).toEqual({ x: 1 });
       expect(results[1].data).toEqual({ x: 2 });
+    });
+  });
+
+  describe("BN-099: Memory-Mapped I/O", () => {
+    it("should mmap a file as Uint8Array", () => {
+      const path = join(TMP, "mmap-test.txt");
+      Bun.write(path, "mmap content");
+      const mapped = mmap(path);
+      expect(mapped).not.toBeNull();
+      expect(mapped).toBeInstanceOf(Uint8Array);
+      expect(new TextDecoder().decode(mapped!)).toBe("mmap content");
+    });
+
+    it("should return null for missing file", () => {
+      expect(mmap(join(TMP, "no-such-mmap.txt"))).toBeNull();
+    });
+  });
+
+  describe("BN-100: Synchronous Glob", () => {
+    it("should yield matching files synchronously", () => {
+      const tsFiles = globAllSync("*.ts", TMP);
+      expect(tsFiles.length).toBeGreaterThanOrEqual(2);
+      for (const f of tsFiles) {
+        expect(f.endsWith(".ts")).toBe(true);
+      }
+    });
+
+    it("should work as sync generator", () => {
+      const entries: string[] = [];
+      for (const entry of globSync("*.ts", TMP)) {
+        entries.push(entry);
+      }
+      expect(entries.length).toBeGreaterThanOrEqual(2);
     });
   });
 });

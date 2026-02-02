@@ -103,6 +103,11 @@ const COMMANDS = {
     script: "../scripts/topic-manager.ts",
     subcommands: ["list", "super", "channels", "routing", "route", "all"],
   },
+  channel: {
+    description: "Channel monitor",
+    script: "../scripts/channel-monitor.ts",
+    subcommands: ["dashboard", "watch", "stats"],
+  },
 };
 
 const COLORS = {

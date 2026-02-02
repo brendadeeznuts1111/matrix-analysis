@@ -16,6 +16,9 @@ import {
   zstdDecompressSync,
   gzip,
   gunzip,
+  deflate,
+  inflate,
+  concatBuffers,
 } from "../stream.ts";
 
 const makeStream = (text: string): ReadableStream =>
@@ -152,6 +155,37 @@ describe("stream", () => {
     it("should return null for invalid decompress", () => {
       expect(zstdDecompressSync(new Uint8Array([0, 1, 2, 3]))).toBeNull();
       expect(gunzip(new Uint8Array([0, 1, 2, 3]))).toBeNull();
+    });
+  });
+
+  describe("BN-097: Deflate/Inflate", () => {
+    it("should deflate and inflate roundtrip", () => {
+      const input = "deflate test data ".repeat(50);
+      const compressed = deflate(input);
+      expect(compressed).not.toBeNull();
+      expect(compressed!.length).toBeLessThan(input.length);
+      const decompressed = inflate(compressed!);
+      expect(decompressed).not.toBeNull();
+      expect(new TextDecoder().decode(decompressed!)).toBe(input);
+    });
+
+    it("should return null for invalid inflate", () => {
+      expect(inflate(new Uint8Array([0, 1, 2, 3]))).toBeNull();
+    });
+  });
+
+  describe("BN-098: Buffer Utilities", () => {
+    it("should concatenate array buffers", () => {
+      const a = new Uint8Array([1, 2, 3]);
+      const b = new Uint8Array([4, 5, 6]);
+      const result = new Uint8Array(concatBuffers([a, b]));
+      expect(result.length).toBe(6);
+      expect(Array.from(result)).toEqual([1, 2, 3, 4, 5, 6]);
+    });
+
+    it("should handle empty array", () => {
+      const result = concatBuffers([]);
+      expect(result.byteLength).toBe(0);
     });
   });
 });

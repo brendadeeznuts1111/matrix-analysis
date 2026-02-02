@@ -137,3 +137,32 @@ export const readAllJson = async <T>(paths: string[]): Promise<FileEntry<T>[]> =
     path,
     data: await readJson<T>(path),
   })));
+
+// ─────────────────────────────────────────────────────────────────────────────
+// BN-099: Memory-Mapped I/O
+// ─────────────────────────────────────────────────────────────────────────────
+export const mmap = (path: string): Uint8Array | null => {
+  try {
+    return Bun.mmap(path);
+  } catch {
+    return null;
+  }
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// BN-100: Synchronous Glob
+// ─────────────────────────────────────────────────────────────────────────────
+export function* globSync(pattern: string, cwd?: string): Generator<string> {
+  const g = new Bun.Glob(pattern);
+  for (const entry of g.scanSync({ cwd: cwd ?? ".", absolute: true })) {
+    yield entry;
+  }
+}
+
+export const globAllSync = (pattern: string, cwd?: string): string[] => {
+  const results: string[] = [];
+  for (const entry of globSync(pattern, cwd)) {
+    results.push(entry);
+  }
+  return results;
+};
