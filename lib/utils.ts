@@ -162,3 +162,8 @@ export * as str from "./str.ts";
 export * as parse from "./parse.ts";
 export * as crypto from "./crypto.ts";
 export * as stream from "./stream.ts";
+export * as env from "./env.ts";
+export * as file from "./file.ts";
+export * as color from "./color.ts";
+export * as http from "./http.ts";
+export * as db from "./db.ts";

@@ -1,0 +1,142 @@
+import { describe, it, expect, beforeAll, afterAll } from "bun:test";
+import {
+  readText,
+  readJson,
+  readBytes,
+  writeText,
+  writeJson,
+  exists,
+  glob,
+  globAll,
+  readAll,
+  readAllJson,
+} from "../file.ts";
+import { mkdirSync, rmSync } from "node:fs";
+import { join } from "node:path";
+
+const TMP = join(import.meta.dir, ".tmp-file-test");
+
+describe("file", () => {
+  beforeAll(() => {
+    mkdirSync(TMP, { recursive: true });
+  });
+
+  afterAll(() => {
+    rmSync(TMP, { recursive: true, force: true });
+  });
+
+  describe("BN-045: Read Helpers", () => {
+    it("should read text file", async () => {
+      const path = join(TMP, "read.txt");
+      await Bun.write(path, "hello world");
+      expect(await readText(path)).toBe("hello world");
+    });
+
+    it("should return null for missing file", async () => {
+      expect(await readText(join(TMP, "nope.txt"))).toBeNull();
+    });
+
+    it("should read JSON file", async () => {
+      const path = join(TMP, "read.json");
+      await Bun.write(path, JSON.stringify({ a: 1 }));
+      const data = await readJson<{ a: number }>(path);
+      expect(data).toEqual({ a: 1 });
+    });
+
+    it("should return null for invalid JSON", async () => {
+      const path = join(TMP, "bad.json");
+      await Bun.write(path, "not json{{{");
+      expect(await readJson(path)).toBeNull();
+    });
+
+    it("should read bytes", async () => {
+      const path = join(TMP, "read.bin");
+      await Bun.write(path, new Uint8Array([1, 2, 3]));
+      const bytes = await readBytes(path);
+      expect(bytes).toBeInstanceOf(Uint8Array);
+      expect(bytes!.length).toBe(3);
+    });
+  });
+
+  describe("BN-046: Write Helpers", () => {
+    it("should write text file", async () => {
+      const path = join(TMP, "write.txt");
+      expect(await writeText(path, "content")).toBe(true);
+      expect(await Bun.file(path).text()).toBe("content");
+    });
+
+    it("should write JSON with indent and newline", async () => {
+      const path = join(TMP, "write.json");
+      expect(await writeJson(path, { b: 2 })).toBe(true);
+      const raw = await Bun.file(path).text();
+      expect(raw).toBe('{\n  "b": 2\n}\n');
+    });
+
+    it("should write JSON with custom indent", async () => {
+      const path = join(TMP, "write4.json");
+      expect(await writeJson(path, { c: 3 }, 4)).toBe(true);
+      const raw = await Bun.file(path).text();
+      expect(raw).toContain('    "c"');
+    });
+  });
+
+  describe("BN-047: Exists", () => {
+    it("should return true for existing file", async () => {
+      const path = join(TMP, "exists.txt");
+      await Bun.write(path, "x");
+      expect(await exists(path)).toBe(true);
+    });
+
+    it("should return false for missing file", async () => {
+      expect(await exists(join(TMP, "missing.txt"))).toBe(false);
+    });
+  });
+
+  describe("BN-048: Glob Scanner", () => {
+    it("should yield matching files", async () => {
+      await Bun.write(join(TMP, "a.ts"), "");
+      await Bun.write(join(TMP, "b.ts"), "");
+      await Bun.write(join(TMP, "c.js"), "");
+
+      const tsFiles = await globAll("*.ts", TMP);
+      expect(tsFiles.length).toBe(2);
+      for (const f of tsFiles) {
+        expect(f.endsWith(".ts")).toBe(true);
+      }
+    });
+
+    it("should work as async generator", async () => {
+      const entries: string[] = [];
+      for await (const entry of glob("*.ts", TMP)) {
+        entries.push(entry);
+      }
+      expect(entries.length).toBeGreaterThanOrEqual(2);
+    });
+  });
+
+  describe("BN-049: Parallel Multi-File Read", () => {
+    it("should read multiple files in parallel", async () => {
+      const p1 = join(TMP, "m1.txt");
+      const p2 = join(TMP, "m2.txt");
+      await Bun.write(p1, "one");
+      await Bun.write(p2, "two");
+
+      const results = await readAll([p1, p2, join(TMP, "missing.txt")]);
+      expect(results.length).toBe(3);
+      expect(results[0].data).toBe("one");
+      expect(results[1].data).toBe("two");
+      expect(results[2].data).toBeNull();
+    });
+
+    it("should read multiple JSON files", async () => {
+      const p1 = join(TMP, "j1.json");
+      const p2 = join(TMP, "j2.json");
+      await Bun.write(p1, JSON.stringify({ x: 1 }));
+      await Bun.write(p2, JSON.stringify({ x: 2 }));
+
+      const results = await readAllJson<{ x: number }>([p1, p2]);
+      expect(results[0].data).toEqual({ x: 1 });
+      expect(results[1].data).toEqual({ x: 2 });
+    });
+  });
+});
