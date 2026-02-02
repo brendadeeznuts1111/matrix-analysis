@@ -269,25 +269,24 @@ async function decompressData(data: Uint8Array): Promise<Uint8Array> {
 }
 
 // ─── Check R2 Connection ──────────────────────────
+function getR2S3Options(credentials: { accessKeyId: string; secretAccessKey: string }) {
+	return {
+		accessKeyId: credentials.accessKeyId,
+		secretAccessKey: credentials.secretAccessKey,
+		endpoint: R2_CONFIG.endpoint,
+		bucket: R2_CONFIG.bucket,
+		region: R2_CONFIG.region,
+	};
+}
+
 async function checkR2Connection(): Promise<boolean> {
 	const credentials = await getR2Credentials();
 	if (!credentials) return false;
 
 	try {
-		const originalEnv = { ...process.env };
-		process.env.S3_ACCESS_KEY_ID = credentials.accessKeyId;
-		process.env.S3_SECRET_ACCESS_KEY = credentials.secretAccessKey;
-		process.env.S3_ENDPOINT = R2_CONFIG.endpoint;
-		process.env.S3_BUCKET = R2_CONFIG.bucket;
-		process.env.S3_REGION = R2_CONFIG.region;
-
-		try {
-			const testFile = Bun.s3.file(".registry-check");
-			await testFile.exists();
-			return true;
-		} finally {
-			process.env = originalEnv;
-		}
+		const testFile = Bun.s3.file(".registry-check", getR2S3Options(credentials));
+		await testFile.exists();
+		return true;
 	} catch {
 		return false;
 	}
@@ -589,16 +588,11 @@ async function r2Upload(
 		);
 	}
 
-	// Set up environment for Bun.s3
-	const originalEnv = { ...process.env };
-	process.env.S3_ACCESS_KEY_ID = credentials.accessKeyId;
-	process.env.S3_SECRET_ACCESS_KEY = credentials.secretAccessKey;
-	process.env.S3_ENDPOINT = R2_CONFIG.endpoint;
-	process.env.S3_BUCKET = R2_CONFIG.bucket;
-	process.env.S3_REGION = R2_CONFIG.region;
+	const s3Opts = getR2S3Options(credentials);
 
 	try {
 		await Bun.s3.write(targetKey, uploadData, {
+			...s3Opts,
 			type: isCompressed ? "application/gzip" : file.type || "application/octet-stream",
 			metadata: {
 				"x-amz-meta-crc32": crc32.toString(),
@@ -641,8 +635,9 @@ async function r2Upload(
 				"INSERT INTO registry_sync_log (direction, key, size, crc32, duration_ms) VALUES (?, ?, ?, ?, ?)",
 			)
 			.run("upload", targetKey, fileSize, crc32, Math.round(durationMs));
-	} finally {
-		process.env = originalEnv;
+	} catch (error) {
+		console.error(`${GLYPHS.FAIL} R2 upload failed: ${error instanceof Error ? error.message : "Unknown error"}`);
+		throw error;
 	}
 }
 
@@ -683,16 +678,10 @@ async function r2Download(
 
 	console.log(`${GLYPHS.DOWNLOAD} Downloading from R2: ${r2Key}`);
 
-	// Set up environment for Bun.s3
-	const originalEnv = { ...process.env };
-	process.env.S3_ACCESS_KEY_ID = credentials.accessKeyId;
-	process.env.S3_SECRET_ACCESS_KEY = credentials.secretAccessKey;
-	process.env.S3_ENDPOINT = R2_CONFIG.endpoint;
-	process.env.S3_BUCKET = R2_CONFIG.bucket;
-	process.env.S3_REGION = R2_CONFIG.region;
+	const s3Opts = getR2S3Options(credentials);
 
 	try {
-		const s3File = Bun.s3.file(r2Key);
+		const s3File = Bun.s3.file(r2Key, s3Opts);
 		const data = await s3File.bytes();
 
 		if (!data || data.length === 0) {
@@ -741,8 +730,9 @@ async function r2Download(
 				"INSERT INTO registry_sync_log (direction, key, size, crc32, duration_ms) VALUES (?, ?, ?, ?, ?)",
 			)
 			.run("download", r2Key, finalData.length, calculatedCRC32, Math.round(durationMs));
-	} finally {
-		process.env = originalEnv;
+	} catch (error) {
+		console.error(`${GLYPHS.FAIL} R2 download failed: ${error instanceof Error ? error.message : "Unknown error"}`);
+		throw error;
 	}
 }
 

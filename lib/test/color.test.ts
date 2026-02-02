@@ -20,7 +20,7 @@ import {
   WARN,
   INFO,
   ANSI,
-} from "../src/core/color.ts";
+} from "../src/color/";
 
 describe("color", () => {
   describe("BN-060: NO_COLOR Detection", () => {
