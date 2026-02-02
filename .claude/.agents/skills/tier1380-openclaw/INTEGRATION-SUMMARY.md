@@ -307,6 +307,20 @@ Location: `logs/`
 
 ## 🎓 Usage Examples
 
+### First Time Setup
+
+```bash
+# Run the quick setup wizard
+kimi setup
+
+# This will:
+# - Check prerequisites (Bun, git)
+# - Detect projects
+# - Install git hooks
+# - Verify the installation
+# - Run test suite
+```
+
 ### Daily Workflow
 
 ```bash
