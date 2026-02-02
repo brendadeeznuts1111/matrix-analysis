@@ -72,3 +72,35 @@ export const requireBunVersion = (range: string): boolean => {
   if (typeof Bun === "undefined") return false;
   return Bun.semver.satisfies(Bun.version, range);
 };
+
+// ─────────────────────────────────────────────────────────────────────────────
+// BN-054b: Complex Type Getters
+// ─────────────────────────────────────────────────────────────────────────────
+export const getArray = (key: string, separator = ","): string[] => {
+  const raw = process.env[key];
+  if (raw === undefined || raw === "") return [];
+  return raw.split(separator).map(s => s.trim()).filter(Boolean);
+};
+
+export const getJson = <T>(key: string): T | null => {
+  const raw = process.env[key];
+  if (raw === undefined || raw === "") return null;
+  try {
+    return JSON.parse(raw) as T;
+  } catch {
+    return null;
+  }
+};
+
+export const getPort = (key = "PORT", defaultValue = 3000): number =>
+  getNumber(key, defaultValue);
+
+export const getUrl = (key: string): URL | null => {
+  const raw = process.env[key];
+  if (raw === undefined || raw === "") return null;
+  try {
+    return new URL(raw);
+  } catch {
+    return null;
+  }
+};

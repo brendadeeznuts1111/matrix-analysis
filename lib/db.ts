@@ -102,3 +102,27 @@ export const exec = (db: Database, sql: string, params?: any[]): boolean => {
     return false;
   }
 };
+
+// ─────────────────────────────────────────────────────────────────────────────
+// BN-069b: Lifecycle & Convenience
+// ─────────────────────────────────────────────────────────────────────────────
+export const close = (db: Database): boolean => {
+  try {
+    db.close();
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+export const tableExists = (db: Database, name: string): boolean => {
+  const row = queryOne<{ cnt: number }>(
+    db, "SELECT COUNT(*) as cnt FROM sqlite_master WHERE type='table' AND name=?", [name]
+  );
+  return (row?.cnt ?? 0) > 0;
+};
+
+export const tables = (db: Database): string[] =>
+  queryAll<{ name: string }>(
+    db, "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name"
+  ).map(r => r.name);

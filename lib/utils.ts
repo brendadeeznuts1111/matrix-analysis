@@ -167,3 +167,7 @@ export * as file from "./file.ts";
 export * as color from "./color.ts";
 export * as http from "./http.ts";
 export * as db from "./db.ts";
+export * as async from "./async.ts";
+export * as array from "./array.ts";
+export * as date from "./date.ts";
+export * as log from "./log.ts";

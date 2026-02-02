@@ -4,6 +4,10 @@ import {
   getRequired,
   getNumber,
   getBool,
+  getArray,
+  getJson,
+  getPort,
+  getUrl,
   isTTY,
   hasNoColor,
   shouldColor,
@@ -95,6 +99,65 @@ describe("env", () => {
       delete process.env.TEST_BOOL;
       expect(getBool("TEST_BOOL")).toBe(false);
       expect(getBool("TEST_BOOL", true)).toBe(true);
+    });
+  });
+
+  describe("BN-054b: Extended Getters", () => {
+    it("should parse comma-separated array", () => {
+      process.env.TEST_VAR = "a,b,c";
+      expect(getArray("TEST_VAR")).toEqual(["a", "b", "c"]);
+    });
+
+    it("should return empty array for unset", () => {
+      delete process.env.TEST_VAR;
+      expect(getArray("TEST_VAR")).toEqual([]);
+    });
+
+    it("should parse with custom separator", () => {
+      process.env.TEST_VAR = "x|y|z";
+      expect(getArray("TEST_VAR", "|")).toEqual(["x", "y", "z"]);
+    });
+
+    it("should parse JSON from env", () => {
+      process.env.TEST_VAR = '{"key":"val"}';
+      expect(getJson<{ key: string }>("TEST_VAR")).toEqual({ key: "val" });
+    });
+
+    it("should return null for invalid JSON", () => {
+      process.env.TEST_VAR = "not json";
+      expect(getJson("TEST_VAR")).toBeNull();
+    });
+
+    it("should return null for unset JSON", () => {
+      delete process.env.TEST_VAR;
+      expect(getJson("TEST_VAR")).toBeNull();
+    });
+
+    it("should get port with default", () => {
+      delete process.env.PORT;
+      expect(getPort()).toBe(3000);
+    });
+
+    it("should get port from env", () => {
+      process.env.PORT = "8080";
+      expect(getPort()).toBe(8080);
+    });
+
+    it("should parse valid URL", () => {
+      process.env.TEST_VAR = "https://example.com";
+      const url = getUrl("TEST_VAR");
+      expect(url).not.toBeNull();
+      expect(url!.hostname).toBe("example.com");
+    });
+
+    it("should return null for invalid URL", () => {
+      process.env.TEST_VAR = "not a url";
+      expect(getUrl("TEST_VAR")).toBeNull();
+    });
+
+    it("should return null for unset URL", () => {
+      delete process.env.TEST_VAR;
+      expect(getUrl("TEST_VAR")).toBeNull();
     });
   });
 

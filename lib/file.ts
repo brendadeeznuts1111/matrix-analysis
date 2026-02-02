@@ -54,13 +54,12 @@ export const stat = async (path: string): Promise<FileStat | null> => {
   try {
     const file = Bun.file(path);
     if (!(await file.exists())) return null;
-    const { size, lastModified } = file;
-    const s = require("node:fs").statSync(path);
+    const { size, lastModified, type } = file;
     return {
       size,
       mtime: new Date(lastModified),
-      isFile: s.isFile(),
-      isDirectory: s.isDirectory(),
+      isFile: type !== "application/octet-stream" || size > 0 || (await file.exists()),
+      isDirectory: false,
     };
   } catch {
     return null;
@@ -69,8 +68,31 @@ export const stat = async (path: string): Promise<FileStat | null> => {
 
 export const remove = async (path: string): Promise<boolean> => {
   try {
-    const { unlinkSync } = require("node:fs");
-    unlinkSync(path);
+    const { unlink } = require("node:fs/promises");
+    await unlink(path);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// BN-047c: Directory Operations
+// ─────────────────────────────────────────────────────────────────────────────
+export const mkdir = async (path: string): Promise<boolean> => {
+  try {
+    const { mkdir: mkdirAsync } = require("node:fs/promises");
+    await mkdirAsync(path, { recursive: true });
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+export const copyFile = async (src: string, dest: string): Promise<boolean> => {
+  try {
+    const content = await Bun.file(src).arrayBuffer();
+    await Bun.write(dest, content);
     return true;
   } catch {
     return false;

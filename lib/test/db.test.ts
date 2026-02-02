@@ -6,6 +6,9 @@ import {
   queryAll,
   queryOne,
   exec,
+  close,
+  tableExists,
+  tables,
 } from "../db.ts";
 import { rmSync } from "node:fs";
 import { join } from "node:path";
@@ -135,6 +138,32 @@ describe("db", () => {
       const db = open(":memory:")!;
       db.exec("CREATE TABLE t (id INTEGER)");
       expect(queryOne(db, "SELECT * FROM t WHERE id = ?", [999])).toBeNull();
+      db.close();
+    });
+  });
+
+  describe("BN-069b: Lifecycle & Convenience", () => {
+    it("should close a database", () => {
+      const db = open(":memory:")!;
+      expect(close(db)).toBe(true);
+    });
+
+    it("should check if table exists", () => {
+      const db = open(":memory:")!;
+      db.exec("CREATE TABLE users (id INTEGER)");
+      expect(tableExists(db, "users")).toBe(true);
+      expect(tableExists(db, "posts")).toBe(false);
+      db.close();
+    });
+
+    it("should list all tables", () => {
+      const db = open(":memory:")!;
+      db.exec("CREATE TABLE alpha (id INTEGER)");
+      db.exec("CREATE TABLE beta (id INTEGER)");
+      const t = tables(db);
+      expect(t).toContain("alpha");
+      expect(t).toContain("beta");
+      expect(t.length).toBe(2);
       db.close();
     });
   });

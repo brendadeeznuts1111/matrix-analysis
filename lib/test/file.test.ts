@@ -8,6 +8,8 @@ import {
   exists,
   stat,
   remove,
+  mkdir,
+  copyFile,
   glob,
   globAll,
   readAll,
@@ -119,6 +121,33 @@ describe("file", () => {
 
     it("should return false removing missing file", async () => {
       expect(await remove(join(TMP, "already-gone.txt"))).toBe(false);
+    });
+  });
+
+  describe("BN-047c: mkdir & copyFile", () => {
+    it("should create nested directories", async () => {
+      const dir = join(TMP, "nested", "deep", "dir");
+      expect(await mkdir(dir)).toBe(true);
+      // exists() checks files, so write a file inside the dir to verify
+      const probe = join(dir, "probe.txt");
+      await Bun.write(probe, "ok");
+      expect(await exists(probe)).toBe(true);
+    });
+
+    it("should return true for existing directory", async () => {
+      expect(await mkdir(TMP)).toBe(true);
+    });
+
+    it("should copy a file", async () => {
+      const src = join(TMP, "copy-src.txt");
+      const dest = join(TMP, "copy-dest.txt");
+      await Bun.write(src, "copy me");
+      expect(await copyFile(src, dest)).toBe(true);
+      expect(await readText(dest)).toBe("copy me");
+    });
+
+    it("should return false copying missing file", async () => {
+      expect(await copyFile(join(TMP, "nope.txt"), join(TMP, "nope2.txt"))).toBe(false);
     });
   });
 

@@ -88,6 +88,16 @@ const COMMANDS = {
     script: "auto-update.ts",
     subcommands: ["check", "install", "skip", "auto", "status", "rollback"],
   },
+  telegram: {
+    description: "Telegram integration",
+    script: "../../../../../../matrix-agent/integrations/telegram-bridge.ts",
+    subcommands: ["status", "send", "react", "sticker", "edit", "delete", "info", "stickers"],
+  },
+  openclaw: {
+    description: "OpenClaw bridge",
+    script: "../../../../../../matrix-agent/integrations/openclaw-bridge.ts",
+    subcommands: ["init", "status", "telegram", "sync", "proxy"],
+  },
 };
 
 const COLORS = {

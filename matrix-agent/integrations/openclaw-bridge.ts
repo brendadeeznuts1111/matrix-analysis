@@ -2,8 +2,11 @@
 /**
  * Matrix Agent ↔ OpenClaw Bridge
  * Bidirectional integration between Matrix Agent and OpenClaw ACP
- *
- * Features:
+ * 
+ * New Features:
+ * - Telegram reactions and inline buttons
+ * - Sticker support
+ * - Enhanced message actions
  * - ACP client for OpenClaw communication
  * - Event forwarding between systems
  * - Command proxy for cross-system execution
@@ -34,6 +37,18 @@ interface ACPCommand {
   options?: Record<string, unknown>;
 }
 
+interface TelegramAction {
+  action: "send" | "edit" | "delete" | "react" | "sendSticker";
+  accountId?: string;
+  chatId: string | number;
+  messageId?: number;
+  text?: string;
+  reaction?: string;
+  sticker?: string;
+  buttons?: Array<Array<{ text: string; callback_data: string }>>;
+  parseMode?: "HTML" | "Markdown" | "MarkdownV2";
+}
+
 interface BridgeConfig {
   openclaw: {
     enabled: boolean;
@@ -48,6 +63,12 @@ interface BridgeConfig {
     sessions: boolean;
     commands: boolean;
     events: boolean;
+  };
+  telegram: {
+    enabled: boolean;
+    reactionLevel: "none" | "minimal" | "extensive";
+    allowStickers: boolean;
+    allowButtons: boolean;
   };
 }
 
@@ -75,6 +96,13 @@ class OpenClawBridge {
         events: true,
         ...config?.sync,
       },
+      telegram: {
+        enabled: true,
+        reactionLevel: "minimal",
+        allowStickers: true,
+        allowButtons: true,
+        ...config?.telegram,
+      },
     };
   }
 
@@ -101,15 +129,16 @@ class OpenClawBridge {
     }
     console.log("✅ Matrix Agent detected");
 
-    // Load or create config
-    await this.loadConfig();
+    // Check Telegram features
+    if (this.config.telegram.enabled) {
+      console.log("✅ Telegram features enabled");
+      console.log(`   Reaction level: ${this.config.telegram.reactionLevel}`);
+      console.log(`   Stickers: ${this.config.telegram.allowStickers ? "✓" : "✗"}`);
+      console.log(`   Buttons: ${this.config.telegram.allowButtons ? "✓" : "✗"}`);
+    }
 
-    console.log("\n📡 Bridge Configuration:");
-    console.log(`   OpenClaw ACP: ${this.config.openclaw.acpEndpoint}`);
-    console.log(`   Matrix Socket: ${this.config.matrix.agentSocket}`);
-    console.log(`   Sync: sessions=${this.config.sync.sessions}, commands=${this.config.sync.commands}, events=${this.config.sync.events}`);
-
-    this.connected = true;
+    console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    this.connected = openclawExists && matrixExists;
   }
 
   /**
@@ -117,8 +146,8 @@ class OpenClawBridge {
    */
   private async checkOpenClaw(): Promise<boolean> {
     try {
-      const result = await $`test -d ${OPENCLAW_DIR}`.quiet().nothrow();
-      return result.exitCode === 0;
+      await $`test -d ${OPENCLAW_DIR}`.quiet();
+      return true;
     } catch {
       return false;
     }
@@ -129,52 +158,122 @@ class OpenClawBridge {
    */
   private async checkMatrix(): Promise<boolean> {
     try {
-      const result = await $`test -d ${MATRIX_DIR}`.quiet().nothrow();
-      return result.exitCode === 0;
+      await $`test -d ${MATRIX_DIR}`.quiet();
+      return true;
     } catch {
       return false;
     }
   }
 
   /**
-   * Load bridge configuration
+   * Send ACP message to OpenClaw
    */
-  private async loadConfig(): Promise<void> {
-    const configPath = join(MATRIX_DIR, "openclaw-bridge.json");
+  async sendToOpenClaw(message: ACPMessage): Promise<ACPMessage | null> {
+    if (!this.connected) {
+      console.error("❌ Bridge not connected");
+      return null;
+    }
+
     try {
-      const content = await Bun.file(configPath).text();
-      const saved = JSON.parse(content);
-      this.config = { ...this.config, ...saved };
-    } catch {
-      // Save default config
-      await Bun.write(configPath, JSON.stringify(this.config, null, 2));
+      const response = await fetch(this.config.openclaw.acpEndpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(message),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      return await response.json() as ACPMessage;
+    } catch (error) {
+      console.error("❌ Failed to send ACP message:", error);
+      return null;
     }
   }
 
   /**
-   * Send command to OpenClaw ACP
+   * Execute command via OpenClaw CLI
    */
-  async sendToOpenClaw(command: ACPCommand): Promise<unknown> {
-    if (!this.config.openclaw.enabled) {
-      throw new Error("OpenClaw integration is disabled");
-    }
-
-    const message: ACPMessage = {
-      id: this.generateId(),
-      type: "command",
-      source: "matrix",
-      payload: command,
-      timestamp: new Date().toISOString(),
-    };
-
+  async executeCommand(command: string, args: string[] = []): Promise<{
+    success: boolean;
+    output: string;
+    exitCode: number;
+  }> {
     try {
-      // Use OpenClaw CLI as proxy
-      const result = await $`cd ${OPENCLAW_DIR} && bun openclaw.mjs ${command.name} ${command.args}`.nothrow().quiet();
-
+      const result = await $`cd ${OPENCLAW_DIR} && bun run cli ${command} ${args}`.nothrow();
       return {
         success: result.exitCode === 0,
-        output: result.stdout.toString(),
-        error: result.stderr.toString(),
+        output: result.stdout.toString() + result.stderr.toString(),
+        exitCode: result.exitCode,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        output: String(error),
+        exitCode: 1,
+      };
+    }
+  }
+
+  /**
+   * Execute Telegram action via OpenClaw
+   */
+  async executeTelegramAction(action: TelegramAction): Promise<{
+    success: boolean;
+    result?: unknown;
+    error?: string;
+  }> {
+    if (!this.config.telegram.enabled) {
+      return { success: false, error: "Telegram features disabled" };
+    }
+
+    try {
+      // Validate action
+      if (action.action === "react" && this.config.telegram.reactionLevel === "none") {
+        return { success: false, error: "Telegram reactions disabled" };
+      }
+
+      if (action.action === "sendSticker" && !this.config.telegram.allowStickers) {
+        return { success: false, error: "Telegram stickers disabled" };
+      }
+
+      if (action.buttons && !this.config.telegram.allowButtons) {
+        return { success: false, error: "Telegram buttons disabled" };
+      }
+
+      // Build ACP message for Telegram action
+      const message: ACPMessage = {
+        id: crypto.randomUUID(),
+        type: "command",
+        source: "matrix",
+        target: "telegram",
+        payload: {
+          tool: "telegram",
+          params: {
+            action: action.action,
+            accountId: action.accountId,
+            chatId: action.chatId,
+            messageId: action.messageId,
+            text: action.text,
+            reaction: action.reaction,
+            sticker: action.sticker,
+            buttons: action.buttons,
+            parseMode: action.parseMode,
+          },
+        },
+        timestamp: new Date().toISOString(),
+      };
+
+      const response = await this.sendToOpenClaw(message);
+      
+      if (!response) {
+        return { success: false, error: "No response from OpenClaw" };
+      }
+
+      return {
+        success: true,
+        result: response.payload,
       };
     } catch (error) {
       return {
@@ -185,79 +284,116 @@ class OpenClawBridge {
   }
 
   /**
-   * Send event to Matrix Agent
+   * Send Telegram message
    */
-  async sendToMatrix(event: string, data: unknown): Promise<unknown> {
-    if (!this.config.matrix.enabled) {
-      throw new Error("Matrix integration is disabled");
+  async sendTelegramMessage(
+    chatId: string | number,
+    text: string,
+    options?: {
+      accountId?: string;
+      buttons?: Array<Array<{ text: string; callback_data: string }>>;
+      parseMode?: "HTML" | "Markdown" | "MarkdownV2";
+    }
+  ): Promise<{ success: boolean; messageId?: number; error?: string }> {
+    const result = await this.executeTelegramAction({
+      action: "send",
+      chatId,
+      text,
+      ...options,
+    });
+
+    if (result.success) {
+      const payload = result.result as { messageId?: number };
+      return { success: true, messageId: payload?.messageId };
     }
 
-    const message: ACPMessage = {
-      id: this.generateId(),
-      type: "event",
-      source: "openclaw",
-      payload: { event, data },
-      timestamp: new Date().toISOString(),
-    };
-
-    // Forward to Matrix Agent
-    try {
-      const result = await $`bun ${MATRIX_DIR}/matrix-agent.ts event ${event} ${JSON.stringify(data)}`.nothrow().quiet();
-      return {
-        success: result.exitCode === 0,
-        output: result.stdout.toString(),
-      };
-    } catch (error) {
-      return {
-        success: false,
-        error: String(error),
-      };
-    }
+    return { success: false, error: result.error };
   }
 
   /**
-   * Proxy Matrix command to OpenClaw
+   * React to Telegram message
    */
-  async proxyMatrixCommand(command: string, args: string[]): Promise<unknown> {
-    console.log(`🔄 Proxying: matrix ${command} → openclaw`);
+  async reactToTelegramMessage(
+    chatId: string | number,
+    messageId: number,
+    reaction: string,
+    accountId?: string
+  ): Promise<{ success: boolean; error?: string }> {
+    const result = await this.executeTelegramAction({
+      action: "react",
+      chatId,
+      messageId,
+      reaction,
+      accountId,
+    });
 
-    const acpCommand: ACPCommand = {
-      name: command,
-      args,
-    };
-
-    return this.sendToOpenClaw(acpCommand);
+    return result;
   }
 
   /**
-   * Proxy OpenClaw command to Matrix
+   * Send Telegram sticker
    */
-  async proxyOpenClawCommand(command: string, args: string[]): Promise<unknown> {
-    console.log(`🔄 Proxying: openclaw ${command} → matrix`);
+  async sendTelegramSticker(
+    chatId: string | number,
+    sticker: string,
+    accountId?: string
+  ): Promise<{ success: boolean; error?: string }> {
+    const result = await this.executeTelegramAction({
+      action: "sendSticker",
+      chatId,
+      sticker,
+      accountId,
+    });
 
-    // Map OpenClaw commands to Matrix equivalents
-    const commandMap: Record<string, string> = {
-      "profile": "profile",
-      "tier1380": "tier1380",
-      "commit": "commit-flow",
-      "status": "status",
+    return result;
+  }
+
+  /**
+   * Get OpenClaw status
+   */
+  async getStatus(): Promise<{
+    connected: boolean;
+    openclaw: {
+      installed: boolean;
+      version?: string;
+      gatewayRunning: boolean;
+    };
+    matrix: {
+      initialized: boolean;
+      activeProfile?: string;
+    };
+    telegram: {
+      enabled: boolean;
+      accounts: number;
+    };
+  }> {
+    const status = {
+      connected: this.connected,
+      openclaw: {
+        installed: await this.checkOpenClaw(),
+        gatewayRunning: false,
+      },
+      matrix: {
+        initialized: await this.checkMatrix(),
+      },
+      telegram: {
+        enabled: this.config.telegram.enabled,
+        accounts: 0,
+      },
     };
 
-    const matrixCommand = commandMap[command] || command;
-
-    try {
-      const result = await $`bun ${MATRIX_DIR}/matrix-agent.ts ${matrixCommand} ${args}`.nothrow();
-      return {
-        success: result.exitCode === 0,
-        output: result.stdout.toString(),
-        error: result.stderr.toString(),
-      };
-    } catch (error) {
-      return {
-        success: false,
-        error: String(error),
-      };
+    // Check gateway status
+    if (status.openclaw.installed) {
+      try {
+        const result = await $`cd ${OPENCLAW_DIR} && bun run cli gateway status`.nothrow();
+        status.openclaw.gatewayRunning = result.exitCode === 0 && 
+          result.stdout.toString().includes("running");
+      } catch {
+        // Gateway not running
+      }
     }
+
+    return status;
   }
 
   /**
@@ -265,107 +401,96 @@ class OpenClawBridge {
    */
   async syncSessions(): Promise<void> {
     if (!this.config.sync.sessions) {
-      console.log("⏭️  Session sync disabled");
+      console.log("ℹ️  Session sync disabled");
       return;
     }
 
     console.log("🔄 Syncing sessions...");
-
+    
     // Get Matrix sessions
-    const matrixSessions = await $`bun ${MATRIX_DIR}/scripts/health-check.ts --json`.nothrow().json().catch(() => ({}));
-
-    // Get OpenClaw sessions (if available)
-    let openclawSessions = {};
-    try {
-      openclawSessions = await $`cd ${OPENCLAW_DIR} && bun openclaw.mjs session list --json`.nothrow().json();
-    } catch {
-      // OpenClaw session command may not exist
-    }
-
-    console.log(`   Matrix sessions: ${Object.keys(matrixSessions).length}`);
-    console.log(`   OpenClaw sessions: ${Object.keys(openclawSessions).length}`);
-  }
-
-  /**
-   * Get bridge status
-   */
-  async status(): Promise<void> {
-    console.log("🌉 OpenClaw Bridge Status");
-    console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-    console.log(`Connection: ${this.connected ? "✅ Connected" : "❌ Disconnected"}`);
-    console.log(`OpenClaw: ${this.config.openclaw.enabled ? "✅ Enabled" : "❌ Disabled"}`);
-    console.log(`Matrix: ${this.config.matrix.enabled ? "✅ Enabled" : "❌ Disabled"}`);
-    console.log(`\nSync Settings:`);
-    console.log(`  Sessions: ${this.config.sync.sessions ? "✅" : "❌"}`);
-    console.log(`  Commands: ${this.config.sync.commands ? "✅" : "❌"}`);
-    console.log(`  Events: ${this.config.sync.events ? "✅" : "❌"}`);
-    console.log(`\nEndpoints:`);
-    console.log(`  OpenClaw ACP: ${this.config.openclaw.acpEndpoint}`);
-    console.log(`  Matrix Agent: ${this.config.matrix.agentSocket}`);
-  }
-
-  /**
-   * Generate unique message ID
-   */
-  private generateId(): string {
-    return `msg-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
-  }
-
-  /**
-   * Show help
-   */
-  showHelp(): void {
-    console.log(`
-🌉 Matrix Agent ↔ OpenClaw Bridge
-
-USAGE:
-  openclaw-bridge.ts <command> [args]
-
-COMMANDS:
-  init                    Initialize bridge configuration
-  status                  Show bridge status
-  sync                    Sync sessions between systems
-  proxy <cmd> [args]      Proxy command to OpenClaw
-  matrix <cmd> [args]     Proxy command to Matrix from OpenClaw
-  event <type> [data]     Send event to connected system
-  config                  Show current configuration
-  help                    Show this help
-
-EXAMPLES:
-  # Initialize bridge
-  bun openclaw-bridge.ts init
-
-  # Proxy Matrix profile command to OpenClaw
-  bun openclaw-bridge.ts proxy profile list
-
-  # Send event to Matrix from OpenClaw context
-  bun openclaw-bridge.ts matrix status
-
-  # Sync sessions
-  bun openclaw-bridge.ts sync
-
-INTEGRATION:
-  - OpenClaw: ~/openclaw (ACP protocol)
-  - Matrix: ~/.matrix (Matrix Agent)
-  - Config: ~/.matrix/openclaw-bridge.json
-`);
+    const matrixSessions = await $`ls ${MATRIX_DIR}/sessions 2>/dev/null || echo ""`.quiet();
+    
+    // Get OpenClaw sessions  
+    const openclawResult = await this.executeCommand("sessions", ["list"]);
+    
+    console.log(`   Matrix sessions: ${matrixSessions.stdout.toString().trim().split("\n").filter(Boolean).length}`);
+    console.log(`   OpenClaw sessions: ${openclawResult.success ? "synced" : "unavailable"}`);
   }
 }
 
-// CLI Interface
+// CLI
 async function main() {
-  const bridge = new OpenClawBridge();
   const args = Bun.argv.slice(2);
   const command = args[0];
+  const bridge = new OpenClawBridge();
 
   switch (command) {
     case "init":
       await bridge.init();
       break;
 
-    case "status":
-      await bridge.status();
+    case "status": {
+      await bridge.init();
+      const status = await bridge.getStatus();
+      console.log("\n📊 Bridge Status:");
+      console.log(`   Connected: ${status.connected ? "✅" : "❌"}`);
+      console.log(`   OpenClaw: ${status.openclaw.installed ? "✅" : "❌"} ${status.openclaw.gatewayRunning ? "(running)" : "(stopped)"}`);
+      console.log(`   Matrix: ${status.matrix.initialized ? "✅" : "❌"}`);
+      console.log(`   Telegram: ${status.telegram.enabled ? "✅" : "❌"} (${status.telegram.accounts} accounts)`);
       break;
+    }
+
+    case "telegram": {
+      await bridge.init();
+      const subCommand = args[1];
+      
+      switch (subCommand) {
+        case "send": {
+          const chatId = args[2];
+          const text = args.slice(3).join(" ");
+          if (!chatId || !text) {
+            console.error("Usage: bridge.ts telegram send <chatId> <text>");
+            process.exit(1);
+          }
+          const result = await bridge.sendTelegramMessage(chatId, text);
+          console.log(result.success ? "✅ Message sent" : `❌ Error: ${result.error}`);
+          break;
+        }
+
+        case "react": {
+          const chatId = args[2];
+          const messageId = parseInt(args[3]);
+          const reaction = args[4];
+          if (!chatId || !messageId || !reaction) {
+            console.error("Usage: bridge.ts telegram react <chatId> <messageId> <reaction>");
+            process.exit(1);
+          }
+          const result = await bridge.reactToTelegramMessage(chatId, messageId, reaction);
+          console.log(result.success ? `✅ Reacted with ${reaction}` : `❌ Error: ${result.error}`);
+          break;
+        }
+
+        case "sticker": {
+          const chatId = args[2];
+          const sticker = args[3];
+          if (!chatId || !sticker) {
+            console.error("Usage: bridge.ts telegram sticker <chatId> <sticker>");
+            process.exit(1);
+          }
+          const result = await bridge.sendTelegramSticker(chatId, sticker);
+          console.log(result.success ? "✅ Sticker sent" : `❌ Error: ${result.error}`);
+          break;
+        }
+
+        default: {
+          console.log("Telegram commands:");
+          console.log("  telegram send <chatId> <text>       Send message");
+          console.log("  telegram react <chatId> <msgId> <emoji>  React to message");
+          console.log("  telegram sticker <chatId> <sticker>  Send sticker");
+        }
+      }
+      break;
+    }
 
     case "sync":
       await bridge.init();
@@ -373,55 +498,39 @@ async function main() {
       break;
 
     case "proxy": {
-      const cmd = args[1];
-      const cmdArgs = args.slice(2);
-      if (!cmd) {
-        console.error("Usage: proxy <command> [args]");
+      await bridge.init();
+      const proxyCommand = args[1];
+      const proxyArgs = args.slice(2);
+      
+      if (!proxyCommand) {
+        console.error("Usage: bridge.ts proxy <command> [args...]");
         process.exit(1);
       }
-      const result = await bridge.proxyMatrixCommand(cmd, cmdArgs);
-      console.log(result);
-      break;
+
+      const result = await bridge.executeCommand(proxyCommand, proxyArgs);
+      console.log(result.output);
+      process.exit(result.exitCode);
     }
 
-    case "matrix": {
-      const cmd = args[1];
-      const cmdArgs = args.slice(2);
-      if (!cmd) {
-        console.error("Usage: matrix <command> [args]");
-        process.exit(1);
-      }
-      const result = await bridge.proxyOpenClawCommand(cmd, cmdArgs);
-      console.log(result);
-      break;
-    }
-
-    case "config": {
-      const configPath = join(MATRIX_DIR, "openclaw-bridge.json");
-      try {
-        const config = await Bun.file(configPath).text();
-        console.log(config);
-      } catch {
-        console.log("No configuration found. Run 'init' first.");
-      }
-      break;
-    }
-
-    case "help":
-    case "--help":
-    case "-h":
     default:
-      bridge.showHelp();
-      break;
+      console.log("🌉 Matrix-Agent ↔ OpenClaw Bridge");
+      console.log("\nUsage:");
+      console.log("  bridge.ts init                      Initialize bridge");
+      console.log("  bridge.ts status                    Show bridge status");
+      console.log("  bridge.ts telegram <cmd>            Telegram actions");
+      console.log("  bridge.ts sync                      Sync sessions");
+      console.log("  bridge.ts proxy <cmd> [args]        Proxy to OpenClaw CLI");
+      console.log("\nTelegram Features:");
+      console.log("  • Send messages with inline buttons");
+      console.log("  • React with emojis (configurable level)");
+      console.log("  • Send stickers");
+      console.log("  • Edit and delete messages");
   }
 }
 
 export { OpenClawBridge };
-export type { ACPMessage, ACPCommand, BridgeConfig };
+export type { ACPMessage, ACPCommand, TelegramAction, BridgeConfig };
 
 if (import.meta.main) {
-  main().catch((err) => {
-    console.error("Error:", err);
-    process.exit(1);
-  });
+  main().catch(console.error);
 }

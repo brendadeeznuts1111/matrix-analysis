@@ -19,6 +19,7 @@ import {
   FAIL,
   WARN,
   INFO,
+  ANSI,
 } from "../color.ts";
 
 describe("color", () => {
@@ -106,6 +107,39 @@ describe("color", () => {
 
     it("should return null for invalid hex8 input", () => {
       expect(toHex8("notacolor")).toBeNull();
+    });
+  });
+
+  describe("BN-064b: ANSI Constants", () => {
+    it("should export ANSI reset code", () => {
+      expect(ANSI.reset).toBe("\x1b[0m");
+    });
+
+    it("should export ANSI bold code", () => {
+      expect(ANSI.bold).toBe("\x1b[1m");
+    });
+
+    it("should export ANSI dim code", () => {
+      expect(ANSI.dim).toBe("\x1b[2m");
+    });
+
+    it("should export foreground colors", () => {
+      expect(ANSI.red).toContain("\x1b[");
+      expect(ANSI.green).toContain("\x1b[");
+      expect(ANSI.blue).toContain("\x1b[");
+      expect(ANSI.yellow).toContain("\x1b[");
+      expect(ANSI.cyan).toContain("\x1b[");
+      expect(ANSI.magenta).toContain("\x1b[");
+      expect(ANSI.white).toContain("\x1b[");
+      expect(ANSI.gray).toContain("\x1b[");
+      expect(ANSI.black).toContain("\x1b[");
+    });
+
+    it("should export background colors", () => {
+      expect(ANSI.bgRed).toContain("\x1b[");
+      expect(ANSI.bgGreen).toContain("\x1b[");
+      expect(ANSI.bgBlue).toContain("\x1b[");
+      expect(ANSI.bgYellow).toContain("\x1b[");
     });
   });
 
