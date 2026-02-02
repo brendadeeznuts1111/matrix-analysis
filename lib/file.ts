@@ -166,3 +166,52 @@ export const globAllSync = (pattern: string, cwd?: string): string[] => {
   }
   return results;
 };
+
+// ─────────────────────────────────────────────────────────────────────────────
+// BN-111: File Stream / Writer / Slice
+// ─────────────────────────────────────────────────────────────────────────────
+export const stream = (path: string): ReadableStream | null => {
+  try {
+    return Bun.file(path).stream();
+  } catch {
+    return null;
+  }
+};
+
+export const writer = (path: string): ReturnType<BunFile["writer"]> | null => {
+  try {
+    return Bun.file(path).writer();
+  } catch {
+    return null;
+  }
+};
+
+export const slice = async (
+  path: string,
+  start: number,
+  end: number
+): Promise<string | null> => {
+  try {
+    const file = Bun.file(path);
+    if (!(await file.exists())) return null;
+    return await file.slice(start, end).text();
+  } catch {
+    return null;
+  }
+};
+
+export const sliceBytes = async (
+  path: string,
+  start: number,
+  end: number
+): Promise<Uint8Array | null> => {
+  try {
+    const file = Bun.file(path);
+    if (!(await file.exists())) return null;
+    return new Uint8Array(await file.slice(start, end).arrayBuffer());
+  } catch {
+    return null;
+  }
+};
+
+type BunFile = ReturnType<typeof Bun.file>;

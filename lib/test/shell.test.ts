@@ -1,5 +1,5 @@
 import { describe, it, expect } from "bun:test";
-import { run, sh, shQuiet, lines, jsonOut, which } from "../shell.ts";
+import { run, sh, shQuiet, lines, jsonOut, which, spawn, spawnAndWait } from "../shell.ts";
 import type { RunResult } from "../shell.ts";
 
 describe("shell", () => {
@@ -89,6 +89,24 @@ describe("shell", () => {
 
     it("should return null for unknown binary", () => {
       expect(which("__nonexistent_binary_xyz__")).toBeNull();
+    });
+  });
+
+  describe("BN-113: Spawn", () => {
+    it("should spawn a process and wait for it", async () => {
+      const result = await spawnAndWait(["echo", "spawned"]);
+      expect(result.ok).toBe(true);
+      expect(result.stdout.trim()).toBe("spawned");
+    });
+
+    it("should return subprocess from spawn", () => {
+      const proc = spawn(["echo", "test"]);
+      expect(proc).not.toBeNull();
+    });
+
+    it("should handle failed spawn gracefully", async () => {
+      const result = await spawnAndWait(["__nonexistent__"]);
+      expect(result.ok).toBe(false);
     });
   });
 });

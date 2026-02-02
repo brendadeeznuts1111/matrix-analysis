@@ -110,3 +110,34 @@ export const serve = (config: ServeConfig) =>
     hostname: config.hostname ?? "127.0.0.1",
     fetch: config.fetch,
   });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// BN-112: Fetch Extensions (Bun-specific)
+// ─────────────────────────────────────────────────────────────────────────────
+export const fetchProxy = async (
+  url: string,
+  proxy: string,
+  init?: RequestInit
+): Promise<Response | null> => {
+  try {
+    return await fetch(url, { ...init, proxy } as any);
+  } catch {
+    return null;
+  }
+};
+
+export const fetchUnixSocket = async (
+  url: string,
+  socketPath: string,
+  init?: RequestInit
+): Promise<Response | null> => {
+  try {
+    return await fetch(url, { ...init, unix: socketPath } as any);
+  } catch {
+    return null;
+  }
+};
+
+export const preconnect = (url: string): void => {
+  fetch.preconnect(url);
+};

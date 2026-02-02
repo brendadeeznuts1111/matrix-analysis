@@ -75,3 +75,58 @@ export const which = (bin: string): string | null => {
     return null;
   }
 };
+
+// ─────────────────────────────────────────────────────────────────────────────
+// BN-113: Spawn (async process with streaming)
+// ─────────────────────────────────────────────────────────────────────────────
+export interface SpawnOptions {
+  cwd?: string;
+  env?: Record<string, string>;
+  stdin?: "inherit" | "pipe" | "ignore" | null;
+  stdout?: "inherit" | "pipe" | "ignore" | null;
+  stderr?: "inherit" | "pipe" | "ignore" | null;
+}
+
+export const spawn = (
+  cmd: string[],
+  options?: SpawnOptions
+): Subprocess | null => {
+  try {
+    return Bun.spawn(cmd, {
+      cwd: options?.cwd,
+      env: options?.env,
+      stdin: options?.stdin ?? "ignore",
+      stdout: options?.stdout ?? "pipe",
+      stderr: options?.stderr ?? "pipe",
+    });
+  } catch {
+    return null;
+  }
+};
+
+export const spawnAndWait = async (
+  cmd: string[],
+  options?: SpawnOptions
+): Promise<RunResult> => {
+  try {
+    const proc = Bun.spawn(cmd, {
+      cwd: options?.cwd,
+      env: options?.env,
+      stdin: options?.stdin ?? "ignore",
+      stdout: options?.stdout ?? "pipe",
+      stderr: options?.stderr ?? "pipe",
+    });
+    const exitCode = await proc.exited;
+    const stdout = proc.stdout
+      ? await Bun.readableStreamToText(proc.stdout as ReadableStream)
+      : "";
+    const stderr = proc.stderr
+      ? await Bun.readableStreamToText(proc.stderr as ReadableStream)
+      : "";
+    return { stdout, stderr, exitCode, ok: exitCode === 0 };
+  } catch {
+    return { stdout: "", stderr: "spawn failed", exitCode: 1, ok: false };
+  }
+};
+
+type Subprocess = ReturnType<typeof Bun.spawn>;

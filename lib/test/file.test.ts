@@ -15,6 +15,10 @@ import {
   globSync,
   globAllSync,
   mmap,
+  stream,
+  writer,
+  slice,
+  sliceBytes,
   readAll,
   readAllJson,
 } from "../file.ts";
@@ -232,6 +236,48 @@ describe("file", () => {
         entries.push(entry);
       }
       expect(entries.length).toBeGreaterThanOrEqual(2);
+    });
+  });
+
+  describe("BN-111: File Stream/Writer/Slice", () => {
+    it("should get readable stream from file", async () => {
+      const path = join(TMP, "stream-test.txt");
+      await Bun.write(path, "stream data");
+      const s = stream(path);
+      expect(s).not.toBeNull();
+      const text = await Bun.readableStreamToText(s!);
+      expect(text).toBe("stream data");
+    });
+
+    it("should write with writer", async () => {
+      const path = join(TMP, "writer-test.txt");
+      const w = writer(path);
+      expect(w).not.toBeNull();
+      w!.write("chunk1 ");
+      w!.write("chunk2");
+      w!.end();
+      // Small delay for flush
+      await Bun.sleep(10);
+      expect(await readText(path)).toBe("chunk1 chunk2");
+    });
+
+    it("should slice file text", async () => {
+      const path = join(TMP, "slice-test.txt");
+      await Bun.write(path, "hello world");
+      const text = await slice(path, 0, 5);
+      expect(text).toBe("hello");
+    });
+
+    it("should slice file bytes", async () => {
+      const path = join(TMP, "slice-bytes.txt");
+      await Bun.write(path, "abcdefgh");
+      const bytes = await sliceBytes(path, 2, 5);
+      expect(bytes).not.toBeNull();
+      expect(new TextDecoder().decode(bytes!)).toBe("cde");
+    });
+
+    it("should return null for missing file slice", async () => {
+      expect(await slice(join(TMP, "nope.txt"), 0, 5)).toBeNull();
     });
   });
 });
