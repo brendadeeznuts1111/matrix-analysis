@@ -343,6 +343,22 @@ kimi topic list         # List topics
 kimi project list       # List projects
 ```
 
+### Shell Completions
+
+Bash, Zsh, and Fish completions are available:
+
+```bash
+# Bash
+source ~/.kimi/skills/tier1380-openclaw/completions/kimi-completion.bash
+
+# Zsh
+source ~/.kimi/skills/tier1380-openclaw/completions/kimi-completion.zsh
+
+# Fish
+cp ~/.kimi/skills/tier1380-openclaw/completions/kimi-completion.fish \
+   ~/.config/fish/completions/kimi.fish
+```
+
 ## 🔧 Configuration
 
 ### telegram-topics.yaml

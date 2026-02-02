@@ -58,6 +58,7 @@ scripts/lib/bytes.ts             # Byte-safe utilities ⭐
 scripts/lib/jsc-monitor.ts       # JSC performance monitoring ⭐
 scripts/lib/color.ts             # Bun.color() API ⭐
 scripts/test-integration.ts      # Integration test suite
+scripts/quick-setup.ts           # Quick setup wizard
 scripts/topic-manager.ts         # Topic management
 scripts/channel-monitor.ts       # Real-time monitoring
 scripts/project-integration.ts   # Project mapping
@@ -73,11 +74,14 @@ scripts/integration-status.ts    # Unified dashboard
 kimi-shell/kimi-cli.ts           # Unified interface
 ```
 
-### Documentation (3 files)
+### Documentation (5 files)
 ```
 README.md                        # Main documentation
-TOPICS-CHANNELS.md              # Topics guide
-PROJECT-INTEGRATION.md          # Projects guide
+INTEGRATION-SUMMARY.md          # Status overview
+QUICKREF.md                     # CLI quick reference
+docs/TOPICS-CHANNELS.md         # Topics guide
+docs/PROJECT-INTEGRATION.md     # Projects guide
+completions/README.md           # Shell completions guide
 ```
 
 ---

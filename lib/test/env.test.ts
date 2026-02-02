@@ -15,6 +15,7 @@ import {
   isProd,
   isTest,
   isBun,
+  bunEnv,
   bunVersion,
   requireBunVersion,
 } from "../src/core/env.ts";
@@ -234,6 +235,21 @@ describe("env", () => {
     it("should check version range", () => {
       expect(requireBunVersion(">=1.0.0")).toBe(true);
       expect(requireBunVersion(">=999.0.0")).toBe(false);
+    });
+  });
+
+  describe("BN-054b: bunEnv", () => {
+    it("should return env object (Bun.env in Bun)", () => {
+      const env = bunEnv();
+      expect(env).toBeDefined();
+      expect(typeof env).toBe("object");
+      expect(env).toHaveProperty("PATH");
+    });
+
+    it("should match process.env when running in Bun", () => {
+      process.env.__BUN_ENV_TEST__ = "ok";
+      expect(bunEnv().__BUN_ENV_TEST__).toBe("ok");
+      delete process.env.__BUN_ENV_TEST__;
     });
   });
 });

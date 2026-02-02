@@ -2,6 +2,8 @@ import { describe, it, expect } from "bun:test";
 import {
   transpile,
   transpileAsync,
+  transpileRepl,
+  transpileReplAsync,
   scanImports,
   scanExports,
 } from "../src/core/transpiler.ts";
@@ -67,6 +69,25 @@ describe("transpiler", () => {
       const exports = scanExports(code, "ts");
       expect(exports).toContain("a");
       expect(exports).toContain("b");
+    });
+  });
+
+  describe("BN-106c: Options and REPL mode", () => {
+    it("should accept options object with loader", () => {
+      const result = transpile("const x = 1;", { loader: "ts" });
+      expect(result).not.toBeNull();
+      expect(result).toContain("const x = 1");
+    });
+
+    it("should transpile with replMode via transpileRepl", () => {
+      const result = transpileRepl("const x = 10;", "ts");
+      expect(result).not.toBeNull();
+      expect(result).toContain("x");
+    });
+
+    it("should transpileReplAsync return non-null for valid code", async () => {
+      const result = await transpileReplAsync("var y = 2;", "ts");
+      expect(result).not.toBeNull();
     });
   });
 });

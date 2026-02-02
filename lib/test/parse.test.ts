@@ -1,5 +1,5 @@
 import { describe, it, expect } from "bun:test";
-import { json, json5, toml, jsonl, jsonlChunk, loadFile, toJsonl, yaml, jsonc, loadFileV2 } from "../src/core/parse.ts";
+import { json, json5, toml, jsonl, jsonlChunk, loadFile, toJsonl, json5Stringify, yaml, jsonc, loadFileV2 } from "../src/core/parse.ts";
 
 describe("parse", () => {
   describe("BN-030: json", () => {
@@ -171,6 +171,20 @@ describe("parse", () => {
     it("should handle mixed types", () => {
       const result = toJsonl([1, "two", true]);
       expect(result).toBe('1\n"two"\ntrue\n');
+    });
+  });
+
+  describe("BN-032: json5Stringify", () => {
+    it("should stringify object to JSON5", () => {
+      const out = json5Stringify({ a: 1, b: 2 });
+      expect(out).toContain("a");
+      expect(out).toContain("b");
+      expect(json5(out)).toEqual({ a: 1, b: 2 });
+    });
+
+    it("should round-trip with json5 parse", () => {
+      const obj = { name: "test", port: 3000 };
+      expect(json5(json5Stringify(obj))).toEqual(obj);
     });
   });
 });
