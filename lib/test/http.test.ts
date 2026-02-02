@@ -170,7 +170,7 @@ describe("http", () => {
     });
 
     it("should call preconnect without throwing", () => {
-      expect(() => preconnect("https://example.com")).not.toThrow();
+      expect(() => preconnect(baseUrl)).not.toThrow();
     });
   });
 

@@ -137,6 +137,17 @@ describe("async", () => {
       expect(called).toBe(2);
       fn.cancel();
     });
+
+    it("should cancel pending throttled call", async () => {
+      let called = 0;
+      const fn = throttle(() => { called++; }, 50);
+      fn(); // immediate
+      fn(); // queued
+      expect(called).toBe(1);
+      fn.cancel(); // cancel the queued call
+      await Bun.sleep(80);
+      expect(called).toBe(1); // stayed at 1
+    });
   });
 
   describe("BN-074: deferred & withTimeout", () => {

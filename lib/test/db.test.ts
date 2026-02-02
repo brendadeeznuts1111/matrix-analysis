@@ -145,6 +145,12 @@ describe("db", () => {
       expect(queryOne(db, "SELECT * FROM t WHERE id = ?", [999])).toBeNull();
       db.close();
     });
+
+    it("should return null for queryOne on invalid SQL", () => {
+      const db = open(":memory:")!;
+      expect(queryOne(db, "SELECT * FROM nonexistent_table")).toBeNull();
+      db.close();
+    });
   });
 
   describe("BN-069b: Lifecycle & Convenience", () => {

@@ -129,6 +129,15 @@ describe("array", () => {
       expect(maxBy(items, i => i.v)).toEqual({ n: "c", v: 3 });
     });
 
+    it("should find maxBy when max is not first", () => {
+      const items = [{ v: 1 }, { v: 5 }, { v: 3 }];
+      expect(maxBy(items, i => i.v)).toEqual({ v: 5 });
+    });
+
+    it("should find maxBy with single element", () => {
+      expect(maxBy([{ v: 7 }], i => i.v)).toEqual({ v: 7 });
+    });
+
     it("should return null for empty minBy/maxBy", () => {
       expect(minBy([], () => 0)).toBeNull();
       expect(maxBy([], () => 0)).toBeNull();

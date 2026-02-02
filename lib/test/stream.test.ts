@@ -161,6 +161,18 @@ describe("stream", () => {
     it("should return null for invalid async zstd decompress", async () => {
       expect(await zstdDecompress(new Uint8Array([0, 1, 2, 3]))).toBeNull();
     });
+
+    it("should return null for zstdCompress with null input", async () => {
+      expect(await zstdCompress(null as any)).toBeNull();
+    });
+
+    it("should return null for zstdCompressSync with null input", () => {
+      expect(zstdCompressSync(null as any)).toBeNull();
+    });
+
+    it("should return null for gzip with null input", () => {
+      expect(gzip(null as any)).toBeNull();
+    });
   });
 
   describe("BN-097: Deflate/Inflate", () => {
