@@ -43,6 +43,16 @@ const COMMANDS = {
     script: "performance-monitor.ts",
     subcommands: ["watch", "snapshot", "report"],
   },
+  plugin: {
+    description: "Plugin system",
+    script: "plugin-system.ts",
+    subcommands: ["list", "commands", "exec"],
+  },
+  config: {
+    description: "Configuration manager",
+    script: "config-manager.ts",
+    subcommands: ["get", "set", "alias", "show", "reset", "path"],
+  },
 };
 
 const COLORS = {

@@ -157,3 +157,8 @@ export const generateUUIDv7WithTimestamp = (): { uuid: string; timestamp: string
 // ─────────────────────────────────────────────────────────────────────────────
 export * as polish from "./polish/index.ts";
 export * as perf from "./perf.ts";
+export * as shell from "./shell.ts";
+export * as str from "./str.ts";
+export * as parse from "./parse.ts";
+export * as crypto from "./crypto.ts";
+export * as stream from "./stream.ts";

@@ -1,0 +1,115 @@
+import { describe, it, expect } from "bun:test";
+import {
+  toText,
+  toJson,
+  toBytes,
+  toBuffer,
+  toBlob,
+  toArray,
+  fromIterable,
+  fromText,
+  peek,
+  status,
+} from "../stream.ts";
+
+const makeStream = (text: string): ReadableStream =>
+  new ReadableStream({
+    start(controller) {
+      controller.enqueue(new TextEncoder().encode(text));
+      controller.close();
+    },
+  });
+
+describe("stream", () => {
+  describe("BN-040: toText", () => {
+    it("should consume stream as text", async () => {
+      const s = makeStream("hello world");
+      expect(await toText(s)).toBe("hello world");
+    });
+  });
+
+  describe("BN-040: toJson", () => {
+    it("should consume stream as parsed JSON", async () => {
+      const s = makeStream('{"ok": true}');
+      expect(await toJson<{ ok: boolean }>(s)).toEqual({ ok: true });
+    });
+  });
+
+  describe("BN-040: toBytes", () => {
+    it("should consume stream as Uint8Array", async () => {
+      const s = makeStream("abc");
+      const bytes = await toBytes(s);
+      expect(bytes).toBeInstanceOf(Uint8Array);
+      expect(bytes.length).toBe(3);
+    });
+  });
+
+  describe("BN-040: toBuffer", () => {
+    it("should consume stream as ArrayBuffer", async () => {
+      const s = makeStream("abc");
+      const buf = await toBuffer(s);
+      expect(buf).toBeInstanceOf(ArrayBuffer);
+      expect(buf.byteLength).toBe(3);
+    });
+  });
+
+  describe("BN-040: toBlob", () => {
+    it("should consume stream as Blob", async () => {
+      const s = makeStream("hello");
+      const blob = await toBlob(s);
+      expect(blob).toBeInstanceOf(Blob);
+      expect(blob.size).toBe(5);
+    });
+  });
+
+  describe("BN-040: toArray", () => {
+    it("should consume stream as array of chunks", async () => {
+      const s = makeStream("data");
+      const arr = await toArray(s);
+      expect(arr.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe("BN-041: fromIterable", () => {
+    it("should create stream from sync iterable", async () => {
+      const s = fromIterable(["a", "b", "c"]);
+      const arr = await toArray<string>(s);
+      expect(arr).toEqual(["a", "b", "c"]);
+    });
+
+    it("should create stream from async iterable", async () => {
+      async function* gen() {
+        yield "x";
+        yield "y";
+      }
+      const s = fromIterable(gen());
+      const arr = await toArray<string>(s);
+      expect(arr).toEqual(["x", "y"]);
+    });
+  });
+
+  describe("BN-041: fromText", () => {
+    it("should create stream from text and read back", async () => {
+      const s = fromText("hello stream");
+      const text = await toText(s);
+      expect(text).toBe("hello stream");
+    });
+  });
+
+  describe("BN-042: peek/status", () => {
+    it("should peek at a resolved promise", () => {
+      const p = Promise.resolve(42);
+      expect(peek(p)).toBe(42);
+    });
+
+    it("should return fulfilled status for resolved promise", () => {
+      const p = Promise.resolve("done");
+      expect(status(p)).toBe("fulfilled");
+    });
+
+    it("should return pending status for unresolved promise", () => {
+      const p = new Promise(() => {});
+      expect(status(p)).toBe("pending");
+    });
+  });
+});
