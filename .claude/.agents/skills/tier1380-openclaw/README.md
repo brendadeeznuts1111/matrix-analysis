@@ -133,6 +133,24 @@ Uses Bun's JavaScriptCore API for low-level performance monitoring:
 - JSC sampling profiler (when available)
 - Object size estimation
 
+### Color Utility
+
+```bash
+kimi color convert <color> <format>   # Convert color format
+kimi color rgba <color>               # Get RGBA channels
+kimi color ansi <color>               # Show ANSI color code
+kimi color contrast <bg> <fg>         # Check WCAG contrast
+kimi color lighten <color> [amount]   # Lighten color
+kimi color darken <color> [amount]    # Darken color
+kimi color topics                     # Show topic colors
+```
+
+Uses Bun.color() API for color parsing and conversion:
+- Heap usage tracking
+- Memory delta monitoring
+- JSC sampling profiler (when available)
+- Object size estimation
+
 ## 📊 Telegram Topics
 
 | ID | Name | Icon | Priority | Purpose |
@@ -241,6 +259,39 @@ const { result, memoryDelta } = await monitorMemory(async () => {
 
 // Serialize for IPC (structured clone algorithm)
 const buffer = serializeForIPC(largeObject);
+```
+
+### Color Utility (Bun.color API)
+
+```typescript
+// scripts/lib/color.ts
+import {
+  getRGBA,
+  getHexColor,
+  getANSIColor,
+  blendColors,
+  lighten,
+  darken,
+  getContrastRatio,
+  meetsWCAG
+} from "./lib/color.ts";
+
+// Get RGBA channels
+const rgba = getRGBA("#4CAF50"); // { r: 76, g: 175, b: 80, a: 1 }
+
+// Convert formats
+const hex = getHexColor("red");           // "#ff0000"
+const ansi = getANSIColor("#4CAF50");     // "\x1b[38;2;76;175;80m"
+const css = getCSSColor(0xff0000);        // "red"
+
+// Color manipulation
+const lighter = lighten("#4CAF50", 0.2);  // Lighten by 20%
+const darker = darken("#4CAF50", 0.2);    // Darken by 20%
+const blended = blendColors("red", "blue", 0.5);
+
+// WCAG contrast checking
+const ratio = getContrastRatio("white", "black"); // 21:1
+const passesAA = meetsWCAG("#4CAF50", "white");   // true
 ```
 
 ## 🧪 Testing

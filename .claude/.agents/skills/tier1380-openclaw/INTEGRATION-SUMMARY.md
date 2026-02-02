@@ -52,10 +52,11 @@ config/telegram-topics.yaml      # Topic definitions & routing
 config/project-topics.yaml       # Project mappings
 ```
 
-### Scripts (10 files)
+### Scripts (11 files)
 ```
 scripts/lib/bytes.ts             # Byte-safe utilities ⭐
 scripts/lib/jsc-monitor.ts       # JSC performance monitoring ⭐
+scripts/lib/color.ts             # Bun.color() API ⭐
 scripts/topic-manager.ts         # Topic management
 scripts/channel-monitor.ts       # Real-time monitoring
 scripts/project-integration.ts   # Project mapping
@@ -209,6 +210,17 @@ kimi perf timezone [tz]       # Get/set timezone
 kimi perf describe [value]    # Describe a value
 kimi perf snapshot            # Full snapshot (JSON)
 kimi perf drain               # Drain pending microtasks
+```
+
+### Color Utility
+```bash
+kimi color convert <color> <fmt>  # Convert color format
+kimi color rgba <color>           # Get RGBA channels
+kimi color ansi <color>           # Show ANSI color
+kimi color contrast <bg> <fg>     # WCAG contrast check
+kimi color lighten <c> [amt]      # Lighten color
+kimi color darken <c> [amt]       # Darken color
+kimi color topics                 # Show topic colors
 ```
 
 ---
