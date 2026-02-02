@@ -53,6 +53,16 @@ const COMMANDS = {
     script: "config-manager.ts",
     subcommands: ["get", "set", "alias", "show", "reset", "path"],
   },
+  session: {
+    description: "Session management",
+    script: "session-manager.ts",
+    subcommands: ["create", "list", "switch", "export", "import", "archive"],
+  },
+  error: {
+    description: "Error handling",
+    script: "error-handler.ts",
+    subcommands: ["logs", "retry", "test"],
+  },
 };
 
 const COLORS = {
