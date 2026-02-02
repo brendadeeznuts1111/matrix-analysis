@@ -64,7 +64,7 @@ routing:
       topic: 2
       priority: urgent
       
-    - pattern: "^\[LOG\]|^\[METRIC\]"
+    - pattern: '^\[LOG\]|^\[METRIC\]'
       topic: 5
       priority: low
       
