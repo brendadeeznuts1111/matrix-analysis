@@ -8,6 +8,7 @@
 import { BunArchiveCLI } from './bun-archive-cli';
 import { FactoryWagerNativeRenderer } from './fm-render-native';
 import { FactoryWagerNativeMarkdown } from './native-markdown-supremacy';
+import { ReleaseOrchestrator, parseReleaseArgs } from './fw-release';
 
 class FactoryWagerCLI {
   private version = '5.0.0';
@@ -42,6 +43,9 @@ class FactoryWagerCLI {
         break;
       case 'demo':
         await this.handleDemo(args.slice(1));
+        break;
+      case 'release':
+        await this.handleRelease(args.slice(1));
         break;
       case '--version':
       case '-v':
@@ -153,6 +157,14 @@ class FactoryWagerCLI {
     console.log(`✅ Health check complete`);
   }
 
+  private async handleRelease(args: string[]): Promise<void> {
+    const opts = parseReleaseArgs(args);
+    if (!opts) { process.exit(127); return; }
+    const orchestrator = new ReleaseOrchestrator(opts);
+    const code = await orchestrator.run();
+    if (code !== 0) process.exit(code);
+  }
+
   private async handleDemo(args: string[]): Promise<void> {
     const archiveCLI = new BunArchiveCLI();
     const options = {
@@ -209,6 +221,13 @@ class FactoryWagerCLI {
     console.log(`  analyze     Analyze FactoryWager configuration`);
     console.log(`    <config>   Configuration file to analyze`);
     console.log(``);
+    console.log(`  release     Release orchestrator (analyze → gate → deploy → finalize)`);
+    console.log(`    <config>   Configuration file (default: config.yaml)`);
+    console.log(`    --version=<ver>  Semantic version (required)`);
+    console.log(`    --yes            Auto-confirm for CI/CD`);
+    console.log(`    --dry-run        Simulate deployment`);
+    console.log(`    --from=<ref>     Base git ref for changelog`);
+    console.log(``);
     console.log(`  health      Check system health`);
     console.log(`    --verbose  Detailed health report`);
     console.log(``);
@@ -224,6 +243,9 @@ class FactoryWagerCLI {
     console.log(`  factory-wager archive status`);
     console.log(`  factory-wager render README.md --chromatic`);
     console.log(`  factory-wager health --verbose`);
+    console.log(`  factory-wager release config.yaml --version=1.3.0`);
+    console.log(`  factory-wager release config.yaml --version=1.3.0 --yes`);
+    console.log(`  factory-wager release config.yaml --version=1.3.0 --dry-run`);
     console.log(`  factory-wager demo --markdown`);
   }
 }
