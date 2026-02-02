@@ -1,5 +1,5 @@
 import { describe, it, expect } from "bun:test";
-import { html, render } from "../src/core/markdown.ts";
+import { html, render, parseMdTable, parseMdListItems } from "../src/core/markdown.ts";
 import type { MarkdownOptions } from "../src/core/markdown.ts";
 
 describe("markdown", () => {
@@ -105,6 +105,56 @@ describe("markdown", () => {
       });
       expect(result).not.toBeNull();
       expect(headingCalled).toBe(true);
+    });
+  });
+
+  describe("BN-103b: parseMdTable / parseMdListItems", () => {
+    const sampleMd = `# Report
+
+## Bundle Summary
+| Metric | Value | Notes |
+|--------|-------|-------|
+| Total Size | 4,510 B | Minified |
+| Entry Points | 1 | ./index.ts |
+
+## Outputs
+| Path | Size | Kind |
+|------|------|------|
+| index.jsc | 4,510 B | entry-point |
+
+## Composition Breakdown
+- Core: 1,950 B (43%)
+- Crypto: 1,080 B (24%)
+`;
+
+    it("should parse table under section heading", () => {
+      const summary = parseMdTable(sampleMd, "Bundle Summary");
+      expect(summary.length).toBe(2);
+      expect(summary[0].Metric).toBe("Total Size");
+      expect(summary[0].Value).toBe("4,510 B");
+      expect(summary[1].Metric).toBe("Entry Points");
+    });
+
+    it("should parse Outputs table", () => {
+      const outputs = parseMdTable(sampleMd, "Outputs");
+      expect(outputs.length).toBe(1);
+      expect(outputs[0].Path).toBe("index.jsc");
+      expect(outputs[0].Kind).toBe("entry-point");
+    });
+
+    it("should return empty array for missing section", () => {
+      expect(parseMdTable(sampleMd, "Missing Section")).toEqual([]);
+    });
+
+    it("should parse list items under section heading", () => {
+      const items = parseMdListItems(sampleMd, "Composition Breakdown");
+      expect(items.length).toBe(2);
+      expect(items[0]).toContain("Core");
+      expect(items[1]).toContain("Crypto");
+    });
+
+    it("should return empty array for missing list section", () => {
+      expect(parseMdListItems(sampleMd, "Missing List")).toEqual([]);
     });
   });
 });

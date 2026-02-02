@@ -30,6 +30,49 @@ This skill provides comprehensive management capabilities for the OpenClaw/Matri
 
 ## Quick Commands
 
+### Topic-Project-Channel Integration (NEW)
+
+```bash
+# Setup
+kimi setup                    # Quick setup wizard
+kimi test                     # Run integration tests
+
+# Integration status
+kimi integration              # View full integration status
+kimi integration stats        # Statistics
+kimi integration matrix       # Topic-project matrix
+
+# Topic management
+kimi topic list               # List Telegram topics
+kimi topic super              # Show super topics
+kimi topic route "message"    # Test message routing
+
+# Project management
+kimi project list             # List projects
+kimi project route <msg>      # Test project routing
+kimi project current          # Show current project
+
+# Git hooks
+kimi hooks install            # Install for all projects
+kimi hooks list               # Show installed hooks
+
+# File watch
+kimi watch start              # Watch all projects
+kimi watch status             # Show watch status
+
+# Notifications
+kimi notify rules             # Show notification rules
+kimi notify test <p> <e>      # Test notification
+
+# Performance monitoring
+kimi perf memory              # JSC memory report
+kimi perf snapshot            # Full JSON snapshot
+
+# Color utility
+kimi color topics             # Show topic colors
+kimi color convert <c> <fmt>  # Convert color format
+```
+
 ### Status & Monitoring
 
 ```bash
@@ -304,12 +347,62 @@ ls -la ~/.matrix/.migrated-from-clawdbot
 matrix-agent migrate --force
 ```
 
-## Scripts Reference
+## Topic-Project Integration Components
+
+### Configuration Files
+```
+~/.kimi/skills/tier1380-openclaw/
+├── config/
+│   ├── telegram-topics.yaml       # 4-topic configuration
+│   └── project-topics.yaml        # Project mappings
+├── scripts/
+│   ├── topic-manager.ts           # Topic management
+│   ├── project-integration.ts     # Project mapping
+│   ├── topic-git-hooks.ts         # Git hook management
+│   ├── project-watch.ts           # File watcher
+│   ├── github-webhook-bridge.ts   # GitHub integration
+│   ├── notification-manager.ts    # Notification rules
+│   ├── integration-status.ts      # Status dashboard
+│   ├── test-integration.ts        # Test suite
+│   ├── quick-setup.ts             # Setup wizard
+│   └── lib/
+│       ├── bytes.ts               # Byte-safe utilities
+│       ├── jsc-monitor.ts         # JSC performance
+│       └── color.ts               # Color utilities
+├── completions/                    # Shell completions
+│   ├── kimi-completion.bash
+│   ├── kimi-completion.zsh
+│   └── kimi-completion.fish
+└── docs/
+    ├── TOPICS-CHANNELS.md
+    ├── PROJECT-INTEGRATION.md
+    ├── QUICKREF.md                # CLI quick reference
+    └── README.md
+```
+
+### Telegram Topics
+| ID | Name | Purpose | Auto-Routing |
+|----|------|---------|--------------|
+| 1 | General 📢 | Status, discussion | `docs:`, `status:` |
+| 2 | Alerts 🚨 | Critical errors | `fix:`, `ERROR:` |
+| 5 | Logs 📊 | Monitoring output | `log:`, `chore:` |
+| 7 | Development 💻 | Code, PRs | `feat:`, `test:` |
+
+### Scripts Reference
 
 | Script | Purpose |
 |--------|---------|
 | `scripts/openclaw-integration.ts` | Main integration CLI |
 | `scripts/generate-commit.ts` | Commit message generator |
+| `scripts/topic-manager.ts` | Telegram topic management |
+| `scripts/project-integration.ts` | Project mapping |
+| `scripts/topic-git-hooks.ts` | Git hook installer |
+| `scripts/project-watch.ts` | File system watcher |
+| `scripts/github-webhook-bridge.ts` | GitHub webhook handler |
+| `scripts/notification-manager.ts` | Notification rules |
+| `scripts/integration-status.ts` | Status dashboard |
+| `scripts/test-integration.ts` | Integration test suite |
+| `scripts/quick-setup.ts` | Setup wizard |
 | `scripts/monitoring/cli-status.ts` | Real-time status display |
 | `scripts/monitoring/start-monitoring.sh` | Start monitoring stack |
 | `scripts/monitoring/stop-monitoring.sh` | Stop monitoring stack |
@@ -411,4 +504,22 @@ ocinfo                              # Alias
 
 ---
 
-*Updated: 2026-01-31 | Tier-1380 OpenClaw Integration v1.0.0*
+*Updated: 2026-02-02 | Tier-1380 OpenClaw Integration v1.1.0*
+
+## Changelog
+
+### v1.1.0 (2026-02-02)
+- Added Topic-Project-Channel integration
+- 4 Telegram topics with auto-routing
+- 3 projects with git hooks
+- 25 automated integration tests
+- Shell completions (Bash, Zsh, Fish)
+- Bun.color() API integration
+- Bun.jsc API integration
+- Byte-safe file operations
+
+### v1.0.0 (2026-01-31)
+- Initial OpenClaw Gateway integration
+- Matrix Agent migration from clawdbot
+- Telegram Bot (@mikehuntbot_bot)
+- Unified CLI with MCP bridge
