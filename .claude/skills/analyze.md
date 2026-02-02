@@ -3,7 +3,7 @@ name: analyze
 description: "Code analysis and refactoring patterns. Use when exploring codebases, searching for patterns, or reading large files efficiently."
 user-invocable: true
 
-version: 1.2.0
+version: 1.3.0
 
 profile:
   title: "Code Analysis & Refactoring"
@@ -27,7 +27,7 @@ expertise:
 metrics:
   patterns_covered: 12
   examples_included: 24
-  cli_commands: 9
+  cli_commands: 11
 ---
 
 # Code Analysis & Refactoring
@@ -53,6 +53,8 @@ bun ~/.claude/core/analysis/cli.ts <command> [path] [options]
 | `deps [path]` | optional | `.` | table json | `-r` `--export-markdown` `--export-csv` `-o` |
 | `classes [path]` | optional | `.` | tree table dot | |
 | `strength [path]` | optional | `.` | table json | `-r` `--export-markdown` `--export-csv` `-o` |
+| `rename <path> <old> <new>` | **required** | — | — | `--no-dry-run` (default: dry-run) |
+| `polish [path]` | optional | `.` | — | report-only (auto-apply v1.4) |
 | `scan <file>` | **required** | — | — | |
 | `ddd <file> [ctx] [root]` | **required** | — | — | ctx=`AccountManagement` root=`AccountAgent` |
 | `benchmark` | none | — | — | |
@@ -69,6 +71,8 @@ bun ~/.claude/core/analysis/cli.ts <command> [path] [options]
 | `--export-markdown` | — | off | Export Markdown report |
 | `--export-csv` | — | off | Export CSV report |
 | `--output` | `-o` | auto | Custom output path for reports |
+| `--depth` | — | — | Filter files by directory depth |
+| `--threshold` | — | — | Filter results by minimum value |
 | `--help` | `-h` | — | Show help for a command |
 
 ### Command Details
@@ -120,6 +124,20 @@ bun ~/.claude/core/analysis/cli.ts classes src/ -f dot | dot -Tpng -o classes.pn
 bun ~/.claude/core/analysis/cli.ts strength src/
 bun ~/.claude/core/analysis/cli.ts strength . -f json
 bun ~/.claude/core/analysis/cli.ts strength src/ -r --export-markdown
+```
+
+**`rename`** — Symbol renaming across files. Dry-run by default for safety.
+
+```bash
+bun ~/.claude/core/analysis/cli.ts rename src/ getUserById fetchUserById
+bun ~/.claude/core/analysis/cli.ts rename src/ oldName newName --no-dry-run
+```
+
+**`polish`** — Code quality checker: naming conventions, unused imports, missing type annotations. Report-only in v1.3 (`--auto-apply` planned for v1.4).
+
+```bash
+bun ~/.claude/core/analysis/cli.ts polish src/
+bun ~/.claude/core/analysis/cli.ts polish .
 ```
 
 **`scan`** — Variable naming conflict detection within scopes (requires file path).
@@ -477,6 +495,7 @@ Grep({ pattern: target, path: "tests/", output_mode: "files_with_matches" });
 
 ## Version History
 
+- **v1.3** (2026-02-02): Added rename/polish commands, --depth/--threshold flags, fixed classes dot format, Bun API modernization (stripANSI, stringWidth, Col-89)
 - **v1.2** (2026-01-26): Added CLI commands section with classes and strength analyzers
 - **v1.1** (2026-01-25): Added error handling, fallback chains, search tracking
 - **v1.0** (2026-01-25): Initial release with Read/Grep patterns
