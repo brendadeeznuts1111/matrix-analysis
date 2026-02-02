@@ -96,6 +96,11 @@ describe("color", () => {
       expect(convert("not-a-valid-color-at-all-xyz", "hex")).toBeNull();
     });
 
+    it("should return null for convert that throws", () => {
+      // Bun.color throws for undefined/object inputs
+      expect(convert(undefined as any, "hex")).toBeNull();
+    });
+
     it("should colorize with an invalid hex gracefully", () => {
       // When Bun.color returns null, colorize should return plain text
       const result = colorize("hello", "not-a-hex");

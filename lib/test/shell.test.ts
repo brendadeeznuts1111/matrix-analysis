@@ -90,6 +90,10 @@ describe("shell", () => {
     it("should return null for unknown binary", () => {
       expect(which("__nonexistent_binary_xyz__")).toBeNull();
     });
+
+    it("should return null for empty string binary", () => {
+      expect(which("")).toBeNull();
+    });
   });
 
   describe("BN-113: Spawn", () => {

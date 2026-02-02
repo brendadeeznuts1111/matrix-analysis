@@ -52,5 +52,9 @@ describe("markdown", () => {
       expect(result).not.toBeNull();
       expect(result).toContain("Title");
     });
+
+    it("should return null for non-string input", () => {
+      expect(html(null as any)).toBeNull();
+    });
   });
 });

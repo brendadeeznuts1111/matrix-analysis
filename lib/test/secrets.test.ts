@@ -29,5 +29,17 @@ describe("secrets", () => {
       const ok = await remove(SERVICE, "never-existed-xyz-123");
       expect(typeof ok).toBe("boolean");
     });
+
+    it("should return null for get with empty service", async () => {
+      expect(await get("", "")).toBeNull();
+    });
+
+    it("should return false for set with empty service", async () => {
+      expect(await set("", "", "x")).toBe(false);
+    });
+
+    it("should return false for remove with empty service", async () => {
+      expect(await remove("", "")).toBe(false);
+    });
   });
 });

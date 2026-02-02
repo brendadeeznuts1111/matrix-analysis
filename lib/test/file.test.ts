@@ -133,6 +133,14 @@ describe("file", () => {
     it("should return null for stat on deeply nested missing path", async () => {
       expect(await stat("/nonexistent/deeply/nested/path/file.txt")).toBeNull();
     });
+
+    it("should return null for stat with null byte path", async () => {
+      expect(await stat("\0")).toBeNull();
+    });
+
+    it("should return false for remove with null byte path", async () => {
+      expect(await remove("\0")).toBe(false);
+    });
   });
 
   describe("BN-047c: mkdir & copyFile", () => {
@@ -294,11 +302,16 @@ describe("file", () => {
       expect(await sliceBytes(join(TMP, "nope.txt"), 0, 5)).toBeNull();
     });
 
-    it("should return null for stream of missing file", () => {
-      const s = stream("/nonexistent/deep/path/file.txt");
-      // stream() may or may not return null depending on Bun behavior
-      // for non-existent paths - the important thing is it doesn't throw
-      expect(s === null || s instanceof ReadableStream).toBe(true);
+    it("should return null for stream with null byte path", () => {
+      expect(stream("\0")).toBeNull();
+    });
+
+    it("should return null for writer with null byte path", () => {
+      expect(writer("\0")).toBeNull();
+    });
+
+    it("should return null for slice with null byte path", async () => {
+      expect(await slice("\0", 0, 5)).toBeNull();
     });
 
     it("should return writer for valid path", () => {

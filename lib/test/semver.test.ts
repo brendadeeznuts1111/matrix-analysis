@@ -54,5 +54,13 @@ describe("semver", () => {
     it("should return 0 for order with invalid semver", () => {
       expect(order("", "")).toBe(0);
     });
+
+    it("should return 0 for order with null input", () => {
+      expect(order(null as any, null as any)).toBe(0);
+    });
+
+    it("should return false for satisfies with null input", () => {
+      expect(satisfies(null as any, ">=1.0.0")).toBe(false);
+    });
   });
 });

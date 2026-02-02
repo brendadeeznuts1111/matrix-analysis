@@ -1,4 +1,3 @@
 {"id":"019c1ca7-a468-7000-9d67-5a3271823e8b","ts":"2026-02-02T04:41:14.601Z","source":"stdin","message":"piped feedback test","email":"test@example.com","files":[],"meta":{"cwd":"/Users/nolarose","bunVersion":"1.3.6","platform":"darwin"}}
-{"id":"019c1ca8-3cbd-7000-82c9-3f8e52ed1a9a","ts":"2026-02-02T04:41:53.599Z","source":"stdin","message":"piped","email":null,"files":[],"meta":{"cwd":"/Users/nolarose","bunVersion":"1.3.6","platform":"darwin"}}
 {"id":"019c1ca8-9364-7000-809f-80a7a3a10133","ts":"2026-02-02T04:42:15.781Z","source":"file","message":"file content A\n\n---\nfile content B\n","email":null,"files":["/tmp/fb-test-a.txt","/tmp/fb-test-b.txt"],"meta":{"cwd":"/Users/nolarose","bunVersion":"1.3.6","platform":"darwin"}}
 {"id":"019c1cb1-e1a6-7000-9347-05a9f4b34d3b","ts":"2026-02-02T04:52:25.640Z","source":"stdin","message":"testing new features","email":null,"files":[],"meta":{"cwd":"/Users/nolarose","bunVersion":"1.3.6","platform":"darwin"}}

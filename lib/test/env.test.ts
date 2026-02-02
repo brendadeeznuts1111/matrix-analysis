@@ -65,6 +65,17 @@ describe("env", () => {
       process.env.TEST_VAR = "required-val";
       expect(getRequired("TEST_VAR")).toBe("required-val");
     });
+
+    it("should exit with code 1 for missing required var", async () => {
+      const proc = Bun.spawn(["bun", "-e", `
+        import { getRequired } from "${import.meta.dir}/../env.ts";
+        getRequired("__NONEXISTENT_REQUIRED_VAR_XYZ__");
+      `], { stdout: "pipe", stderr: "pipe" });
+      const exitCode = await proc.exited;
+      expect(exitCode).toBe(1);
+      const stderr = await new Response(proc.stderr).text();
+      expect(stderr).toContain("__NONEXISTENT_REQUIRED_VAR_XYZ__");
+    });
   });
 
   describe("BN-051: Typed Getters", () => {

@@ -118,6 +118,21 @@ const COMMANDS = {
     script: "../scripts/github-webhook-bridge.ts",
     subcommands: ["simulate", "server", "test"],
   },
+  hooks: {
+    description: "Git hooks for topic routing",
+    script: "../scripts/topic-git-hooks.ts",
+    subcommands: ["install", "uninstall", "list"],
+  },
+  watch: {
+    description: "File watcher for projects",
+    script: "../scripts/project-watch.ts",
+    subcommands: ["start", "status"],
+  },
+  integration: {
+    description: "Integration status dashboard",
+    script: "../scripts/integration-status.ts",
+    subcommands: ["stats", "matrix"],
+  },
 };
 
 const COLORS = {

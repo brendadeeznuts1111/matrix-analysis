@@ -66,5 +66,9 @@ describe("archive", () => {
     it("should return null for extractBytes missing filename", async () => {
       expect(await extractBytes(tarData, "nope.txt")).toBeNull();
     });
+
+    it("should return null for toBlob on null data", async () => {
+      expect(await toBlob(null as any)).toBeNull();
+    });
   });
 });
