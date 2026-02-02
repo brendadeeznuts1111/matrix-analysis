@@ -45,20 +45,10 @@ ab-snapshots.db
 .npm/
 .zai/
 /bin/
-/lib/
 
 # OS and Editor files
 .Trash/
 *.backup
-
-# Shell and CLI configurations
-.bashrc
-.bash_*
-.zsh_*
-.zcompdump*
-.zprofile
-.zshenv
-.gitconfig
 
 # Bun specific
 .bun/
@@ -69,17 +59,6 @@ ab-snapshots.db
 .bunx/
 bunfig.toml
 
-# Development tools
-.aitk/
-.android/
-.chelper/
-.openclawd/
-
-# Development tool configurations
-.angular-config.json
-.antigravity/
-.azure*
-.cargo/
 # Claude config (but allow examples)
 # NOTE: .claude/.gitignore contains ENHANCED exclusions for agent/MCP/ACP performance
 # See .claude/.gitignore for detailed exclusions of high-duplication directories
@@ -111,74 +90,18 @@ bunfig.toml
 !.claude/matrix/
 !.claude/matrix/**
 .claude.json*
-.cline/
-.cloudflared/
-.codeium/
-.codex/
-.copilot/
+
+# Development tool configs
 .cursor/
-.docker/
-.gemini/
-.git-credentials
-.gnupg/
-.kalshi/
-.kilocode/
-.kimi/
-.kimi-ide/
-.local/
-.matrix/
-.mcp*
-.npmrc
-.parallel/
-.pty-registry/
-.redhat/
-.rest-client/
-.ripgreprc
-.rustup/
-.shell_backups/
-.sigstore/
-.sportsbook-cli/
-.ssh/
-.swiftpm/
-.tmux*
-.viminfo
-.windsurf/
-.worktreeinclude
 .wrangler/
-.yarn/
-.z*
 
-# User directories (should not be in git repo)
-Applications/
-Archives/
-Desktop/
-Documents/
-Downloads/
-Library/
-Movies/
-Music/
-Pictures/
-
-# Config directories
-.config/*
-!.config/git/
-!.config/git/hooks/
-
-# Development directories
-dev/
-docs/Quick Table Format Reference.ini
-docs/tablformating/
-dotfiles/
-go/
+# Skills (allow .claude/skills)
 skills/
 !.claude/skills/
 !.claude/skills/*.md
 !.claude/.agents/skills/
 !.claude/.agents/skills/**
 /test/
-
-# Project directories (if not meant to be tracked)
-Projects/
 
 # Test reports and benchmarks
 reports/junit.xml
