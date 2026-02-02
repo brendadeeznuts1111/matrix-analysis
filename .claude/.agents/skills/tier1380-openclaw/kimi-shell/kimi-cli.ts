@@ -68,6 +68,26 @@ const COMMANDS = {
     script: "job-queue.ts",
     subcommands: ["run", "list", "status", "logs", "cancel", "delete", "cleanup"],
   },
+  log: {
+    description: "Structured logging",
+    script: "logger.ts",
+    subcommands: ["test", "query", "tail", "path"],
+  },
+  security: {
+    description: "Security validation",
+    script: "security-guard.ts",
+    subcommands: ["validate", "check-path", "policy", "test"],
+  },
+  notify: {
+    description: "Notification system",
+    script: "notify.ts",
+    subcommands: ["send", "desktop", "trigger", "rules", "test"],
+  },
+  update: {
+    description: "Auto-update manager",
+    script: "auto-update.ts",
+    subcommands: ["check", "install", "skip", "auto", "status", "rollback"],
+  },
 };
 
 const COLORS = {
