@@ -54,14 +54,18 @@ export const muted = (text: string): string => colorize(text, PALETTE.muted);
 // ─────────────────────────────────────────────────────────────────────────────
 // BN-063: Hex Conversion
 // ─────────────────────────────────────────────────────────────────────────────
-export type ColorFormat = "hex" | "HEX" | "rgb" | "hsl" | "number" | "ansi-16m";
+export type ColorFormat = "hex" | "HEX" | "rgb" | "rgba" | "hsl" | "number" | "ansi-16m" | "css";
 
 export const convert = (
   input: string | number | [number, number, number],
   format: ColorFormat = "hex"
 ): string | null => {
-  const result = Bun.color(input as Parameters<typeof Bun.color>[0], format as "hex");
-  return result ?? null;
+  try {
+    const result = Bun.color(input as Parameters<typeof Bun.color>[0], format as "hex");
+    return result ?? null;
+  } catch {
+    return null;
+  }
 };
 
 export const toHex = (input: string | number | [number, number, number]): string | null =>
@@ -72,6 +76,18 @@ export const toRgb = (hex: string): string | null =>
 
 export const toHsl = (hex: string): string | null =>
   convert(hex, "hsl");
+
+export const toHex8 = (input: string | number | [number, number, number, number?]): string | null => {
+  try {
+    const rgba = Bun.color(input as Parameters<typeof Bun.color>[0], "[rgba]" as "hex") as unknown as number[] | null;
+    if (!rgba || rgba.length < 3) return null;
+    const hex = (n: number) => Math.round(n).toString(16).padStart(2, "0");
+    const [r, g, b, a = 255] = rgba;
+    return `#${hex(r)}${hex(g)}${hex(b)}${hex(a)}`;
+  } catch {
+    return null;
+  }
+};
 
 // ─────────────────────────────────────────────────────────────────────────────
 // BN-064: Status Symbols

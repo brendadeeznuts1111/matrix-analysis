@@ -1,5 +1,5 @@
 import { describe, it, expect } from "bun:test";
-import { run, lines, jsonOut, which } from "../shell.ts";
+import { run, sh, shQuiet, lines, jsonOut, which } from "../shell.ts";
 import type { RunResult } from "../shell.ts";
 
 describe("shell", () => {
@@ -22,6 +22,31 @@ describe("shell", () => {
     it("should not throw on invalid command", async () => {
       const result = await run(["__nonexistent_binary_xyz__"]);
       expect(result.ok).toBe(false);
+    });
+  });
+
+  describe("BN-021: sh template", () => {
+    it("should execute simple command", async () => {
+      const result = await sh`echo hello`;
+      expect(result).toBe("hello");
+    });
+
+    it("should interpolate single argument", async () => {
+      const name = "world";
+      const result = await sh`echo ${name}`;
+      expect(result).toBe("world");
+    });
+
+    it("should interpolate multiple arguments", async () => {
+      const a = "foo";
+      const b = "bar";
+      const result = await sh`echo ${a} ${b}`;
+      expect(result).toBe("foo bar");
+    });
+
+    it("should work with shQuiet", async () => {
+      const result = await shQuiet`echo quiet`;
+      expect(result).toBe("quiet");
     });
   });
 

@@ -41,6 +41,43 @@ export const exists = async (path: string): Promise<boolean> =>
   Bun.file(path).exists();
 
 // ─────────────────────────────────────────────────────────────────────────────
+// BN-047b: Stat & Delete
+// ─────────────────────────────────────────────────────────────────────────────
+export interface FileStat {
+  size: number;
+  mtime: Date;
+  isFile: boolean;
+  isDirectory: boolean;
+}
+
+export const stat = async (path: string): Promise<FileStat | null> => {
+  try {
+    const file = Bun.file(path);
+    if (!(await file.exists())) return null;
+    const { size, lastModified } = file;
+    const s = require("node:fs").statSync(path);
+    return {
+      size,
+      mtime: new Date(lastModified),
+      isFile: s.isFile(),
+      isDirectory: s.isDirectory(),
+    };
+  } catch {
+    return null;
+  }
+};
+
+export const remove = async (path: string): Promise<boolean> => {
+  try {
+    const { unlinkSync } = require("node:fs");
+    unlinkSync(path);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
 // BN-048: Glob Scanner
 // ─────────────────────────────────────────────────────────────────────────────
 export async function* glob(pattern: string, cwd?: string): AsyncGenerator<string> {

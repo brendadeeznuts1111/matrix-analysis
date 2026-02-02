@@ -14,6 +14,7 @@ import {
   toHex,
   toRgb,
   toHsl,
+  toHex8,
   OK,
   FAIL,
   WARN,
@@ -93,6 +94,18 @@ describe("color", () => {
     it("should support explicit format", () => {
       const result = convert("red", "HEX");
       expect(result).toBe("#FF0000");
+    });
+
+    it("should convert to hex8 with full alpha", () => {
+      const result = toHex8("red");
+      expect(result).toBeString();
+      expect(result!.startsWith("#")).toBe(true);
+      expect(result!.length).toBe(9);
+      expect(result!.slice(0, 7)).toBe("#ff0000");
+    });
+
+    it("should return null for invalid hex8 input", () => {
+      expect(toHex8("notacolor")).toBeNull();
     });
   });
 

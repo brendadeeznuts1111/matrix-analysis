@@ -6,6 +6,8 @@ import {
   writeText,
   writeJson,
   exists,
+  stat,
+  remove,
   glob,
   globAll,
   readAll,
@@ -89,6 +91,34 @@ describe("file", () => {
 
     it("should return false for missing file", async () => {
       expect(await exists(join(TMP, "missing.txt"))).toBe(false);
+    });
+  });
+
+  describe("BN-047b: Stat & Delete", () => {
+    it("should return stat for existing file", async () => {
+      const path = join(TMP, "stat.txt");
+      await Bun.write(path, "hello");
+      const s = await stat(path);
+      expect(s).not.toBeNull();
+      expect(s!.size).toBe(5);
+      expect(s!.isFile).toBe(true);
+      expect(s!.isDirectory).toBe(false);
+      expect(s!.mtime).toBeInstanceOf(Date);
+    });
+
+    it("should return null for missing file", async () => {
+      expect(await stat(join(TMP, "no-stat.txt"))).toBeNull();
+    });
+
+    it("should remove a file", async () => {
+      const path = join(TMP, "to-remove.txt");
+      await Bun.write(path, "bye");
+      expect(await remove(path)).toBe(true);
+      expect(await exists(path)).toBe(false);
+    });
+
+    it("should return false removing missing file", async () => {
+      expect(await remove(join(TMP, "already-gone.txt"))).toBe(false);
     });
   });
 

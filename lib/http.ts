@@ -83,6 +83,18 @@ export const textResponse = (body: string, status = 200): Response =>
     headers: { "Content-Type": "text/plain; charset=utf-8" },
   });
 
+export const cachedJsonResponse = <T>(data: T, status = 200): (() => Response) => {
+  const body = JSON.stringify(data);
+  const headers = { "Content-Type": "application/json" };
+  return () => new Response(body, { status, headers });
+};
+
+export const streamResponse = (stream: ReadableStream, status = 200): Response =>
+  new Response(stream, {
+    status,
+    headers: { "Content-Type": "application/octet-stream" },
+  });
+
 // ─────────────────────────────────────────────────────────────────────────────
 // BN-059: Serve Helper
 // ─────────────────────────────────────────────────────────────────────────────

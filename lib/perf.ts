@@ -151,26 +151,9 @@ export const printRuntimeMetrics = (): void => {
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// BN-015: Response Helpers (Bun.serve patterns)
+// BN-015: Response Helpers (re-exported from http.ts)
 // ─────────────────────────────────────────────────────────────────────────────
-
-/** JSON response — wraps Response.json() with auto Content-Type */
-export const jsonResponse = <T>(data: T, status = 200): Response =>
-  Response.json(data, { status });
-
-/** Pre-stringify for repeated responses (cache the string, skip serialization) */
-export const cachedJsonResponse = <T>(data: T, status = 200): (() => Response) => {
-  const body = JSON.stringify(data);
-  const headers = { "Content-Type": "application/json" };
-  return () => new Response(body, { status, headers });
-};
-
-/** Streaming JSON response for large payloads */
-export const streamResponse = (stream: ReadableStream, status = 200): Response =>
-  new Response(stream, {
-    status,
-    headers: { "Content-Type": "application/octet-stream" },
-  });
+export { jsonResponse, cachedJsonResponse, streamResponse } from "./http.ts";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // BN-016: Nano Timer (Bun.nanoseconds wrapper)

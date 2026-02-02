@@ -7,6 +7,8 @@ import {
   jsonResponse,
   errorResponse,
   textResponse,
+  cachedJsonResponse,
+  streamResponse,
   serve,
 } from "../http.ts";
 
@@ -128,6 +130,28 @@ describe("http", () => {
       expect(res.status).toBe(200);
       expect(await res.text()).toBe("ok");
       expect(res.headers.get("content-type")).toContain("text/plain");
+    });
+
+    it("should build cached JSON response factory", async () => {
+      const factory = cachedJsonResponse({ items: [1, 2] });
+      expect(typeof factory).toBe("function");
+      const r1 = factory();
+      const r2 = factory();
+      expect(r1.status).toBe(200);
+      expect(await r1.json()).toEqual({ items: [1, 2] });
+      expect(await r2.text()).toBe(await factory().text());
+    });
+
+    it("should build stream response", () => {
+      const stream = new ReadableStream({
+        start(controller) {
+          controller.enqueue(new TextEncoder().encode("data"));
+          controller.close();
+        },
+      });
+      const res = streamResponse(stream);
+      expect(res.status).toBe(200);
+      expect(res.headers.get("content-type")).toBe("application/octet-stream");
     });
   });
 

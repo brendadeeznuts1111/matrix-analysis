@@ -37,7 +37,8 @@ export const sh = async (
   cmd: TemplateStringsArray,
   ...args: string[]
 ): Promise<string> => {
-  const result = await $`${cmd.reduce((acc, part, i) => acc + (args[i - 1] || "") + part)}`.text();
+  const fullCmd = cmd.reduce((acc, part, i) => acc + (args[i - 1] || "") + part);
+  const result = await $`sh -c ${fullCmd}`.text();
   return result.trim();
 };
 
@@ -45,9 +46,8 @@ export const shQuiet = async (
   cmd: TemplateStringsArray,
   ...args: string[]
 ): Promise<string> => {
-  const result = await $`${cmd.reduce((acc, part, i) => acc + (args[i - 1] || "") + part)}`
-    .quiet()
-    .text();
+  const fullCmd = cmd.reduce((acc, part, i) => acc + (args[i - 1] || "") + part);
+  const result = await $`sh -c ${fullCmd}`.quiet().text();
   return result.trim();
 };
 
