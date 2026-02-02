@@ -342,6 +342,115 @@ export function deserializeFromIPC(buffer: ArrayBuffer | Buffer): unknown {
   }
 }
 
+/**
+ * Drain all pending microtasks
+ * Ensures all Promise callbacks are executed
+ */
+export function drainMicrotasks(): void {
+  // @ts-ignore
+  if (typeof Bun !== "undefined" && Bun.jsc?.drainMicrotasks) {
+    // @ts-ignore
+    Bun.jsc.drainMicrotasks();
+  }
+}
+
+/**
+ * Set the timezone for Intl and Date
+ * Returns the normalized timezone string
+ */
+export function setTimeZone(timeZone: string): string {
+  // @ts-ignore
+  if (typeof Bun !== "undefined" && Bun.jsc?.setTimeZone) {
+    // @ts-ignore
+    return Bun.jsc.setTimeZone(timeZone);
+  }
+  
+  // Fallback to process.env.TZ
+  process.env.TZ = timeZone;
+  return timeZone;
+}
+
+/**
+ * Get current timezone
+ */
+export function getTimeZone(): string {
+  return Intl.DateTimeFormat().resolvedOptions().timeZone;
+}
+
+/**
+ * Describe a value (for debugging)
+ * Returns internal JSC representation as string
+ */
+export function describeValue(value: unknown): string {
+  // @ts-ignore
+  if (typeof Bun !== "undefined" && Bun.jsc?.describe) {
+    try {
+      // @ts-ignore
+      return Bun.jsc.describe(value);
+    } catch {
+      return String(value);
+    }
+  }
+  
+  // Fallback
+  if (value === null) return "null";
+  if (value === undefined) return "undefined";
+  if (typeof value === "object") {
+    return `[object ${value?.constructor?.name || "Object"}]`;
+  }
+  return `${typeof value}: ${String(value)}`;
+}
+
+/**
+ * Get detailed JSC VM stats
+ */
+export function getVMStats(): Record<string, any> {
+  const stats: Record<string, any> = {
+    bunVersion: Bun.version,
+    platform: process.platform,
+    arch: process.arch,
+    nodeVersion: process.version,
+    timezone: getTimeZone(),
+  };
+  
+  // Add memory info
+  const mem = getMemoryUsage();
+  stats.memory = mem;
+  
+  // Add JSC-specific info if available
+  // @ts-ignore
+  if (typeof Bun !== "undefined" && Bun.jsc) {
+    stats.jscAvailable = true;
+    // @ts-ignore
+    stats.jscKeys = Object.keys(Bun.jsc);
+  } else {
+    stats.jscAvailable = false;
+  }
+  
+  return stats;
+}
+
+/**
+ * Full performance snapshot with all metrics
+ */
+export interface PerformanceSnapshot {
+  timestamp: string;
+  memory: ReturnType<typeof getMemoryUsage>;
+  vm: Record<string, any>;
+  timezone: string;
+  uptime: number;
+}
+
+export function createPerformanceSnapshot(): PerformanceSnapshot {
+  return {
+    timestamp: new Date().toISOString(),
+    memory: getMemoryUsage(),
+    vm: getVMStats(),
+    timezone: getTimeZone(),
+    uptime: process.uptime(),
+  };
+}
+
 // CLI
 if (import.meta.main) {
   const [,, command, ...args] = process.argv;
@@ -401,6 +510,46 @@ if (import.meta.main) {
       console.log(`Peak memory: ${formatBytes(peakMemory)}`);
       break;
     }
+    
+    case "timezone": {
+      if (args[0]) {
+        const newTz = setTimeZone(args[0]);
+        console.log(`Timezone set to: ${newTz}`);
+      } else {
+        console.log(`Current timezone: ${getTimeZone()}`);
+        console.log("Usage: jsc-monitor timezone <timezone>");
+        console.log("Example: jsc-monitor timezone America/New_York");
+      }
+      break;
+    }
+    
+    case "describe": {
+      const value = args[0] || "test";
+      console.log(`Value: ${value}`);
+      console.log(`Description: ${describeValue(value)}`);
+      
+      // Also describe some test values
+      console.log("\nTest descriptions:");
+      console.log(`  null: ${describeValue(null)}`);
+      console.log(`  undefined: ${describeValue(undefined)}`);
+      console.log(`  42: ${describeValue(42)}`);
+      console.log(`  {}: ${describeValue({})}`);
+      console.log(`  []: ${describeValue([])}`);
+      break;
+    }
+    
+    case "snapshot": {
+      const snapshot = createPerformanceSnapshot();
+      console.log(JSON.stringify(snapshot, null, 2));
+      break;
+    }
+    
+    case "drain": {
+      console.log("Draining microtasks...");
+      drainMicrotasks();
+      console.log("Microtasks drained");
+      break;
+    }
       
     default:
       console.log(`
@@ -411,6 +560,10 @@ Usage:
   jsc-monitor gc                  Force garbage collection
   jsc-monitor profile             Run profiler test
   jsc-monitor monitor [file]      Monitor file read memory
+  jsc-monitor timezone [tz]       Get/set timezone
+  jsc-monitor describe [value]    Describe a value
+  jsc-monitor snapshot            Full performance snapshot
+  jsc-monitor drain               Drain pending microtasks
 
 Uses Bun's JavaScriptCore API for low-level performance monitoring.
 `);

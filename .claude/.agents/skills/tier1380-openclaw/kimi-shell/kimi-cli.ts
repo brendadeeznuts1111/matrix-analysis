@@ -136,7 +136,7 @@ const COMMANDS = {
   perf: {
     description: "JSC Performance monitoring",
     script: "../scripts/lib/jsc-monitor.ts",
-    subcommands: ["memory", "gc", "profile", "monitor"],
+    subcommands: ["memory", "gc", "profile", "monitor", "timezone", "describe", "snapshot", "drain"],
   },
 };
 
