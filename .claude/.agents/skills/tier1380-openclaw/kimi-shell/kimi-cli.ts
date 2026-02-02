@@ -1,91 +1,153 @@
 #!/usr/bin/env bun
 /**
  * Kimi CLI - Unified interface for Kimi Shell tools
+ * Enhanced v2.0 with interactive mode and performance monitoring
  */
 
 import { $ } from "bun";
+import { join } from "path";
 
 const COMMANDS = {
-	metrics: {
-		description: "Metrics collection and dashboard",
-		script: "metrics-collector.ts",
-		subcommands: ["collect", "dashboard", "record", "export"],
-	},
-	shell: {
-		description: "Shell management and execution",
-		script: "kimi-shell-manager.ts",
-		subcommands: ["status", "exec", "switch", "integrations"],
-	},
-	settings: {
-		description: "Settings dashboard",
-		script: "settings-dashboard.ts",
-		subcommands: [],
-	},
-	workflow: {
-		description: "Workflow visualizer",
-		script: "workflow-visualizer.ts",
-		subcommands: ["mcp", "acp", "integrated", "matrix"],
-	},
-	vault: {
-		description: "Vault credential management",
-		script: "../../../../../../.factory-wager/vault.ts",
-		subcommands: ["health", "list"],
-	},
+  metrics: {
+    description: "Metrics collection and dashboard",
+    script: "metrics-collector.ts",
+    subcommands: ["collect", "dashboard", "record", "export"],
+  },
+  shell: {
+    description: "Shell management and execution",
+    script: "kimi-shell-manager.ts",
+    subcommands: ["status", "exec", "switch", "integrations"],
+  },
+  settings: {
+    description: "Settings dashboard",
+    script: "settings-dashboard.ts",
+    subcommands: [],
+  },
+  workflow: {
+    description: "Workflow visualizer",
+    script: "workflow-visualizer.ts",
+    subcommands: ["mcp", "acp", "integrated", "matrix"],
+  },
+  vault: {
+    description: "Vault credential management",
+    script: "../../../../../../.factory-wager/vault.ts",
+    subcommands: ["health", "list"],
+  },
+  interactive: {
+    description: "Interactive shell mode",
+    script: "interactive-mode.ts",
+    subcommands: [],
+  },
+  monitor: {
+    description: "Performance monitoring",
+    script: "performance-monitor.ts",
+    subcommands: ["watch", "snapshot", "report"],
+  },
 };
 
+const COLORS = {
+  reset: "\x1b[0m",
+  bold: "\x1b[1m",
+  cyan: "\x1b[36m",
+  green: "\x1b[32m",
+  yellow: "\x1b[33m",
+  gray: "\x1b[90m",
+};
+
+function printBanner(): void {
+  console.log(`${COLORS.bold}${COLORS.cyan}`);
+  console.log("╔══════════════════════════════════════════════════════════════════╗");
+  console.log("║           🐚 Kimi CLI v2.0 (Tier-1380 OMEGA)                      ║");
+  console.log("║           Unified Shell Interface for Matrix Agent                ║");
+  console.log("╚══════════════════════════════════════════════════════════════════╝");
+  console.log(`${COLORS.reset}`);
+}
+
 function printHelp(): void {
-	console.log("🐚 Kimi CLI - Unified Shell Interface");
-	console.log("");
-	console.log("Usage: kimi-cli.ts <command> [args...]");
-	console.log("");
-	console.log("Commands:");
+  printBanner();
+  console.log("\nUsage: kimi-cli.ts <command> [args...]");
+  console.log("       kimi-cli.ts interactive           # Start interactive mode");
+  console.log("\nCommands:");
 
-	for (const [name, config] of Object.entries(COMMANDS)) {
-		console.log(`  ${name.padEnd(12)} ${config.description}`);
-		if (config.subcommands.length > 0) {
-			console.log(`             Sub: ${config.subcommands.join(", ")}`);
-		}
-	}
+  for (const [name, config] of Object.entries(COMMANDS)) {
+    const status = name === "interactive" || name === "monitor" 
+      ? `${COLORS.green}[NEW]${COLORS.reset}` 
+      : "     ";
+    console.log(`  ${status} ${name.padEnd(12)} ${config.description}`);
+    if (config.subcommands.length > 0) {
+      console.log(`             ${COLORS.gray}Sub: ${config.subcommands.join(", ")}${COLORS.reset}`);
+    }
+  }
 
-	console.log("");
-	console.log("Examples:");
-	console.log("  kimi-cli.ts metrics dashboard");
-	console.log("  kimi-cli.ts shell status");
-	console.log("  kimi-cli.ts vault health");
+  console.log("\nExamples:");
+  console.log(`  ${COLORS.cyan}kimi-cli.ts interactive${COLORS.reset}           # Interactive shell mode`);
+  console.log(`  ${COLORS.cyan}kimi-cli.ts monitor watch${COLORS.reset}         # Real-time performance monitor`);
+  console.log(`  ${COLORS.cyan}kimi-cli.ts metrics dashboard${COLORS.reset}     # Metrics dashboard`);
+  console.log(`  ${COLORS.cyan}kimi-cli.ts shell status${COLORS.reset}          # Shell status`);
+  console.log(`  ${COLORS.cyan}kimi-cli.ts vault health${COLORS.reset}          # Vault health check`);
+}
+
+async function executeCommand(command: string, args: string[]): Promise<number> {
+  const config = COMMANDS[command as keyof typeof COMMANDS];
+  if (!config) {
+    console.error(`Unknown command: ${command}`);
+    return 1;
+  }
+
+  const scriptPath = join(import.meta.dir, config.script);
+
+  try {
+    const result = await $`bun ${scriptPath} ${args}`.nothrow();
+    if (result.stdout) {
+      console.log(result.stdout.toString());
+    }
+    if (result.stderr) {
+      console.error(result.stderr.toString());
+    }
+    return result.exitCode;
+  } catch (error) {
+    console.error(`Error executing ${command}:`, error);
+    return 1;
+  }
 }
 
 async function main(): Promise<void> {
-	const args = Bun.argv.slice(2);
-	const command = args[0];
-	const subArgs = args.slice(1);
+  const args = Bun.argv.slice(2);
+  
+  // Handle no args or help
+  if (args.length === 0 || args[0] === "--help" || args[0] === "-h") {
+    printHelp();
+    return;
+  }
 
-	if (!command || command === "--help" || command === "-h") {
-		printHelp();
-		return;
-	}
+  // Handle version
+  if (args[0] === "--version" || args[0] === "-v") {
+    console.log("🐚 Kimi CLI v2.0.0 (Tier-1380 OMEGA)");
+    console.log(`   Bun v${Bun.version}`);
+    return;
+  }
 
-	const config = COMMANDS[command as keyof typeof COMMANDS];
-	if (!config) {
-		console.error(`Unknown command: ${command}`);
-		printHelp();
-		process.exit(1);
-	}
+  const command = args[0];
+  const subArgs = args.slice(1);
 
-	const scriptPath = new URL(config.script, import.meta.url).pathname;
+  // Check for command shortcuts
+  const shortcuts: Record<string, string> = {
+    "i": "interactive",
+    "m": "monitor",
+    "s": "settings",
+    "v": "vault",
+  };
 
-	try {
-		const result = await $`bun ${scriptPath} ${subArgs}`.nothrow();
-		console.log(result.stdout.toString());
-		if (result.stderr.toString()) {
-			console.error(result.stderr.toString());
-		}
-		process.exit(result.exitCode);
-	} catch (error) {
-		console.error(`Error executing ${command}:`, error);
-		process.exit(1);
-	}
+  const resolvedCommand = shortcuts[command] || command;
+
+  // Execute
+  const exitCode = await executeCommand(resolvedCommand, subArgs);
+  process.exit(exitCode);
 }
 
 if (import.meta.main) {
-	main().catch(console.error);
+  main().catch((error) => {
+    console.error("Fatal error:", error);
+    process.exit(1);
+  });
 }

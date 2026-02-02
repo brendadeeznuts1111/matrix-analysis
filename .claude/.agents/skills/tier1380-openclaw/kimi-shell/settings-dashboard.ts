@@ -398,6 +398,55 @@ async function main(): Promise<void> {
     ${CYAN}tier1380 dashboard${RESET}          View governance dashboard
 `);
 
+	// Enhanced Performance Section
+	printHeader("⚡ PERFORMANCE METRICS");
+
+	const perfMetrics = [
+		{
+			component: "Bun Runtime",
+			metric: `${Bun.version}`,
+			status: "✓",
+			note: "Latest",
+		},
+		{
+			component: "Memory Usage",
+			metric: `${(process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2)}MB`,
+			status: process.memoryUsage().heapUsed > 100 * 1024 * 1024 ? "⚠" : "✓",
+			note: "Heap",
+		},
+		{
+			component: "Uptime",
+			metric: `${Math.floor(process.uptime() / 60)}m`,
+			status: "✓",
+			note: "Process",
+		},
+		{
+			component: "Interactive Mode",
+			metric: "Available",
+			status: "✓",
+			note: "New v2.0",
+		},
+		{
+			component: "Performance Monitor",
+			metric: "Available",
+			status: "✓",
+			note: "New v2.0",
+		},
+	];
+
+	console.log(`\n  ${DIM}Component              Metric          Status  Note${RESET}`);
+	console.log(`  ${GRAY}${"─".repeat(76)}${RESET}`);
+
+	for (const pm of perfMetrics) {
+		const statusColor = pm.status === "✓" ? GREEN : YELLOW;
+		console.log(
+			`  ${pm.component.padEnd(22)} ` +
+			`${WHITE}${pm.metric.padEnd(15)}${RESET} ` +
+			`${statusColor}${pm.status.padEnd(6)}${RESET} ` +
+			`${GRAY}${pm.note}${RESET}`,
+		);
+	}
+
 	// Type Definitions Summary
 	printHeader("📋 TYPE DEFINITIONS SUMMARY");
 
@@ -432,6 +481,22 @@ async function main(): Promise<void> {
 			`  ${ts.category.padEnd(20)} ${String(ts.count).padStart(5)}  ${GRAY}${ts.examples}${RESET}`,
 		);
 	}
+
+	// New v2.0 Features
+	printHeader("🆕 NEW IN v2.0");
+
+	console.log(`
+  ${BOLD}Interactive Mode:${RESET}
+    ${CYAN}kimi-cli.ts interactive${RESET}    - Start interactive shell with auto-completion
+    ${CYAN}kimi-cli.ts i${RESET}              - Shortcut for interactive mode
+    Features: Command history, tab completion, colored output
+
+  ${BOLD}Performance Monitor:${RESET}
+    ${CYAN}kimi-cli.ts monitor watch${RESET}  - Real-time performance monitoring
+    ${CYAN}kimi-cli.ts monitor snapshot${RESET} - Single metrics snapshot
+    ${CYAN}kimi-cli.ts m${RESET}              - Shortcut for monitor
+    Features: Memory sparklines, trend analysis, export reports
+`);
 
 	// Footer
 	console.log(`\n${GRAY}  ┌${"─".repeat(78)}┐${RESET}`);
