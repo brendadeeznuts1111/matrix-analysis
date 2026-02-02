@@ -148,6 +148,11 @@ const COMMANDS = {
     script: "../scripts/test-integration.ts",
     subcommands: [],
   },
+  setup: {
+    description: "Quick setup wizard",
+    script: "../scripts/quick-setup.ts",
+    subcommands: [],
+  },
 };
 
 const COLORS = {
