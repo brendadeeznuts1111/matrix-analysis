@@ -46,6 +46,25 @@ describe("utils", () => {
       expect(fibCache.has(15)).toBe(true);
       expect(fibCache.get(15)).toBe(610);
     });
+
+    it("should return 0 for NaN", () => {
+      expect(fib(NaN)).toBe(0);
+    });
+
+    it("should return 0 for Infinity", () => {
+      expect(fib(Infinity)).toBe(0);
+      expect(fib(-Infinity)).toBe(0);
+    });
+
+    it("should return Infinity for n > 1476", () => {
+      expect(fib(1477)).toBe(Infinity);
+      expect(fib(2000)).toBe(Infinity);
+    });
+
+    it("should floor non-integer inputs", () => {
+      expect(fib(10.9)).toBe(55);
+      expect(fib(1.5)).toBe(1);
+    });
   });
 
   describe("BN-003: Grapheme Segmenter", () => {

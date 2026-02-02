@@ -182,4 +182,18 @@ describe("crypto", () => {
       expect(timingSafeEqual("short", "longer-string")).toBe(false);
     });
   });
+
+  describe("BN-035b: hashPassword error safety", () => {
+    it("should return string for valid input", async () => {
+      const h = await hashPassword("test123", "development");
+      expect(typeof h).toBe("string");
+      expect(h).not.toBeNull();
+    });
+
+    it("hashPasswordSync should return string for valid input", () => {
+      const h = hashPasswordSync("test123", "development");
+      expect(typeof h).toBe("string");
+      expect(h).not.toBeNull();
+    });
+  });
 });

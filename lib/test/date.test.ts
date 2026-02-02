@@ -183,4 +183,24 @@ describe("date", () => {
       expect(today()).toBe(formatDate());
     });
   });
+
+  describe("BN-081b: formatDuration edge cases", () => {
+    it("should return '0s' for negative values", () => {
+      expect(formatDuration(-100)).toBe("0s");
+      expect(formatDuration(-1)).toBe("0s");
+    });
+
+    it("should return '0s' for NaN", () => {
+      expect(formatDuration(NaN)).toBe("0s");
+    });
+
+    it("should return '0s' for Infinity", () => {
+      expect(formatDuration(Infinity)).toBe("0s");
+      expect(formatDuration(-Infinity)).toBe("0s");
+    });
+
+    it("should handle zero", () => {
+      expect(formatDuration(0)).toBe("0s");
+    });
+  });
 });

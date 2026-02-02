@@ -338,4 +338,27 @@ describe("file", () => {
       w!.end();
     });
   });
+
+  describe("BN-047b: stat edge cases", () => {
+    it("should detect directory as isDirectory:true", async () => {
+      const s = await stat(TMP);
+      expect(s).not.toBeNull();
+      expect(s!.isDirectory).toBe(true);
+      expect(s!.isFile).toBe(false);
+    });
+
+    it("should detect file as isFile:true", async () => {
+      const path = join(TMP, "stat-file-check.txt");
+      await writeText(path, "hello");
+      const s = await stat(path);
+      expect(s).not.toBeNull();
+      expect(s!.isFile).toBe(true);
+      expect(s!.isDirectory).toBe(false);
+      expect(s!.size).toBe(5);
+    });
+
+    it("should return null for nonexistent path", async () => {
+      expect(await stat(join(TMP, "no-such-path-xyz"))).toBeNull();
+    });
+  });
 });

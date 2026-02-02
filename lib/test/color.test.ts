@@ -179,4 +179,30 @@ describe("color", () => {
       expect(INFO("fyi")).toContain("fyi");
     });
   });
+
+  describe("BN-063b: convert format correctness", () => {
+    it("should convert to rgb format (not hex)", () => {
+      const rgb = convert("#ff0000", "rgb");
+      expect(rgb).not.toBeNull();
+      expect(rgb!).toContain("rgb");
+      expect(rgb!).not.toBe("#ff0000");
+    });
+
+    it("should convert to hsl format (not hex)", () => {
+      const hsl = convert("#ff0000", "hsl");
+      expect(hsl).not.toBeNull();
+      expect(hsl!).toContain("hsl");
+    });
+
+    it("should return null for invalid input", () => {
+      expect(convert("not-a-color")).toBeNull();
+    });
+
+    it("toHex8 should produce 9-char hex with alpha", () => {
+      const hex8 = toHex8([255, 0, 0, 128]);
+      expect(hex8).not.toBeNull();
+      expect(hex8!).toMatch(/^#[0-9a-f]{8}$/);
+      expect(hex8!.startsWith("#ff0000")).toBe(true);
+    });
+  });
 });
