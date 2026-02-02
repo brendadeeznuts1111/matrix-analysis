@@ -133,6 +133,11 @@ const COMMANDS = {
     script: "../scripts/integration-status.ts",
     subcommands: ["stats", "matrix"],
   },
+  perf: {
+    description: "JSC Performance monitoring",
+    script: "../scripts/lib/jsc-monitor.ts",
+    subcommands: ["memory", "gc", "profile", "monitor"],
+  },
 };
 
 const COLORS = {
