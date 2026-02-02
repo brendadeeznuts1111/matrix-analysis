@@ -330,6 +330,19 @@ Logs are stored in `logs/` directory:
 | `file-watch.jsonl` | File change events | 10MB |
 | `notifications.jsonl` | Notification history | 10MB |
 
+## 📋 Quick Reference
+
+For a quick reference of all CLI commands, see [`QUICKREF.md`](QUICKREF.md).
+
+```bash
+# Common commands
+kimi setup              # Quick setup
+kimi test               # Run tests
+kimi integration        # View status
+kimi topic list         # List topics
+kimi project list       # List projects
+```
+
 ## 🔧 Configuration
 
 ### telegram-topics.yaml
