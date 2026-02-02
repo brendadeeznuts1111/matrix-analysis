@@ -1,4 +1,12 @@
-import { afterEach, beforeEach, describe, expect, it } from "bun:test";
+import {
+	afterAll,
+	afterEach,
+	beforeAll,
+	beforeEach,
+	describe,
+	expect,
+	it,
+} from "bun:test";
 import {
 	addMember,
 	demoteMember,
@@ -7,6 +15,8 @@ import {
 	listMembers,
 	promoteMember,
 	removeMember,
+	resetProfilesDir,
+	setProfilesDir,
 	updateRole,
 } from "./TeamRegistry.ts";
 import {
@@ -187,37 +197,40 @@ describe("generateMemberEmail", () => {
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
-// TeamRegistry.ts integration tests (uses real ~/.matrix/profiles/)
+// TeamRegistry.ts integration tests (uses temp profiles dir)
 // ═══════════════════════════════════════════════════════════════════════════
+
+import { mkdirSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 
 describe("TeamRegistry", () => {
 	const TEST_PROFILE = "test";
+	const tempDir = join(tmpdir(), `team-registry-test-${Date.now()}`);
+	const profilePath = join(tempDir, `${TEST_PROFILE}.json`);
 
-	// Save and restore original profile data
-	let originalData: string | null = null;
-	const profilePath = `${Bun.env.HOME}/.matrix/profiles/${TEST_PROFILE}.json`;
+	const seedProfile: Record<string, unknown> = {
+		name: TEST_PROFILE,
+		version: "1.0.0",
+		env: {},
+	};
+
+	beforeAll(() => {
+		mkdirSync(tempDir, { recursive: true });
+		setProfilesDir(tempDir);
+	});
+
+	afterAll(() => {
+		resetProfilesDir();
+		rmSync(tempDir, { recursive: true, force: true });
+	});
 
 	beforeEach(async () => {
-		const file = Bun.file(profilePath);
-		if (await file.exists()) {
-			originalData = await file.text();
-		}
+		await Bun.write(profilePath, JSON.stringify(seedProfile, null, 2));
 	});
 
 	afterEach(async () => {
-		if (originalData) {
-			await Bun.write(profilePath, originalData);
-		} else {
-			// Remove team field if we added one
-			const file = Bun.file(profilePath);
-			if (await file.exists()) {
-				const data = await file.json().catch(() => null);
-				if (data?.team) {
-					delete data.team;
-					await Bun.write(profilePath, JSON.stringify(data, null, 2));
-				}
-			}
-		}
+		await Bun.write(profilePath, JSON.stringify(seedProfile, null, 2));
 	});
 
 	it("should add a team member with flag-based permissions", async () => {

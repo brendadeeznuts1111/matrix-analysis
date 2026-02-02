@@ -30,7 +30,18 @@ export interface ProfileWithTeam {
 	team?: TeamInfo;
 }
 
-const PROFILES_DIR = `${Bun.env.HOME}/.matrix/profiles`;
+const DEFAULT_PROFILES_DIR = `${Bun.env.HOME}/.matrix/profiles`;
+let PROFILES_DIR = DEFAULT_PROFILES_DIR;
+
+/** Override the profiles directory (for testing). */
+export function setProfilesDir(dir: string): void {
+	PROFILES_DIR = dir;
+}
+
+/** Reset the profiles directory to default. */
+export function resetProfilesDir(): void {
+	PROFILES_DIR = DEFAULT_PROFILES_DIR;
+}
 
 /** Read a single profile JSON. Returns null on any error. */
 async function readProfile(profileName: string): Promise<ProfileWithTeam | null> {

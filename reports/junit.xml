@@ -1,910 +1,237 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuites name="bun test" tests="535" assertions="3040" failures="28" skipped="8" time="10.745152">
-  <testsuite name="test/ui-frontend/threat-feed.test.js" file="test/ui-frontend/threat-feed.test.js" tests="7" assertions="0" failures="7" skipped="0" time="0" hostname="Mac.attlocal.net">
-    <testsuite name="ThreatFeed Performance" file="test/ui-frontend/threat-feed.test.js" line="4" tests="6" assertions="0" failures="6" skipped="0" time="0" hostname="Mac.attlocal.net">
-      <testcase name="addEvent should handle 1000 events in &lt; 50ms" classname="ThreatFeed Performance" time="0.000582" file="test/ui-frontend/threat-feed.test.js" line="31" assertions="0">
-        <failure type="AssertionError" />
-      </testcase>
-      <testcase name="CircularBuffer should have O(1) push" classname="ThreatFeed Performance" time="0.000027" file="test/ui-frontend/threat-feed.test.js" line="47" assertions="0">
-        <failure type="AssertionError" />
-      </testcase>
-      <testcase name="ElementPool should reuse elements" classname="ThreatFeed Performance" time="0.000014" file="test/ui-frontend/threat-feed.test.js" line="58" assertions="0">
-        <failure type="AssertionError" />
-      </testcase>
-      <testcase name="getMetrics should return performance data" classname="ThreatFeed Performance" time="0.000013" file="test/ui-frontend/threat-feed.test.js" line="72" assertions="0">
-        <failure type="AssertionError" />
-      </testcase>
-      <testcase name="normalizeEvent should reject prototype pollution" classname="ThreatFeed Performance" time="0" file="test/ui-frontend/threat-feed.test.js" line="81" assertions="0">
-        <failure type="AssertionError" />
-      </testcase>
-      <testcase name="should handle rapid addEvent calls" classname="ThreatFeed Performance" time="0.000025" file="test/ui-frontend/threat-feed.test.js" line="86" assertions="0">
-        <failure type="AssertionError" />
-      </testcase>
+<testsuites name="bun test" tests="142" assertions="407" failures="0" skipped="0" time="0.502554">
+  <testsuite name=".claude/tests/bun-markdown.test.ts" file=".claude/tests/bun-markdown.test.ts" tests="34" assertions="75" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+    <testsuite name="Bun.markdown availability" file=".claude/tests/bun-markdown.test.ts" line="20" tests="1" assertions="2" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+      <testcase name="should exist as a namespace with html() method on the Bun global" classname="Bun.markdown availability" time="0.000023" file=".claude/tests/bun-markdown.test.ts" line="21" assertions="2" />
     </testsuite>
-    <testsuite name="ThreatFeed Render Performance" file="test/ui-frontend/threat-feed.test.js" line="98" tests="1" assertions="0" failures="1" skipped="0" time="0" hostname="Mac.attlocal.net">
-      <testcase name="render cycle should be &lt; 16ms for 100 items" classname="ThreatFeed Render Performance" time="0.000051" file="test/ui-frontend/threat-feed.test.js" line="99" assertions="0">
-        <failure type="AssertionError" />
-      </testcase>
+    <testsuite name="CommonMark core rendering" file=".claude/tests/bun-markdown.test.ts" line="28" tests="18" assertions="37" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+      <testcase name="should render headings h1–h6" classname="CommonMark core rendering" time="0" file=".claude/tests/bun-markdown.test.ts" line="29" assertions="6" />
+      <testcase name="should render paragraphs" classname="CommonMark core rendering" time="0.000095" file=".claude/tests/bun-markdown.test.ts" line="38" assertions="2" />
+      <testcase name="should render bold text" classname="CommonMark core rendering" time="0.000044" file=".claude/tests/bun-markdown.test.ts" line="44" assertions="1" />
+      <testcase name="should render italic text" classname="CommonMark core rendering" time="0.000006" file=".claude/tests/bun-markdown.test.ts" line="49" assertions="1" />
+      <testcase name="should render bold+italic combined" classname="CommonMark core rendering" time="0" file=".claude/tests/bun-markdown.test.ts" line="54" assertions="1" />
+      <testcase name="should render inline code" classname="CommonMark core rendering" time="0" file=".claude/tests/bun-markdown.test.ts" line="59" assertions="1" />
+      <testcase name="should render fenced code blocks" classname="CommonMark core rendering" time="0" file=".claude/tests/bun-markdown.test.ts" line="64" assertions="3" />
+      <testcase name="should render indented code blocks" classname="CommonMark core rendering" time="0" file=".claude/tests/bun-markdown.test.ts" line="72" assertions="2" />
+      <testcase name="should render unordered lists" classname="CommonMark core rendering" time="0" file=".claude/tests/bun-markdown.test.ts" line="79" assertions="3" />
+      <testcase name="should render ordered lists" classname="CommonMark core rendering" time="0" file=".claude/tests/bun-markdown.test.ts" line="87" assertions="2" />
+      <testcase name="should render blockquotes" classname="CommonMark core rendering" time="0.000071" file=".claude/tests/bun-markdown.test.ts" line="94" assertions="2" />
+      <testcase name="should render nested blockquotes" classname="CommonMark core rendering" time="0.000012" file=".claude/tests/bun-markdown.test.ts" line="100" assertions="2" />
+      <testcase name="should render horizontal rules" classname="CommonMark core rendering" time="0" file=".claude/tests/bun-markdown.test.ts" line="106" assertions="3" />
+      <testcase name="should render links" classname="CommonMark core rendering" time="0.000017" file=".claude/tests/bun-markdown.test.ts" line="112" assertions="2" />
+      <testcase name="should render images" classname="CommonMark core rendering" time="0" file=".claude/tests/bun-markdown.test.ts" line="118" assertions="3" />
+      <testcase name="should render line breaks with two trailing spaces" classname="CommonMark core rendering" time="0" file=".claude/tests/bun-markdown.test.ts" line="125" assertions="1" />
+      <testcase name="should handle empty input" classname="CommonMark core rendering" time="0" file=".claude/tests/bun-markdown.test.ts" line="130" assertions="1" />
+      <testcase name="should handle whitespace-only input" classname="CommonMark core rendering" time="0" file=".claude/tests/bun-markdown.test.ts" line="135" assertions="1" />
     </testsuite>
-  </testsuite>
-  <testsuite name="test/cli/__tests__/analyze.test.ts" file="test/cli/__tests__/analyze.test.ts" tests="4" assertions="4" failures="4" skipped="0" time="0" hostname="Mac.attlocal.net">
-    <testsuite name="analyze CLI" file="test/cli/__tests__/analyze.test.ts" line="9" tests="4" assertions="4" failures="4" skipped="0" time="0.042" hostname="Mac.attlocal.net">
-      <testcase name="should show help when no command provided" classname="analyze CLI" time="0.009377" file="test/cli/__tests__/analyze.test.ts" line="10" assertions="1">
-        <failure type="AssertionError" />
-      </testcase>
-      <testcase name="should scan files" classname="analyze CLI" time="0.00944" file="test/cli/__tests__/analyze.test.ts" line="22" assertions="1">
-        <failure type="AssertionError" />
-      </testcase>
-      <testcase name="should extract types" classname="analyze CLI" time="0.016657" file="test/cli/__tests__/analyze.test.ts" line="33" assertions="1">
-        <failure type="AssertionError" />
-      </testcase>
-      <testcase name="should output JSON format" classname="analyze CLI" time="0.008171" file="test/cli/__tests__/analyze.test.ts" line="44" assertions="1">
-        <failure type="AssertionError" />
-      </testcase>
+    <testsuite name="GFM extensions" file=".claude/tests/bun-markdown.test.ts" line="142" tests="4" assertions="8" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+      <testcase name="should render tables" classname="GFM extensions" time="0" file=".claude/tests/bun-markdown.test.ts" line="143" assertions="3" />
+      <testcase name="should render strikethrough" classname="GFM extensions" time="0" file=".claude/tests/bun-markdown.test.ts" line="151" assertions="2" />
+      <testcase name="should render task lists" classname="GFM extensions" time="0" file=".claude/tests/bun-markdown.test.ts" line="157" assertions="1" />
+      <testcase name="should autolink angle-bracket URLs" classname="GFM extensions" time="0" file=".claude/tests/bun-markdown.test.ts" line="163" assertions="2" />
     </testsuite>
-  </testsuite>
-  <testsuite name="test/cli/__tests__/diagnose.test.ts" file="test/cli/__tests__/diagnose.test.ts" tests="5" assertions="3" failures="3" skipped="0" time="0" hostname="Mac.attlocal.net">
-    <testsuite name="diagnose CLI" file="test/cli/__tests__/diagnose.test.ts" line="9" tests="5" assertions="3" failures="3" skipped="0" time="0.016" hostname="Mac.attlocal.net">
-      <testcase name="should show help when no command provided" classname="diagnose CLI" time="0.004923" file="test/cli/__tests__/diagnose.test.ts" line="10" assertions="1">
-        <failure type="AssertionError" />
-      </testcase>
-      <testcase name="should run health check" classname="diagnose CLI" time="0.003943" file="test/cli/__tests__/diagnose.test.ts" line="24" assertions="1">
-        <failure type="AssertionError" />
-      </testcase>
-      <testcase name="should detect painpoints" classname="diagnose CLI" time="0.003706" file="test/cli/__tests__/diagnose.test.ts" line="37" assertions="1">
-        <failure type="AssertionError" />
-      </testcase>
-      <testcase name="should output JSON format" classname="diagnose CLI" time="0.003804" file="test/cli/__tests__/diagnose.test.ts" line="50" assertions="0" />
-      <testcase name="should calculate grade" classname="diagnose CLI" time="0.003884" file="test/cli/__tests__/diagnose.test.ts" line="65" assertions="0" />
+    <testsuite name="edge cases" file=".claude/tests/bun-markdown.test.ts" line="171" tests="8" assertions="17" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+      <testcase name="should handle deeply nested lists" classname="edge cases" time="0.000067" file=".claude/tests/bun-markdown.test.ts" line="172" assertions="2" />
+      <testcase name="should handle special characters in inline code" classname="edge cases" time="0.000005" file=".claude/tests/bun-markdown.test.ts" line="179" assertions="2" />
+      <testcase name="should handle HTML entities in text" classname="edge cases" time="0.000013" file=".claude/tests/bun-markdown.test.ts" line="185" assertions="3" />
+      <testcase name="should handle unicode and emoji" classname="edge cases" time="0.000007" file=".claude/tests/bun-markdown.test.ts" line="192" assertions="2" />
+      <testcase name="should handle very long single lines" classname="edge cases" time="0.000171" file=".claude/tests/bun-markdown.test.ts" line="198" assertions="2" />
+      <testcase name="should handle mixed inline styles" classname="edge cases" time="0" file=".claude/tests/bun-markdown.test.ts" line="205" assertions="2" />
+      <testcase name="should handle code blocks with backticks inside" classname="edge cases" time="0.000018" file=".claude/tests/bun-markdown.test.ts" line="211" assertions="1" />
+      <testcase name="should handle consecutive headings" classname="edge cases" time="0.000009" file=".claude/tests/bun-markdown.test.ts" line="217" assertions="3" />
+    </testsuite>
+    <testsuite name="return type" file=".claude/tests/bun-markdown.test.ts" line="227" tests="1" assertions="3" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+      <testcase name="should always return a string" classname="return type" time="0.000007" file=".claude/tests/bun-markdown.test.ts" line="228" assertions="3" />
+    </testsuite>
+    <testsuite name="file integration" file=".claude/tests/bun-markdown.test.ts" line="236" tests="2" assertions="8" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+      <testcase name="should render markdown read from a file" classname="file integration" time="0.000105" file=".claude/tests/bun-markdown.test.ts" line="263" assertions="6" />
+      <testcase name="should produce valid HTML output" classname="file integration" time="0.000079" file=".claude/tests/bun-markdown.test.ts" line="274" assertions="2" />
     </testsuite>
   </testsuite>
-  <testsuite name="test/cli/__tests__/bang.test.ts" file="test/cli/__tests__/bang.test.ts" tests="4" assertions="4" failures="4" skipped="0" time="0" hostname="Mac.attlocal.net">
-    <testsuite name="bang CLI" file="test/cli/__tests__/bang.test.ts" line="9" tests="4" assertions="4" failures="4" skipped="0" time="0.014" hostname="Mac.attlocal.net">
-      <testcase name="should show help when no command provided" classname="bang CLI" time="0.003745" file="test/cli/__tests__/bang.test.ts" line="10" assertions="1">
-        <failure type="AssertionError" />
-      </testcase>
-      <testcase name="should list all actions" classname="bang CLI" time="0.003629" file="test/cli/__tests__/bang.test.ts" line="22" assertions="1">
-        <failure type="AssertionError" />
-      </testcase>
-      <testcase name="should list actions by category" classname="bang CLI" time="0.004568" file="test/cli/__tests__/bang.test.ts" line="35" assertions="1">
-        <failure type="AssertionError" />
-      </testcase>
-      <testcase name="should execute health action via alias" classname="bang CLI" time="0.004443" file="test/cli/__tests__/bang.test.ts" line="47" assertions="1">
-        <failure type="AssertionError" />
-      </testcase>
+  <testsuite name=".claude/matrix/test-matrix-90.test.ts" file=".claude/matrix/test-matrix-90.test.ts" tests="24" assertions="69" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+    <testsuite name="Column Standards (0-96)" file=".claude/matrix/test-matrix-90.test.ts" line="40" tests="6" assertions="22" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+      <testcase name="should have all 97 columns defined (0-96)" classname="Column Standards (0-96)" time="0" file=".claude/matrix/test-matrix-90.test.ts" line="41" assertions="3" />
+      <testcase name="should have DEFAULT column at position 0" classname="Column Standards (0-96)" time="0" file=".claude/matrix/test-matrix-90.test.ts" line="48" assertions="3" />
+      <testcase name="should have Cloudflare zone columns (21-30)" classname="Column Standards (0-96)" time="0" file=".claude/matrix/test-matrix-90.test.ts" line="55" assertions="4" />
+      <testcase name="should have Tension zone columns (31-45)" classname="Column Standards (0-96)" time="0" file=".claude/matrix/test-matrix-90.test.ts" line="62" assertions="4" />
+      <testcase name="should have Validation zone columns (61-70)" classname="Column Standards (0-96)" time="0" file=".claude/matrix/test-matrix-90.test.ts" line="69" assertions="3" />
+      <testcase name="should correctly identify zones" classname="Column Standards (0-96)" time="0" file=".claude/matrix/test-matrix-90.test.ts" line="75" assertions="5" />
+    </testsuite>
+    <testsuite name="Team Ownership" file=".claude/matrix/test-matrix-90.test.ts" line="88" tests="3" assertions="15" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+      <testcase name="should have correct Cloudflare ownership split" classname="Team Ownership" time="0" file=".claude/matrix/test-matrix-90.test.ts" line="89" assertions="7" />
+      <testcase name="should have all 6 teams defined" classname="Team Ownership" time="0" file=".claude/matrix/test-matrix-90.test.ts" line="106" assertions="6" />
+      <testcase name="should return columns by team" classname="Team Ownership" time="0.000257" file=".claude/matrix/test-matrix-90.test.ts" line="116" assertions="2" />
+    </testsuite>
+    <testsuite name="DEFAULT Column" file=".claude/matrix/test-matrix-90.test.ts" line="129" tests="2" assertions="5" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+      <testcase name="should return correct default values by zone" classname="DEFAULT Column" time="0.000003" file=".claude/matrix/test-matrix-90.test.ts" line="130" assertions="3" />
+      <testcase name="should have DEFAULT column with examples" classname="DEFAULT Column" time="0" file=".claude/matrix/test-matrix-90.test.ts" line="136" assertions="2" />
+    </testsuite>
+    <testsuite name="Column Validation" file=".claude/matrix/test-matrix-90.test.ts" line="147" tests="3" assertions="10" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+      <testcase name="should validate tension column ranges" classname="Column Validation" time="0" file=".claude/matrix/test-matrix-90.test.ts" line="148" assertions="3" />
+      <testcase name="should validate Cloudflare column thresholds" classname="Column Validation" time="0" file=".claude/matrix/test-matrix-90.test.ts" line="155" assertions="3" />
+      <testcase name="should validate Cloudflare profile links" classname="Column Validation" time="0.00007" file=".claude/matrix/test-matrix-90.test.ts" line="162" assertions="4" />
+    </testsuite>
+    <testsuite name="Environment Variables" file=".claude/matrix/test-matrix-90.test.ts" line="178" tests="3" assertions="4" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+      <testcase name="should detect test environment" classname="Environment Variables" time="0" file=".claude/matrix/test-matrix-90.test.ts" line="179" assertions="2" />
+      <testcase name="should respect ENABLE_CACHE flag" classname="Environment Variables" time="0" file=".claude/matrix/test-matrix-90.test.ts" line="185" assertions="1" />
+      <testcase name="should respect VALIDATION_STRICT flag" classname="Environment Variables" time="0" file=".claude/matrix/test-matrix-90.test.ts" line="190" assertions="1" />
+    </testsuite>
+    <testsuite name="CLI Support" file=".claude/matrix/test-matrix-90.test.ts" line="200" tests="3" assertions="7" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+      <testcase name="should support bun test command" classname="CLI Support" time="0" file=".claude/matrix/test-matrix-90.test.ts" line="201" assertions="2" />
+      <testcase name="should expose getColumn function" classname="CLI Support" time="0" file=".claude/matrix/test-matrix-90.test.ts" line="207" assertions="3" />
+      <testcase name="should expose getColumnsByZone function" classname="CLI Support" time="0" file=".claude/matrix/test-matrix-90.test.ts" line="214" assertions="2" />
+    </testsuite>
+    <testsuite name="Bun Native Support" file=".claude/matrix/test-matrix-90.test.ts" line="225" tests="4" assertions="6" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+      <testcase name="should run with Bun runtime" classname="Bun Native Support" time="0" file=".claude/matrix/test-matrix-90.test.ts" line="226" assertions="2" />
+      <testcase name="should support Bun.nanoseconds() for timing" classname="Bun Native Support" time="0.000095" file=".claude/matrix/test-matrix-90.test.ts" line="231" assertions="1" />
+      <testcase name="should support native TypeScript execution" classname="Bun Native Support" time="0" file=".claude/matrix/test-matrix-90.test.ts" line="239" assertions="1" />
+      <testcase name="should support Bun.inspect for debugging" classname="Bun Native Support" time="0.000194" file=".claude/matrix/test-matrix-90.test.ts" line="245" assertions="2" />
     </testsuite>
   </testsuite>
-  <testsuite name="test/src/server/auth/auth.test.ts" file="test/src/server/auth/auth.test.ts" tests="45" assertions="96" failures="1" skipped="0" time="0" hostname="Mac.attlocal.net">
-    <testsuite name="Permissions" file="test/src/server/auth/auth.test.ts" line="40" tests="3" assertions="18" failures="1" skipped="0" time="0" hostname="Mac.attlocal.net">
-      <testcase name="Permissions object contains all expected permissions" classname="Permissions" time="0.000107" file="test/src/server/auth/auth.test.ts" line="41" assertions="10" />
-      <testcase name="ALL_PERMISSIONS contains all permission values" classname="Permissions" time="0.000094" file="test/src/server/auth/auth.test.ts" line="54" assertions="4">
-        <failure type="AssertionError" />
-      </testcase>
-      <testcase name="READ_ONLY_PERMISSIONS contains only read permissions" classname="Permissions" time="0.000009" file="test/src/server/auth/auth.test.ts" line="61" assertions="4" />
+  <testsuite name=".claude/matrix/column-standards.test.ts" file=".claude/matrix/column-standards.test.ts" tests="30" assertions="81" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+    <testsuite name="CLI Basics" file=".claude/matrix/column-standards.test.ts" line="31" tests="3" assertions="9" failures="0" skipped="0" time="0.052" hostname="Mac.attlocal.net">
+      <testcase name="should show help" classname="CLI Basics" time="0.018224" file=".claude/matrix/column-standards.test.ts" line="32" assertions="3" />
+      <testcase name="should show version" classname="CLI Basics" time="0.018254" file=".claude/matrix/column-standards.test.ts" line="39" assertions="3" />
+      <testcase name="should list all columns" classname="CLI Basics" time="0.016578" file=".claude/matrix/column-standards.test.ts" line="46" assertions="3" />
     </testsuite>
-    <testsuite name="getRoutePermission" file="test/src/server/auth/auth.test.ts" line="69" tests="8" assertions="18" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-      <testcase name="returns correct permission for urlpattern routes" classname="getRoutePermission" time="0.000038" file="test/src/server/auth/auth.test.ts" line="70" assertions="3" />
-      <testcase name="returns correct permission for database routes" classname="getRoutePermission" time="0.000021" file="test/src/server/auth/auth.test.ts" line="76" assertions="3" />
-      <testcase name="returns correct permission for system routes" classname="getRoutePermission" time="0.000006" file="test/src/server/auth/auth.test.ts" line="82" assertions="2" />
-      <testcase name="returns correct permission for pty routes" classname="getRoutePermission" time="0.000007" file="test/src/server/auth/auth.test.ts" line="87" assertions="2" />
-      <testcase name="returns correct permission for projects routes" classname="getRoutePermission" time="0.000007" file="test/src/server/auth/auth.test.ts" line="92" assertions="2" />
-      <testcase name="returns admin permission for admin routes" classname="getRoutePermission" time="0.000004" file="test/src/server/auth/auth.test.ts" line="97" assertions="2" />
-      <testcase name="returns null for public routes" classname="getRoutePermission" time="0.000074" file="test/src/server/auth/auth.test.ts" line="102" assertions="2" />
-      <testcase name="returns null for unknown groups" classname="getRoutePermission" time="0.000053" file="test/src/server/auth/auth.test.ts" line="107" assertions="2" />
+    <testsuite name="Get Command" file=".claude/matrix/column-standards.test.ts" line="54" tests="4" assertions="10" failures="0" skipped="0" time="0.061" hostname="Mac.attlocal.net">
+      <testcase name="should get column 45" classname="Get Command" time="0.014468" file=".claude/matrix/column-standards.test.ts" line="55" assertions="4" />
+      <testcase name="should get column 0" classname="Get Command" time="0.016103" file=".claude/matrix/column-standards.test.ts" line="63" assertions="2" />
+      <testcase name="should fail on invalid column" classname="Get Command" time="0.014521" file=".claude/matrix/column-standards.test.ts" line="69" assertions="2" />
+      <testcase name="should output JSON" classname="Get Command" time="0.017379" file=".claude/matrix/column-standards.test.ts" line="75" assertions="2" />
     </testsuite>
-    <testsuite name="hasPermission" file="test/src/server/auth/auth.test.ts" line="113" tests="3" assertions="9" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-      <testcase name="admin permission grants access to everything" classname="hasPermission" time="0.000073" file="test/src/server/auth/auth.test.ts" line="114" assertions="3" />
-      <testcase name="specific permission grants access to that resource" classname="hasPermission" time="0.000042" file="test/src/server/auth/auth.test.ts" line="121" assertions="4" />
-      <testcase name="empty permissions denies everything" classname="hasPermission" time="0.000015" file="test/src/server/auth/auth.test.ts" line="129" assertions="2" />
+    <testsuite name="Search Command" file=".claude/matrix/column-standards.test.ts" line="83" tests="2" assertions="5" failures="0" skipped="0" time="0.037" hostname="Mac.attlocal.net">
+      <testcase name="should search for tension" classname="Search Command" time="0.020429" file=".claude/matrix/column-standards.test.ts" line="84" assertions="3" />
+      <testcase name="should handle no results" classname="Search Command" time="0.017792" file=".claude/matrix/column-standards.test.ts" line="91" assertions="2" />
     </testsuite>
-    <testsuite name="hasAllPermissions" file="test/src/server/auth/auth.test.ts" line="136" tests="2" assertions="3" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-      <testcase name="admin has all permissions" classname="hasAllPermissions" time="0.000035" file="test/src/server/auth/auth.test.ts" line="137" assertions="1" />
-      <testcase name="returns true only when all permissions are present" classname="hasAllPermissions" time="0.000092" file="test/src/server/auth/auth.test.ts" line="142" assertions="2" />
+    <testsuite name="Zone Shortcuts" file=".claude/matrix/column-standards.test.ts" line="98" tests="3" assertions="9" failures="0" skipped="0" time="0.043" hostname="Mac.attlocal.net">
+      <testcase name="should show tension zone" classname="Zone Shortcuts" time="0.015043" file=".claude/matrix/column-standards.test.ts" line="99" assertions="3" />
+      <testcase name="should show cloudflare zone" classname="Zone Shortcuts" time="0.014898" file=".claude/matrix/column-standards.test.ts" line="106" assertions="3" />
+      <testcase name="should show chrome zone" classname="Zone Shortcuts" time="0.01431" file=".claude/matrix/column-standards.test.ts" line="113" assertions="3" />
     </testsuite>
-    <testsuite name="hasAnyPermission" file="test/src/server/auth/auth.test.ts" line="149" tests="2" assertions="3" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-      <testcase name="admin has any permission" classname="hasAnyPermission" time="0.000028" file="test/src/server/auth/auth.test.ts" line="150" assertions="1" />
-      <testcase name="returns true when at least one permission matches" classname="hasAnyPermission" time="0.00003" file="test/src/server/auth/auth.test.ts" line="155" assertions="2" />
+    <testsuite name="Find Command" file=".claude/matrix/column-standards.test.ts" line="121" tests="4" assertions="10" failures="0" skipped="0" time="0.053" hostname="Mac.attlocal.net">
+      <testcase name="should find by zone" classname="Find Command" time="0.013683" file=".claude/matrix/column-standards.test.ts" line="122" assertions="3" />
+      <testcase name="should find by type" classname="Find Command" time="0.013546" file=".claude/matrix/column-standards.test.ts" line="129" assertions="2" />
+      <testcase name="should find required columns" classname="Find Command" time="0.013681" file=".claude/matrix/column-standards.test.ts" line="135" assertions="2" />
+      <testcase name="should find by multiple criteria" classname="Find Command" time="0.014244" file=".claude/matrix/column-standards.test.ts" line="141" assertions="3" />
     </testsuite>
-    <testsuite name="isValidPermission" file="test/src/server/auth/auth.test.ts" line="162" tests="2" assertions="6" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-      <testcase name="validates correct permissions" classname="isValidPermission" time="0.000015" file="test/src/server/auth/auth.test.ts" line="163" assertions="3" />
-      <testcase name="rejects invalid permissions" classname="isValidPermission" time="0.000014" file="test/src/server/auth/auth.test.ts" line="169" assertions="3" />
+    <testsuite name="Pipe Formats" file=".claude/matrix/column-standards.test.ts" line="149" tests="5" assertions="12" failures="0" skipped="0" time="0.071" hostname="Mac.attlocal.net">
+      <testcase name="should output TSV" classname="Pipe Formats" time="0.017097" file=".claude/matrix/column-standards.test.ts" line="150" assertions="3" />
+      <testcase name="should output CSV" classname="Pipe Formats" time="0.013728" file=".claude/matrix/column-standards.test.ts" line="157" assertions="2" />
+      <testcase name="should output names" classname="Pipe Formats" time="0.014299" file=".claude/matrix/column-standards.test.ts" line="163" assertions="3" />
+      <testcase name="should output grep-tags" classname="Pipe Formats" time="0.013618" file=".claude/matrix/column-standards.test.ts" line="170" assertions="2" />
+      <testcase name="should output env" classname="Pipe Formats" time="0.01425" file=".claude/matrix/column-standards.test.ts" line="176" assertions="2" />
     </testsuite>
-    <testsuite name="filterValidPermissions" file="test/src/server/auth/auth.test.ts" line="176" tests="2" assertions="2" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-      <testcase name="filters out invalid permissions" classname="filterValidPermissions" time="0.000414" file="test/src/server/auth/auth.test.ts" line="177" assertions="1" />
-      <testcase name="returns empty array when all invalid" classname="filterValidPermissions" time="0.000028" file="test/src/server/auth/auth.test.ts" line="183" assertions="1" />
+    <testsuite name="Stats Command" file=".claude/matrix/column-standards.test.ts" line="183" tests="2" assertions="6" failures="0" skipped="0" time="0.029" hostname="Mac.attlocal.net">
+      <testcase name="should show statistics" classname="Stats Command" time="0.015991" file=".claude/matrix/column-standards.test.ts" line="184" assertions="4" />
+      <testcase name="should output JSON stats" classname="Stats Command" time="0.014389" file=".claude/matrix/column-standards.test.ts" line="192" assertions="2" />
     </testsuite>
-    <testsuite name="extractApiKey" file="test/src/server/auth/auth.test.ts" line="194" tests="5" assertions="5" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-      <testcase name="extracts key from Authorization Bearer header" classname="extractApiKey" time="0.000969" file="test/src/server/auth/auth.test.ts" line="195" assertions="1" />
-      <testcase name="extracts key from X-API-Key header" classname="extractApiKey" time="0.0002" file="test/src/server/auth/auth.test.ts" line="202" assertions="1" />
-      <testcase name="prefers Authorization header over X-API-Key" classname="extractApiKey" time="0.00003" file="test/src/server/auth/auth.test.ts" line="209" assertions="1" />
-      <testcase name="returns null when no key present" classname="extractApiKey" time="0.00002" file="test/src/server/auth/auth.test.ts" line="219" assertions="1" />
-      <testcase name="returns null for non-Bearer authorization" classname="extractApiKey" time="0.000011" file="test/src/server/auth/auth.test.ts" line="224" assertions="1" />
+    <testsuite name="Validation" file=".claude/matrix/column-standards.test.ts" line="199" tests="1" assertions="1" failures="0" skipped="0" time="0.013" hostname="Mac.attlocal.net">
+      <testcase name="should validate schema" classname="Validation" time="0.013687" file=".claude/matrix/column-standards.test.ts" line="200" assertions="1" />
     </testsuite>
-    <testsuite name="unauthorizedResponse" file="test/src/server/auth/auth.test.ts" line="232" tests="2" assertions="3" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-      <testcase name="returns 401 response with correct body" classname="unauthorizedResponse" time="0.000312" file="test/src/server/auth/auth.test.ts" line="233" assertions="2" />
-      <testcase name="accepts custom message" classname="unauthorizedResponse" time="0.000029" file="test/src/server/auth/auth.test.ts" line="241" assertions="1" />
+    <testsuite name="Doctor Command" file=".claude/matrix/column-standards.test.ts" line="208" tests="1" assertions="4" failures="0" skipped="0" time="0.015" hostname="Mac.attlocal.net">
+      <testcase name="should check environment" classname="Doctor Command" time="0.015709" file=".claude/matrix/column-standards.test.ts" line="209" assertions="4" />
     </testsuite>
-    <testsuite name="forbiddenResponse" file="test/src/server/auth/auth.test.ts" line="248" tests="1" assertions="2" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-      <testcase name="returns 403 response with correct body" classname="forbiddenResponse" time="0.000024" file="test/src/server/auth/auth.test.ts" line="249" assertions="2" />
+    <testsuite name="Shortcuts Command" file=".claude/matrix/column-standards.test.ts" line="218" tests="1" assertions="4" failures="0" skipped="0" time="0.014" hostname="Mac.attlocal.net">
+      <testcase name="should show shortcuts" classname="Shortcuts Command" time="0.014809" file=".claude/matrix/column-standards.test.ts" line="219" assertions="4" />
     </testsuite>
-    <testsuite name="checkPermission" file="test/src/server/auth/auth.test.ts" line="258" tests="4" assertions="7" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-      <testcase name="returns null when authenticated with correct permission" classname="checkPermission" time="0.00001" file="test/src/server/auth/auth.test.ts" line="259" assertions="1" />
-      <testcase name="returns null for admin" classname="checkPermission" time="0.00004" file="test/src/server/auth/auth.test.ts" line="269" assertions="2" />
-      <testcase name="returns 401 when not authenticated" classname="checkPermission" time="0.000011" file="test/src/server/auth/auth.test.ts" line="280" assertions="2" />
-      <testcase name="returns 403 when missing permission" classname="checkPermission" time="0.000011" file="test/src/server/auth/auth.test.ts" line="291" assertions="2" />
+    <testsuite name="Flags Command" file=".claude/matrix/column-standards.test.ts" line="228" tests="1" assertions="4" failures="0" skipped="0" time="0.013" hostname="Mac.attlocal.net">
+      <testcase name="should show flags" classname="Flags Command" time="0.013766" file=".claude/matrix/column-standards.test.ts" line="229" assertions="4" />
     </testsuite>
-    <testsuite name="API Keys" file="test/src/server/auth/auth.test.ts" line="308" tests="8" assertions="15" failures="0" skipped="0" time="0.043" hostname="Mac.attlocal.net">
-      <testcase name="createApiKey generates key with eda_ prefix" classname="API Keys" time="0.017288" file="test/src/server/auth/auth.test.ts" line="312" assertions="3" />
-      <testcase name="validateApiKey returns valid result for correct key" classname="API Keys" time="0.014885" file="test/src/server/auth/auth.test.ts" line="326" assertions="4" />
-      <testcase name="validateApiKey returns invalid for wrong key" classname="API Keys" time="0.012607" file="test/src/server/auth/auth.test.ts" line="335" assertions="2" />
-      <testcase name="listApiKeys returns created key" classname="API Keys" time="0.00004" file="test/src/server/auth/auth.test.ts" line="341" assertions="2" />
-      <testcase name="hasAnyApiKeys returns true when keys exist" classname="API Keys" time="0.000159" file="test/src/server/auth/auth.test.ts" line="348" assertions="1" />
-      <testcase name="revokeKey marks key as revoked" classname="API Keys" time="0.000032" file="test/src/server/auth/auth.test.ts" line="352" assertions="1" />
-      <testcase name="validateApiKey returns invalid for revoked key" classname="API Keys" time="0.000092" file="test/src/server/auth/auth.test.ts" line="359" assertions="1" />
-      <testcase name="deleteKey removes key from database" classname="API Keys" time="0.000061" file="test/src/server/auth/auth.test.ts" line="364" assertions="1" />
+    <testsuite name="Matrix Command" file=".claude/matrix/column-standards.test.ts" line="238" tests="1" assertions="3" failures="0" skipped="0" time="0.015" hostname="Mac.attlocal.net">
+      <testcase name="should show matrix grid" classname="Matrix Command" time="0.015507" file=".claude/matrix/column-standards.test.ts" line="239" assertions="3" />
     </testsuite>
-    <testsuite name="authenticate" file="test/src/server/auth/auth.test.ts" line="376" tests="3" assertions="5" failures="0" skipped="0" time="0.025" hostname="Mac.attlocal.net">
-      <testcase name="returns authenticated context for valid key" classname="authenticate" time="0.012216" file="test/src/server/auth/auth.test.ts" line="388" assertions="2" />
-      <testcase name="returns unauthenticated context for missing key" classname="authenticate" time="0.000086" file="test/src/server/auth/auth.test.ts" line="398" assertions="2" />
-      <testcase name="returns unauthenticated context for invalid key" classname="authenticate" time="0.013238" file="test/src/server/auth/auth.test.ts" line="406" assertions="1" />
+    <testsuite name="Aliases" file=".claude/matrix/column-standards.test.ts" line="247" tests="2" assertions="4" failures="0" skipped="0" time="0.029" hostname="Mac.attlocal.net">
+      <testcase name="should resolve get 45 as tension-profile-link" classname="Aliases" time="0.014223" file=".claude/matrix/column-standards.test.ts" line="248" assertions="2" />
+      <testcase name="should show error for unknown alias" classname="Aliases" time="0.015141" file=".claude/matrix/column-standards.test.ts" line="254" assertions="2" />
     </testsuite>
   </testsuite>
-  <testsuite name="test/src/server/__tests__/unit.test.ts" file="test/src/server/__tests__/unit.test.ts" tests="107" assertions="146" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-    <testsuite name="Interface Tests" file="test/src/server/__tests__/unit.test.ts" line="9" tests="37" assertions="52" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-      <testsuite name="Project Interface" file="test/src/server/__tests__/unit.test.ts" line="10" tests="12" assertions="14" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-        <testcase name="Project interface accepts valid clean status" classname="Project Interface &amp;gt; Interface Tests" time="0.000013" file="test/src/server/__tests__/unit.test.ts" line="25" assertions="1" />
-        <testcase name="Project interface accepts valid modified status" classname="Project Interface &amp;gt; Interface Tests" time="0.000005" file="test/src/server/__tests__/unit.test.ts" line="30" assertions="1" />
-        <testcase name="Project interface accepts valid staged status" classname="Project Interface &amp;gt; Interface Tests" time="0.00001" file="test/src/server/__tests__/unit.test.ts" line="35" assertions="1" />
-        <testcase name="Project interface accepts valid conflict status" classname="Project Interface &amp;gt; Interface Tests" time="0.000006" file="test/src/server/__tests__/unit.test.ts" line="40" assertions="1" />
-        <testcase name="Project interface accepts valid remote ahead" classname="Project Interface &amp;gt; Interface Tests" time="0.00001" file="test/src/server/__tests__/unit.test.ts" line="45" assertions="2" />
-        <testcase name="Project interface accepts valid remote behind" classname="Project Interface &amp;gt; Interface Tests" time="0.00001" file="test/src/server/__tests__/unit.test.ts" line="51" assertions="2" />
-        <testcase name="Project interface accepts valid remote diverged" classname="Project Interface &amp;gt; Interface Tests" time="0.000005" file="test/src/server/__tests__/unit.test.ts" line="57" assertions="1" />
-        <testcase name="Project interface accepts valid remote up-to-date" classname="Project Interface &amp;gt; Interface Tests" time="0.000008" file="test/src/server/__tests__/unit.test.ts" line="62" assertions="1" />
-        <testcase name="Project health can be 0" classname="Project Interface &amp;gt; Interface Tests" time="0.000004" file="test/src/server/__tests__/unit.test.ts" line="67" assertions="1" />
-        <testcase name="Project health can be 100" classname="Project Interface &amp;gt; Interface Tests" time="0.000005" file="test/src/server/__tests__/unit.test.ts" line="72" assertions="1" />
-        <testcase name="Project modifiedFiles can be 0" classname="Project Interface &amp;gt; Interface Tests" time="0.000004" file="test/src/server/__tests__/unit.test.ts" line="77" assertions="1" />
-        <testcase name="Project modifiedFiles can be large number" classname="Project Interface &amp;gt; Interface Tests" time="0.000011" file="test/src/server/__tests__/unit.test.ts" line="82" assertions="1" />
+  <testsuite name=".claude/core/analysis/analysis.test.ts" file=".claude/core/analysis/analysis.test.ts" tests="26" assertions="33" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+    <testsuite name="output.ts" file=".claude/core/analysis/analysis.test.ts" line="17" tests="10" assertions="12" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+      <testsuite name="stripAnsi" file=".claude/core/analysis/analysis.test.ts" line="18" tests="4" assertions="4" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+        <testcase name="should strip ANSI codes using Bun.stripANSI" classname="stripAnsi &amp;gt; output.ts" time="0" file=".claude/core/analysis/analysis.test.ts" line="19" assertions="1" />
+        <testcase name="should handle strings without ANSI codes" classname="stripAnsi &amp;gt; output.ts" time="0" file=".claude/core/analysis/analysis.test.ts" line="24" assertions="1" />
+        <testcase name="should handle empty strings" classname="stripAnsi &amp;gt; output.ts" time="0" file=".claude/core/analysis/analysis.test.ts" line="28" assertions="1" />
+        <testcase name="should strip multiple ANSI sequences" classname="stripAnsi &amp;gt; output.ts" time="0" file=".claude/core/analysis/analysis.test.ts" line="32" assertions="1" />
       </testsuite>
-      <testsuite name="Alert Interface" file="test/src/server/__tests__/unit.test.ts" line="88" tests="6" assertions="6" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-        <testcase name="Alert interface accepts warning type" classname="Alert Interface &amp;gt; Interface Tests" time="0.000007" file="test/src/server/__tests__/unit.test.ts" line="89" assertions="1" />
-        <testcase name="Alert interface accepts error type" classname="Alert Interface &amp;gt; Interface Tests" time="0.000008" file="test/src/server/__tests__/unit.test.ts" line="99" assertions="1" />
-        <testcase name="Alert interface accepts info type" classname="Alert Interface &amp;gt; Interface Tests" time="0.000003" file="test/src/server/__tests__/unit.test.ts" line="109" assertions="1" />
-        <testcase name="Alert interface accepts success type" classname="Alert Interface &amp;gt; Interface Tests" time="0.000006" file="test/src/server/__tests__/unit.test.ts" line="119" assertions="1" />
-        <testcase name="Alert interface accepts optional project" classname="Alert Interface &amp;gt; Interface Tests" time="0.000009" file="test/src/server/__tests__/unit.test.ts" line="129" assertions="1" />
-        <testcase name="Alert interface works without project" classname="Alert Interface &amp;gt; Interface Tests" time="0.000008" file="test/src/server/__tests__/unit.test.ts" line="140" assertions="1" />
+      <testsuite name="textWidth" file=".claude/core/analysis/analysis.test.ts" line="38" tests="4" assertions="4" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+        <testcase name="should return visual width of plain text" classname="textWidth &amp;gt; output.ts" time="0.000128" file=".claude/core/analysis/analysis.test.ts" line="39" assertions="1" />
+        <testcase name="should ignore ANSI escape codes in width" classname="textWidth &amp;gt; output.ts" time="0" file=".claude/core/analysis/analysis.test.ts" line="43" assertions="1" />
+        <testcase name="should handle empty strings" classname="textWidth &amp;gt; output.ts" time="0" file=".claude/core/analysis/analysis.test.ts" line="48" assertions="1" />
+        <testcase name="should handle emoji width correctly" classname="textWidth &amp;gt; output.ts" time="0.000035" file=".claude/core/analysis/analysis.test.ts" line="52" assertions="1" />
       </testsuite>
-      <testsuite name="TimelinePoint Interface" file="test/src/server/__tests__/unit.test.ts" line="151" tests="2" assertions="6" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-        <testcase name="TimelinePoint interface has all required fields" classname="TimelinePoint Interface &amp;gt; Interface Tests" time="0.000009" file="test/src/server/__tests__/unit.test.ts" line="152" assertions="3" />
-        <testcase name="TimelinePoint can have zero values" classname="TimelinePoint Interface &amp;gt; Interface Tests" time="0.000014" file="test/src/server/__tests__/unit.test.ts" line="164" assertions="3" />
-      </testsuite>
-      <testsuite name="DashboardStats Interface" file="test/src/server/__tests__/unit.test.ts" line="177" tests="3" assertions="6" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-        <testcase name="DashboardStats interface has all required fields" classname="DashboardStats Interface &amp;gt; Interface Tests" time="0.000016" file="test/src/server/__tests__/unit.test.ts" line="178" assertions="4" />
-        <testcase name="DashboardStats can have populated timeline" classname="DashboardStats Interface &amp;gt; Interface Tests" time="0.00003" file="test/src/server/__tests__/unit.test.ts" line="193" assertions="1" />
-        <testcase name="DashboardStats can have populated alerts" classname="DashboardStats Interface &amp;gt; Interface Tests" time="0.000006" file="test/src/server/__tests__/unit.test.ts" line="208" assertions="1" />
-      </testsuite>
-      <testsuite name="DashboardData Interface" file="test/src/server/__tests__/unit.test.ts" line="223" tests="1" assertions="2" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-        <testcase name="DashboardData combines projects and stats" classname="DashboardData Interface &amp;gt; Interface Tests" time="0.000014" file="test/src/server/__tests__/unit.test.ts" line="224" assertions="2" />
-      </testsuite>
-      <testsuite name="ApiResponse Interface" file="test/src/server/__tests__/unit.test.ts" line="255" tests="4" assertions="6" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-        <testcase name="ApiResponse with data (success)" classname="ApiResponse Interface &amp;gt; Interface Tests" time="0.000012" file="test/src/server/__tests__/unit.test.ts" line="256" assertions="2" />
-        <testcase name="ApiResponse with error (failure)" classname="ApiResponse Interface &amp;gt; Interface Tests" time="0.00001" file="test/src/server/__tests__/unit.test.ts" line="264" assertions="2" />
-        <testcase name="ApiResponse with array data" classname="ApiResponse Interface &amp;gt; Interface Tests" time="0.00001" file="test/src/server/__tests__/unit.test.ts" line="272" assertions="1" />
-        <testcase name="ApiResponse with complex nested data" classname="ApiResponse Interface &amp;gt; Interface Tests" time="0.000006" file="test/src/server/__tests__/unit.test.ts" line="279" assertions="1" />
-      </testsuite>
-      <testsuite name="UIState Interface" file="test/src/server/__tests__/unit.test.ts" line="297" tests="4" assertions="6" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-        <testcase name="UIState has all required fields" classname="UIState Interface &amp;gt; Interface Tests" time="0.000004" file="test/src/server/__tests__/unit.test.ts" line="298" assertions="1" />
-        <testcase name="UIState collapsedProjects is Record&lt;string, boolean&gt;" classname="UIState Interface &amp;gt; Interface Tests" time="0.000011" file="test/src/server/__tests__/unit.test.ts" line="308" assertions="2" />
-        <testcase name="UIState recentFilters is string array" classname="UIState Interface &amp;gt; Interface Tests" time="0.000004" file="test/src/server/__tests__/unit.test.ts" line="319" assertions="2" />
-        <testcase name="UIState lastVisited is Record&lt;string, number&gt;" classname="UIState Interface &amp;gt; Interface Tests" time="0.000015" file="test/src/server/__tests__/unit.test.ts" line="330" assertions="1" />
-      </testsuite>
-      <testsuite name="SessionData Interface" file="test/src/server/__tests__/unit.test.ts" line="341" tests="3" assertions="4" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-        <testcase name="SessionData has all required fields" classname="SessionData Interface &amp;gt; Interface Tests" time="0.000029" file="test/src/server/__tests__/unit.test.ts" line="342" assertions="2" />
-        <testcase name="SessionData accepts optional userAgent" classname="SessionData Interface &amp;gt; Interface Tests" time="0.00001" file="test/src/server/__tests__/unit.test.ts" line="353" assertions="1" />
-        <testcase name="SessionData works without userAgent" classname="SessionData Interface &amp;gt; Interface Tests" time="0.000007" file="test/src/server/__tests__/unit.test.ts" line="364" assertions="1" />
-      </testsuite>
-      <testsuite name="Theme Type" file="test/src/server/__tests__/unit.test.ts" line="375" tests="2" assertions="2" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-        <testcase name="Theme accepts dark" classname="Theme Type &amp;gt; Interface Tests" time="0.000009" file="test/src/server/__tests__/unit.test.ts" line="376" assertions="1" />
-        <testcase name="Theme accepts light" classname="Theme Type &amp;gt; Interface Tests" time="0.000007" file="test/src/server/__tests__/unit.test.ts" line="381" assertions="1" />
+      <testsuite name="renderBox" file=".claude/core/analysis/analysis.test.ts" line="59" tests="2" assertions="4" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+        <testcase name="should cap box width at 89 (Col-89)" classname="renderBox &amp;gt; output.ts" time="0.000107" file=".claude/core/analysis/analysis.test.ts" line="60" assertions="1" />
+        <testcase name="should render title and content" classname="renderBox &amp;gt; output.ts" time="0.00003" file=".claude/core/analysis/analysis.test.ts" line="69" assertions="3" />
       </testsuite>
     </testsuite>
-    <testsuite name="Config Object" file="test/src/server/__tests__/unit.test.ts" line="392" tests="31" assertions="35" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-      <testsuite name="Server Config" file="test/src/server/__tests__/unit.test.ts" line="393" tests="9" assertions="9" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-        <testcase name="PORT is a number" classname="Server Config &amp;gt; Config Object" time="0.000005" file="test/src/server/__tests__/unit.test.ts" line="394" assertions="1" />
-        <testcase name="PORT is positive" classname="Server Config &amp;gt; Config Object" time="0.000004" file="test/src/server/__tests__/unit.test.ts" line="398" assertions="1" />
-        <testcase name="PORT is within valid range" classname="Server Config &amp;gt; Config Object" time="0.000058" file="test/src/server/__tests__/unit.test.ts" line="402" assertions="1" />
-        <testcase name="HOST is a string" classname="Server Config &amp;gt; Config Object" time="0.000006" file="test/src/server/__tests__/unit.test.ts" line="406" assertions="1" />
-        <testcase name="HOST is not empty" classname="Server Config &amp;gt; Config Object" time="0.000008" file="test/src/server/__tests__/unit.test.ts" line="410" assertions="1" />
-        <testcase name="HOSTNAME is a string" classname="Server Config &amp;gt; Config Object" time="0.000004" file="test/src/server/__tests__/unit.test.ts" line="414" assertions="1" />
-        <testcase name="MAX_REQUEST_BODY_SIZE is a number" classname="Server Config &amp;gt; Config Object" time="0.000004" file="test/src/server/__tests__/unit.test.ts" line="418" assertions="1" />
-        <testcase name="MAX_REQUEST_BODY_SIZE is positive" classname="Server Config &amp;gt; Config Object" time="0.000005" file="test/src/server/__tests__/unit.test.ts" line="422" assertions="1" />
-        <testcase name="DEVELOPMENT is a boolean" classname="Server Config &amp;gt; Config Object" time="0.000008" file="test/src/server/__tests__/unit.test.ts" line="426" assertions="1" />
-      </testsuite>
-      <testsuite name="Git Scanning Config" file="test/src/server/__tests__/unit.test.ts" line="431" tests="5" assertions="6" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-        <testcase name="PROJECTS_DIR is a string" classname="Git Scanning Config &amp;gt; Config Object" time="0.000003" file="test/src/server/__tests__/unit.test.ts" line="432" assertions="1" />
-        <testcase name="PROJECTS_DIR is not empty" classname="Git Scanning Config &amp;gt; Config Object" time="0.000006" file="test/src/server/__tests__/unit.test.ts" line="436" assertions="1" />
-        <testcase name="SCAN_DEPTH is a number" classname="Git Scanning Config &amp;gt; Config Object" time="0.000006" file="test/src/server/__tests__/unit.test.ts" line="440" assertions="1" />
-        <testcase name="SCAN_DEPTH is positive" classname="Git Scanning Config &amp;gt; Config Object" time="0.000004" file="test/src/server/__tests__/unit.test.ts" line="444" assertions="1" />
-        <testcase name="SCAN_DEPTH is reasonable (1-10)" classname="Git Scanning Config &amp;gt; Config Object" time="0.000014" file="test/src/server/__tests__/unit.test.ts" line="448" assertions="2" />
-      </testsuite>
-      <testsuite name="Interval Config" file="test/src/server/__tests__/unit.test.ts" line="454" tests="6" assertions="6" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-        <testcase name="TIMELINE_UPDATE_INTERVAL is a number" classname="Interval Config &amp;gt; Config Object" time="0.00001" file="test/src/server/__tests__/unit.test.ts" line="455" assertions="1" />
-        <testcase name="TIMELINE_UPDATE_INTERVAL is positive" classname="Interval Config &amp;gt; Config Object" time="0.000006" file="test/src/server/__tests__/unit.test.ts" line="459" assertions="1" />
-        <testcase name="TIMELINE_UPDATE_INTERVAL is at least 1 second" classname="Interval Config &amp;gt; Config Object" time="0.000005" file="test/src/server/__tests__/unit.test.ts" line="463" assertions="1" />
-        <testcase name="RESCAN_INTERVAL is a number" classname="Interval Config &amp;gt; Config Object" time="0.000008" file="test/src/server/__tests__/unit.test.ts" line="467" assertions="1" />
-        <testcase name="RESCAN_INTERVAL is positive" classname="Interval Config &amp;gt; Config Object" time="0.000005" file="test/src/server/__tests__/unit.test.ts" line="471" assertions="1" />
-        <testcase name="RESCAN_INTERVAL is at least 5 seconds" classname="Interval Config &amp;gt; Config Object" time="0.000004" file="test/src/server/__tests__/unit.test.ts" line="475" assertions="1" />
-      </testsuite>
-      <testsuite name="Limits Config" file="test/src/server/__tests__/unit.test.ts" line="480" tests="8" assertions="8" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-        <testcase name="MAX_TIMELINE_POINTS is a number" classname="Limits Config &amp;gt; Config Object" time="0.000003" file="test/src/server/__tests__/unit.test.ts" line="481" assertions="1" />
-        <testcase name="MAX_TIMELINE_POINTS is positive" classname="Limits Config &amp;gt; Config Object" time="0.000005" file="test/src/server/__tests__/unit.test.ts" line="485" assertions="1" />
-        <testcase name="MAX_ALERTS is a number" classname="Limits Config &amp;gt; Config Object" time="0.000004" file="test/src/server/__tests__/unit.test.ts" line="489" assertions="1" />
-        <testcase name="MAX_ALERTS is positive" classname="Limits Config &amp;gt; Config Object" time="0.000004" file="test/src/server/__tests__/unit.test.ts" line="493" assertions="1" />
-        <testcase name="TIMELINE_DISPLAY_LIMIT is a number" classname="Limits Config &amp;gt; Config Object" time="0.000004" file="test/src/server/__tests__/unit.test.ts" line="497" assertions="1" />
-        <testcase name="TIMELINE_DISPLAY_LIMIT &lt;= MAX_TIMELINE_POINTS" classname="Limits Config &amp;gt; Config Object" time="0.000006" file="test/src/server/__tests__/unit.test.ts" line="501" assertions="1" />
-        <testcase name="ALERTS_DISPLAY_LIMIT is a number" classname="Limits Config &amp;gt; Config Object" time="0.000005" file="test/src/server/__tests__/unit.test.ts" line="505" assertions="1" />
-        <testcase name="ALERTS_DISPLAY_LIMIT &lt;= MAX_ALERTS" classname="Limits Config &amp;gt; Config Object" time="0.000012" file="test/src/server/__tests__/unit.test.ts" line="509" assertions="1" />
-      </testsuite>
-      <testsuite name="Health Thresholds Config" file="test/src/server/__tests__/unit.test.ts" line="514" tests="2" assertions="3" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-        <testcase name="HEALTH_WARNING_THRESHOLD is a number" classname="Health Thresholds Config &amp;gt; Config Object" time="0.000005" file="test/src/server/__tests__/unit.test.ts" line="515" assertions="1" />
-        <testcase name="HEALTH_WARNING_THRESHOLD is between 0 and 100" classname="Health Thresholds Config &amp;gt; Config Object" time="0.000006" file="test/src/server/__tests__/unit.test.ts" line="519" assertions="2" />
-      </testsuite>
-      <testsuite name="Config Immutability" file="test/src/server/__tests__/unit.test.ts" line="525" tests="1" assertions="3" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-        <testcase name="config is readonly (as const)" classname="Config Immutability &amp;gt; Config Object" time="0.000016" file="test/src/server/__tests__/unit.test.ts" line="526" assertions="3" />
-      </testsuite>
+    <testsuite name="SymbolRenamer" file=".claude/core/analysis/analysis.test.ts" line="83" tests="6" assertions="8" failures="0" skipped="0" time="0.004" hostname="Mac.attlocal.net">
+      <testcase name="should find references with whole-word matching" classname="SymbolRenamer" time="0.000656" file=".claude/core/analysis/analysis.test.ts" line="119" assertions="1" />
+      <testcase name="should not match partial words" classname="SymbolRenamer" time="0.000133" file=".claude/core/analysis/analysis.test.ts" line="124" assertions="1" />
+      <testcase name="should classify definitions correctly" classname="SymbolRenamer" time="0.000101" file=".claude/core/analysis/analysis.test.ts" line="130" assertions="1" />
+      <testcase name="should classify imports correctly" classname="SymbolRenamer" time="0.000124" file=".claude/core/analysis/analysis.test.ts" line="136" assertions="1" />
+      <testcase name="should classify calls correctly" classname="SymbolRenamer" time="0.000139" file=".claude/core/analysis/analysis.test.ts" line="142" assertions="1" />
+      <testcase name="should apply rename when not dry-run" classname="SymbolRenamer" time="0.004295" file=".claude/core/analysis/analysis.test.ts" line="148" assertions="3" />
     </testsuite>
-    <testsuite name="Function Tests" file="test/src/server/__tests__/unit.test.ts" line="540" tests="28" assertions="37" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-      <testsuite name="calculateHealth Function" file="test/src/server/__tests__/unit.test.ts" line="561" tests="10" assertions="17" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-        <testcase name="Perfect health for clean repo" classname="calculateHealth Function &amp;gt; Function Tests" time="0.000029" file="test/src/server/__tests__/unit.test.ts" line="562" assertions="1" />
-        <testcase name="Conflicts reduce health by 40" classname="calculateHealth Function &amp;gt; Function Tests" time="0.000017" file="test/src/server/__tests__/unit.test.ts" line="567" assertions="1" />
-        <testcase name="Modified files reduce health (3 per file, max 20)" classname="calculateHealth Function &amp;gt; Function Tests" time="0.000014" file="test/src/server/__tests__/unit.test.ts" line="572" assertions="3" />
-        <testcase name="Untracked files &gt; 5 reduce health by 10" classname="calculateHealth Function &amp;gt; Function Tests" time="0.000006" file="test/src/server/__tests__/unit.test.ts" line="583" assertions="2" />
-        <testcase name="Behind commits reduce health (2 per commit, max 15)" classname="calculateHealth Function &amp;gt; Function Tests" time="0.000014" file="test/src/server/__tests__/unit.test.ts" line="591" assertions="3" />
-        <testcase name="Ahead &gt; 10 commits reduces health by 5" classname="calculateHealth Function &amp;gt; Function Tests" time="0.000014" file="test/src/server/__tests__/unit.test.ts" line="602" assertions="2" />
-        <testcase name="Health with extreme penalties" classname="calculateHealth Function &amp;gt; Function Tests" time="0.000004" file="test/src/server/__tests__/unit.test.ts" line="610" assertions="2" />
-        <testcase name="Health never exceeds 100" classname="calculateHealth Function &amp;gt; Function Tests" time="0.000011" file="test/src/server/__tests__/unit.test.ts" line="618" assertions="1" />
-        <testcase name="Combined penalties stack correctly" classname="calculateHealth Function &amp;gt; Function Tests" time="0.000007" file="test/src/server/__tests__/unit.test.ts" line="623" assertions="1" />
-        <testcase name="Staged files do not affect health" classname="calculateHealth Function &amp;gt; Function Tests" time="0.000006" file="test/src/server/__tests__/unit.test.ts" line="629" assertions="1" />
+    <testsuite name="CodePolisher" file=".claude/core/analysis/analysis.test.ts" line="178" tests="10" assertions="13" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+      <testsuite name="checkNaming" file=".claude/core/analysis/analysis.test.ts" line="228" tests="4" assertions="4" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+        <testcase name="should flag non-camelCase function names" classname="checkNaming &amp;gt; CodePolisher" time="0.000214" file=".claude/core/analysis/analysis.test.ts" line="229" assertions="1" />
+        <testcase name="should flag non-PascalCase class names" classname="checkNaming &amp;gt; CodePolisher" time="0.000035" file=".claude/core/analysis/analysis.test.ts" line="238" assertions="1" />
+        <testcase name="should not flag valid camelCase functions" classname="checkNaming &amp;gt; CodePolisher" time="0.000009" file=".claude/core/analysis/analysis.test.ts" line="247" assertions="1" />
+        <testcase name="should not flag valid PascalCase classes" classname="checkNaming &amp;gt; CodePolisher" time="0.000006" file=".claude/core/analysis/analysis.test.ts" line="253" assertions="1" />
       </testsuite>
-      <testsuite name="Utility Functions" file="test/src/server/__tests__/unit.test.ts" line="635" tests="18" assertions="20" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-        <testcase name="generateSessionId creates valid format" classname="Utility Functions &amp;gt; Function Tests" time="0.000051" file="test/src/server/__tests__/unit.test.ts" line="641" assertions="1" />
-        <testcase name="generateSessionId creates unique IDs" classname="Utility Functions &amp;gt; Function Tests" time="0.000074" file="test/src/server/__tests__/unit.test.ts" line="646" assertions="1" />
-        <testcase name="formatUptime formats seconds only" classname="Utility Functions &amp;gt; Function Tests" time="0.000021" file="test/src/server/__tests__/unit.test.ts" line="664" assertions="1" />
-        <testcase name="formatUptime formats minutes and seconds" classname="Utility Functions &amp;gt; Function Tests" time="0.000007" file="test/src/server/__tests__/unit.test.ts" line="668" assertions="1" />
-        <testcase name="formatUptime formats hours, minutes, and seconds" classname="Utility Functions &amp;gt; Function Tests" time="0.000007" file="test/src/server/__tests__/unit.test.ts" line="672" assertions="1" />
-        <testcase name="formatUptime handles zero" classname="Utility Functions &amp;gt; Function Tests" time="0.000005" file="test/src/server/__tests__/unit.test.ts" line="676" assertions="1" />
-        <testcase name="formatUptime handles exact hours" classname="Utility Functions &amp;gt; Function Tests" time="0.000005" file="test/src/server/__tests__/unit.test.ts" line="680" assertions="1" />
-        <testcase name="isValidTheme returns true for dark" classname="Utility Functions &amp;gt; Function Tests" time="0.000008" file="test/src/server/__tests__/unit.test.ts" line="689" assertions="1" />
-        <testcase name="isValidTheme returns true for light" classname="Utility Functions &amp;gt; Function Tests" time="0.000005" file="test/src/server/__tests__/unit.test.ts" line="693" assertions="1" />
-        <testcase name="isValidTheme returns false for invalid" classname="Utility Functions &amp;gt; Function Tests" time="0.000008" file="test/src/server/__tests__/unit.test.ts" line="697" assertions="3" />
-        <testcase name="determineStatus returns clean for no changes" classname="Utility Functions &amp;gt; Function Tests" time="0.000004" file="test/src/server/__tests__/unit.test.ts" line="714" assertions="1" />
-        <testcase name="determineStatus returns conflict when conflicts exist" classname="Utility Functions &amp;gt; Function Tests" time="0.000004" file="test/src/server/__tests__/unit.test.ts" line="718" assertions="1" />
-        <testcase name="determineStatus returns staged when staged files exist" classname="Utility Functions &amp;gt; Function Tests" time="0.000006" file="test/src/server/__tests__/unit.test.ts" line="722" assertions="1" />
-        <testcase name="determineStatus returns modified for modified/untracked only" classname="Utility Functions &amp;gt; Function Tests" time="0.000006" file="test/src/server/__tests__/unit.test.ts" line="726" assertions="1" />
-        <testcase name="determineRemote returns up-to-date when synced" classname="Utility Functions &amp;gt; Function Tests" time="0.000008" file="test/src/server/__tests__/unit.test.ts" line="738" assertions="1" />
-        <testcase name="determineRemote returns ahead when only ahead" classname="Utility Functions &amp;gt; Function Tests" time="0.000009" file="test/src/server/__tests__/unit.test.ts" line="742" assertions="1" />
-        <testcase name="determineRemote returns behind when only behind" classname="Utility Functions &amp;gt; Function Tests" time="0.000003" file="test/src/server/__tests__/unit.test.ts" line="746" assertions="1" />
-        <testcase name="determineRemote returns diverged when both" classname="Utility Functions &amp;gt; Function Tests" time="0.000005" file="test/src/server/__tests__/unit.test.ts" line="750" assertions="1" />
+      <testsuite name="checkUnusedImports" file=".claude/core/analysis/analysis.test.ts" line="260" tests="2" assertions="3" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+        <testcase name="should flag unused imports" classname="checkUnusedImports &amp;gt; CodePolisher" time="0.00035" file=".claude/core/analysis/analysis.test.ts" line="261" assertions="2" />
+        <testcase name="should not flag used imports" classname="checkUnusedImports &amp;gt; CodePolisher" time="0" file=".claude/core/analysis/analysis.test.ts" line="271" assertions="1" />
       </testsuite>
-    </testsuite>
-    <testsuite name="Factory Function Tests" file="test/src/server/__tests__/unit.test.ts" line="760" tests="11" assertions="22" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-      <testsuite name="Project Factory" file="test/src/server/__tests__/unit.test.ts" line="761" tests="3" assertions="8" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-        <testcase name="createProject creates valid default project" classname="Project Factory &amp;gt; Factory Function Tests" time="0.00002" file="test/src/server/__tests__/unit.test.ts" line="779" assertions="4" />
-        <testcase name="createProject allows overrides" classname="Project Factory &amp;gt; Factory Function Tests" time="0.000007" file="test/src/server/__tests__/unit.test.ts" line="787" assertions="2" />
-        <testcase name="createProject preserves non-overridden defaults" classname="Project Factory &amp;gt; Factory Function Tests" time="0.000015" file="test/src/server/__tests__/unit.test.ts" line="793" assertions="2" />
+      <testsuite name="checkMissingTypes" file=".claude/core/analysis/analysis.test.ts" line="281" tests="3" assertions="3" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+        <testcase name="should flag untyped parameters in .ts files" classname="checkMissingTypes &amp;gt; CodePolisher" time="0.000266" file=".claude/core/analysis/analysis.test.ts" line="282" assertions="1" />
+        <testcase name="should not flag typed parameters" classname="checkMissingTypes &amp;gt; CodePolisher" time="0" file=".claude/core/analysis/analysis.test.ts" line="289" assertions="1" />
+        <testcase name="should skip .js files" classname="checkMissingTypes &amp;gt; CodePolisher" time="0" file=".claude/core/analysis/analysis.test.ts" line="296" assertions="1" />
       </testsuite>
-      <testsuite name="Alert Factory" file="test/src/server/__tests__/unit.test.ts" line="800" tests="3" assertions="5" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-        <testcase name="createAlert creates valid warning alert" classname="Alert Factory &amp;gt; Factory Function Tests" time="0.000039" file="test/src/server/__tests__/unit.test.ts" line="811" assertions="3" />
-        <testcase name="createAlert creates alert with project" classname="Alert Factory &amp;gt; Factory Function Tests" time="0.000009" file="test/src/server/__tests__/unit.test.ts" line="818" assertions="1" />
-        <testcase name="createAlert generates unique IDs" classname="Alert Factory &amp;gt; Factory Function Tests" time="0.000007" file="test/src/server/__tests__/unit.test.ts" line="823" assertions="1" />
-      </testsuite>
-      <testsuite name="UIState Factory" file="test/src/server/__tests__/unit.test.ts" line="830" tests="2" assertions="4" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-        <testcase name="createUIState creates valid default state" classname="UIState Factory &amp;gt; Factory Function Tests" time="0.000016" file="test/src/server/__tests__/unit.test.ts" line="841" assertions="2" />
-        <testcase name="createUIState allows nested overrides" classname="UIState Factory &amp;gt; Factory Function Tests" time="0.000008" file="test/src/server/__tests__/unit.test.ts" line="847" assertions="2" />
-      </testsuite>
-      <testsuite name="ApiResponse Factory" file="test/src/server/__tests__/unit.test.ts" line="857" tests="3" assertions="5" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-        <testcase name="createSuccessResponse creates valid success response" classname="ApiResponse Factory &amp;gt; Factory Function Tests" time="0.000013" file="test/src/server/__tests__/unit.test.ts" line="866" assertions="2" />
-        <testcase name="createErrorResponse creates valid error response" classname="ApiResponse Factory &amp;gt; Factory Function Tests" time="0.000005" file="test/src/server/__tests__/unit.test.ts" line="872" assertions="2" />
-        <testcase name="createSuccessResponse works with complex types" classname="ApiResponse Factory &amp;gt; Factory Function Tests" time="0.00001" file="test/src/server/__tests__/unit.test.ts" line="878" assertions="1" />
+      <testsuite name="analyzeDirectory" file=".claude/core/analysis/analysis.test.ts" line="303" tests="1" assertions="3" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+        <testcase name="should return a complete report" classname="analyzeDirectory &amp;gt; CodePolisher" time="0.000598" file=".claude/core/analysis/analysis.test.ts" line="304" assertions="3" />
       </testsuite>
     </testsuite>
   </testsuite>
-  <testsuite name="test/src/server/__tests__/scripts.test.ts" file="test/src/server/__tests__/scripts.test.ts" tests="19" assertions="22" failures="5" skipped="3" time="0" hostname="Mac.attlocal.net">
-    <testsuite name="DX Scripts Configuration" file="test/src/server/__tests__/scripts.test.ts" line="22" tests="7" assertions="17" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-      <testcase name="has dev:all script for parallel CSS + server" classname="DX Scripts Configuration" time="0" file="test/src/server/__tests__/scripts.test.ts" line="24" assertions="3" />
-      <testcase name="has dev:open script for auto-browser launch" classname="DX Scripts Configuration" time="0" file="test/src/server/__tests__/scripts.test.ts" line="30" assertions="2" />
-      <testcase name="has test:watch script for watch mode" classname="DX Scripts Configuration" time="0" file="test/src/server/__tests__/scripts.test.ts" line="35" assertions="2" />
-      <testcase name="has typecheck script for fast type checking" classname="DX Scripts Configuration" time="0.000036" file="test/src/server/__tests__/scripts.test.ts" line="40" assertions="2" />
-      <testcase name="has check script for full CI validation" classname="DX Scripts Configuration" time="0.000005" file="test/src/server/__tests__/scripts.test.ts" line="45" assertions="3" />
-      <testcase name="has build:client script for production builds" classname="DX Scripts Configuration" time="0.000011" file="test/src/server/__tests__/scripts.test.ts" line="51" assertions="3" />
-      <testcase name="has build:client:dev script with React Fast Refresh" classname="DX Scripts Configuration" time="0.000005" file="test/src/server/__tests__/scripts.test.ts" line="57" assertions="2" />
+  <testsuite name=".claude/core/team/TeamRegistry.test.ts" file=".claude/core/team/TeamRegistry.test.ts" tests="28" assertions="149" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+    <testsuite name="types" file=".claude/core/team/TeamRegistry.test.ts" line="42" tests="7" assertions="70" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+      <testcase name="should map all roles to tiers" classname="types" time="0" file=".claude/core/team/TeamRegistry.test.ts" line="43" assertions="4" />
+      <testcase name="should return PermissionFlags objects, not arrays" classname="types" time="0.000043" file=".claude/core/team/TeamRegistry.test.ts" line="50" assertions="3" />
+      <testcase name="should set correct flags per role" classname="types" time="0.000028" file=".claude/core/team/TeamRegistry.test.ts" line="57" assertions="17" />
+      <testcase name="should promote roles correctly" classname="types" time="0.000025" file=".claude/core/team/TeamRegistry.test.ts" line="84" assertions="4" />
+      <testcase name="should demote roles correctly" classname="types" time="0.000019" file=".claude/core/team/TeamRegistry.test.ts" line="91" assertions="4" />
+      <testcase name="should have 4 roles in correct order" classname="types" time="0" file=".claude/core/team/TeamRegistry.test.ts" line="98" assertions="2" />
+      <testcase name="should have flags for every tier" classname="types" time="0" file=".claude/core/team/TeamRegistry.test.ts" line="103" assertions="36" />
     </testsuite>
-    <testsuite name="DX Script Execution" file="test/src/server/__tests__/scripts.test.ts" line="66" tests="3" assertions="1" failures="1" skipped="1" time="0.018" hostname="Mac.attlocal.net">
-      <testcase name="typecheck runs without crashing" classname="DX Script Execution" time="0" file="test/src/server/__tests__/scripts.test.ts" line="69" assertions="0">
-        <skipped />
-      </testcase>
-      <testcase name="test command is configured correctly" classname="DX Script Execution" time="0" file="test/src/server/__tests__/scripts.test.ts" line="76" assertions="1" />
-      <testcase name="CSS build completes" classname="DX Script Execution" time="0.018924" file="test/src/server/__tests__/scripts.test.ts" line="82" assertions="0">
-        <failure type="AssertionError" />
-      </testcase>
+    <testsuite name="hasPermission" file=".claude/core/team/TeamRegistry.test.ts" line="119" tests="3" assertions="8" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+      <testcase name="should return true for enabled flags" classname="hasPermission" time="0" file=".claude/core/team/TeamRegistry.test.ts" line="120" assertions="3" />
+      <testcase name="should return false for disabled flags" classname="hasPermission" time="0.000084" file=".claude/core/team/TeamRegistry.test.ts" line="134" assertions="3" />
+      <testcase name="should return false for null/undefined team" classname="hasPermission" time="0.000008" file=".claude/core/team/TeamRegistry.test.ts" line="148" assertions="2" />
     </testsuite>
-    <testsuite name="Build Outputs" file="test/src/server/__tests__/scripts.test.ts" line="92" tests="2" assertions="2" failures="1" skipped="0" time="0" hostname="Mac.attlocal.net">
-      <testcase name="Tailwind CSS output exists" classname="Build Outputs" time="0.000322" file="test/src/server/__tests__/scripts.test.ts" line="93" assertions="1">
-        <failure type="AssertionError" />
-      </testcase>
-      <testcase name="public/index.html exists" classname="Build Outputs" time="0.000033" file="test/src/server/__tests__/scripts.test.ts" line="100" assertions="1" />
+    <testsuite name="enabledFlags" file=".claude/core/team/TeamRegistry.test.ts" line="158" tests="3" assertions="8" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+      <testcase name="should return only enabled flag names" classname="enabledFlags" time="0.000012" file=".claude/core/team/TeamRegistry.test.ts" line="159" assertions="1" />
+      <testcase name="should return all flags for lead" classname="enabledFlags" time="0.00001" file=".claude/core/team/TeamRegistry.test.ts" line="165" assertions="1" />
+      <testcase name="should return subset for developer" classname="enabledFlags" time="0.000019" file=".claude/core/team/TeamRegistry.test.ts" line="171" assertions="6" />
     </testsuite>
-    <testsuite name="Build Benchmarks" file="test/src/server/__tests__/scripts.test.ts" line="109" tests="3" assertions="0" failures="1" skipped="2" time="0.009" hostname="Mac.attlocal.net">
-      <testcase name="CSS build completes under 1000ms" classname="Build Benchmarks" time="0.009743" file="test/src/server/__tests__/scripts.test.ts" line="110" assertions="0">
-        <failure type="AssertionError" />
-      </testcase>
-      <testcase name="TypeScript check completes under 8000ms" classname="Build Benchmarks" time="0" file="test/src/server/__tests__/scripts.test.ts" line="121" assertions="0">
-        <skipped />
-      </testcase>
-      <testcase name="test suite completes under 2000ms" classname="Build Benchmarks" time="0" file="test/src/server/__tests__/scripts.test.ts" line="131" assertions="0">
-        <skipped />
-      </testcase>
+    <testsuite name="generateMemberEmail" file=".claude/core/team/TeamRegistry.test.ts" line="187" tests="2" assertions="4" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+      <testcase name="should generate email from profile name" classname="generateMemberEmail" time="0.000009" file=".claude/core/team/TeamRegistry.test.ts" line="188" assertions="3" />
+      <testcase name="should use the EMAIL_DOMAIN constant" classname="generateMemberEmail" time="0" file=".claude/core/team/TeamRegistry.test.ts" line="194" assertions="1" />
     </testsuite>
-    <testsuite name="Bun.build API" file="test/src/server/__tests__/scripts.test.ts" line="144" tests="2" assertions="0" failures="2" skipped="0" time="0.003" hostname="Mac.attlocal.net">
-      <testcase name="supports reactFastRefresh option" classname="Bun.build API" time="0.003994" file="test/src/server/__tests__/scripts.test.ts" line="145" assertions="0">
-        <failure type="AssertionError" />
-      </testcase>
-      <testcase name="minified build is smaller than dev build" classname="Bun.build API" time="0.000325" file="test/src/server/__tests__/scripts.test.ts" line="165" assertions="0">
-        <failure type="AssertionError" />
-      </testcase>
-    </testsuite>
-    <testsuite name="Response.json Performance" file="test/src/server/__tests__/scripts.test.ts" line="194" tests="1" assertions="1" failures="0" skipped="0" time="0.005" hostname="Mac.attlocal.net">
-      <testcase name="Response.json is fast (SIMD FastStringifier)" classname="Response.json Performance" time="0.005373" file="test/src/server/__tests__/scripts.test.ts" line="195" assertions="1" />
-    </testsuite>
-    <testsuite name="Bun.hash.crc32 Performance" file="test/src/server/__tests__/scripts.test.ts" line="225" tests="1" assertions="1" failures="0" skipped="0" time="0.019" hostname="Mac.attlocal.net">
-      <testcase name="CRC32 is hardware-accelerated fast" classname="Bun.hash.crc32 Performance" time="0.019409" file="test/src/server/__tests__/scripts.test.ts" line="226" assertions="1" />
-    </testsuite>
-  </testsuite>
-  <testsuite name="test/src/server/__tests__/shortcuts-modal.test.ts" file="test/src/server/__tests__/shortcuts-modal.test.ts" tests="27" assertions="356" failures="1" skipped="0" time="0" hostname="Mac.attlocal.net">
-    <testsuite name="KeyboardShortcutsModal" file="test/src/server/__tests__/shortcuts-modal.test.ts" line="15" tests="27" assertions="356" failures="1" skipped="0" time="0" hostname="Mac.attlocal.net">
-      <testsuite name="Shortcuts Config Loading" file="test/src/server/__tests__/shortcuts-modal.test.ts" line="16" tests="5" assertions="250" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-        <testcase name="loads keyboard shortcuts from TOML" classname="Shortcuts Config Loading &amp;gt; KeyboardShortcutsModal" time="0" file="test/src/server/__tests__/shortcuts-modal.test.ts" line="17" assertions="3" />
-        <testcase name="has expected keyboard categories" classname="Shortcuts Config Loading &amp;gt; KeyboardShortcutsModal" time="0.000047" file="test/src/server/__tests__/shortcuts-modal.test.ts" line="23" assertions="14" />
-        <testcase name="keyboard shortcuts have required properties" classname="Shortcuts Config Loading &amp;gt; KeyboardShortcutsModal" time="0.000045" file="test/src/server/__tests__/shortcuts-modal.test.ts" line="33" assertions="204" />
-        <testcase name="chord shortcuts have required properties" classname="Shortcuts Config Loading &amp;gt; KeyboardShortcutsModal" time="0.000035" file="test/src/server/__tests__/shortcuts-modal.test.ts" line="46" assertions="28" />
-        <testcase name="has vim-style chord sequences" classname="Shortcuts Config Loading &amp;gt; KeyboardShortcutsModal" time="0.000029" file="test/src/server/__tests__/shortcuts-modal.test.ts" line="55" assertions="1" />
-      </testsuite>
-      <testsuite name="Theme Config Loading" file="test/src/server/__tests__/shortcuts-modal.test.ts" line="64" tests="4" assertions="17" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-        <testcase name="loads theme config from TOML" classname="Theme Config Loading &amp;gt; KeyboardShortcutsModal" time="0.00001" file="test/src/server/__tests__/shortcuts-modal.test.ts" line="65" assertions="1" />
-        <testcase name="has expected themes" classname="Theme Config Loading &amp;gt; KeyboardShortcutsModal" time="0.000005" file="test/src/server/__tests__/shortcuts-modal.test.ts" line="69" assertions="4" />
-        <testcase name="themes have chart colors for category styling" classname="Theme Config Loading &amp;gt; KeyboardShortcutsModal" time="0.000013" file="test/src/server/__tests__/shortcuts-modal.test.ts" line="78" assertions="6" />
-        <testcase name="themes have surface colors for modal styling" classname="Theme Config Loading &amp;gt; KeyboardShortcutsModal" time="0.000016" file="test/src/server/__tests__/shortcuts-modal.test.ts" line="90" assertions="6" />
-      </testsuite>
-      <testsuite name="Key Display Formatting" file="test/src/server/__tests__/shortcuts-modal.test.ts" line="102" tests="6" assertions="20" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-        <testcase name="formats Mac modifier keys with symbols" classname="Key Display Formatting &amp;gt; KeyboardShortcutsModal" time="0.000557" file="test/src/server/__tests__/shortcuts-modal.test.ts" line="157" assertions="4" />
-        <testcase name="formats Windows modifier keys with labels" classname="Key Display Formatting &amp;gt; KeyboardShortcutsModal" time="0.000017" file="test/src/server/__tests__/shortcuts-modal.test.ts" line="164" assertions="4" />
-        <testcase name="formats key combinations for Mac" classname="Key Display Formatting &amp;gt; KeyboardShortcutsModal" time="0.000018" file="test/src/server/__tests__/shortcuts-modal.test.ts" line="171" assertions="2" />
-        <testcase name="formats key combinations for Windows" classname="Key Display Formatting &amp;gt; KeyboardShortcutsModal" time="0.000007" file="test/src/server/__tests__/shortcuts-modal.test.ts" line="176" assertions="2" />
-        <testcase name="formats special keys" classname="Key Display Formatting &amp;gt; KeyboardShortcutsModal" time="0.000012" file="test/src/server/__tests__/shortcuts-modal.test.ts" line="181" assertions="4" />
-        <testcase name="preserves letter keys" classname="Key Display Formatting &amp;gt; KeyboardShortcutsModal" time="0.000006" file="test/src/server/__tests__/shortcuts-modal.test.ts" line="188" assertions="4" />
-      </testsuite>
-      <testsuite name="Shortcut Filtering" file="test/src/server/__tests__/shortcuts-modal.test.ts" line="196" tests="6" assertions="10" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-        <testcase name="returns all shortcuts with no filters" classname="Shortcut Filtering &amp;gt; KeyboardShortcutsModal" time="0.000092" file="test/src/server/__tests__/shortcuts-modal.test.ts" line="249" assertions="1" />
-        <testcase name="filters by category" classname="Shortcut Filtering &amp;gt; KeyboardShortcutsModal" time="0.000016" file="test/src/server/__tests__/shortcuts-modal.test.ts" line="255" assertions="2" />
-        <testcase name="filters by search term in key" classname="Shortcut Filtering &amp;gt; KeyboardShortcutsModal" time="0.000067" file="test/src/server/__tests__/shortcuts-modal.test.ts" line="263" assertions="2" />
-        <testcase name="filters by search term in description" classname="Shortcut Filtering &amp;gt; KeyboardShortcutsModal" time="0.000029" file="test/src/server/__tests__/shortcuts-modal.test.ts" line="271" assertions="2" />
-        <testcase name="filters by search term in action" classname="Shortcut Filtering &amp;gt; KeyboardShortcutsModal" time="0.00006" file="test/src/server/__tests__/shortcuts-modal.test.ts" line="279" assertions="2" />
-        <testcase name="combines category and search filters" classname="Shortcut Filtering &amp;gt; KeyboardShortcutsModal" time="0.000043" file="test/src/server/__tests__/shortcuts-modal.test.ts" line="287" assertions="1" />
-      </testsuite>
-      <testsuite name="Category Metadata" file="test/src/server/__tests__/shortcuts-modal.test.ts" line="295" tests="4" assertions="47" failures="1" skipped="0" time="0" hostname="Mac.attlocal.net">
-        <testcase name="all keyboard categories have metadata" classname="Category Metadata &amp;gt; KeyboardShortcutsModal" time="0.000087" file="test/src/server/__tests__/shortcuts-modal.test.ts" line="307" assertions="29">
-          <failure type="AssertionError" />
-        </testcase>
-        <testcase name="chords category has metadata" classname="Category Metadata &amp;gt; KeyboardShortcutsModal" time="0.000007" file="test/src/server/__tests__/shortcuts-modal.test.ts" line="318" assertions="2" />
-        <testcase name="color variables reference theme chart colors" classname="Category Metadata &amp;gt; KeyboardShortcutsModal" time="0.000003" file="test/src/server/__tests__/shortcuts-modal.test.ts" line="323" assertions="8" />
-        <testcase name="fallback colors are valid hex" classname="Category Metadata &amp;gt; KeyboardShortcutsModal" time="0.000014" file="test/src/server/__tests__/shortcuts-modal.test.ts" line="329" assertions="8" />
-      </testsuite>
-      <testsuite name="Shortcut Count" file="test/src/server/__tests__/shortcuts-modal.test.ts" line="338" tests="2" assertions="12" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-        <testcase name="has reasonable number of shortcuts" classname="Shortcut Count &amp;gt; KeyboardShortcutsModal" time="0.000045" file="test/src/server/__tests__/shortcuts-modal.test.ts" line="339" assertions="2" />
-        <testcase name="each category has at least one shortcut" classname="Shortcut Count &amp;gt; KeyboardShortcutsModal" time="0.000021" file="test/src/server/__tests__/shortcuts-modal.test.ts" line="355" assertions="10" />
-      </testsuite>
-    </testsuite>
-  </testsuite>
-  <testsuite name="test/src/server/__tests__/server.test.ts" file="test/src/server/__tests__/server.test.ts" tests="83" assertions="215" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-    <testsuite name="Enterprise Dashboard Server" file="test/src/server/__tests__/server.test.ts" line="9" tests="83" assertions="215" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-      <testsuite name="Health endpoints" file="test/src/server/__tests__/server.test.ts" line="176" tests="3" assertions="6" failures="0" skipped="0" time="0.002" hostname="Mac.attlocal.net">
-        <testcase name="GET /health returns OK" classname="Health endpoints &amp;gt; Enterprise Dashboard Server" time="0.002847" file="test/src/server/__tests__/server.test.ts" line="177" assertions="2" />
-        <testcase name="GET /ready returns Ready with custom header" classname="Health endpoints &amp;gt; Enterprise Dashboard Server" time="0.000121" file="test/src/server/__tests__/server.test.ts" line="183" assertions="3" />
-        <testcase name="Health endpoints respond quickly (&lt; 50ms)" classname="Health endpoints &amp;gt; Enterprise Dashboard Server" time="0.000099" file="test/src/server/__tests__/server.test.ts" line="190" assertions="1" />
-      </testsuite>
-      <testsuite name="Dashboard API" file="test/src/server/__tests__/server.test.ts" line="202" tests="3" assertions="18" failures="0" skipped="0" time="0.001" hostname="Mac.attlocal.net">
-        <testcase name="GET /api/dashboard returns complete dashboard data" classname="Dashboard API &amp;gt; Enterprise Dashboard Server" time="0.001208" file="test/src/server/__tests__/server.test.ts" line="203" assertions="7" />
-        <testcase name="Dashboard stats have required fields" classname="Dashboard API &amp;gt; Enterprise Dashboard Server" time="0.000115" file="test/src/server/__tests__/server.test.ts" line="216" assertions="6" />
-        <testcase name="Dashboard projects have required fields" classname="Dashboard API &amp;gt; Enterprise Dashboard Server" time="0.000082" file="test/src/server/__tests__/server.test.ts" line="229" assertions="5" />
-      </testsuite>
-      <testsuite name="Projects API" file="test/src/server/__tests__/server.test.ts" line="246" tests="4" assertions="10" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-        <testcase name="GET /api/projects returns array of projects" classname="Projects API &amp;gt; Enterprise Dashboard Server" time="0.000084" file="test/src/server/__tests__/server.test.ts" line="247" assertions="3" />
-        <testcase name="GET /api/projects/:id returns specific project" classname="Projects API &amp;gt; Enterprise Dashboard Server" time="0.000093" file="test/src/server/__tests__/server.test.ts" line="256" assertions="3" />
-        <testcase name="GET /api/projects/:id returns 404 for non-existent project" classname="Projects API &amp;gt; Enterprise Dashboard Server" time="0.000068" file="test/src/server/__tests__/server.test.ts" line="265" assertions="3" />
-        <testcase name="GET /api/projects/:id returns 404 for numeric not-found" classname="Projects API &amp;gt; Enterprise Dashboard Server" time="0.000057" file="test/src/server/__tests__/server.test.ts" line="274" assertions="1" />
-      </testsuite>
-      <testsuite name="Stats API" file="test/src/server/__tests__/server.test.ts" line="284" tests="2" assertions="10" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-        <testcase name="GET /api/stats returns stats object" classname="Stats API &amp;gt; Enterprise Dashboard Server" time="0.000071" file="test/src/server/__tests__/server.test.ts" line="285" assertions="6" />
-        <testcase name="Stats values are within valid ranges" classname="Stats API &amp;gt; Enterprise Dashboard Server" time="0.000071" file="test/src/server/__tests__/server.test.ts" line="297" assertions="4" />
-      </testsuite>
-      <testsuite name="Rescan API" file="test/src/server/__tests__/server.test.ts" line="312" tests="2" assertions="4" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-        <testcase name="POST /api/rescan returns scanning status" classname="Rescan API &amp;gt; Enterprise Dashboard Server" time="0.000075" file="test/src/server/__tests__/server.test.ts" line="313" assertions="3" />
-        <testcase name="GET /api/rescan returns 404 (method not allowed)" classname="Rescan API &amp;gt; Enterprise Dashboard Server" time="0.000061" file="test/src/server/__tests__/server.test.ts" line="322" assertions="1" />
-      </testsuite>
-      <testsuite name="Theme API" file="test/src/server/__tests__/server.test.ts" line="332" tests="5" assertions="9" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-        <testcase name="GET /api/theme returns default theme (dark)" classname="Theme API &amp;gt; Enterprise Dashboard Server" time="0.000066" file="test/src/server/__tests__/server.test.ts" line="333" assertions="2" />
-        <testcase name="POST /api/theme sets theme to light" classname="Theme API &amp;gt; Enterprise Dashboard Server" time="0.000601" file="test/src/server/__tests__/server.test.ts" line="341" assertions="2" />
-        <testcase name="POST /api/theme sets theme to dark" classname="Theme API &amp;gt; Enterprise Dashboard Server" time="0.000128" file="test/src/server/__tests__/server.test.ts" line="353" assertions="2" />
-        <testcase name="POST /api/theme defaults invalid theme to dark" classname="Theme API &amp;gt; Enterprise Dashboard Server" time="0.000085" file="test/src/server/__tests__/server.test.ts" line="365" assertions="2" />
-        <testcase name="Theme persists across requests" classname="Theme API &amp;gt; Enterprise Dashboard Server" time="0.000116" file="test/src/server/__tests__/server.test.ts" line="377" assertions="1" />
-      </testsuite>
-      <testsuite name="Session API" file="test/src/server/__tests__/server.test.ts" line="396" tests="3" assertions="8" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-        <testcase name="GET /api/session creates new session" classname="Session API &amp;gt; Enterprise Dashboard Server" time="0.000089" file="test/src/server/__tests__/server.test.ts" line="397" assertions="3" />
-        <testcase name="Session includes expected fields" classname="Session API &amp;gt; Enterprise Dashboard Server" time="0.000071" file="test/src/server/__tests__/server.test.ts" line="406" assertions="4" />
-        <testcase name="Session ID is consistent across requests" classname="Session API &amp;gt; Enterprise Dashboard Server" time="0.000141" file="test/src/server/__tests__/server.test.ts" line="416" assertions="1" />
-      </testsuite>
-      <testsuite name="UI State API" file="test/src/server/__tests__/server.test.ts" line="431" tests="5" assertions="13" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-        <testcase name="GET /api/ui-state returns default state" classname="UI State API &amp;gt; Enterprise Dashboard Server" time="0.000102" file="test/src/server/__tests__/server.test.ts" line="432" assertions="5" />
-        <testcase name="POST /api/ui-state updates sidebar state" classname="UI State API &amp;gt; Enterprise Dashboard Server" time="0.000129" file="test/src/server/__tests__/server.test.ts" line="443" assertions="2" />
-        <testcase name="POST /api/ui-state updates collapsed projects" classname="UI State API &amp;gt; Enterprise Dashboard Server" time="0.000094" file="test/src/server/__tests__/server.test.ts" line="455" assertions="2" />
-        <testcase name="DELETE /api/ui-state clears state" classname="UI State API &amp;gt; Enterprise Dashboard Server" time="0.000144" file="test/src/server/__tests__/server.test.ts" line="467" assertions="2" />
-        <testcase name="UI state persists across requests" classname="UI State API &amp;gt; Enterprise Dashboard Server" time="0.000142" file="test/src/server/__tests__/server.test.ts" line="483" assertions="2" />
-      </testsuite>
-      <testsuite name="Logout API" file="test/src/server/__tests__/server.test.ts" line="501" tests="2" assertions="6" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-        <testcase name="POST /api/logout clears all cookies" classname="Logout API &amp;gt; Enterprise Dashboard Server" time="0.000297" file="test/src/server/__tests__/server.test.ts" line="502" assertions="5" />
-        <testcase name="After logout, theme returns to default" classname="Logout API &amp;gt; Enterprise Dashboard Server" time="0.000199" file="test/src/server/__tests__/server.test.ts" line="527" assertions="1" />
-      </testsuite>
-      <testsuite name="Bulk Cookies API" file="test/src/server/__tests__/server.test.ts" line="546" tests="2" assertions="7" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-        <testcase name="GET /api/cookies returns all preferences" classname="Bulk Cookies API &amp;gt; Enterprise Dashboard Server" time="0.000094" file="test/src/server/__tests__/server.test.ts" line="547" assertions="5" />
-        <testcase name="POST /api/cookies updates multiple preferences" classname="Bulk Cookies API &amp;gt; Enterprise Dashboard Server" time="0.000135" file="test/src/server/__tests__/server.test.ts" line="558" assertions="2" />
-      </testsuite>
-      <testsuite name="Error Handling" file="test/src/server/__tests__/server.test.ts" line="578" tests="3" assertions="4" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-        <testcase name="Unknown route returns 404" classname="Error Handling &amp;gt; Enterprise Dashboard Server" time="0.00007" file="test/src/server/__tests__/server.test.ts" line="579" assertions="1" />
-        <testcase name="404 response is JSON" classname="Error Handling &amp;gt; Enterprise Dashboard Server" time="0.000075" file="test/src/server/__tests__/server.test.ts" line="584" assertions="2" />
-        <testcase name="Deep unknown routes return 404" classname="Error Handling &amp;gt; Enterprise Dashboard Server" time="0.00007" file="test/src/server/__tests__/server.test.ts" line="592" assertions="1" />
-      </testsuite>
-      <testsuite name="Performance" file="test/src/server/__tests__/server.test.ts" line="602" tests="2" assertions="13" failures="0" skipped="0" time="0.001" hostname="Mac.attlocal.net">
-        <testcase name="API responses are fast (&lt; 100ms)" classname="Performance &amp;gt; Enterprise Dashboard Server" time="0.000228" file="test/src/server/__tests__/server.test.ts" line="603" assertions="3" />
-        <testcase name="Concurrent requests are handled" classname="Performance &amp;gt; Enterprise Dashboard Server" time="0.001152" file="test/src/server/__tests__/server.test.ts" line="614" assertions="10" />
-      </testsuite>
-      <testsuite name="Content-Type Headers" file="test/src/server/__tests__/server.test.ts" line="630" tests="2" assertions="4" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-        <testcase name="JSON endpoints return application/json" classname="Content-Type Headers &amp;gt; Enterprise Dashboard Server" time="0.000178" file="test/src/server/__tests__/server.test.ts" line="631" assertions="3" />
-        <testcase name="Health endpoint returns text" classname="Content-Type Headers &amp;gt; Enterprise Dashboard Server" time="0.000055" file="test/src/server/__tests__/server.test.ts" line="640" assertions="1" />
-      </testsuite>
-      <testsuite name="Type Validation" file="test/src/server/__tests__/server.test.ts" line="650" tests="27" assertions="37" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-        <testsuite name="Project Type" file="test/src/server/__tests__/server.test.ts" line="651" tests="10" assertions="17" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-          <testcase name="Project has correct id type (string)" classname="Project Type &amp;gt; Type Validation &amp;gt; Enterprise Dashboard Server" time="0.000063" file="test/src/server/__tests__/server.test.ts" line="652" assertions="1" />
-          <testcase name="Project has correct name type (string)" classname="Project Type &amp;gt; Type Validation &amp;gt; Enterprise Dashboard Server" time="0.000062" file="test/src/server/__tests__/server.test.ts" line="658" assertions="1" />
-          <testcase name="Project has correct branch type (string)" classname="Project Type &amp;gt; Type Validation &amp;gt; Enterprise Dashboard Server" time="0.000059" file="test/src/server/__tests__/server.test.ts" line="664" assertions="1" />
-          <testcase name="Project status is valid enum value" classname="Project Type &amp;gt; Type Validation &amp;gt; Enterprise Dashboard Server" time="0.000066" file="test/src/server/__tests__/server.test.ts" line="670" assertions="2" />
-          <testcase name="Project remote is valid enum value" classname="Project Type &amp;gt; Type Validation &amp;gt; Enterprise Dashboard Server" time="0.000072" file="test/src/server/__tests__/server.test.ts" line="679" assertions="2" />
-          <testcase name="Project modifiedFiles is number" classname="Project Type &amp;gt; Type Validation &amp;gt; Enterprise Dashboard Server" time="0.000064" file="test/src/server/__tests__/server.test.ts" line="688" assertions="1" />
-          <testcase name="Project aheadBy is number" classname="Project Type &amp;gt; Type Validation &amp;gt; Enterprise Dashboard Server" time="0.000054" file="test/src/server/__tests__/server.test.ts" line="694" assertions="1" />
-          <testcase name="Project behindBy is number" classname="Project Type &amp;gt; Type Validation &amp;gt; Enterprise Dashboard Server" time="0.000054" file="test/src/server/__tests__/server.test.ts" line="700" assertions="1" />
-          <testcase name="Project health is number between 0-100" classname="Project Type &amp;gt; Type Validation &amp;gt; Enterprise Dashboard Server" time="0.000068" file="test/src/server/__tests__/server.test.ts" line="706" assertions="6" />
-          <testcase name="Project lastCommit is string" classname="Project Type &amp;gt; Type Validation &amp;gt; Enterprise Dashboard Server" time="0.000065" file="test/src/server/__tests__/server.test.ts" line="716" assertions="1" />
-        </testsuite>
-        <testsuite name="DashboardStats Type" file="test/src/server/__tests__/server.test.ts" line="723" tests="6" assertions="6" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-          <testcase name="totalRequests is number" classname="DashboardStats Type &amp;gt; Type Validation &amp;gt; Enterprise Dashboard Server" time="0.00006" file="test/src/server/__tests__/server.test.ts" line="724" assertions="1" />
-          <testcase name="successRate is number" classname="DashboardStats Type &amp;gt; Type Validation &amp;gt; Enterprise Dashboard Server" time="0.000059" file="test/src/server/__tests__/server.test.ts" line="730" assertions="1" />
-          <testcase name="avgLatency is number" classname="DashboardStats Type &amp;gt; Type Validation &amp;gt; Enterprise Dashboard Server" time="0.000059" file="test/src/server/__tests__/server.test.ts" line="736" assertions="1" />
-          <testcase name="uptime is number" classname="DashboardStats Type &amp;gt; Type Validation &amp;gt; Enterprise Dashboard Server" time="0.000059" file="test/src/server/__tests__/server.test.ts" line="742" assertions="1" />
-          <testcase name="timeline is array" classname="DashboardStats Type &amp;gt; Type Validation &amp;gt; Enterprise Dashboard Server" time="0.000064" file="test/src/server/__tests__/server.test.ts" line="748" assertions="1" />
-          <testcase name="alerts is array" classname="DashboardStats Type &amp;gt; Type Validation &amp;gt; Enterprise Dashboard Server" time="0.00006" file="test/src/server/__tests__/server.test.ts" line="754" assertions="1" />
-        </testsuite>
-        <testsuite name="UIState Type" file="test/src/server/__tests__/server.test.ts" line="761" tests="4" assertions="4" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-          <testcase name="collapsedProjects is object" classname="UIState Type &amp;gt; Type Validation &amp;gt; Enterprise Dashboard Server" time="0.000061" file="test/src/server/__tests__/server.test.ts" line="762" assertions="1" />
-          <testcase name="sidebarCollapsed is boolean" classname="UIState Type &amp;gt; Type Validation &amp;gt; Enterprise Dashboard Server" time="0.000059" file="test/src/server/__tests__/server.test.ts" line="768" assertions="1" />
-          <testcase name="recentFilters is array" classname="UIState Type &amp;gt; Type Validation &amp;gt; Enterprise Dashboard Server" time="0.000066" file="test/src/server/__tests__/server.test.ts" line="774" assertions="1" />
-          <testcase name="lastVisited is object" classname="UIState Type &amp;gt; Type Validation &amp;gt; Enterprise Dashboard Server" time="0.000073" file="test/src/server/__tests__/server.test.ts" line="780" assertions="1" />
-        </testsuite>
-        <testsuite name="Theme Type" file="test/src/server/__tests__/server.test.ts" line="787" tests="2" assertions="3" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-          <testcase name="theme is string" classname="Theme Type &amp;gt; Type Validation &amp;gt; Enterprise Dashboard Server" time="0.000068" file="test/src/server/__tests__/server.test.ts" line="788" assertions="1" />
-          <testcase name="theme is valid value (dark or light)" classname="Theme Type &amp;gt; Type Validation &amp;gt; Enterprise Dashboard Server" time="0.000063" file="test/src/server/__tests__/server.test.ts" line="794" assertions="2" />
-        </testsuite>
-        <testsuite name="Session Type" file="test/src/server/__tests__/server.test.ts" line="802" tests="5" assertions="7" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-          <testcase name="sessionId is string" classname="Session Type &amp;gt; Type Validation &amp;gt; Enterprise Dashboard Server" time="0.000067" file="test/src/server/__tests__/server.test.ts" line="803" assertions="1" />
-          <testcase name="pageViews is number" classname="Session Type &amp;gt; Type Validation &amp;gt; Enterprise Dashboard Server" time="0.00006" file="test/src/server/__tests__/server.test.ts" line="809" assertions="1" />
-          <testcase name="activeSessions is number" classname="Session Type &amp;gt; Type Validation &amp;gt; Enterprise Dashboard Server" time="0.000069" file="test/src/server/__tests__/server.test.ts" line="815" assertions="1" />
-          <testcase name="firstSeen is ISO date string" classname="Session Type &amp;gt; Type Validation &amp;gt; Enterprise Dashboard Server" time="0.000076" file="test/src/server/__tests__/server.test.ts" line="821" assertions="2" />
-          <testcase name="lastSeen is ISO date string" classname="Session Type &amp;gt; Type Validation &amp;gt; Enterprise Dashboard Server" time="0.000072" file="test/src/server/__tests__/server.test.ts" line="828" assertions="2" />
-        </testsuite>
-      </testsuite>
-      <testsuite name="Property Validation" file="test/src/server/__tests__/server.test.ts" line="841" tests="18" assertions="66" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-        <testsuite name="ApiResponse Properties" file="test/src/server/__tests__/server.test.ts" line="842" tests="2" assertions="4" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-          <testcase name="Success response has data property, no error" classname="ApiResponse Properties &amp;gt; Property Validation &amp;gt; Enterprise Dashboard Server" time="0.000061" file="test/src/server/__tests__/server.test.ts" line="843" assertions="2" />
-          <testcase name="Error response has error property, no data" classname="ApiResponse Properties &amp;gt; Property Validation &amp;gt; Enterprise Dashboard Server" time="0.000065" file="test/src/server/__tests__/server.test.ts" line="850" assertions="2" />
-        </testsuite>
-        <testsuite name="Project Required Properties" file="test/src/server/__tests__/server.test.ts" line="858" tests="3" assertions="19" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-          <testcase name="Project has all required properties" classname="Project Required Properties &amp;gt; Property Validation &amp;gt; Enterprise Dashboard Server" time="0.000075" file="test/src/server/__tests__/server.test.ts" line="859" assertions="11" />
-          <testcase name="Project properties are not null" classname="Project Required Properties &amp;gt; Property Validation &amp;gt; Enterprise Dashboard Server" time="0.000081" file="test/src/server/__tests__/server.test.ts" line="874" assertions="5" />
-          <testcase name="Project properties are not empty strings where applicable" classname="Project Required Properties &amp;gt; Property Validation &amp;gt; Enterprise Dashboard Server" time="0.000072" file="test/src/server/__tests__/server.test.ts" line="886" assertions="3" />
-        </testsuite>
-        <testsuite name="DashboardStats Required Properties" file="test/src/server/__tests__/server.test.ts" line="897" tests="2" assertions="10" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-          <testcase name="Stats has all required properties" classname="DashboardStats Required Properties &amp;gt; Property Validation &amp;gt; Enterprise Dashboard Server" time="0.000071" file="test/src/server/__tests__/server.test.ts" line="898" assertions="6" />
-          <testcase name="Stats numeric properties are non-negative" classname="DashboardStats Required Properties &amp;gt; Property Validation &amp;gt; Enterprise Dashboard Server" time="0.000071" file="test/src/server/__tests__/server.test.ts" line="912" assertions="4" />
-        </testsuite>
-        <testsuite name="DashboardData Required Properties" file="test/src/server/__tests__/server.test.ts" line="924" tests="2" assertions="4" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-          <testcase name="Dashboard has projects and stats" classname="DashboardData Required Properties &amp;gt; Property Validation &amp;gt; Enterprise Dashboard Server" time="0.000068" file="test/src/server/__tests__/server.test.ts" line="925" assertions="2" />
-          <testcase name="Dashboard projects is non-empty array" classname="DashboardData Required Properties &amp;gt; Property Validation &amp;gt; Enterprise Dashboard Server" time="0.000066" file="test/src/server/__tests__/server.test.ts" line="933" assertions="2" />
-        </testsuite>
-        <testsuite name="UIState Required Properties" file="test/src/server/__tests__/server.test.ts" line="942" tests="2" assertions="8" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-          <testcase name="UIState has all required properties" classname="UIState Required Properties &amp;gt; Property Validation &amp;gt; Enterprise Dashboard Server" time="0.000072" file="test/src/server/__tests__/server.test.ts" line="943" assertions="4" />
-          <testcase name="UIState default values are correct" classname="UIState Required Properties &amp;gt; Property Validation &amp;gt; Enterprise Dashboard Server" time="0.000078" file="test/src/server/__tests__/server.test.ts" line="957" assertions="4" />
-        </testsuite>
-        <testsuite name="Session Required Properties" file="test/src/server/__tests__/server.test.ts" line="969" tests="2" assertions="6" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-          <testcase name="Session has all required properties" classname="Session Required Properties &amp;gt; Property Validation &amp;gt; Enterprise Dashboard Server" time="0.000079" file="test/src/server/__tests__/server.test.ts" line="970" assertions="5" />
-          <testcase name="Session ID has correct format" classname="Session Required Properties &amp;gt; Property Validation &amp;gt; Enterprise Dashboard Server" time="0.000106" file="test/src/server/__tests__/server.test.ts" line="984" assertions="1" />
-        </testsuite>
-        <testsuite name="Cookies Endpoint Properties" file="test/src/server/__tests__/server.test.ts" line="992" tests="3" assertions="7" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-          <testcase name="Cookies endpoint returns all expected properties" classname="Cookies Endpoint Properties &amp;gt; Property Validation &amp;gt; Enterprise Dashboard Server" time="0.000088" file="test/src/server/__tests__/server.test.ts" line="993" assertions="4" />
-          <testcase name="hasSession is boolean" classname="Cookies Endpoint Properties &amp;gt; Property Validation &amp;gt; Enterprise Dashboard Server" time="0.000069" file="test/src/server/__tests__/server.test.ts" line="1003" assertions="1" />
-          <testcase name="cookieCount is number" classname="Cookies Endpoint Properties &amp;gt; Property Validation &amp;gt; Enterprise Dashboard Server" time="0.00008" file="test/src/server/__tests__/server.test.ts" line="1010" assertions="2" />
-        </testsuite>
-        <testsuite name="Logout Response Properties" file="test/src/server/__tests__/server.test.ts" line="1019" tests="2" assertions="8" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-          <testcase name="Logout returns cleared flag and cookie list" classname="Logout Response Properties &amp;gt; Property Validation &amp;gt; Enterprise Dashboard Server" time="0.000105" file="test/src/server/__tests__/server.test.ts" line="1020" assertions="4" />
-          <testcase name="Logout cookie list contains expected cookies" classname="Logout Response Properties &amp;gt; Property Validation &amp;gt; Enterprise Dashboard Server" time="0.0001" file="test/src/server/__tests__/server.test.ts" line="1030" assertions="4" />
-        </testsuite>
-      </testsuite>
-    </testsuite>
-  </testsuite>
-  <testsuite name="test/src/server/__tests__/bun-test-best-practices.test.ts" file="test/src/server/__tests__/bun-test-best-practices.test.ts" tests="9" assertions="12" failures="1" skipped="0" time="0" hostname="Mac.attlocal.net">
-    <testcase name="NODE_ENV is automatically set to &apos;test&apos;" classname="" time="0" file="test/src/server/__tests__/bun-test-best-practices.test.ts" line="3" assertions="1" />
-    <testcase name="timezone defaults to UTC for consistent testing" classname="" time="0.000282" file="test/src/server/__tests__/bun-test-best-practices.test.ts" line="7" assertions="1" />
-    <testcase name="global test timeout can be overridden per test" classname="" time="0.00005" file="test/src/server/__tests__/bun-test-best-practices.test.ts" line="12" assertions="0" />
-    <testcase name="async tests work with proper error handling" classname="" time="0.000003" file="test/src/server/__tests__/bun-test-best-practices.test.ts" line="16" assertions="1" />
-    <testcase name="cleanup between tests prevents state pollution" classname="" time="0.000018" file="test/src/server/__tests__/bun-test-best-practices.test.ts" line="21" assertions="1" />
-    <testcase name="environment is clean for next test" classname="" time="0.000008" file="test/src/server/__tests__/bun-test-best-practices.test.ts" line="28" assertions="1">
-      <failure type="AssertionError" />
-    </testcase>
-    <testcase name="Bun test functions are available when imported" classname="" time="0.000008" file="test/src/server/__tests__/bun-test-best-practices.test.ts" line="33" assertions="5" />
-    <testcase name="Jest compatibility functions work when imported" classname="" time="0.000177" file="test/src/server/__tests__/bun-test-best-practices.test.ts" line="41" assertions="1" />
-    <testcase name="Vitest compatibility functions work when imported" classname="" time="0.000016" file="test/src/server/__tests__/bun-test-best-practices.test.ts" line="47" assertions="1" />
-  </testsuite>
-  <testsuite name="test/src/client/__tests__/config-integration.test.ts" file="test/src/client/__tests__/config-integration.test.ts" tests="2" assertions="0" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-    <testsuite name="Config Integration" file="test/src/client/__tests__/config-integration.test.ts" line="23" tests="2" assertions="0" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-      <testcase name="serves theme CSS with correct content-type" classname="Config Integration" time="0.000061" file="test/src/client/__tests__/config-integration.test.ts" line="24" assertions="0" />
-      <testcase name="returns config status with integrity hash" classname="Config Integration" time="0.000004" file="test/src/client/__tests__/config-integration.test.ts" line="37" assertions="0" />
-    </testsuite>
-  </testsuite>
-  <testsuite name="test/src/client/__tests__/syntax-colors.test.ts" file="test/src/client/__tests__/syntax-colors.test.ts" tests="108" assertions="369" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-    <testsuite name="TOML Structure Integrity" file="test/src/client/__tests__/syntax-colors.test.ts" line="22" tests="6" assertions="120" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-      <testcase name="has colors section with entries" classname="TOML Structure Integrity" time="0" file="test/src/client/__tests__/syntax-colors.test.ts" line="23" assertions="2" />
-      <testcase name="has names section with entries" classname="TOML Structure Integrity" time="0.000168" file="test/src/client/__tests__/syntax-colors.test.ts" line="28" assertions="2" />
-      <testcase name="has text_colors section with entries" classname="TOML Structure Integrity" time="0.000007" file="test/src/client/__tests__/syntax-colors.test.ts" line="33" assertions="2" />
-      <testcase name="has settings with required fallbacks" classname="TOML Structure Integrity" time="0.000009" file="test/src/client/__tests__/syntax-colors.test.ts" line="38" assertions="4" />
-      <testcase name="all colors are valid hex format" classname="TOML Structure Integrity" time="0.00001" file="test/src/client/__tests__/syntax-colors.test.ts" line="45" assertions="55" />
-      <testcase name="every color has a corresponding name" classname="TOML Structure Integrity" time="0.000067" file="test/src/client/__tests__/syntax-colors.test.ts" line="52" assertions="55" />
-    </testsuite>
-    <testsuite name="Major Language Colors" file="test/src/client/__tests__/syntax-colors.test.ts" line="65" tests="10" assertions="20" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-      <testcase name="typescript has correct color (#3178C6)" classname="Major Language Colors" time="0.000031" file="test/src/client/__tests__/syntax-colors.test.ts" line="80" assertions="2" />
-      <testcase name="ts has correct color (#3178C6)" classname="Major Language Colors" time="0.000021" file="test/src/client/__tests__/syntax-colors.test.ts" line="80" assertions="2" />
-      <testcase name="javascript has correct color (#F7DF1E)" classname="Major Language Colors" time="0.000001" file="test/src/client/__tests__/syntax-colors.test.ts" line="80" assertions="2" />
-      <testcase name="js has correct color (#F7DF1E)" classname="Major Language Colors" time="0" file="test/src/client/__tests__/syntax-colors.test.ts" line="80" assertions="2" />
-      <testcase name="python has correct color (#3776AB)" classname="Major Language Colors" time="0" file="test/src/client/__tests__/syntax-colors.test.ts" line="80" assertions="2" />
-      <testcase name="py has correct color (#3776AB)" classname="Major Language Colors" time="0" file="test/src/client/__tests__/syntax-colors.test.ts" line="80" assertions="2" />
-      <testcase name="rust has correct color (#DEA584)" classname="Major Language Colors" time="0" file="test/src/client/__tests__/syntax-colors.test.ts" line="80" assertions="2" />
-      <testcase name="go has correct color (#00ADD8)" classname="Major Language Colors" time="0" file="test/src/client/__tests__/syntax-colors.test.ts" line="80" assertions="2" />
-      <testcase name="bash has correct color (#4EAA25)" classname="Major Language Colors" time="0" file="test/src/client/__tests__/syntax-colors.test.ts" line="80" assertions="2" />
-      <testcase name="toml has correct color (#9C4121)" classname="Major Language Colors" time="0" file="test/src/client/__tests__/syntax-colors.test.ts" line="80" assertions="2" />
-    </testsuite>
-    <testsuite name="Language Aliases" file="test/src/client/__tests__/syntax-colors.test.ts" line="91" tests="10" assertions="10" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-      <testcase name="ts is alias for typescript" classname="Language Aliases" time="0.000011" file="test/src/client/__tests__/syntax-colors.test.ts" line="106" assertions="1" />
-      <testcase name="js is alias for javascript" classname="Language Aliases" time="0.000002" file="test/src/client/__tests__/syntax-colors.test.ts" line="106" assertions="1" />
-      <testcase name="py is alias for python" classname="Language Aliases" time="0" file="test/src/client/__tests__/syntax-colors.test.ts" line="106" assertions="1" />
-      <testcase name="rs is alias for rust" classname="Language Aliases" time="0" file="test/src/client/__tests__/syntax-colors.test.ts" line="106" assertions="1" />
-      <testcase name="rb is alias for ruby" classname="Language Aliases" time="0" file="test/src/client/__tests__/syntax-colors.test.ts" line="106" assertions="1" />
-      <testcase name="sh is alias for bash" classname="Language Aliases" time="0" file="test/src/client/__tests__/syntax-colors.test.ts" line="106" assertions="1" />
-      <testcase name="yml is alias for yaml" classname="Language Aliases" time="0" file="test/src/client/__tests__/syntax-colors.test.ts" line="106" assertions="1" />
-      <testcase name="md is alias for markdown" classname="Language Aliases" time="0" file="test/src/client/__tests__/syntax-colors.test.ts" line="106" assertions="1" />
-      <testcase name="docker is alias for dockerfile" classname="Language Aliases" time="0" file="test/src/client/__tests__/syntax-colors.test.ts" line="106" assertions="1" />
-      <testcase name="tf is alias for terraform" classname="Language Aliases" time="0" file="test/src/client/__tests__/syntax-colors.test.ts" line="106" assertions="1" />
-    </testsuite>
-    <testsuite name="getSyntaxColorInfo" file="test/src/client/__tests__/syntax-colors.test.ts" line="117" tests="3" assertions="8" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-      <testcase name="returns correct info for known language" classname="getSyntaxColorInfo" time="0.000011" file="test/src/client/__tests__/syntax-colors.test.ts" line="118" assertions="3" />
-      <testcase name="is case-insensitive" classname="getSyntaxColorInfo" time="0.000024" file="test/src/client/__tests__/syntax-colors.test.ts" line="125" assertions="2" />
-      <testcase name="returns fallback for unknown language" classname="getSyntaxColorInfo" time="0.000004" file="test/src/client/__tests__/syntax-colors.test.ts" line="134" assertions="3" />
-    </testsuite>
-    <testsuite name="getSyntaxColor (Bun.color integration)" file="test/src/client/__tests__/syntax-colors.test.ts" line="145" tests="9" assertions="20" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-      <testcase name="returns hex format by default" classname="getSyntaxColor (Bun.color integration)" time="0.000014" file="test/src/client/__tests__/syntax-colors.test.ts" line="146" assertions="1" />
-      <testcase name="returns uppercase HEX format" classname="getSyntaxColor (Bun.color integration)" time="0.000029" file="test/src/client/__tests__/syntax-colors.test.ts" line="151" assertions="1" />
-      <testcase name="returns rgb string format" classname="getSyntaxColor (Bun.color integration)" time="0.000007" file="test/src/client/__tests__/syntax-colors.test.ts" line="156" assertions="1" />
-      <testcase name="returns rgba string format" classname="getSyntaxColor (Bun.color integration)" time="0.000024" file="test/src/client/__tests__/syntax-colors.test.ts" line="161" assertions="1" />
-      <testcase name="returns {rgb} object format" classname="getSyntaxColor (Bun.color integration)" time="0.000024" file="test/src/client/__tests__/syntax-colors.test.ts" line="166" assertions="6" />
-      <testcase name="returns [rgba] array format" classname="getSyntaxColor (Bun.color integration)" time="0.000014" file="test/src/client/__tests__/syntax-colors.test.ts" line="176" assertions="6" />
-      <testcase name="returns number format" classname="getSyntaxColor (Bun.color integration)" time="0.000014" file="test/src/client/__tests__/syntax-colors.test.ts" line="186" assertions="1" />
-      <testcase name="returns CSS format" classname="getSyntaxColor (Bun.color integration)" time="0.00062" file="test/src/client/__tests__/syntax-colors.test.ts" line="191" assertions="1" />
-      <testcase name="returns ANSI escape code" classname="getSyntaxColor (Bun.color integration)" time="0.000016" file="test/src/client/__tests__/syntax-colors.test.ts" line="196" assertions="2" />
-    </testsuite>
-    <testsuite name="getSyntaxAnsi" file="test/src/client/__tests__/syntax-colors.test.ts" line="206" tests="2" assertions="2" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-      <testcase name="returns ANSI escape code for known language" classname="getSyntaxAnsi" time="0.000014" file="test/src/client/__tests__/syntax-colors.test.ts" line="207" assertions="1" />
-      <testcase name="returns fallback ANSI for unknown language" classname="getSyntaxAnsi" time="0.000015" file="test/src/client/__tests__/syntax-colors.test.ts" line="212" assertions="1" />
-    </testsuite>
-    <testsuite name="getSyntaxColorCSS" file="test/src/client/__tests__/syntax-colors.test.ts" line="221" tests="2" assertions="2" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-      <testcase name="returns CSS color string" classname="getSyntaxColorCSS" time="0.000008" file="test/src/client/__tests__/syntax-colors.test.ts" line="222" assertions="1" />
-      <testcase name="returns fallback for unknown language" classname="getSyntaxColorCSS" time="0.000011" file="test/src/client/__tests__/syntax-colors.test.ts" line="227" assertions="1" />
-    </testsuite>
-    <testsuite name="hasLanguageColor" file="test/src/client/__tests__/syntax-colors.test.ts" line="236" tests="3" assertions="7" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-      <testcase name="returns true for known language" classname="hasLanguageColor" time="0.000007" file="test/src/client/__tests__/syntax-colors.test.ts" line="237" assertions="3" />
-      <testcase name="returns false for unknown language" classname="hasLanguageColor" time="0.000014" file="test/src/client/__tests__/syntax-colors.test.ts" line="243" assertions="2" />
-      <testcase name="is case-insensitive" classname="hasLanguageColor" time="0.000007" file="test/src/client/__tests__/syntax-colors.test.ts" line="248" assertions="2" />
-    </testsuite>
-    <testsuite name="getAvailableLanguages" file="test/src/client/__tests__/syntax-colors.test.ts" line="257" tests="2" assertions="7" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-      <testcase name="returns array of language keys" classname="getAvailableLanguages" time="0.000007" file="test/src/client/__tests__/syntax-colors.test.ts" line="258" assertions="2" />
-      <testcase name="includes major languages" classname="getAvailableLanguages" time="0.00001" file="test/src/client/__tests__/syntax-colors.test.ts" line="264" assertions="5" />
-    </testsuite>
-    <testsuite name="Text Color Contrast" file="test/src/client/__tests__/syntax-colors.test.ts" line="277" tests="2" assertions="4" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-      <testcase name="light backgrounds have dark text" classname="Text Color Contrast" time="0.00001" file="test/src/client/__tests__/syntax-colors.test.ts" line="278" assertions="2" />
-      <testcase name="dark backgrounds have light text" classname="Text Color Contrast" time="0.000015" file="test/src/client/__tests__/syntax-colors.test.ts" line="288" assertions="2" />
-    </testsuite>
-    <testsuite name="Edge Cases" file="test/src/client/__tests__/syntax-colors.test.ts" line="302" tests="4" assertions="4" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-      <testcase name="handles empty string" classname="Edge Cases" time="0.000011" file="test/src/client/__tests__/syntax-colors.test.ts" line="303" assertions="1" />
-      <testcase name="handles whitespace" classname="Edge Cases" time="0.00001" file="test/src/client/__tests__/syntax-colors.test.ts" line="308" assertions="1" />
-      <testcase name="handles special characters" classname="Edge Cases" time="0.000009" file="test/src/client/__tests__/syntax-colors.test.ts" line="313" assertions="1" />
-      <testcase name="handles numbers in language name" classname="Edge Cases" time="0.000007" file="test/src/client/__tests__/syntax-colors.test.ts" line="319" assertions="1" />
-    </testsuite>
-    <testsuite name="All Languages Coverage" file="test/src/client/__tests__/syntax-colors.test.ts" line="328" tests="55" assertions="165" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-      <testcase name="typescript has valid color info" classname="All Languages Coverage" time="0.000007" file="test/src/client/__tests__/syntax-colors.test.ts" line="332" assertions="3" />
-      <testcase name="ts has valid color info" classname="All Languages Coverage" time="0.000011" file="test/src/client/__tests__/syntax-colors.test.ts" line="332" assertions="3" />
-      <testcase name="javascript has valid color info" classname="All Languages Coverage" time="0.000015" file="test/src/client/__tests__/syntax-colors.test.ts" line="332" assertions="3" />
-      <testcase name="js has valid color info" classname="All Languages Coverage" time="0.000004" file="test/src/client/__tests__/syntax-colors.test.ts" line="332" assertions="3" />
-      <testcase name="bash has valid color info" classname="All Languages Coverage" time="0" file="test/src/client/__tests__/syntax-colors.test.ts" line="332" assertions="3" />
-      <testcase name="sh has valid color info" classname="All Languages Coverage" time="0" file="test/src/client/__tests__/syntax-colors.test.ts" line="332" assertions="3" />
-      <testcase name="shell has valid color info" classname="All Languages Coverage" time="0" file="test/src/client/__tests__/syntax-colors.test.ts" line="332" assertions="3" />
-      <testcase name="python has valid color info" classname="All Languages Coverage" time="0" file="test/src/client/__tests__/syntax-colors.test.ts" line="332" assertions="3" />
-      <testcase name="py has valid color info" classname="All Languages Coverage" time="0.000001" file="test/src/client/__tests__/syntax-colors.test.ts" line="332" assertions="3" />
-      <testcase name="go has valid color info" classname="All Languages Coverage" time="0" file="test/src/client/__tests__/syntax-colors.test.ts" line="332" assertions="3" />
-      <testcase name="rust has valid color info" classname="All Languages Coverage" time="0" file="test/src/client/__tests__/syntax-colors.test.ts" line="332" assertions="3" />
-      <testcase name="rs has valid color info" classname="All Languages Coverage" time="0" file="test/src/client/__tests__/syntax-colors.test.ts" line="332" assertions="3" />
-      <testcase name="ruby has valid color info" classname="All Languages Coverage" time="0" file="test/src/client/__tests__/syntax-colors.test.ts" line="332" assertions="3" />
-      <testcase name="rb has valid color info" classname="All Languages Coverage" time="0" file="test/src/client/__tests__/syntax-colors.test.ts" line="332" assertions="3" />
-      <testcase name="sql has valid color info" classname="All Languages Coverage" time="0" file="test/src/client/__tests__/syntax-colors.test.ts" line="332" assertions="3" />
-      <testcase name="css has valid color info" classname="All Languages Coverage" time="0" file="test/src/client/__tests__/syntax-colors.test.ts" line="332" assertions="3" />
-      <testcase name="html has valid color info" classname="All Languages Coverage" time="0" file="test/src/client/__tests__/syntax-colors.test.ts" line="332" assertions="3" />
-      <testcase name="json has valid color info" classname="All Languages Coverage" time="0" file="test/src/client/__tests__/syntax-colors.test.ts" line="332" assertions="3" />
-      <testcase name="toml has valid color info" classname="All Languages Coverage" time="0" file="test/src/client/__tests__/syntax-colors.test.ts" line="332" assertions="3" />
-      <testcase name="yaml has valid color info" classname="All Languages Coverage" time="0" file="test/src/client/__tests__/syntax-colors.test.ts" line="332" assertions="3" />
-      <testcase name="yml has valid color info" classname="All Languages Coverage" time="0" file="test/src/client/__tests__/syntax-colors.test.ts" line="332" assertions="3" />
-      <testcase name="c has valid color info" classname="All Languages Coverage" time="0" file="test/src/client/__tests__/syntax-colors.test.ts" line="332" assertions="3" />
-      <testcase name="cpp has valid color info" classname="All Languages Coverage" time="0" file="test/src/client/__tests__/syntax-colors.test.ts" line="332" assertions="3" />
-      <testcase name="csharp has valid color info" classname="All Languages Coverage" time="0" file="test/src/client/__tests__/syntax-colors.test.ts" line="332" assertions="3" />
-      <testcase name="java has valid color info" classname="All Languages Coverage" time="0" file="test/src/client/__tests__/syntax-colors.test.ts" line="332" assertions="3" />
-      <testcase name="kotlin has valid color info" classname="All Languages Coverage" time="0" file="test/src/client/__tests__/syntax-colors.test.ts" line="332" assertions="3" />
-      <testcase name="swift has valid color info" classname="All Languages Coverage" time="0" file="test/src/client/__tests__/syntax-colors.test.ts" line="332" assertions="3" />
-      <testcase name="php has valid color info" classname="All Languages Coverage" time="0" file="test/src/client/__tests__/syntax-colors.test.ts" line="332" assertions="3" />
-      <testcase name="lua has valid color info" classname="All Languages Coverage" time="0" file="test/src/client/__tests__/syntax-colors.test.ts" line="332" assertions="3" />
-      <testcase name="zig has valid color info" classname="All Languages Coverage" time="0" file="test/src/client/__tests__/syntax-colors.test.ts" line="332" assertions="3" />
-      <testcase name="elixir has valid color info" classname="All Languages Coverage" time="0" file="test/src/client/__tests__/syntax-colors.test.ts" line="332" assertions="3" />
-      <testcase name="erlang has valid color info" classname="All Languages Coverage" time="0" file="test/src/client/__tests__/syntax-colors.test.ts" line="332" assertions="3" />
-      <testcase name="haskell has valid color info" classname="All Languages Coverage" time="0" file="test/src/client/__tests__/syntax-colors.test.ts" line="332" assertions="3" />
-      <testcase name="ocaml has valid color info" classname="All Languages Coverage" time="0.000028" file="test/src/client/__tests__/syntax-colors.test.ts" line="332" assertions="3" />
-      <testcase name="scala has valid color info" classname="All Languages Coverage" time="0" file="test/src/client/__tests__/syntax-colors.test.ts" line="332" assertions="3" />
-      <testcase name="clojure has valid color info" classname="All Languages Coverage" time="0.000003" file="test/src/client/__tests__/syntax-colors.test.ts" line="332" assertions="3" />
-      <testcase name="fsharp has valid color info" classname="All Languages Coverage" time="0" file="test/src/client/__tests__/syntax-colors.test.ts" line="332" assertions="3" />
-      <testcase name="r has valid color info" classname="All Languages Coverage" time="0" file="test/src/client/__tests__/syntax-colors.test.ts" line="332" assertions="3" />
-      <testcase name="julia has valid color info" classname="All Languages Coverage" time="0" file="test/src/client/__tests__/syntax-colors.test.ts" line="332" assertions="3" />
-      <testcase name="dart has valid color info" classname="All Languages Coverage" time="0" file="test/src/client/__tests__/syntax-colors.test.ts" line="332" assertions="3" />
-      <testcase name="vue has valid color info" classname="All Languages Coverage" time="0" file="test/src/client/__tests__/syntax-colors.test.ts" line="332" assertions="3" />
-      <testcase name="svelte has valid color info" classname="All Languages Coverage" time="0" file="test/src/client/__tests__/syntax-colors.test.ts" line="332" assertions="3" />
-      <testcase name="react has valid color info" classname="All Languages Coverage" time="0" file="test/src/client/__tests__/syntax-colors.test.ts" line="332" assertions="3" />
-      <testcase name="angular has valid color info" classname="All Languages Coverage" time="0.000011" file="test/src/client/__tests__/syntax-colors.test.ts" line="332" assertions="3" />
-      <testcase name="graphql has valid color info" classname="All Languages Coverage" time="0.000002" file="test/src/client/__tests__/syntax-colors.test.ts" line="332" assertions="3" />
-      <testcase name="markdown has valid color info" classname="All Languages Coverage" time="0" file="test/src/client/__tests__/syntax-colors.test.ts" line="332" assertions="3" />
-      <testcase name="md has valid color info" classname="All Languages Coverage" time="0" file="test/src/client/__tests__/syntax-colors.test.ts" line="332" assertions="3" />
-      <testcase name="dockerfile has valid color info" classname="All Languages Coverage" time="0.000005" file="test/src/client/__tests__/syntax-colors.test.ts" line="332" assertions="3" />
-      <testcase name="docker has valid color info" classname="All Languages Coverage" time="0.000004" file="test/src/client/__tests__/syntax-colors.test.ts" line="332" assertions="3" />
-      <testcase name="terraform has valid color info" classname="All Languages Coverage" time="0.000003" file="test/src/client/__tests__/syntax-colors.test.ts" line="332" assertions="3" />
-      <testcase name="tf has valid color info" classname="All Languages Coverage" time="0" file="test/src/client/__tests__/syntax-colors.test.ts" line="332" assertions="3" />
-      <testcase name="nginx has valid color info" classname="All Languages Coverage" time="0" file="test/src/client/__tests__/syntax-colors.test.ts" line="332" assertions="3" />
-      <testcase name="xml has valid color info" classname="All Languages Coverage" time="0" file="test/src/client/__tests__/syntax-colors.test.ts" line="332" assertions="3" />
-      <testcase name="plaintext has valid color info" classname="All Languages Coverage" time="0" file="test/src/client/__tests__/syntax-colors.test.ts" line="332" assertions="3" />
-      <testcase name="txt has valid color info" classname="All Languages Coverage" time="0" file="test/src/client/__tests__/syntax-colors.test.ts" line="332" assertions="3" />
-    </testsuite>
-  </testsuite>
-  <testsuite name="test/src/client/__tests__/config.test.ts" file="test/src/client/__tests__/config.test.ts" tests="4" assertions="20" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-    <testsuite name="Config Module" file="test/src/client/__tests__/config.test.ts" line="9" tests="4" assertions="20" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-      <testsuite name="Theme Configuration" file="test/src/client/__tests__/config.test.ts" line="10" tests="2" assertions="14" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-        <testcase name="should load all themes without errors" classname="Theme Configuration &amp;gt; Config Module" time="0.000024" file="test/src/client/__tests__/config.test.ts" line="11" assertions="12" />
-        <testcase name="should have consistent color formats" classname="Theme Configuration &amp;gt; Config Module" time="0.000023" file="test/src/client/__tests__/config.test.ts" line="21" assertions="2" />
-      </testsuite>
-      <testsuite name="Integrity Checks" file="test/src/client/__tests__/config.test.ts" line="28" tests="1" assertions="5" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-        <testcase name="should calculate consistent CRC32 hashes" classname="Integrity Checks &amp;gt; Config Module" time="0.000652" file="test/src/client/__tests__/config.test.ts" line="29" assertions="5" />
-      </testsuite>
-      <testsuite name="Shortcuts" file="test/src/client/__tests__/config.test.ts" line="39" tests="1" assertions="1" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-        <testcase name="should have unique keybindings" classname="Shortcuts &amp;gt; Config Module" time="0.00023" file="test/src/client/__tests__/config.test.ts" line="40" assertions="1" />
-      </testsuite>
-    </testsuite>
-  </testsuite>
-  <testsuite name="test/src/server/kyc/__tests__/apiErrors.test.ts" file="test/src/server/kyc/__tests__/apiErrors.test.ts" tests="8" assertions="12" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-    <testsuite name="API Error Handling" file="test/src/server/kyc/__tests__/apiErrors.test.ts" line="10" tests="8" assertions="12" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-      <testcase name="handles non-existent trace ID gracefully" classname="API Error Handling" time="0" file="test/src/server/kyc/__tests__/apiErrors.test.ts" line="11" assertions="1" />
-      <testcase name="handles invalid status filter" classname="API Error Handling" time="0.0002" file="test/src/server/kyc/__tests__/apiErrors.test.ts" line="18" assertions="1" />
-      <testcase name="handles database errors gracefully" classname="API Error Handling" time="0.000066" file="test/src/server/kyc/__tests__/apiErrors.test.ts" line="26" assertions="1" />
-      <testcase name="handles malformed review item data" classname="API Error Handling" time="0.00002" file="test/src/server/kyc/__tests__/apiErrors.test.ts" line="47" assertions="2" />
-      <testcase name="handles concurrent review operations" classname="API Error Handling" time="0.000151" file="test/src/server/kyc/__tests__/apiErrors.test.ts" line="60" assertions="2" />
-      <testcase name="handles large dataset queries" classname="API Error Handling" time="0.000049" file="test/src/server/kyc/__tests__/apiErrors.test.ts" line="88" assertions="2" />
-      <testcase name="handles invalid filter parameters" classname="API Error Handling" time="0.000027" file="test/src/server/kyc/__tests__/apiErrors.test.ts" line="99" assertions="1" />
-      <testcase name="handles missing required fields in review item" classname="API Error Handling" time="0.000081" file="test/src/server/kyc/__tests__/apiErrors.test.ts" line="120" assertions="2" />
-    </testsuite>
-  </testsuite>
-  <testsuite name="test/src/server/kyc/__tests__/failsafeEngine.test.ts" file="test/src/server/kyc/__tests__/failsafeEngine.test.ts" tests="9" assertions="21" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-    <testsuite name="KYCFailsafeEngine" file="test/src/server/kyc/__tests__/failsafeEngine.test.ts" line="46" tests="9" assertions="21" failures="0" skipped="0" time="3.481" hostname="Mac.attlocal.net">
-      <testcase name="executes failsafe flow" classname="KYCFailsafeEngine" time="3.200669" file="test/src/server/kyc/__tests__/failsafeEngine.test.ts" line="69" assertions="4" />
-      <testcase name="generates proper audit logs" classname="KYCFailsafeEngine" time="0.035628" file="test/src/server/kyc/__tests__/failsafeEngine.test.ts" line="78" assertions="2" />
-      <testcase name="handles different failure reasons" classname="KYCFailsafeEngine" time="0.071696" file="test/src/server/kyc/__tests__/failsafeEngine.test.ts" line="85" assertions="3" />
-      <testcase name="trace ID is unique per execution" classname="KYCFailsafeEngine" time="0.069585" file="test/src/server/kyc/__tests__/failsafeEngine.test.ts" line="94" assertions="3" />
-      <testcase name="approveUser updates review status" classname="KYCFailsafeEngine" time="0.000013" file="test/src/server/kyc/__tests__/failsafeEngine.test.ts" line="103" assertions="1" />
-      <testcase name="rejectUser updates review status" classname="KYCFailsafeEngine" time="0.000267" file="test/src/server/kyc/__tests__/failsafeEngine.test.ts" line="112" assertions="1" />
-      <testcase name="handles high-risk device rejection" classname="KYCFailsafeEngine" time="0.035286" file="test/src/server/kyc/__tests__/failsafeEngine.test.ts" line="121" assertions="2" />
-      <testcase name="handles medium-risk device review queue" classname="KYCFailsafeEngine" time="0.035292" file="test/src/server/kyc/__tests__/failsafeEngine.test.ts" line="129" assertions="2" />
-      <testcase name="handles errors gracefully and queues for review" classname="KYCFailsafeEngine" time="0.036548" file="test/src/server/kyc/__tests__/failsafeEngine.test.ts" line="136" assertions="3" />
-    </testsuite>
-  </testsuite>
-  <testsuite name="test/src/server/kyc/__tests__/websocket.test.ts" file="test/src/server/kyc/__tests__/websocket.test.ts" tests="5" assertions="8" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-    <testsuite name="WebSocket Integration" file="test/src/server/kyc/__tests__/websocket.test.ts" line="9" tests="5" assertions="8" failures="0" skipped="0" time="0.177" hostname="Mac.attlocal.net">
-      <testcase name="broadcasts review queue event when item is queued" classname="WebSocket Integration" time="0.036601" file="test/src/server/kyc/__tests__/websocket.test.ts" line="29" assertions="3" />
-      <testcase name="handles WebSocket client disconnection gracefully" classname="WebSocket Integration" time="0.03631" file="test/src/server/kyc/__tests__/websocket.test.ts" line="42" assertions="1" />
-      <testcase name="handles empty WebSocket clients set" classname="WebSocket Integration" time="0.034871" file="test/src/server/kyc/__tests__/websocket.test.ts" line="60" assertions="2" />
-      <testcase name="handles multiple WebSocket clients" classname="WebSocket Integration" time="0.035756" file="test/src/server/kyc/__tests__/websocket.test.ts" line="71" assertions="1" />
-      <testcase name="handles WebSocket send errors gracefully" classname="WebSocket Integration" time="0.036251" file="test/src/server/kyc/__tests__/websocket.test.ts" line="87" assertions="1" />
-    </testsuite>
-  </testsuite>
-  <testsuite name="test/src/server/kyc/__tests__/biometricService.test.ts" file="test/src/server/kyc/__tests__/biometricService.test.ts" tests="3" assertions="13" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-    <testsuite name="BiometricService" file="test/src/server/kyc/__tests__/biometricService.test.ts" line="9" tests="3" assertions="13" failures="0" skipped="0" time="0.069" hostname="Mac.attlocal.net">
-      <testcase name="verifyBiometric returns result with passed flag and liveness score" classname="BiometricService" time="0.017602" file="test/src/server/kyc/__tests__/biometricService.test.ts" line="16" assertions="6" />
-      <testcase name="verifyBiometric handles different user IDs" classname="BiometricService" time="0.035561" file="test/src/server/kyc/__tests__/biometricService.test.ts" line="36" assertions="4" />
-      <testcase name="verifyBiometric handles verification failures gracefully" classname="BiometricService" time="0.017013" file="test/src/server/kyc/__tests__/biometricService.test.ts" line="54" assertions="3" />
-    </testsuite>
-  </testsuite>
-  <testsuite name="test/src/server/kyc/__tests__/encryption.test.ts" file="test/src/server/kyc/__tests__/encryption.test.ts" tests="6" assertions="18" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-    <testsuite name="Document Encryption" file="test/src/server/kyc/__tests__/encryption.test.ts" line="9" tests="6" assertions="18" failures="0" skipped="0" time="0.07" hostname="Mac.attlocal.net">
-      <testcase name="encryptDocument encrypts data successfully" classname="Document Encryption" time="0.007835" file="test/src/server/kyc/__tests__/encryption.test.ts" line="10" assertions="8" />
-      <testcase name="decryptDocument decrypts encrypted data correctly" classname="Document Encryption" time="0.013129" file="test/src/server/kyc/__tests__/encryption.test.ts" line="26" assertions="2" />
-      <testcase name="encryption produces different ciphertext for same data" classname="Document Encryption" time="0.012669" file="test/src/server/kyc/__tests__/encryption.test.ts" line="43" assertions="2" />
-      <testcase name="decryption fails with wrong IV" classname="Document Encryption" time="0.012905" file="test/src/server/kyc/__tests__/encryption.test.ts" line="56" assertions="1" />
-      <testcase name="decryption fails with wrong user ID" classname="Document Encryption" time="0.012649" file="test/src/server/kyc/__tests__/encryption.test.ts" line="73" assertions="1" />
-      <testcase name="encryption handles large documents" classname="Document Encryption" time="0.014608" file="test/src/server/kyc/__tests__/encryption.test.ts" line="90" assertions="4" />
-    </testsuite>
-  </testsuite>
-  <testsuite name="test/src/server/kyc/__tests__/loadTesting.test.ts" file="test/src/server/kyc/__tests__/loadTesting.test.ts" tests="6" assertions="263" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-    <testsuite name="Load Testing" file="test/src/server/kyc/__tests__/loadTesting.test.ts" line="10" tests="6" assertions="263" failures="0" skipped="0" time="1.103" hostname="Mac.attlocal.net">
-      <testcase name="handles 100 concurrent failsafe executions" classname="Load Testing" time="0.88779" file="test/src/server/kyc/__tests__/loadTesting.test.ts" line="11" assertions="202" />
-      <testcase name="handles 50 concurrent review queue queries" classname="Load Testing" time="0.007105" file="test/src/server/kyc/__tests__/loadTesting.test.ts" line="32" assertions="52" />
-      <testcase name="handles large dataset (1000+ items) efficiently" classname="Load Testing" time="0.00019" file="test/src/server/kyc/__tests__/loadTesting.test.ts" line="51" assertions="2" />
-      <testcase name="handles WebSocket connection limits" classname="Load Testing" time="0.035412" file="test/src/server/kyc/__tests__/loadTesting.test.ts" line="63" assertions="2" />
-      <testcase name="database performance with concurrent writes" classname="Load Testing" time="0.173155" file="test/src/server/kyc/__tests__/loadTesting.test.ts" line="80" assertions="3" />
-      <testcase name="response time under load" classname="Load Testing" time="0.001992" file="test/src/server/kyc/__tests__/loadTesting.test.ts" line="101" assertions="2" />
-    </testsuite>
-  </testsuite>
-  <testsuite name="test/src/server/kyc/__tests__/visualRegression.test.ts" file="test/src/server/kyc/__tests__/visualRegression.test.ts" tests="5" assertions="0" failures="0" skipped="5" time="0" hostname="Mac.attlocal.net">
-    <testsuite name="Visual Regression Tests" file="test/src/server/kyc/__tests__/visualRegression.test.ts" line="35" tests="5" assertions="0" failures="0" skipped="5" time="0" hostname="Mac.attlocal.net">
-      <testcase name="KYC dashboard renders correctly" classname="Visual Regression Tests" time="0" file="test/src/server/kyc/__tests__/visualRegression.test.ts" line="36" assertions="0">
-        <skipped />
-      </testcase>
-      <testcase name="KYC review queue table renders correctly" classname="Visual Regression Tests" time="0" file="test/src/server/kyc/__tests__/visualRegression.test.ts" line="50" assertions="0">
-        <skipped />
-      </testcase>
-      <testcase name="KYC detailed modal renders correctly" classname="Visual Regression Tests" time="0" file="test/src/server/kyc/__tests__/visualRegression.test.ts" line="55" assertions="0">
-        <skipped />
-      </testcase>
-      <testcase name="dark mode renders correctly" classname="Visual Regression Tests" time="0" file="test/src/server/kyc/__tests__/visualRegression.test.ts" line="60" assertions="0">
-        <skipped />
-      </testcase>
-      <testcase name="responsive layout works on mobile" classname="Visual Regression Tests" time="0" file="test/src/server/kyc/__tests__/visualRegression.test.ts" line="65" assertions="0">
-        <skipped />
-      </testcase>
-    </testsuite>
-  </testsuite>
-  <testsuite name="test/src/server/kyc/__tests__/mutationTesting.test.ts" file="test/src/server/kyc/__tests__/mutationTesting.test.ts" tests="6" assertions="11" failures="2" skipped="0" time="0" hostname="Mac.attlocal.net">
-    <testsuite name="Mutation Testing - Test Quality Validation" file="test/src/server/kyc/__tests__/mutationTesting.test.ts" line="16" tests="6" assertions="11" failures="2" skipped="0" time="0.193" hostname="Mac.attlocal.net">
-      <testcase name="tests catch null return values" classname="Mutation Testing - Test Quality Validation" time="0.038156" file="test/src/server/kyc/__tests__/mutationTesting.test.ts" line="22" assertions="2" />
-      <testcase name="tests catch incorrect status values" classname="Mutation Testing - Test Quality Validation" time="0.037753" file="test/src/server/kyc/__tests__/mutationTesting.test.ts" line="31" assertions="1">
-        <failure type="AssertionError" />
-      </testcase>
-      <testcase name="tests catch missing trace ID" classname="Mutation Testing - Test Quality Validation" time="0.037414" file="test/src/server/kyc/__tests__/mutationTesting.test.ts" line="39" assertions="2" />
-      <testcase name="tests catch encryption failures" classname="Mutation Testing - Test Quality Validation" time="0.012985" file="test/src/server/kyc/__tests__/mutationTesting.test.ts" line="48" assertions="4" />
-      <testcase name="tests catch risk score out of range" classname="Mutation Testing - Test Quality Validation" time="0.034753" file="test/src/server/kyc/__tests__/mutationTesting.test.ts" line="64" assertions="0" />
-      <testcase name="tests catch missing audit log entries" classname="Mutation Testing - Test Quality Validation" time="0.03599" file="test/src/server/kyc/__tests__/mutationTesting.test.ts" line="77" assertions="2">
-        <failure type="AssertionError" />
-      </testcase>
-    </testsuite>
-  </testsuite>
-  <testsuite name="test/src/server/kyc/__tests__/documentService.test.ts" file="test/src/server/kyc/__tests__/documentService.test.ts" tests="5" assertions="16" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-    <testsuite name="DocumentService" file="test/src/server/kyc/__tests__/documentService.test.ts" line="9" tests="5" assertions="16" failures="0" skipped="0" time="3.039" hostname="Mac.attlocal.net">
-      <testcase name="captureDocuments returns array of document paths" classname="DocumentService" time="3.031007" file="test/src/server/kyc/__tests__/documentService.test.ts" line="19" assertions="1" />
-      <testcase name="uploadDocument encrypts and uploads to S3" classname="DocumentService" time="0.008368" file="test/src/server/kyc/__tests__/documentService.test.ts" line="35" assertions="5" />
-      <testcase name="verifyDocuments returns verification result with confidence" classname="DocumentService" time="0.000238" file="test/src/server/kyc/__tests__/documentService.test.ts" line="66" assertions="6" />
-      <testcase name="verifyDocuments handles empty S3 keys array" classname="DocumentService" time="0.000029" file="test/src/server/kyc/__tests__/documentService.test.ts" line="79" assertions="2" />
-      <testcase name="verifyDocuments handles multiple documents" classname="DocumentService" time="0.000004" file="test/src/server/kyc/__tests__/documentService.test.ts" line="86" assertions="2" />
-    </testsuite>
-  </testsuite>
-  <testsuite name="test/src/server/kyc/__tests__/performance.test.ts" file="test/src/server/kyc/__tests__/performance.test.ts" tests="6" assertions="1026" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-    <testsuite name="Performance Benchmarks" file="test/src/server/kyc/__tests__/performance.test.ts" line="11" tests="6" assertions="1026" failures="0" skipped="0" time="0.152" hostname="Mac.attlocal.net">
-      <testcase name="failsafe execution completes within acceptable time" classname="Performance Benchmarks" time="0.037271" file="test/src/server/kyc/__tests__/performance.test.ts" line="12" assertions="3" />
-      <testcase name="device verification completes within acceptable time" classname="Performance Benchmarks" time="0.033788" file="test/src/server/kyc/__tests__/performance.test.ts" line="26" assertions="3" />
-      <testcase name="encryption performance for typical document size" classname="Performance Benchmarks" time="0.012855" file="test/src/server/kyc/__tests__/performance.test.ts" line="40" assertions="2" />
-      <testcase name="encryption performance scales with document size" classname="Performance Benchmarks" time="0.019497" file="test/src/server/kyc/__tests__/performance.test.ts" line="59" assertions="5" />
-      <testcase name="concurrent failsafe executions" classname="Performance Benchmarks" time="0.051823" file="test/src/server/kyc/__tests__/performance.test.ts" line="83" assertions="12" />
-      <testcase name="trace ID generation performance" classname="Performance Benchmarks" time="0.000269" file="test/src/server/kyc/__tests__/performance.test.ts" line="106" assertions="1001" />
-    </testsuite>
-  </testsuite>
-  <testsuite name="test/src/server/kyc/__tests__/android13Failsafe.test.ts" file="test/src/server/kyc/__tests__/android13Failsafe.test.ts" tests="6" assertions="18" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-    <testsuite name="Android13KYCFailsafe" file="test/src/server/kyc/__tests__/android13Failsafe.test.ts" line="19" tests="6" assertions="18" failures="0" skipped="0" time="0.275" hostname="Mac.attlocal.net">
-      <testcase name="device integrity verification returns expected structure" classname="Android13KYCFailsafe" time="0.036405" file="test/src/server/kyc/__tests__/android13Failsafe.test.ts" line="26" assertions="5" />
-      <testcase name="handles different user IDs" classname="Android13KYCFailsafe" time="0.076182" file="test/src/server/kyc/__tests__/android13Failsafe.test.ts" line="36" assertions="3" />
-      <testcase name="includes risk assessment in results" classname="Android13KYCFailsafe" time="0.03667" file="test/src/server/kyc/__tests__/android13Failsafe.test.ts" line="46" assertions="2" />
-      <testcase name="risk score is within valid range" classname="Android13KYCFailsafe" time="0.035449" file="test/src/server/kyc/__tests__/android13Failsafe.test.ts" line="53" assertions="2" />
-      <testcase name="logs contain trace ID" classname="Android13KYCFailsafe" time="0.056394" file="test/src/server/kyc/__tests__/android13Failsafe.test.ts" line="60" assertions="2" />
-      <testcase name="handles verification errors gracefully" classname="Android13KYCFailsafe" time="0.036265" file="test/src/server/kyc/__tests__/android13Failsafe.test.ts" line="71" assertions="4" />
-    </testsuite>
-  </testsuite>
-  <testsuite name="test/src/server/kyc/__tests__/config.test.ts" file="test/src/server/kyc/__tests__/config.test.ts" tests="5" assertions="23" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-    <testsuite name="KYC Config" file="test/src/server/kyc/__tests__/config.test.ts" line="9" tests="5" assertions="23" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-      <testcase name="kycConfig has all required properties" classname="KYC Config" time="0" file="test/src/server/kyc/__tests__/config.test.ts" line="21" assertions="9" />
-      <testcase name="kycConfig uses default values when env vars not set" classname="KYC Config" time="0.000346" file="test/src/server/kyc/__tests__/config.test.ts" line="33" assertions="3" />
-      <testcase name="kycConfig has valid numeric properties" classname="KYC Config" time="0.000022" file="test/src/server/kyc/__tests__/config.test.ts" line="40" assertions="4" />
-      <testcase name="kycConfig has string properties" classname="KYC Config" time="0.000021" file="test/src/server/kyc/__tests__/config.test.ts" line="47" assertions="5" />
-      <testcase name="kycConfig optional properties can be undefined" classname="KYC Config" time="0.000021" file="test/src/server/kyc/__tests__/config.test.ts" line="55" assertions="2" />
-    </testsuite>
-  </testsuite>
-  <testsuite name="test/src/server/kyc/__tests__/integration.test.ts" file="test/src/server/kyc/__tests__/integration.test.ts" tests="5" assertions="18" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-    <testsuite name="KYC Integration Tests" file="test/src/server/kyc/__tests__/integration.test.ts" line="31" tests="5" assertions="18" failures="0" skipped="0" time="0.216" hostname="Mac.attlocal.net">
-      <testcase name="executes basic failsafe flow" classname="KYC Integration Tests" time="0.036912" file="test/src/server/kyc/__tests__/integration.test.ts" line="49" assertions="3" />
-      <testcase name="handles different user scenarios" classname="KYC Integration Tests" time="0.071827" file="test/src/server/kyc/__tests__/integration.test.ts" line="57" assertions="3" />
-      <testcase name="queues for manual review when biometric fails" classname="KYC Integration Tests" time="0.03524" file="test/src/server/kyc/__tests__/integration.test.ts" line="66" assertions="2" />
-      <testcase name="generates comprehensive audit logs" classname="KYC Integration Tests" time="0.035667" file="test/src/server/kyc/__tests__/integration.test.ts" line="76" assertions="3" />
-      <testcase name="handles concurrent failsafe executions" classname="KYC Integration Tests" time="0.039896" file="test/src/server/kyc/__tests__/integration.test.ts" line="84" assertions="7" />
-    </testsuite>
-  </testsuite>
-  <testsuite name="test/src/server/kyc/__tests__/edgeCases.test.ts" file="test/src/server/kyc/__tests__/edgeCases.test.ts" tests="18" assertions="57" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-    <testsuite name="Edge Cases" file="test/src/server/kyc/__tests__/edgeCases.test.ts" line="12" tests="18" assertions="57" failures="0" skipped="0" time="0.823" hostname="Mac.attlocal.net">
-      <testcase name="handles empty user ID" classname="Edge Cases" time="0.034926" file="test/src/server/kyc/__tests__/edgeCases.test.ts" line="13" assertions="3" />
-      <testcase name="handles very long user ID" classname="Edge Cases" time="0.034519" file="test/src/server/kyc/__tests__/edgeCases.test.ts" line="22" assertions="3" />
-      <testcase name="handles special characters in user ID" classname="Edge Cases" time="0.035661" file="test/src/server/kyc/__tests__/edgeCases.test.ts" line="32" assertions="2" />
-      <testcase name="handles unicode characters in user ID" classname="Edge Cases" time="0.035295" file="test/src/server/kyc/__tests__/edgeCases.test.ts" line="41" assertions="2" />
-      <testcase name="handles empty failure reason" classname="Edge Cases" time="0.035088" file="test/src/server/kyc/__tests__/edgeCases.test.ts" line="50" assertions="3" />
-      <testcase name="handles very long failure reason" classname="Edge Cases" time="0.035094" file="test/src/server/kyc/__tests__/edgeCases.test.ts" line="59" assertions="2" />
-      <testcase name="encryption handles empty data" classname="Edge Cases" time="0.012868" file="test/src/server/kyc/__tests__/edgeCases.test.ts" line="68" assertions="2" />
-      <testcase name="encryption handles single byte" classname="Edge Cases" time="0.013046" file="test/src/server/kyc/__tests__/edgeCases.test.ts" line="83" assertions="1" />
-      <testcase name="encryption handles very large data" classname="Edge Cases" time="0.023564" file="test/src/server/kyc/__tests__/edgeCases.test.ts" line="97" assertions="2" />
-      <testcase name="device verification handles missing ADB" classname="Edge Cases" time="0.038664" file="test/src/server/kyc/__tests__/edgeCases.test.ts" line="112" assertions="3" />
-      <testcase name="document service handles empty document list" classname="Edge Cases" time="0.000141" file="test/src/server/kyc/__tests__/edgeCases.test.ts" line="122" assertions="3" />
-      <testcase name="handles concurrent operations on same user" classname="Edge Cases" time="0.039911" file="test/src/server/kyc/__tests__/edgeCases.test.ts" line="131" assertions="2" />
-      <testcase name="handles rapid sequential executions" classname="Edge Cases" time="0.348393" file="test/src/server/kyc/__tests__/edgeCases.test.ts" line="155" assertions="21" />
-      <testcase name="handles null/undefined gracefully" classname="Edge Cases" time="0.070673" file="test/src/server/kyc/__tests__/edgeCases.test.ts" line="171" assertions="2" />
-      <testcase name="handles timezone edge cases in date filters" classname="Edge Cases" time="0.000197" file="test/src/server/kyc/__tests__/edgeCases.test.ts" line="182" assertions="1" />
-      <testcase name="handles very large risk score values" classname="Edge Cases" time="0.034048" file="test/src/server/kyc/__tests__/edgeCases.test.ts" line="196" assertions="1" />
-      <testcase name="handles malformed device signatures" classname="Edge Cases" time="0.038844" file="test/src/server/kyc/__tests__/edgeCases.test.ts" line="214" assertions="2" />
-      <testcase name="handles review queue with 1000+ items" classname="Edge Cases" time="0.00039" file="test/src/server/kyc/__tests__/edgeCases.test.ts" line="223" assertions="2" />
-    </testsuite>
-  </testsuite>
-  <testsuite name="test/src/server/kyc/__tests__/kycDashboard.test.ts" file="test/src/server/kyc/__tests__/kycDashboard.test.ts" tests="7" assertions="35" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-    <testsuite name="KYCDashboard" file="test/src/server/kyc/__tests__/kycDashboard.test.ts" line="51" tests="7" assertions="35" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-      <testcase name="getReviewQueue returns formatted queue items" classname="KYCDashboard" time="0.000767" file="test/src/server/kyc/__tests__/kycDashboard.test.ts" line="58" assertions="12" />
-      <testcase name="getReviewQueue filters by status" classname="KYCDashboard" time="0.00004" file="test/src/server/kyc/__tests__/kycDashboard.test.ts" line="78" assertions="3" />
-      <testcase name="getReviewItem returns detailed item with audit log" classname="KYCDashboard" time="0.000066" file="test/src/server/kyc/__tests__/kycDashboard.test.ts" line="88" assertions="7" />
-      <testcase name="getReviewItem returns null for non-existent trace ID" classname="KYCDashboard" time="0.000041" file="test/src/server/kyc/__tests__/kycDashboard.test.ts" line="102" assertions="1" />
-      <testcase name="approveReview updates review status" classname="KYCDashboard" time="0.000019" file="test/src/server/kyc/__tests__/kycDashboard.test.ts" line="117" assertions="1" />
-      <testcase name="rejectReview updates review status" classname="KYCDashboard" time="0.000012" file="test/src/server/kyc/__tests__/kycDashboard.test.ts" line="123" assertions="1" />
-      <testcase name="getMetrics returns dashboard metrics" classname="KYCDashboard" time="0.00007" file="test/src/server/kyc/__tests__/kycDashboard.test.ts" line="129" assertions="10" />
-    </testsuite>
-  </testsuite>
-  <testsuite name="test/src/server/kyc/__tests__/concurrentOperations.test.ts" file="test/src/server/kyc/__tests__/concurrentOperations.test.ts" tests="8" assertions="239" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-    <testsuite name="Concurrent Operations" file="test/src/server/kyc/__tests__/concurrentOperations.test.ts" line="10" tests="8" assertions="239" failures="0" skipped="0" time="0.776" hostname="Mac.attlocal.net">
-      <testcase name="handles concurrent failsafe executions" classname="Concurrent Operations" time="0.115447" file="test/src/server/kyc/__tests__/concurrentOperations.test.ts" line="11" assertions="32" />
-      <testcase name="handles concurrent review queue operations" classname="Concurrent Operations" time="0.000134" file="test/src/server/kyc/__tests__/concurrentOperations.test.ts" line="34" assertions="6" />
-      <testcase name="handles concurrent approve/reject operations" classname="Concurrent Operations" time="0.041157" file="test/src/server/kyc/__tests__/concurrentOperations.test.ts" line="50" assertions="0" />
-      <testcase name="handles concurrent metrics queries" classname="Concurrent Operations" time="0.000237" file="test/src/server/kyc/__tests__/concurrentOperations.test.ts" line="78" assertions="81" />
-      <testcase name="handles rapid sequential executions" classname="Concurrent Operations" time="0.177979" file="test/src/server/kyc/__tests__/concurrentOperations.test.ts" line="96" assertions="12" />
-      <testcase name="handles concurrent filtered queue queries" classname="Concurrent Operations" time="0.000446" file="test/src/server/kyc/__tests__/concurrentOperations.test.ts" line="118" assertions="6" />
-      <testcase name="handles race condition in review status updates" classname="Concurrent Operations" time="0.037773" file="test/src/server/kyc/__tests__/concurrentOperations.test.ts" line="141" assertions="0" />
-      <testcase name="handles large concurrent batch operations" classname="Concurrent Operations" time="0.406693" file="test/src/server/kyc/__tests__/concurrentOperations.test.ts" line="165" assertions="102" />
-    </testsuite>
-  </testsuite>
-  <testsuite name="test/src/server/kyc/__tests__/reviewQueueProcessor.test.ts" file="test/src/server/kyc/__tests__/reviewQueueProcessor.test.ts" tests="3" assertions="15" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-    <testsuite name="ReviewQueueProcessor" file="test/src/server/kyc/__tests__/reviewQueueProcessor.test.ts" line="51" tests="3" assertions="15" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-      <testcase name="processQueue returns processing report" classname="ReviewQueueProcessor" time="0.000349" file="test/src/server/kyc/__tests__/reviewQueueProcessor.test.ts" line="58" assertions="9" />
-      <testcase name="processQueue handles empty queue" classname="ReviewQueueProcessor" time="0.000035" file="test/src/server/kyc/__tests__/reviewQueueProcessor.test.ts" line="72" assertions="4" />
-      <testcase name="startCron sets up interval" classname="ReviewQueueProcessor" time="0.000057" file="test/src/server/kyc/__tests__/reviewQueueProcessor.test.ts" line="89" assertions="2" />
+    <testsuite name="TeamRegistry" file=".claude/core/team/TeamRegistry.test.ts" line="207" tests="13" assertions="59" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+      <testcase name="should add a team member with flag-based permissions" classname="TeamRegistry" time="0.000437" file=".claude/core/team/TeamRegistry.test.ts" line="242" assertions="12" />
+      <testcase name="should return null for non-existent profile" classname="TeamRegistry" time="0.000067" file=".claude/core/team/TeamRegistry.test.ts" line="261" assertions="1" />
+      <testcase name="should update role and recalculate flags" classname="TeamRegistry" time="0.000281" file=".claude/core/team/TeamRegistry.test.ts" line="266" assertions="6" />
+      <testcase name="should promote a member and upgrade flags" classname="TeamRegistry" time="0.000321" file=".claude/core/team/TeamRegistry.test.ts" line="277" assertions="5" />
+      <testcase name="should not promote past lead" classname="TeamRegistry" time="0.000142" file=".claude/core/team/TeamRegistry.test.ts" line="288" assertions="1" />
+      <testcase name="should demote a member and downgrade flags" classname="TeamRegistry" time="0.00021" file=".claude/core/team/TeamRegistry.test.ts" line="294" assertions="5" />
+      <testcase name="should not demote past contributor" classname="TeamRegistry" time="0.000135" file=".claude/core/team/TeamRegistry.test.ts" line="305" assertions="1" />
+      <testcase name="should remove team membership" classname="TeamRegistry" time="0.000215" file=".claude/core/team/TeamRegistry.test.ts" line="311" assertions="3" />
+      <testcase name="should get hierarchy grouped by role" classname="TeamRegistry" time="0.000388" file=".claude/core/team/TeamRegistry.test.ts" line="321" assertions="5" />
+      <testcase name="should list only members with team data" classname="TeamRegistry" time="0.000199" file=".claude/core/team/TeamRegistry.test.ts" line="334" assertions="2" />
+      <testcase name="should persist flag-based permissions and email to disk" classname="TeamRegistry" time="0.000161" file=".claude/core/team/TeamRegistry.test.ts" line="341" assertions="9" />
+      <testcase name="should preserve email across role changes" classname="TeamRegistry" time="0.000366" file=".claude/core/team/TeamRegistry.test.ts" line="359" assertions="3" />
+      <testcase name="should support hasPermission() guard on loaded profiles" classname="TeamRegistry" time="0.00017" file=".claude/core/team/TeamRegistry.test.ts" line="376" assertions="6" />
     </testsuite>
   </testsuite>
 </testsuites>
