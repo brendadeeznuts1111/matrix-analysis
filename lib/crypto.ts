@@ -96,3 +96,24 @@ export const timingSafeEqual = (a: string, b: string): boolean => {
   if (bufA.length !== bufB.length) return false;
   return nodeTimingSafe(bufA, bufB);
 };
+
+// ─────────────────────────────────────────────────────────────────────────────
+// BN-039: UUID Generation (Bun-native)
+// ─────────────────────────────────────────────────────────────────────────────
+export const uuidv7 = (): string => Bun.randomUUIDv7();
+
+export const uuidv5 = (name: string, namespace: string): string =>
+  Bun.randomUUIDv5(name, namespace);
+
+export const UUID_NAMESPACES = {
+  DNS: "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
+  URL: "6ba7b811-9dad-11d1-80b4-00c04fd430c8",
+  OID: "6ba7b812-9dad-11d1-80b4-00c04fd430c8",
+  X500: "6ba7b814-9dad-11d1-80b4-00c04fd430c8",
+} as const;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// BN-039b: Pattern Matching
+// ─────────────────────────────────────────────────────────────────────────────
+export const deepMatch = (value: unknown, pattern: unknown): boolean =>
+  Bun.deepMatch(pattern, value);

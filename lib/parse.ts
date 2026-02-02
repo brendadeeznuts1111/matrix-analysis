@@ -78,3 +78,46 @@ export const loadFile = async <T>(path: string): Promise<T | null> => {
 // ─────────────────────────────────────────────────────────────────────────────
 export const toJsonl = (items: unknown[]): string =>
   items.map((item) => JSON.stringify(item)).join("\n") + "\n";
+
+// ─────────────────────────────────────────────────────────────────────────────
+// BN-033: YAML & JSONC Parsers (Bun 1.3.7+)
+// ─────────────────────────────────────────────────────────────────────────────
+export const yaml = <T>(input: string): T | null => {
+  try {
+    return Bun.YAML.parse(input) as T;
+  } catch {
+    return null;
+  }
+};
+
+export const jsonc = <T>(input: string): T | null => {
+  try {
+    return Bun.JSONC.parse(input) as T;
+  } catch {
+    return null;
+  }
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// BN-034: File Loader Extensions
+// ─────────────────────────────────────────────────────────────────────────────
+const EXT_PARSERS_V2: Record<string, <T>(input: string) => T | null> = {
+  ...EXT_PARSERS,
+  ".yaml": yaml,
+  ".yml": yaml,
+  ".jsonc": jsonc,
+};
+
+export const loadFileV2 = async <T>(path: string): Promise<T | null> => {
+  try {
+    const file = Bun.file(path);
+    if (!(await file.exists())) return null;
+    const text = await file.text();
+    const ext = path.slice(path.lastIndexOf(".")).toLowerCase();
+    const parser = EXT_PARSERS_V2[ext];
+    if (!parser) return null;
+    return parser<T>(text);
+  } catch {
+    return null;
+  }
+};

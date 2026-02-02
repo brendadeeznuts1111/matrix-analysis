@@ -22,9 +22,9 @@ export const bench = async (
 ): Promise<BenchResult> => {
   const times: number[] = [];
   for (let i = 0; i < runs; i++) {
-    const t0 = performance.now();
+    const t0 = Bun.nanoseconds();
     await fn();
-    times.push(performance.now() - t0);
+    times.push((Bun.nanoseconds() - t0) / 1e6);
   }
   return {
     label,
@@ -43,9 +43,9 @@ export const benchSync = (
 ): BenchResult => {
   const times: number[] = [];
   for (let i = 0; i < runs; i++) {
-    const t0 = performance.now();
+    const t0 = Bun.nanoseconds();
     fn();
-    times.push(performance.now() - t0);
+    times.push((Bun.nanoseconds() - t0) / 1e6);
   }
   return {
     label,
@@ -137,7 +137,7 @@ export interface RuntimeMetrics {
 }
 
 export const getRuntimeMetrics = (): RuntimeMetrics => ({
-  startupMs: Math.round(performance.now()),
+  startupMs: Math.round(Bun.nanoseconds() / 1e6),
   heapMB: +(process.memoryUsage().heapUsed / 1e6).toFixed(1),
   threads: navigator.hardwareConcurrency ?? 0,
   bunVersion: Bun.version,

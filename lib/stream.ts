@@ -63,3 +63,62 @@ export const peek = <T>(p: Promise<T>): T | Promise<T> =>
 
 export const status = (p: Promise<unknown>): "fulfilled" | "rejected" | "pending" =>
   Bun.peek.status(p);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// BN-043: Compression (Zstandard + Gzip)
+// ─────────────────────────────────────────────────────────────────────────────
+export const zstdCompress = async (
+  data: string | Uint8Array | ArrayBuffer
+): Promise<Uint8Array | null> => {
+  try {
+    return await Bun.zstdCompress(data);
+  } catch {
+    return null;
+  }
+};
+
+export const zstdDecompress = async (
+  data: Uint8Array | ArrayBuffer
+): Promise<Uint8Array | null> => {
+  try {
+    return await Bun.zstdDecompress(data);
+  } catch {
+    return null;
+  }
+};
+
+export const zstdCompressSync = (
+  data: string | Uint8Array | ArrayBuffer
+): Uint8Array | null => {
+  try {
+    return Bun.zstdCompressSync(data);
+  } catch {
+    return null;
+  }
+};
+
+export const zstdDecompressSync = (
+  data: Uint8Array | ArrayBuffer
+): Uint8Array | null => {
+  try {
+    return Bun.zstdDecompressSync(data);
+  } catch {
+    return null;
+  }
+};
+
+export const gzip = (data: string | Uint8Array | ArrayBuffer): Uint8Array | null => {
+  try {
+    return Bun.gzipSync(data);
+  } catch {
+    return null;
+  }
+};
+
+export const gunzip = (data: Uint8Array | ArrayBuffer): Uint8Array | null => {
+  try {
+    return Bun.gunzipSync(data);
+  } catch {
+    return null;
+  }
+};

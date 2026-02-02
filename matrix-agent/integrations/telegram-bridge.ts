@@ -22,12 +22,18 @@ const COLORS = {
 const OPENCLAW_DIR = join(homedir(), "openclaw");
 const TELEGRAM_CONFIG_PATH = join(homedir(), ".openclaw", "credentials", "telegram-pairing.json");
 
+type TelegramReactionLevel = "off" | "ack" | "minimal" | "extensive";
+
 interface TelegramAccount {
   id: string;
   name: string;
   botToken?: string;
   phoneNumber?: string;
   isActive: boolean;
+  reactionLevel?: TelegramReactionLevel;
+  capabilities?: {
+    inlineButtons?: "off" | "dm" | "group" | "all" | "allowlist";
+  };
 }
 
 interface TelegramMessage {
@@ -48,17 +54,85 @@ interface TelegramMessage {
 
 interface StickerInfo {
   fileId: string;
-  emoji: string;
+  fileUniqueId: string;
+  emoji?: string;
   setName?: string;
+  description: string;
+  cachedAt: string;
+}
+
+interface StickerCache {
+  version: number;
+  stickers: Record<string, StickerInfo>;
 }
 
 class TelegramBridge {
   private accounts: TelegramAccount[] = [];
   private defaultAccount?: string;
+  private stickerCache: StickerCache = { version: 1, stickers: {} };
 
   async init(): Promise<void> {
     console.log(`${COLORS.cyan}📱 Initializing Telegram Bridge${COLORS.reset}`);
     await this.loadAccounts();
+    await this.loadStickerCache();
+  }
+
+  /**
+   * Load sticker cache from OpenClaw
+   */
+  private async loadStickerCache(): Promise<void> {
+    try {
+      const cachePath = join(homedir(), ".openclaw", "state", "telegram", "sticker-cache.json");
+      if (existsSync(cachePath)) {
+        const content = readFileSync(cachePath, "utf-8");
+        this.stickerCache = JSON.parse(content);
+        console.log(`   ${COLORS.green}✓${COLORS.reset} Loaded ${Object.keys(this.stickerCache.stickers).length} cached stickers`);
+      }
+    } catch {
+      // No cache yet
+    }
+  }
+
+  /**
+   * Search cached stickers by query
+   */
+  searchStickers(query: string, limit = 10): StickerInfo[] {
+    const queryLower = query.toLowerCase();
+    const results: Array<{ sticker: StickerInfo; score: number }> = [];
+
+    for (const sticker of Object.values(this.stickerCache.stickers)) {
+      let score = 0;
+      
+      if (sticker.description?.toLowerCase().includes(queryLower)) score += 3;
+      if (sticker.emoji?.toLowerCase().includes(queryLower)) score += 2;
+      if (sticker.setName?.toLowerCase().includes(queryLower)) score += 1;
+
+      if (score > 0) {
+        results.push({ sticker, score });
+      }
+    }
+
+    results.sort((a, b) => b.score - a.score);
+    return results.slice(0, limit).map(r => r.sticker);
+  }
+
+  /**
+   * Get reaction level for account
+   */
+  getReactionLevel(accountId?: string): TelegramReactionLevel {
+    const account = accountId 
+      ? this.accounts.find(a => a.id === accountId)
+      : this.accounts.find(a => a.id === this.defaultAccount);
+    
+    return account?.reactionLevel || "minimal";
+  }
+
+  /**
+   * Check if reactions are enabled for account
+   */
+  canReact(accountId?: string): boolean {
+    const level = this.getReactionLevel(accountId);
+    return level === "minimal" || level === "extensive";
   }
 
   /**
@@ -148,6 +222,12 @@ class TelegramBridge {
     
     if (!account) {
       return { success: false, error: "No Telegram account configured" };
+    }
+
+    // Check reaction level
+    if (!this.canReact(accountId)) {
+      const level = this.getReactionLevel(accountId);
+      return { success: false, error: `Reactions disabled (level: ${level})` };
     }
 
     try {
@@ -472,6 +552,30 @@ async function main() {
       break;
     }
 
+    case "search-stickers": {
+      const query = args[1];
+      if (!query) {
+        console.error("Usage: telegram-bridge.ts search-stickers <query>");
+        process.exit(1);
+      }
+      const stickers = bridge.searchStickers(query);
+      console.log(`\n${COLORS.bold}Search Results:${COLORS.reset}`);
+      stickers.forEach(s => {
+        console.log(`   ${s.emoji || "🎭"} ${s.description.slice(0, 40)} (${s.setName || "unknown set"})`);
+      });
+      break;
+    }
+
+    case "reaction-level": {
+      const accountId = args[1];
+      const level = bridge.getReactionLevel(accountId);
+      const canReact = bridge.canReact(accountId);
+      console.log(`\n${COLORS.bold}Reaction Settings:${COLORS.reset}`);
+      console.log(`   Level: ${COLORS.cyan}${level}${COLORS.reset}`);
+      console.log(`   Can React: ${canReact ? `${COLORS.green}✓` : `${COLORS.red}✗`}${COLORS.reset}`);
+      break;
+    }
+
     default: {
       console.log(`${COLORS.bold}📱 Matrix Agent Telegram Bridge${COLORS.reset}\n`);
       console.log("Usage:");
@@ -483,12 +587,15 @@ async function main() {
       console.log("  telegram-bridge.ts delete <chatId> <msgId>         Delete message");
       console.log("  telegram-bridge.ts info <chatId>         Get chat info");
       console.log("  telegram-bridge.ts stickers              List sticker sets");
+      console.log("  telegram-bridge.ts search-stickers <q>   Search cached stickers");
+      console.log("  telegram-bridge.ts reaction-level [id]   Show reaction level");
       console.log("\nFeatures:");
       console.log("  • Send messages with inline buttons");
-      console.log("  • React with emoji (👍 ❤️ 🔥 🎉 🤩 😱 👏)");
-      console.log("  • Send stickers");
+      console.log("  • React with 100+ emojis (👍 ❤️ 🔥 🎉 🤩 😱 👏)");
+      console.log("  • Send stickers with cache search");
       console.log("  • Edit and delete messages");
-      console.log("  • Multi-account support");
+      console.log("  • Multi-account with reaction levels");
+      console.log("  • Draft streaming support");
     }
   }
 }

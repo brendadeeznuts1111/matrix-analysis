@@ -10,6 +10,12 @@ import {
   fromText,
   peek,
   status,
+  zstdCompress,
+  zstdDecompress,
+  zstdCompressSync,
+  zstdDecompressSync,
+  gzip,
+  gunzip,
 } from "../stream.ts";
 
 const makeStream = (text: string): ReadableStream =>
@@ -110,6 +116,42 @@ describe("stream", () => {
     it("should return pending status for unresolved promise", () => {
       const p = new Promise(() => {});
       expect(status(p)).toBe("pending");
+    });
+  });
+
+  describe("BN-043: Compression", () => {
+    it("should zstd compress and decompress async", async () => {
+      const input = "hello world ".repeat(100);
+      const compressed = await zstdCompress(input);
+      expect(compressed).not.toBeNull();
+      expect(compressed!.length).toBeLessThan(input.length);
+      const decompressed = await zstdDecompress(compressed!);
+      expect(decompressed).not.toBeNull();
+      expect(new TextDecoder().decode(decompressed!)).toBe(input);
+    });
+
+    it("should zstd compress and decompress sync", () => {
+      const input = "sync test data ".repeat(50);
+      const compressed = zstdCompressSync(input);
+      expect(compressed).not.toBeNull();
+      const decompressed = zstdDecompressSync(compressed!);
+      expect(decompressed).not.toBeNull();
+      expect(new TextDecoder().decode(decompressed!)).toBe(input);
+    });
+
+    it("should gzip and gunzip", () => {
+      const input = "gzip test data ".repeat(50);
+      const compressed = gzip(input);
+      expect(compressed).not.toBeNull();
+      expect(compressed!.length).toBeLessThan(input.length);
+      const decompressed = gunzip(compressed!);
+      expect(decompressed).not.toBeNull();
+      expect(new TextDecoder().decode(decompressed!)).toBe(input);
+    });
+
+    it("should return null for invalid decompress", () => {
+      expect(zstdDecompressSync(new Uint8Array([0, 1, 2, 3]))).toBeNull();
+      expect(gunzip(new Uint8Array([0, 1, 2, 3]))).toBeNull();
     });
   });
 });

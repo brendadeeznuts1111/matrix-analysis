@@ -91,7 +91,7 @@ const COMMANDS = {
   telegram: {
     description: "Telegram integration",
     script: "../../../../../../matrix-agent/integrations/telegram-bridge.ts",
-    subcommands: ["status", "send", "react", "sticker", "edit", "delete", "info", "stickers"],
+    subcommands: ["status", "send", "react", "sticker", "edit", "delete", "info", "stickers", "search-stickers", "reaction-level"],
   },
   openclaw: {
     description: "OpenClaw bridge",

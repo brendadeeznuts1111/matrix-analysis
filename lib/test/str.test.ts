@@ -11,6 +11,7 @@ import {
   assertCol89,
   enforceCol89,
   escapeHtml,
+  indexOfLine,
 } from "../str.ts";
 
 describe("str", () => {
@@ -139,6 +140,28 @@ describe("str", () => {
 
     it("should return plain text unchanged", () => {
       expect(escapeHtml("hello")).toBe("hello");
+    });
+  });
+
+  describe("BN-029b: indexOfLine", () => {
+    it("should find first newline from offset 0", () => {
+      const buf = new TextEncoder().encode("hello\nworld\n");
+      expect(indexOfLine(buf, 0)).toBe(5);
+    });
+
+    it("should find next newline from a given offset", () => {
+      const buf = new TextEncoder().encode("abc\ndef\nghi\n");
+      expect(indexOfLine(buf, 4)).toBe(7);
+    });
+
+    it("should return -1 when no newline exists", () => {
+      const buf = new TextEncoder().encode("hello");
+      expect(indexOfLine(buf)).toBe(-1);
+    });
+
+    it("should return -1 when past last newline", () => {
+      const buf = new TextEncoder().encode("abc\n");
+      expect(indexOfLine(buf, 4)).toBe(-1);
     });
   });
 });

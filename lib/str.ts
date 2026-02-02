@@ -103,3 +103,14 @@ export const enforceCol89 = (text: string): string =>
 // ─────────────────────────────────────────────────────────────────────────────
 export const escapeHtml = (input: string): string =>
   Bun.escapeHTML(input);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// BN-029b: Newline Search (SIMD-accelerated)
+// ─────────────────────────────────────────────────────────────────────────────
+// Finds the byte offset of the next \n at or after `offset`.
+// Binary data only (Uint8Array/ArrayBuffer). Returns -1 if not found.
+export const indexOfLine = (
+  data: Uint8Array | ArrayBuffer,
+  offset?: number
+): number =>
+  Bun.indexOfLine(data, offset ?? 0);

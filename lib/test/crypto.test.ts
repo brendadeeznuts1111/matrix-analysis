@@ -8,6 +8,10 @@ import {
   deepEquals,
   strictEquals,
   timingSafeEqual,
+  uuidv7,
+  uuidv5,
+  UUID_NAMESPACES,
+  deepMatch,
 } from "../crypto.ts";
 import type { HashLevel, Algorithm } from "../crypto.ts";
 
@@ -104,6 +108,45 @@ describe("crypto", () => {
     it("should handle arrays", () => {
       expect(deepEquals([1, 2, 3], [1, 2, 3])).toBe(true);
       expect(deepEquals([1, 2, 3], [1, 2, 4])).toBe(false);
+    });
+  });
+
+  describe("BN-039: UUID Generation", () => {
+    it("should generate UUIDv7", () => {
+      const id = uuidv7();
+      expect(id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
+    });
+
+    it("should generate unique UUIDv7s", () => {
+      const a = uuidv7();
+      const b = uuidv7();
+      expect(a).not.toBe(b);
+    });
+
+    it("should generate deterministic UUIDv5", () => {
+      const a = uuidv5("test", UUID_NAMESPACES.DNS);
+      const b = uuidv5("test", UUID_NAMESPACES.DNS);
+      expect(a).toBe(b);
+    });
+
+    it("should generate different UUIDv5 for different names", () => {
+      const a = uuidv5("foo", UUID_NAMESPACES.DNS);
+      const b = uuidv5("bar", UUID_NAMESPACES.DNS);
+      expect(a).not.toBe(b);
+    });
+  });
+
+  describe("BN-039b: deepMatch", () => {
+    it("should match partial objects", () => {
+      expect(deepMatch({ a: 1, b: 2, c: 3 }, { a: 1 })).toBe(true);
+    });
+
+    it("should reject non-matching patterns", () => {
+      expect(deepMatch({ a: 1 }, { a: 2 })).toBe(false);
+    });
+
+    it("should match nested patterns", () => {
+      expect(deepMatch({ a: { b: 1, c: 2 } }, { a: { b: 1 } })).toBe(true);
     });
   });
 

@@ -88,7 +88,7 @@ export const debounce = <T extends (...args: any[]) => any>(
   fn: T,
   delayMs: number
 ): ((...args: Parameters<T>) => void) & { cancel: () => void } => {
-  let timer: ReturnType<typeof setTimeout> | null = null;
+  let timer: Timer | null = null;
 
   const debounced = (...args: Parameters<T>) => {
     if (timer) clearTimeout(timer);
@@ -116,7 +116,7 @@ export const throttle = <T extends (...args: any[]) => any>(
   intervalMs: number
 ): ((...args: Parameters<T>) => void) & { cancel: () => void } => {
   let lastRun = 0;
-  let timer: ReturnType<typeof setTimeout> | null = null;
+  let timer: Timer | null = null;
 
   const throttled = (...args: Parameters<T>) => {
     const now = Date.now();

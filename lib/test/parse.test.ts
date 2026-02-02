@@ -1,5 +1,5 @@
 import { describe, it, expect } from "bun:test";
-import { json, json5, toml, jsonl, jsonlChunk, loadFile, toJsonl } from "../parse.ts";
+import { json, json5, toml, jsonl, jsonlChunk, loadFile, toJsonl, yaml, jsonc, loadFileV2 } from "../parse.ts";
 
 describe("parse", () => {
   describe("BN-030: json", () => {
@@ -93,6 +93,62 @@ describe("parse", () => {
       await Bun.write(tmpPath, 'name = "test"');
       const result = await loadFile<{ name: string }>(tmpPath);
       expect(result).toEqual({ name: "test" });
+    });
+  });
+
+  describe("BN-033: yaml", () => {
+    it("should parse valid YAML", () => {
+      const input = "name: test\nport: 3000\n";
+      const result = yaml<{ name: string; port: number }>(input);
+      expect(result).toEqual({ name: "test", port: 3000 });
+    });
+
+    it("should parse YAML arrays", () => {
+      const input = "- one\n- two\n- three\n";
+      expect(yaml<string[]>(input)).toEqual(["one", "two", "three"]);
+    });
+
+    it("should return null for invalid YAML", () => {
+      expect(yaml("{{{{invalid yaml}}}}")).toBeNull();
+    });
+  });
+
+  describe("BN-033: jsonc", () => {
+    it("should parse JSON with comments", () => {
+      const input = '{ "a": 1 /* comment */ }';
+      expect(jsonc<{ a: number }>(input)).toEqual({ a: 1 });
+    });
+
+    it("should parse JSON with line comments", () => {
+      const input = '{\n  // comment\n  "b": 2\n}';
+      expect(jsonc<{ b: number }>(input)).toEqual({ b: 2 });
+    });
+
+    it("should return null for invalid input", () => {
+      expect(jsonc("not valid json at all {{{")).toBeNull();
+    });
+  });
+
+  describe("BN-034: loadFileV2", () => {
+    it("should load YAML file", async () => {
+      const path = "/tmp/test-parse-v2.yaml";
+      await Bun.write(path, "name: yaml-test\n");
+      const result = await loadFileV2<{ name: string }>(path);
+      expect(result).toEqual({ name: "yaml-test" });
+    });
+
+    it("should load JSONC file", async () => {
+      const path = "/tmp/test-parse-v2.jsonc";
+      await Bun.write(path, '{ "c": 3 /* comment */ }');
+      const result = await loadFileV2<{ c: number }>(path);
+      expect(result).toEqual({ c: 3 });
+    });
+
+    it("should fall back to base parsers for JSON", async () => {
+      const path = "/tmp/test-parse-v2-json.json";
+      await Bun.write(path, '{"v2": true}');
+      const result = await loadFileV2<{ v2: boolean }>(path);
+      expect(result).toEqual({ v2: true });
     });
   });
 

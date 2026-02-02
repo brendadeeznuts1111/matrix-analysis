@@ -68,8 +68,9 @@ export const stat = async (path: string): Promise<FileStat | null> => {
 
 export const remove = async (path: string): Promise<boolean> => {
   try {
-    const { unlink } = require("node:fs/promises");
-    await unlink(path);
+    const file = Bun.file(path);
+    if (!(await file.exists())) return false;
+    await file.delete();
     return true;
   } catch {
     return false;
@@ -81,8 +82,8 @@ export const remove = async (path: string): Promise<boolean> => {
 // ─────────────────────────────────────────────────────────────────────────────
 export const mkdir = async (path: string): Promise<boolean> => {
   try {
-    const { mkdir: mkdirAsync } = require("node:fs/promises");
-    await mkdirAsync(path, { recursive: true });
+    const { mkdir: fsMkdir } = await import("node:fs/promises");
+    await fsMkdir(path, { recursive: true });
     return true;
   } catch {
     return false;
