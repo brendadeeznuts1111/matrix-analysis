@@ -194,14 +194,19 @@ async function showStatus() {
   let eventCounts: Record<string, number> = {};
   
   try {
-    const content = await Bun.file(logFile).text();
-    const lines = content.trim().split("\n").filter(Boolean);
     const oneHourAgo = Date.now() - 3600000;
     
-    for (const line of lines.slice(-100)) {
-      const entry = JSON.parse(line);
-      if (new Date(entry.timestamp).getTime() > oneHourAgo) {
-        eventCounts[entry.project] = (eventCounts[entry.project] || 0) + 1;
+    // Stream lines for memory efficiency
+    for await (const line of streamLines(logFile, { maxLines: 1000 })) {
+      if (!line.trim()) continue;
+      
+      try {
+        const entry = JSON.parse(line);
+        if (new Date(entry.timestamp).getTime() > oneHourAgo) {
+          eventCounts[entry.project] = (eventCounts[entry.project] || 0) + 1;
+        }
+      } catch {
+        // Skip invalid lines
       }
     }
   } catch {

@@ -96,7 +96,7 @@ async function routeCommit(projectName: string, hash: string, message: string, a
   };
   
   const logFile = `${import.meta.dir}/../logs/topic-routing.jsonl`;
-  await Bun.write(logFile, JSON.stringify(logEntry) + "\n", { append: true });
+  await appendToFile(logFile, JSON.stringify(logEntry) + "\n", { rotate: true, maxSize: 10 * 1024 * 1024 });
   
   return { topicId, topicName: topicNames[topicId] };
 }
@@ -203,7 +203,7 @@ async function handleMerge(projectName: string, branch: string, hash: string, au
   };
   
   const logFile = `${import.meta.dir}/../logs/topic-routing.jsonl`;
-  await Bun.write(logFile, JSON.stringify(logEntry) + "\n", { append: true });
+  await appendToFile(logFile, JSON.stringify(logEntry) + "\n", { rotate: true, maxSize: 10 * 1024 * 1024 });
 }
 
 // CLI
