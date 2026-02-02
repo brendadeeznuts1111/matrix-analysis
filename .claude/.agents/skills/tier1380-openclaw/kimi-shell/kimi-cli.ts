@@ -63,6 +63,11 @@ const COMMANDS = {
     script: "error-handler.ts",
     subcommands: ["logs", "retry", "test"],
   },
+  job: {
+    description: "Background job queue",
+    script: "job-queue.ts",
+    subcommands: ["run", "list", "status", "logs", "cancel", "delete", "cleanup"],
+  },
 };
 
 const COLORS = {

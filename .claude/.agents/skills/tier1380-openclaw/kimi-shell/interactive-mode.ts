@@ -1,7 +1,7 @@
 #!/usr/bin/env bun
 /**
  * Kimi Shell Interactive Mode
- * Enhanced REPL with auto-completion and history
+ * Enhanced REPL with auto-completion, history, and command chaining
  */
 
 import { readFileSync, existsSync, appendFileSync } from "fs";
@@ -26,6 +26,9 @@ interface CommandHistory {
 const HISTORY_FILE = join(homedir(), ".kimi", "shell_history");
 const MAX_HISTORY = 1000;
 
+// Variable storage for command chaining
+const variables: Map<string, string> = new Map();
+
 const COMMANDS = [
   "metrics",
   "metrics collect",
@@ -42,9 +45,21 @@ const COMMANDS = [
   "workflow",
   "workflow mcp",
   "workflow acp",
+  "job",
+  "job run",
+  "job list",
+  "job status",
+  "job logs",
+  "session",
+  "session create",
+  "session list",
+  "session switch",
   "help",
   "exit",
   "quit",
+  "vars",
+  "clear",
+  "history",
 ];
 
 function loadHistory(): CommandHistory {
@@ -81,8 +96,8 @@ function printPrompt(): void {
 function printWelcome(): void {
   console.log(`${COLORS.bold}${COLORS.cyan}`);
   console.log("╔══════════════════════════════════════════════════════════════════╗");
-  console.log("║           🐚 Kimi Shell Interactive Mode v1.3.8                   ║");
-  console.log("║           Tier-1380 OMEGA | Type 'help' for commands              ║");
+  console.log("║           🐚 Kimi Shell Interactive Mode v2.0                     ║");
+  console.log("║           Tier-1380 OMEGA | Variables | Chaining | Jobs           ║");
   console.log("╚══════════════════════════════════════════════════════════════════╝");
   console.log(`${COLORS.reset}`);
 }
@@ -94,21 +109,112 @@ ${COLORS.bold}Available Commands:${COLORS.reset}
   shell [status|exec|switch]          - Shell management
   settings                            - Settings dashboard
   vault [health|list]                 - Vault credentials
-  workflow [mcp|acp]                  - Workflow visualization
-  
+  workflow [mcp|acp]                  - Workflow visualizer
+  job [run|list|status|logs]          - Background jobs
+  session [create|list|switch]        - Session management
+
 ${COLORS.bold}Interactive Commands:${COLORS.reset}
   help                                - Show this help
   history                             - Show command history
+  vars                                - Show variables
   clear                               - Clear screen
   exit, quit                          - Exit shell
+
+${COLORS.bold}Command Chaining:${COLORS.reset}
+  cmd1 && cmd2                        - Run cmd2 if cmd1 succeeds
+  cmd1 || cmd2                        - Run cmd2 if cmd1 fails
+  var = value                         - Set variable
+  $var                                - Use variable
 `);
 }
 
+/** Expand $var or ${var} in string */
+function expandVariables(str: string): string {
+  // Expand ${var} syntax
+  str = str.replace(/\$\{([a-zA-Z_][a-zA-Z0-9_]*)\}/g, (match, varName) => {
+    return variables.get(varName) || match;
+  });
+  
+  // Expand $var syntax
+  str = str.replace(/\$([a-zA-Z_][a-zA-Z0-9_]*)/g, (match, varName) => {
+    return variables.get(varName) || match;
+  });
+  
+  return str;
+}
+
+/** Execute chained commands */
+async function executeChain(input: string, operator: '&&' | '||'): Promise<void> {
+  const commands = input.split(operator).map(s => s.trim());
+  
+  for (let i = 0; i < commands.length; i++) {
+    const cmd = commands[i];
+    console.log(`${COLORS.gray}[${i + 1}/${commands.length}]${COLORS.reset} ${cmd}`);
+    
+    const args = cmd.split(/\s+/);
+    const { $ } = await import("bun");
+    const scriptPath = join(import.meta.dir, "kimi-cli.ts");
+    
+    try {
+      const result = await $`bun ${scriptPath} ${args}`.nothrow();
+      const success = result.exitCode === 0;
+      
+      if (operator === '&&' && !success) {
+        console.log(`${COLORS.red}✗ Chain broken (exit ${result.exitCode})${COLORS.reset}`);
+        return;
+      }
+      
+      if (operator === '||' && success) {
+        console.log(`${COLORS.green}✓ Chain succeeded${COLORS.reset}`);
+        return;
+      }
+      
+      if (result.stdout) console.log(result.stdout.toString());
+      if (result.stderr) console.error(result.stderr.toString());
+    } catch (error) {
+      if (operator === '&&') {
+        console.error(`${COLORS.red}✗ Chain broken: ${error}${COLORS.reset}`);
+        return;
+      }
+    }
+  }
+  
+  if (operator === '&&') {
+    console.log(`${COLORS.green}✓ Chain completed${COLORS.reset}`);
+  }
+}
+
+/** Parse and execute command with chaining support */
 async function executeCommand(input: string): Promise<void> {
   const trimmed = input.trim();
   if (!trimmed) return;
 
-  const args = trimmed.split(/\s+/);
+  // Handle variable assignment: var = value
+  const varMatch = trimmed.match(/^([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*(.+)$/);
+  if (varMatch) {
+    const [, varName, value] = varMatch;
+    // Expand variables in value
+    const expanded = expandVariables(value);
+    variables.set(varName, expanded);
+    console.log(`${COLORS.gray}${varName} = ${expanded}${COLORS.reset}`);
+    return;
+  }
+
+  // Handle command with variable expansion
+  const expanded = expandVariables(trimmed);
+  
+  // Check for command chaining
+  if (expanded.includes(' && ')) {
+    await executeChain(expanded, '&&');
+    return;
+  }
+  
+  if (expanded.includes(' || ')) {
+    await executeChain(expanded, '||');
+    return;
+  }
+
+  const args = expanded.split(/\s+/);
   const cmd = args[0].toLowerCase();
 
   switch (cmd) {
@@ -128,6 +234,18 @@ async function executeCommand(input: string): Promise<void> {
       history.commands.forEach((cmd, i) => {
         console.log(`  ${COLORS.gray}${String(i + 1).padStart(3)}${COLORS.reset}  ${cmd}`);
       });
+      return;
+    }
+    case "vars":
+    case "variables": {
+      console.log(`${COLORS.bold}Variables:${COLORS.reset}`);
+      if (variables.size === 0) {
+        console.log(`  ${COLORS.gray}No variables set${COLORS.reset}`);
+      } else {
+        for (const [name, value] of variables) {
+          console.log(`  ${COLORS.cyan}${name}${COLORS.reset} = ${value}`);
+        }
+      }
       return;
     }
   }
