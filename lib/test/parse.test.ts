@@ -109,7 +109,7 @@ describe("parse", () => {
     });
 
     it("should return null for invalid YAML", () => {
-      expect(yaml("{{{{invalid yaml}}}}")).toBeNull();
+      expect(yaml("key: [unclosed bracket")).toBeNull();
     });
   });
 
