@@ -106,6 +106,8 @@ bunfig.toml
 !.claude/.agents/**
 !.claude/api/
 !.claude/api/**
+!.claude/commands/
+!.claude/commands/**
 .claude.json*
 .cline/
 .cloudflared/

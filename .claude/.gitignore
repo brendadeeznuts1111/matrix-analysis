@@ -326,8 +326,9 @@ apps/cdn/production/*.json
 sessions_db
 sessions/
 
-# Temporary analysis outputs
+# Temporary analysis outputs (but keep core/analysis/ which is source code)
 analysis/
+!core/analysis/
 reports/
 *.report.json
 *.analysis.json
