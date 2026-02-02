@@ -8,6 +8,7 @@
 
 import { parse } from "yaml";
 import { $ } from "bun";
+import { readTextFile, appendToFile, streamLines } from "./lib/bytes.ts";
 
 const PROJECTS_CONFIG = `${import.meta.dir}/../config/project-topics.yaml`;
 
@@ -47,7 +48,8 @@ const RULE_DESCRIPTIONS: Record<string, string> = {
 };
 
 async function loadConfig(): Promise<Config> {
-  const content = await Bun.file(PROJECTS_CONFIG).text();
+  const content = await readTextFile(PROJECTS_CONFIG);
+  if (!content) throw new Error("Failed to load projects config");
   return parse(content) as Config;
 }
 
@@ -232,7 +234,7 @@ async function testNotification(projectName: string, eventType: string) {
     };
     
     const logFile = `${import.meta.dir}/../logs/notifications.jsonl`;
-    await Bun.write(logFile, JSON.stringify(logEntry) + "\n", { append: true });
+    await appendToFile(logFile, JSON.stringify(logEntry) + "\n", { rotate: true, maxSize: 10 * 1024 * 1024 });
   }
 }
 
@@ -243,17 +245,21 @@ async function showStats() {
   console.log("=".repeat(60));
   
   try {
-    const content = await Bun.file(logFile).text();
-    const lines = content.trim().split("\n").filter(Boolean);
-    
     const stats: Record<string, number> = {};
     let total = 0;
     
-    for (const line of lines) {
-      const entry = JSON.parse(line);
-      const key = `${entry.project}:${entry.event}`;
-      stats[key] = (stats[key] || 0) + 1;
-      total++;
+    // Stream lines for memory efficiency
+    for await (const line of streamLines(logFile, { maxLines: 50000 })) {
+      if (!line.trim()) continue;
+      
+      try {
+        const entry = JSON.parse(line);
+        const key = `${entry.project}:${entry.event}`;
+        stats[key] = (stats[key] || 0) + 1;
+        total++;
+      } catch {
+        // Skip invalid lines
+      }
     }
     
     console.log(`Total notifications: ${total}`);

@@ -58,11 +58,24 @@ describe("bench harness", () => {
     expect(r.avgMs).toBeGreaterThan(0);
   });
 
-  it("printBench does not throw", () => {
+  it("printBench outputs table with measurements", () => {
+    const output: string[] = [];
+    const spy = spyOn(console, "log").mockImplementation((...args: any[]) => {
+      output.push(args.map(String).join(" "));
+    });
     const results: BenchResult[] = [
-      { label: "test", runs: 1, avgMs: 1, minMs: 1, maxMs: 1, times: [1] },
+      { label: "fast-op", runs: 3, avgMs: 1.5, minMs: 0.8, maxMs: 2.1, times: [0.8, 1.6, 2.1] },
+      { label: "slow-op", runs: 2, avgMs: 12.34, minMs: 10.0, maxMs: 14.68, times: [10.0, 14.68] },
     ];
-    expect(() => printBench(results)).not.toThrow();
+    printBench(results);
+    spy.mockRestore();
+    const tableOut = output.join("\n");
+    expect(tableOut).toContain("fast-op");
+    expect(tableOut).toContain("slow-op");
+    expect(tableOut).toContain("1.50ms");
+    expect(tableOut).toContain("12.34ms");
+    expect(tableOut).toContain("0.80ms");
+    expect(tableOut).toContain("14.68ms");
   });
 });
 
@@ -88,6 +101,18 @@ describe("buffer conversion", () => {
     const arr = new Int8Array([-1, 0, 127]);
     const buf = typedArrayToBuffer(arr);
     expect(buf.length).toBe(3);
+    expect(buf[0]).toBe(0xFF); // -1 as unsigned
+    expect(buf[1]).toBe(0x00);
+    expect(buf[2]).toBe(0x7F);
+  });
+
+  it("typedArrayToBuffer handles subarray with byte offset", () => {
+    const full = new Uint8Array([0x10, 0x20, 0x30, 0x40, 0x50]);
+    const sub = full.subarray(2, 4);
+    const buf = typedArrayToBuffer(sub);
+    expect(buf.length).toBe(2);
+    expect(buf[0]).toBe(0x30);
+    expect(buf[1]).toBe(0x40);
   });
 
   it("benchBufferFrom returns valid result", () => {
@@ -177,10 +202,19 @@ describe("runtime metrics", () => {
     expect(m.heapMB).toBeLessThan(500);
   });
 
-  it("printRuntimeMetrics should not throw", () => {
-    const spy = spyOn(console, "log").mockImplementation(() => {});
-    expect(() => printRuntimeMetrics()).not.toThrow();
+  it("printRuntimeMetrics outputs table with values", () => {
+    const output: string[] = [];
+    const spy = spyOn(console, "log").mockImplementation((...args: any[]) => {
+      output.push(args.map(String).join(" "));
+    });
+    printRuntimeMetrics();
     spy.mockRestore();
+    const tableOut = output.join("\n");
+    expect(tableOut).toContain("startupMs");
+    expect(tableOut).toContain("heapMB");
+    expect(tableOut).toContain("threads");
+    expect(tableOut).toContain("bunVersion");
+    expect(tableOut).toContain(Bun.version);
   });
 });
 

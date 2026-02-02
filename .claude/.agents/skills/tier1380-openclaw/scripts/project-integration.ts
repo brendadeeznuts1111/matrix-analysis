@@ -5,9 +5,11 @@
  */
 
 import { parse } from "yaml";
-import { readFileSync, existsSync } from "fs";
+import { existsSync } from "fs";
+// readFileSync removed - using bytes.ts utility instead
 import { join, basename } from "path";
 import { homedir } from "os";
+import { readTextFile } from "./lib/bytes.ts";
 
 const COLORS = {
   reset: "\x1b[0m",
@@ -54,14 +56,14 @@ class ProjectIntegration {
   private config: ProjectConfig | null = null;
   private currentProject: string | null = null;
 
-  loadConfig(): boolean {
+  async loadConfig(): Promise<boolean> {
     try {
-      if (!existsSync(CONFIG_PATH)) {
+      const content = await readTextFile(CONFIG_PATH);
+      if (!content) {
         console.error(`${COLORS.red}✗${COLORS.reset} Config not found: ${CONFIG_PATH}`);
         return false;
       }
       
-      const content = readFileSync(CONFIG_PATH, "utf-8");
       this.config = parse(content) as ProjectConfig;
       this.detectCurrentProject();
       return true;
@@ -257,7 +259,7 @@ async function main() {
   const command = args[0];
   const integration = new ProjectIntegration();
 
-  if (!integration.loadConfig()) {
+  if (!await integration.loadConfig()) {
     process.exit(1);
   }
 

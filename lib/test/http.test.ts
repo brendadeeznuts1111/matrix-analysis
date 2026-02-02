@@ -191,5 +191,23 @@ describe("http", () => {
       expect(await res.json()).toEqual({ served: true });
       s.stop(true);
     });
+
+    it("should accept development boolean", () => {
+      const s = serve({
+        fetch: () => new Response("ok"),
+        development: true,
+      });
+      expect(s.port).toBeGreaterThan(0);
+      s.stop(true);
+    });
+
+    it("should accept development object with console", () => {
+      const s = serve({
+        fetch: () => new Response("ok"),
+        development: { console: true },
+      });
+      expect(s.port).toBeGreaterThan(0);
+      s.stop(true);
+    });
   });
 });

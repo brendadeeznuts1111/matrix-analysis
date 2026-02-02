@@ -8,6 +8,7 @@
 
 import { parse } from "yaml";
 import { $ } from "bun";
+import { readTextFile, appendToFile } from "./lib/bytes.ts";
 
 const TOPICS_CONFIG = `${import.meta.dir}/../config/telegram-topics.yaml`;
 const PROJECTS_CONFIG = `${import.meta.dir}/../config/project-topics.yaml`;
@@ -29,7 +30,8 @@ interface Config {
 }
 
 async function loadConfig(): Promise<Config> {
-  const content = await Bun.file(PROJECTS_CONFIG).text();
+  const content = await readTextFile(PROJECTS_CONFIG);
+  if (!content) throw new Error("Failed to load projects config");
   return parse(content) as Config;
 }
 
@@ -141,7 +143,7 @@ bun ${import.meta.dir}/topic-git-hooks.ts merge "${projectName}" "$BRANCH" "$HAS
   
   // Append to existing hooks if not already present
   try {
-    const existingCommit = await Bun.file(mainPostCommit).text();
+    const existingCommit = await readTextFile(mainPostCommit);
     if (!existingCommit.includes("topic-git-hooks.ts")) {
       await Bun.write(mainPostCommit, existingCommit + `\n# Topic routing\nbun ${import.meta.dir}/topic-git-hooks.ts route "${projectName}" "$HASH" "$MESSAGE" "$AUTHOR"\n`, { append: false });
     }

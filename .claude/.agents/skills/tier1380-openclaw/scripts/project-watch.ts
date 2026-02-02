@@ -10,6 +10,7 @@ import { watch } from "fs/promises";
 import { parse } from "yaml";
 import { $ } from "bun";
 import { join, relative } from "path";
+import { readTextFile, appendToFile, streamLines } from "./lib/bytes.ts";
 
 const PROJECTS_CONFIG = `${import.meta.dir}/../config/project-topics.yaml`;
 
@@ -29,7 +30,8 @@ const DEBOUNCE_MS = 500;
 const batchQueue: Map<string, { count: number; files: Set<string>; lastUpdate: number }> = new Map();
 
 async function loadConfig(): Promise<Config> {
-  const content = await Bun.file(PROJECTS_CONFIG).text();
+  const content = await readTextFile(PROJECTS_CONFIG);
+  if (!content) throw new Error("Failed to load projects config");
   return parse(content) as Config;
 }
 
@@ -98,7 +100,7 @@ async function sendBatchNotification(projectName: string) {
     };
     
     const logFile = `${import.meta.dir}/../logs/file-watch.jsonl`;
-    await Bun.write(logFile, JSON.stringify(logEntry) + "\n", { append: true });
+    await appendToFile(logFile, JSON.stringify(logEntry) + "\n", { rotate: true, maxSize: 10 * 1024 * 1024 });
   }
   
   // Clear queue

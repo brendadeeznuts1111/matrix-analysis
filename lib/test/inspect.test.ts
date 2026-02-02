@@ -49,16 +49,48 @@ describe("inspect", () => {
   });
 
   describe("BN-102b: Table", () => {
-    it("should format data as table", () => {
-      const result = table([{ a: 1, b: 2 }, { a: 3, b: 4 }]);
-      expect(result).toContain("a");
-      expect(result).toContain("b");
+    it("should format data with headers and values", () => {
+      const result = table([{ name: "alpha", size: 100 }, { name: "beta", size: 200 }]);
+      expect(result).toContain("name");
+      expect(result).toContain("size");
+      expect(result).toContain("alpha");
+      expect(result).toContain("beta");
+      expect(result).toContain("100");
+      expect(result).toContain("200");
     });
 
-    it("should filter table columns", () => {
+    it("should filter table columns excluding unselected", () => {
       const result = table([{ a: 1, b: 2, c: 3 }], ["a", "b"]);
       expect(result).toContain("a");
       expect(result).toContain("b");
+      expect(result).toContain("1");
+      expect(result).toContain("2");
+    });
+
+    it("should format measurement-style rows", () => {
+      const rows = [
+        { metric: "latency", value: "12.5ms", unit: "ms" },
+        { metric: "throughput", value: "1024", unit: "ops/s" },
+      ];
+      const result = table(rows, ["metric", "value", "unit"]);
+      expect(result).toContain("latency");
+      expect(result).toContain("12.5ms");
+      expect(result).toContain("throughput");
+      expect(result).toContain("1024");
+      expect(result).toContain("ops/s");
+    });
+
+    it("should format byte-size rows correctly", () => {
+      const rows = [
+        { file: "bundle.js", bytes: 4510, compressed: 1380 },
+        { file: "index.html", bytes: 890, compressed: 412 },
+      ];
+      const result = table(rows, ["file", "bytes", "compressed"]);
+      expect(result).toContain("bundle.js");
+      expect(result).toContain("4510");
+      expect(result).toContain("1380");
+      expect(result).toContain("890");
+      expect(result).toContain("412");
     });
   });
 

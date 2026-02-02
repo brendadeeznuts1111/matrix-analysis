@@ -7,6 +7,7 @@
 
 import { parse } from "yaml";
 import { $ } from "bun";
+import { readTextFile, formatBytes, streamLines } from "./lib/bytes.ts";
 
 const TOPICS_CONFIG = `${import.meta.dir}/../config/telegram-topics.yaml`;
 const PROJECTS_CONFIG = `${import.meta.dir}/../config/project-topics.yaml`;
@@ -23,12 +24,14 @@ const COLORS = {
 };
 
 async function loadTopicsConfig() {
-  const content = await Bun.file(TOPICS_CONFIG).text();
+  const content = await readTextFile(TOPICS_CONFIG);
+  if (!content) throw new Error("Failed to load topics config");
   return parse(content);
 }
 
 async function loadProjectsConfig() {
-  const content = await Bun.file(PROJECTS_CONFIG).text();
+  const content = await readTextFile(PROJECTS_CONFIG);
+  if (!content) throw new Error("Failed to load projects config");
   return parse(content);
 }
 
@@ -186,7 +189,7 @@ async function showStats() {
   console.log(`${COLORS.bold}📊 Integration Statistics${COLORS.reset}`);
   console.log("=".repeat(74));
   
-  // Read log files
+  // Read log files using streaming for efficiency
   const logs = {
     routing: `${import.meta.dir}/../logs/topic-routing.jsonl`,
     watch: `${import.meta.dir}/../logs/file-watch.jsonl`,
@@ -195,22 +198,27 @@ async function showStats() {
   
   for (const [name, path] of Object.entries(logs)) {
     try {
-      const content = await Bun.file(path).text();
-      const lines = content.trim().split("\n").filter(Boolean);
-      console.log(`\n${name.charAt(0).toUpperCase() + name.slice(1)} Events: ${lines.length}`);
-      
-      // Last 24 hours
+      let totalLines = 0;
+      let recentLines = 0;
       const oneDayAgo = Date.now() - 86400000;
-      const recent = lines.filter(line => {
+      
+      // Stream lines to handle large files
+      for await (const line of streamLines(path, { maxLines: 10000 })) {
+        if (!line.trim()) continue;
+        totalLines++;
+        
         try {
           const entry = JSON.parse(line);
-          return new Date(entry.timestamp).getTime() > oneDayAgo;
+          if (new Date(entry.timestamp).getTime() > oneDayAgo) {
+            recentLines++;
+          }
         } catch {
-          return false;
+          // Invalid JSON, skip
         }
-      });
+      }
       
-      console.log(`  Last 24h: ${recent.length}`);
+      console.log(`\n${name.charAt(0).toUpperCase() + name.slice(1)} Events: ${totalLines}`);
+      console.log(`  Last 24h: ${recentLines}`);
     } catch {
       console.log(`\n${name}: No data`);
     }

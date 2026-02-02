@@ -31,9 +31,13 @@ describe("archive", () => {
       expect(text).toBe("content one");
     });
 
-    it("should extract as bytes", async () => {
+    it("should extract as bytes with correct values", async () => {
       const bytes = await extractBytes(tarData, "arch-test-2.txt");
       expect(bytes).not.toBeNull();
+      expect(bytes!.length).toBe(11);
+      // "content two" in bytes
+      expect(bytes![0]).toBe(0x63); // 'c'
+      expect(bytes![7]).toBe(0x20); // ' ' (space)
       expect(new TextDecoder().decode(bytes!)).toBe("content two");
     });
 

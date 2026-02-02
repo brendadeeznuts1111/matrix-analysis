@@ -48,3 +48,32 @@ export const hashHex = (data: Hashable): string =>
 
 export const crc32Hex = (data: Hashable): string =>
   Bun.hash.crc32(data).toString(16).padStart(8, "0");
+
+// -----------------------------------------------------------------------------
+// BN-094c: SHA-512/256 (Bun.sha — cryptographic)
+// -----------------------------------------------------------------------------
+type ShaFormat = "hex" | "base64";
+
+export const sha = (data: Hashable): Uint8Array => {
+  try {
+    return (Bun as any).sha(data);
+  } catch {
+    return new Uint8Array(0);
+  }
+};
+
+export const shaHex = (data: Hashable): string | null => {
+  try {
+    return (Bun as any).sha(data, "hex");
+  } catch {
+    return null;
+  }
+};
+
+export const shaBase64 = (data: Hashable): string | null => {
+  try {
+    return (Bun as any).sha(data, "base64");
+  } catch {
+    return null;
+  }
+};

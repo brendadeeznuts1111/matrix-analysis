@@ -102,14 +102,18 @@ export interface ServeConfig {
   port?: number;
   hostname?: string;
   fetch: (req: Request, server: any) => Response | Promise<Response>;
+  development?: boolean | { console: boolean };
 }
 
-export const serve = (config: ServeConfig) =>
-  Bun.serve({
+export const serve = (config: ServeConfig) => {
+  const opts: Record<string, any> = {
     port: config.port ?? 0,
     hostname: config.hostname ?? "127.0.0.1",
     fetch: config.fetch,
-  });
+  };
+  if (config.development !== undefined) opts.development = config.development;
+  return Bun.serve(opts);
+};
 
 // ─────────────────────────────────────────────────────────────────────────────
 // BN-112: Fetch Extensions (Bun-specific)

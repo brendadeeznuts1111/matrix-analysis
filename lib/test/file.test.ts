@@ -47,6 +47,19 @@ describe("file", () => {
       expect(await readText(join(TMP, "nope.txt"))).toBeNull();
     });
 
+    it("should roundtrip binary data through write and readBytes", async () => {
+      const path = join(TMP, "binary-roundtrip.bin");
+      const raw = new Uint8Array(256);
+      for (let i = 0; i < 256; i++) raw[i] = i;
+      await Bun.write(path, raw);
+      const bytes = await readBytes(path);
+      expect(bytes).not.toBeNull();
+      expect(bytes!.length).toBe(256);
+      for (let i = 0; i < 256; i++) {
+        expect(bytes![i]).toBe(i);
+      }
+    });
+
     it("should read JSON file", async () => {
       const path = join(TMP, "read.json");
       await Bun.write(path, JSON.stringify({ a: 1 }));
@@ -60,12 +73,13 @@ describe("file", () => {
       expect(await readJson(path)).toBeNull();
     });
 
-    it("should read bytes", async () => {
+    it("should read bytes with correct values", async () => {
       const path = join(TMP, "read.bin");
-      await Bun.write(path, new Uint8Array([1, 2, 3]));
+      await Bun.write(path, new Uint8Array([0x00, 0xFF, 0x80, 0x7F, 0x01]));
       const bytes = await readBytes(path);
       expect(bytes).toBeInstanceOf(Uint8Array);
-      expect(bytes!.length).toBe(3);
+      expect(bytes!.length).toBe(5);
+      expect(Array.from(bytes!)).toEqual([0x00, 0xFF, 0x80, 0x7F, 0x01]);
     });
   });
 
@@ -225,13 +239,15 @@ describe("file", () => {
   });
 
   describe("BN-099: Memory-Mapped I/O", () => {
-    it("should mmap a file as Uint8Array", () => {
-      const path = join(TMP, "mmap-test.txt");
-      Bun.write(path, "mmap content");
+    it("should mmap a file as Uint8Array with correct bytes", () => {
+      const path = join(TMP, "mmap-test.bin");
+      const raw = new Uint8Array([0xCA, 0xFE, 0xBA, 0xBE]);
+      Bun.write(path, raw);
       const mapped = mmap(path);
       expect(mapped).not.toBeNull();
       expect(mapped).toBeInstanceOf(Uint8Array);
-      expect(new TextDecoder().decode(mapped!)).toBe("mmap content");
+      expect(mapped!.length).toBe(4);
+      expect(Array.from(mapped!)).toEqual([0xCA, 0xFE, 0xBA, 0xBE]);
     });
 
     it("should return null for missing file", () => {
@@ -286,12 +302,13 @@ describe("file", () => {
       expect(text).toBe("hello");
     });
 
-    it("should slice file bytes", async () => {
-      const path = join(TMP, "slice-bytes.txt");
-      await Bun.write(path, "abcdefgh");
-      const bytes = await sliceBytes(path, 2, 5);
+    it("should slice file bytes at exact boundaries", async () => {
+      const path = join(TMP, "slice-bytes.bin");
+      await Bun.write(path, new Uint8Array([0x10, 0x20, 0x30, 0x40, 0x50, 0x60]));
+      const bytes = await sliceBytes(path, 1, 4);
       expect(bytes).not.toBeNull();
-      expect(new TextDecoder().decode(bytes!)).toBe("cde");
+      expect(bytes!.length).toBe(3);
+      expect(Array.from(bytes!)).toEqual([0x20, 0x30, 0x40]);
     });
 
     it("should return null for missing file slice", async () => {

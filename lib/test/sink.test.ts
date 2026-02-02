@@ -31,5 +31,23 @@ describe("sink", () => {
     it("should handle empty input", () => {
       expect(buildString([])).toBe("");
     });
+
+    it("should preserve raw binary bytes", () => {
+      const binary = new Uint8Array([0x00, 0xFF, 0x80, 0x7F]);
+      const result = buildBuffer([binary]);
+      expect(result.length).toBe(4);
+      expect(result[0]).toBe(0x00);
+      expect(result[1]).toBe(0xFF);
+      expect(result[2]).toBe(0x80);
+      expect(result[3]).toBe(0x7F);
+    });
+
+    it("should concatenate mixed chunk types with correct bytes", () => {
+      const str = "AB";
+      const bytes = new Uint8Array([0x43, 0x44]);
+      const result = buildBuffer([str, bytes]);
+      expect(result.length).toBe(4);
+      expect(Array.from(result)).toEqual([0x41, 0x42, 0x43, 0x44]);
+    });
   });
 });

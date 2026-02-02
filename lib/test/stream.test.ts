@@ -51,15 +51,35 @@ describe("stream", () => {
       const bytes = await toBytes(s);
       expect(bytes).toBeInstanceOf(Uint8Array);
       expect(bytes.length).toBe(3);
+      expect(bytes[0]).toBe(0x61);
+      expect(bytes[1]).toBe(0x62);
+      expect(bytes[2]).toBe(0x63);
+    });
+
+    it("should preserve binary data byte-for-byte", async () => {
+      const raw = new Uint8Array([0x00, 0xFF, 0x80, 0x7F, 0x01]);
+      const s = new ReadableStream({
+        start(controller) {
+          controller.enqueue(raw);
+          controller.close();
+        },
+      });
+      const bytes = await toBytes(s);
+      expect(bytes.length).toBe(5);
+      expect(Array.from(bytes)).toEqual([0x00, 0xFF, 0x80, 0x7F, 0x01]);
     });
   });
 
   describe("BN-040: toBuffer", () => {
-    it("should consume stream as ArrayBuffer", async () => {
+    it("should consume stream as ArrayBuffer with correct bytes", async () => {
       const s = makeStream("abc");
       const buf = await toBuffer(s);
       expect(buf).toBeInstanceOf(ArrayBuffer);
       expect(buf.byteLength).toBe(3);
+      const view = new Uint8Array(buf);
+      expect(view[0]).toBe(0x61);
+      expect(view[1]).toBe(0x62);
+      expect(view[2]).toBe(0x63);
     });
   });
 
@@ -153,6 +173,37 @@ describe("stream", () => {
       expect(new TextDecoder().decode(decompressed!)).toBe(input);
     });
 
+    it("should preserve binary bytes through gzip roundtrip", () => {
+      const raw = new Uint8Array([0x00, 0xFF, 0x80, 0x7F, 0x01, 0xFE]);
+      const compressed = gzip(raw);
+      expect(compressed).not.toBeNull();
+      const decompressed = gunzip(compressed!);
+      expect(decompressed).not.toBeNull();
+      expect(Array.from(decompressed!)).toEqual([0x00, 0xFF, 0x80, 0x7F, 0x01, 0xFE]);
+    });
+
+    it("should preserve binary bytes through zstd roundtrip", () => {
+      const raw = new Uint8Array(256);
+      for (let i = 0; i < 256; i++) raw[i] = i;
+      const compressed = zstdCompressSync(raw);
+      expect(compressed).not.toBeNull();
+      const decompressed = zstdDecompressSync(compressed!);
+      expect(decompressed).not.toBeNull();
+      expect(decompressed!.length).toBe(256);
+      for (let i = 0; i < 256; i++) {
+        expect(decompressed![i]).toBe(i);
+      }
+    });
+
+    it("should preserve binary bytes through deflate roundtrip", () => {
+      const raw = new Uint8Array([0xDE, 0xAD, 0xBE, 0xEF, 0x00, 0xFF]);
+      const compressed = deflate(raw);
+      expect(compressed).not.toBeNull();
+      const decompressed = inflate(compressed!);
+      expect(decompressed).not.toBeNull();
+      expect(Array.from(decompressed!)).toEqual([0xDE, 0xAD, 0xBE, 0xEF, 0x00, 0xFF]);
+    });
+
     it("should return null for invalid decompress", () => {
       expect(zstdDecompressSync(new Uint8Array([0, 1, 2, 3]))).toBeNull();
       expect(gunzip(new Uint8Array([0, 1, 2, 3]))).toBeNull();
@@ -208,6 +259,19 @@ describe("stream", () => {
     it("should handle empty array", () => {
       const result = concatBuffers([]);
       expect(result.byteLength).toBe(0);
+    });
+
+    it("should preserve byte boundaries across buffers", () => {
+      const a = new Uint8Array([0xFF, 0x00]);
+      const b = new Uint8Array([0x00, 0xFF]);
+      const result = new Uint8Array(concatBuffers([a, b]));
+      expect(Array.from(result)).toEqual([0xFF, 0x00, 0x00, 0xFF]);
+    });
+
+    it("should handle single-byte buffers", () => {
+      const bufs = [new Uint8Array([0x41]), new Uint8Array([0x42]), new Uint8Array([0x43])];
+      const result = new Uint8Array(concatBuffers(bufs));
+      expect(new TextDecoder().decode(result)).toBe("ABC");
     });
   });
 
