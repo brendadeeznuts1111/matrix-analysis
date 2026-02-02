@@ -441,9 +441,9 @@ async function main(): Promise<void> {
 		const statusColor = pm.status === "✓" ? GREEN : YELLOW;
 		console.log(
 			`  ${pm.component.padEnd(22)} ` +
-			`${WHITE}${pm.metric.padEnd(15)}${RESET} ` +
-			`${statusColor}${pm.status.padEnd(6)}${RESET} ` +
-			`${GRAY}${pm.note}${RESET}`,
+				`${WHITE}${pm.metric.padEnd(15)}${RESET} ` +
+				`${statusColor}${pm.status.padEnd(6)}${RESET} ` +
+				`${GRAY}${pm.note}${RESET}`,
 		);
 	}
 

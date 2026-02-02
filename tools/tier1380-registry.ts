@@ -636,7 +636,9 @@ async function r2Upload(
 			)
 			.run("upload", targetKey, fileSize, crc32, Math.round(durationMs));
 	} catch (error) {
-		console.error(`${GLYPHS.FAIL} R2 upload failed: ${error instanceof Error ? error.message : "Unknown error"}`);
+		console.error(
+			`${GLYPHS.FAIL} R2 upload failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+		);
 		throw error;
 	}
 }
@@ -731,7 +733,9 @@ async function r2Download(
 			)
 			.run("download", r2Key, finalData.length, calculatedCRC32, Math.round(durationMs));
 	} catch (error) {
-		console.error(`${GLYPHS.FAIL} R2 download failed: ${error instanceof Error ? error.message : "Unknown error"}`);
+		console.error(
+			`${GLYPHS.FAIL} R2 download failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+		);
 		throw error;
 	}
 }

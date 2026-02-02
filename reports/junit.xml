@@ -1,149 +1,149 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuites name="bun test" tests="142" assertions="407" failures="0" skipped="0" time="0.502554">
+<testsuites name="bun test" tests="142" assertions="407" failures="0" skipped="0" time="0.527192">
   <testsuite name=".claude/tests/bun-markdown.test.ts" file=".claude/tests/bun-markdown.test.ts" tests="34" assertions="75" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
     <testsuite name="Bun.markdown availability" file=".claude/tests/bun-markdown.test.ts" line="20" tests="1" assertions="2" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-      <testcase name="should exist as a namespace with html() method on the Bun global" classname="Bun.markdown availability" time="0.000023" file=".claude/tests/bun-markdown.test.ts" line="21" assertions="2" />
+      <testcase name="should exist as a namespace with html() method on the Bun global" classname="Bun.markdown availability" time="0.00002" file=".claude/tests/bun-markdown.test.ts" line="21" assertions="2" />
     </testsuite>
     <testsuite name="CommonMark core rendering" file=".claude/tests/bun-markdown.test.ts" line="28" tests="18" assertions="37" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-      <testcase name="should render headings h1–h6" classname="CommonMark core rendering" time="0" file=".claude/tests/bun-markdown.test.ts" line="29" assertions="6" />
-      <testcase name="should render paragraphs" classname="CommonMark core rendering" time="0.000095" file=".claude/tests/bun-markdown.test.ts" line="38" assertions="2" />
-      <testcase name="should render bold text" classname="CommonMark core rendering" time="0.000044" file=".claude/tests/bun-markdown.test.ts" line="44" assertions="1" />
-      <testcase name="should render italic text" classname="CommonMark core rendering" time="0.000006" file=".claude/tests/bun-markdown.test.ts" line="49" assertions="1" />
-      <testcase name="should render bold+italic combined" classname="CommonMark core rendering" time="0" file=".claude/tests/bun-markdown.test.ts" line="54" assertions="1" />
-      <testcase name="should render inline code" classname="CommonMark core rendering" time="0" file=".claude/tests/bun-markdown.test.ts" line="59" assertions="1" />
-      <testcase name="should render fenced code blocks" classname="CommonMark core rendering" time="0" file=".claude/tests/bun-markdown.test.ts" line="64" assertions="3" />
-      <testcase name="should render indented code blocks" classname="CommonMark core rendering" time="0" file=".claude/tests/bun-markdown.test.ts" line="72" assertions="2" />
-      <testcase name="should render unordered lists" classname="CommonMark core rendering" time="0" file=".claude/tests/bun-markdown.test.ts" line="79" assertions="3" />
-      <testcase name="should render ordered lists" classname="CommonMark core rendering" time="0" file=".claude/tests/bun-markdown.test.ts" line="87" assertions="2" />
-      <testcase name="should render blockquotes" classname="CommonMark core rendering" time="0.000071" file=".claude/tests/bun-markdown.test.ts" line="94" assertions="2" />
-      <testcase name="should render nested blockquotes" classname="CommonMark core rendering" time="0.000012" file=".claude/tests/bun-markdown.test.ts" line="100" assertions="2" />
+      <testcase name="should render headings h1–h6" classname="CommonMark core rendering" time="0.000037" file=".claude/tests/bun-markdown.test.ts" line="29" assertions="6" />
+      <testcase name="should render paragraphs" classname="CommonMark core rendering" time="0.000013" file=".claude/tests/bun-markdown.test.ts" line="38" assertions="2" />
+      <testcase name="should render bold text" classname="CommonMark core rendering" time="0.000049" file=".claude/tests/bun-markdown.test.ts" line="44" assertions="1" />
+      <testcase name="should render italic text" classname="CommonMark core rendering" time="0.000012" file=".claude/tests/bun-markdown.test.ts" line="49" assertions="1" />
+      <testcase name="should render bold+italic combined" classname="CommonMark core rendering" time="0.000012" file=".claude/tests/bun-markdown.test.ts" line="54" assertions="1" />
+      <testcase name="should render inline code" classname="CommonMark core rendering" time="0.000013" file=".claude/tests/bun-markdown.test.ts" line="59" assertions="1" />
+      <testcase name="should render fenced code blocks" classname="CommonMark core rendering" time="0.000002" file=".claude/tests/bun-markdown.test.ts" line="64" assertions="3" />
+      <testcase name="should render indented code blocks" classname="CommonMark core rendering" time="0.000015" file=".claude/tests/bun-markdown.test.ts" line="72" assertions="2" />
+      <testcase name="should render unordered lists" classname="CommonMark core rendering" time="0.000011" file=".claude/tests/bun-markdown.test.ts" line="79" assertions="3" />
+      <testcase name="should render ordered lists" classname="CommonMark core rendering" time="0.000003" file=".claude/tests/bun-markdown.test.ts" line="87" assertions="2" />
+      <testcase name="should render blockquotes" classname="CommonMark core rendering" time="0" file=".claude/tests/bun-markdown.test.ts" line="94" assertions="2" />
+      <testcase name="should render nested blockquotes" classname="CommonMark core rendering" time="0.000005" file=".claude/tests/bun-markdown.test.ts" line="100" assertions="2" />
       <testcase name="should render horizontal rules" classname="CommonMark core rendering" time="0" file=".claude/tests/bun-markdown.test.ts" line="106" assertions="3" />
-      <testcase name="should render links" classname="CommonMark core rendering" time="0.000017" file=".claude/tests/bun-markdown.test.ts" line="112" assertions="2" />
+      <testcase name="should render links" classname="CommonMark core rendering" time="0.000012" file=".claude/tests/bun-markdown.test.ts" line="112" assertions="2" />
       <testcase name="should render images" classname="CommonMark core rendering" time="0" file=".claude/tests/bun-markdown.test.ts" line="118" assertions="3" />
-      <testcase name="should render line breaks with two trailing spaces" classname="CommonMark core rendering" time="0" file=".claude/tests/bun-markdown.test.ts" line="125" assertions="1" />
+      <testcase name="should render line breaks with two trailing spaces" classname="CommonMark core rendering" time="0.000021" file=".claude/tests/bun-markdown.test.ts" line="125" assertions="1" />
       <testcase name="should handle empty input" classname="CommonMark core rendering" time="0" file=".claude/tests/bun-markdown.test.ts" line="130" assertions="1" />
       <testcase name="should handle whitespace-only input" classname="CommonMark core rendering" time="0" file=".claude/tests/bun-markdown.test.ts" line="135" assertions="1" />
     </testsuite>
     <testsuite name="GFM extensions" file=".claude/tests/bun-markdown.test.ts" line="142" tests="4" assertions="8" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-      <testcase name="should render tables" classname="GFM extensions" time="0" file=".claude/tests/bun-markdown.test.ts" line="143" assertions="3" />
-      <testcase name="should render strikethrough" classname="GFM extensions" time="0" file=".claude/tests/bun-markdown.test.ts" line="151" assertions="2" />
-      <testcase name="should render task lists" classname="GFM extensions" time="0" file=".claude/tests/bun-markdown.test.ts" line="157" assertions="1" />
-      <testcase name="should autolink angle-bracket URLs" classname="GFM extensions" time="0" file=".claude/tests/bun-markdown.test.ts" line="163" assertions="2" />
+      <testcase name="should render tables" classname="GFM extensions" time="0.000017" file=".claude/tests/bun-markdown.test.ts" line="143" assertions="3" />
+      <testcase name="should render strikethrough" classname="GFM extensions" time="0.000011" file=".claude/tests/bun-markdown.test.ts" line="151" assertions="2" />
+      <testcase name="should render task lists" classname="GFM extensions" time="0.000009" file=".claude/tests/bun-markdown.test.ts" line="157" assertions="1" />
+      <testcase name="should autolink angle-bracket URLs" classname="GFM extensions" time="0.000009" file=".claude/tests/bun-markdown.test.ts" line="163" assertions="2" />
     </testsuite>
     <testsuite name="edge cases" file=".claude/tests/bun-markdown.test.ts" line="171" tests="8" assertions="17" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-      <testcase name="should handle deeply nested lists" classname="edge cases" time="0.000067" file=".claude/tests/bun-markdown.test.ts" line="172" assertions="2" />
-      <testcase name="should handle special characters in inline code" classname="edge cases" time="0.000005" file=".claude/tests/bun-markdown.test.ts" line="179" assertions="2" />
-      <testcase name="should handle HTML entities in text" classname="edge cases" time="0.000013" file=".claude/tests/bun-markdown.test.ts" line="185" assertions="3" />
-      <testcase name="should handle unicode and emoji" classname="edge cases" time="0.000007" file=".claude/tests/bun-markdown.test.ts" line="192" assertions="2" />
-      <testcase name="should handle very long single lines" classname="edge cases" time="0.000171" file=".claude/tests/bun-markdown.test.ts" line="198" assertions="2" />
-      <testcase name="should handle mixed inline styles" classname="edge cases" time="0" file=".claude/tests/bun-markdown.test.ts" line="205" assertions="2" />
-      <testcase name="should handle code blocks with backticks inside" classname="edge cases" time="0.000018" file=".claude/tests/bun-markdown.test.ts" line="211" assertions="1" />
-      <testcase name="should handle consecutive headings" classname="edge cases" time="0.000009" file=".claude/tests/bun-markdown.test.ts" line="217" assertions="3" />
+      <testcase name="should handle deeply nested lists" classname="edge cases" time="0.000005" file=".claude/tests/bun-markdown.test.ts" line="172" assertions="2" />
+      <testcase name="should handle special characters in inline code" classname="edge cases" time="0.000007" file=".claude/tests/bun-markdown.test.ts" line="179" assertions="2" />
+      <testcase name="should handle HTML entities in text" classname="edge cases" time="0.000004" file=".claude/tests/bun-markdown.test.ts" line="185" assertions="3" />
+      <testcase name="should handle unicode and emoji" classname="edge cases" time="0.000012" file=".claude/tests/bun-markdown.test.ts" line="192" assertions="2" />
+      <testcase name="should handle very long single lines" classname="edge cases" time="0.000155" file=".claude/tests/bun-markdown.test.ts" line="198" assertions="2" />
+      <testcase name="should handle mixed inline styles" classname="edge cases" time="0.000007" file=".claude/tests/bun-markdown.test.ts" line="205" assertions="2" />
+      <testcase name="should handle code blocks with backticks inside" classname="edge cases" time="0.000008" file=".claude/tests/bun-markdown.test.ts" line="211" assertions="1" />
+      <testcase name="should handle consecutive headings" classname="edge cases" time="0" file=".claude/tests/bun-markdown.test.ts" line="217" assertions="3" />
     </testsuite>
     <testsuite name="return type" file=".claude/tests/bun-markdown.test.ts" line="227" tests="1" assertions="3" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-      <testcase name="should always return a string" classname="return type" time="0.000007" file=".claude/tests/bun-markdown.test.ts" line="228" assertions="3" />
+      <testcase name="should always return a string" classname="return type" time="0.000014" file=".claude/tests/bun-markdown.test.ts" line="228" assertions="3" />
     </testsuite>
     <testsuite name="file integration" file=".claude/tests/bun-markdown.test.ts" line="236" tests="2" assertions="8" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-      <testcase name="should render markdown read from a file" classname="file integration" time="0.000105" file=".claude/tests/bun-markdown.test.ts" line="263" assertions="6" />
-      <testcase name="should produce valid HTML output" classname="file integration" time="0.000079" file=".claude/tests/bun-markdown.test.ts" line="274" assertions="2" />
+      <testcase name="should render markdown read from a file" classname="file integration" time="0.000104" file=".claude/tests/bun-markdown.test.ts" line="263" assertions="6" />
+      <testcase name="should produce valid HTML output" classname="file integration" time="0.000184" file=".claude/tests/bun-markdown.test.ts" line="274" assertions="2" />
     </testsuite>
   </testsuite>
   <testsuite name=".claude/matrix/test-matrix-90.test.ts" file=".claude/matrix/test-matrix-90.test.ts" tests="24" assertions="69" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
     <testsuite name="Column Standards (0-96)" file=".claude/matrix/test-matrix-90.test.ts" line="40" tests="6" assertions="22" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-      <testcase name="should have all 97 columns defined (0-96)" classname="Column Standards (0-96)" time="0" file=".claude/matrix/test-matrix-90.test.ts" line="41" assertions="3" />
-      <testcase name="should have DEFAULT column at position 0" classname="Column Standards (0-96)" time="0" file=".claude/matrix/test-matrix-90.test.ts" line="48" assertions="3" />
-      <testcase name="should have Cloudflare zone columns (21-30)" classname="Column Standards (0-96)" time="0" file=".claude/matrix/test-matrix-90.test.ts" line="55" assertions="4" />
-      <testcase name="should have Tension zone columns (31-45)" classname="Column Standards (0-96)" time="0" file=".claude/matrix/test-matrix-90.test.ts" line="62" assertions="4" />
-      <testcase name="should have Validation zone columns (61-70)" classname="Column Standards (0-96)" time="0" file=".claude/matrix/test-matrix-90.test.ts" line="69" assertions="3" />
-      <testcase name="should correctly identify zones" classname="Column Standards (0-96)" time="0" file=".claude/matrix/test-matrix-90.test.ts" line="75" assertions="5" />
+      <testcase name="should have all 97 columns defined (0-96)" classname="Column Standards (0-96)" time="0.00002" file=".claude/matrix/test-matrix-90.test.ts" line="41" assertions="3" />
+      <testcase name="should have DEFAULT column at position 0" classname="Column Standards (0-96)" time="0.000007" file=".claude/matrix/test-matrix-90.test.ts" line="48" assertions="3" />
+      <testcase name="should have Cloudflare zone columns (21-30)" classname="Column Standards (0-96)" time="0.000013" file=".claude/matrix/test-matrix-90.test.ts" line="55" assertions="4" />
+      <testcase name="should have Tension zone columns (31-45)" classname="Column Standards (0-96)" time="0.000007" file=".claude/matrix/test-matrix-90.test.ts" line="62" assertions="4" />
+      <testcase name="should have Validation zone columns (61-70)" classname="Column Standards (0-96)" time="0.000005" file=".claude/matrix/test-matrix-90.test.ts" line="69" assertions="3" />
+      <testcase name="should correctly identify zones" classname="Column Standards (0-96)" time="0.000019" file=".claude/matrix/test-matrix-90.test.ts" line="75" assertions="5" />
     </testsuite>
     <testsuite name="Team Ownership" file=".claude/matrix/test-matrix-90.test.ts" line="88" tests="3" assertions="15" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-      <testcase name="should have correct Cloudflare ownership split" classname="Team Ownership" time="0" file=".claude/matrix/test-matrix-90.test.ts" line="89" assertions="7" />
-      <testcase name="should have all 6 teams defined" classname="Team Ownership" time="0" file=".claude/matrix/test-matrix-90.test.ts" line="106" assertions="6" />
-      <testcase name="should return columns by team" classname="Team Ownership" time="0.000257" file=".claude/matrix/test-matrix-90.test.ts" line="116" assertions="2" />
+      <testcase name="should have correct Cloudflare ownership split" classname="Team Ownership" time="0.000016" file=".claude/matrix/test-matrix-90.test.ts" line="89" assertions="7" />
+      <testcase name="should have all 6 teams defined" classname="Team Ownership" time="0.000015" file=".claude/matrix/test-matrix-90.test.ts" line="106" assertions="6" />
+      <testcase name="should return columns by team" classname="Team Ownership" time="0.000056" file=".claude/matrix/test-matrix-90.test.ts" line="116" assertions="2" />
     </testsuite>
     <testsuite name="DEFAULT Column" file=".claude/matrix/test-matrix-90.test.ts" line="129" tests="2" assertions="5" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-      <testcase name="should return correct default values by zone" classname="DEFAULT Column" time="0.000003" file=".claude/matrix/test-matrix-90.test.ts" line="130" assertions="3" />
-      <testcase name="should have DEFAULT column with examples" classname="DEFAULT Column" time="0" file=".claude/matrix/test-matrix-90.test.ts" line="136" assertions="2" />
+      <testcase name="should return correct default values by zone" classname="DEFAULT Column" time="0.000025" file=".claude/matrix/test-matrix-90.test.ts" line="130" assertions="3" />
+      <testcase name="should have DEFAULT column with examples" classname="DEFAULT Column" time="0.000011" file=".claude/matrix/test-matrix-90.test.ts" line="136" assertions="2" />
     </testsuite>
     <testsuite name="Column Validation" file=".claude/matrix/test-matrix-90.test.ts" line="147" tests="3" assertions="10" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-      <testcase name="should validate tension column ranges" classname="Column Validation" time="0" file=".claude/matrix/test-matrix-90.test.ts" line="148" assertions="3" />
-      <testcase name="should validate Cloudflare column thresholds" classname="Column Validation" time="0" file=".claude/matrix/test-matrix-90.test.ts" line="155" assertions="3" />
-      <testcase name="should validate Cloudflare profile links" classname="Column Validation" time="0.00007" file=".claude/matrix/test-matrix-90.test.ts" line="162" assertions="4" />
+      <testcase name="should validate tension column ranges" classname="Column Validation" time="0.000012" file=".claude/matrix/test-matrix-90.test.ts" line="148" assertions="3" />
+      <testcase name="should validate Cloudflare column thresholds" classname="Column Validation" time="0.000016" file=".claude/matrix/test-matrix-90.test.ts" line="155" assertions="3" />
+      <testcase name="should validate Cloudflare profile links" classname="Column Validation" time="0.000026" file=".claude/matrix/test-matrix-90.test.ts" line="162" assertions="4" />
     </testsuite>
     <testsuite name="Environment Variables" file=".claude/matrix/test-matrix-90.test.ts" line="178" tests="3" assertions="4" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
       <testcase name="should detect test environment" classname="Environment Variables" time="0" file=".claude/matrix/test-matrix-90.test.ts" line="179" assertions="2" />
       <testcase name="should respect ENABLE_CACHE flag" classname="Environment Variables" time="0" file=".claude/matrix/test-matrix-90.test.ts" line="185" assertions="1" />
-      <testcase name="should respect VALIDATION_STRICT flag" classname="Environment Variables" time="0" file=".claude/matrix/test-matrix-90.test.ts" line="190" assertions="1" />
+      <testcase name="should respect VALIDATION_STRICT flag" classname="Environment Variables" time="0.000024" file=".claude/matrix/test-matrix-90.test.ts" line="190" assertions="1" />
     </testsuite>
     <testsuite name="CLI Support" file=".claude/matrix/test-matrix-90.test.ts" line="200" tests="3" assertions="7" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
       <testcase name="should support bun test command" classname="CLI Support" time="0" file=".claude/matrix/test-matrix-90.test.ts" line="201" assertions="2" />
-      <testcase name="should expose getColumn function" classname="CLI Support" time="0" file=".claude/matrix/test-matrix-90.test.ts" line="207" assertions="3" />
-      <testcase name="should expose getColumnsByZone function" classname="CLI Support" time="0" file=".claude/matrix/test-matrix-90.test.ts" line="214" assertions="2" />
+      <testcase name="should expose getColumn function" classname="CLI Support" time="0.000015" file=".claude/matrix/test-matrix-90.test.ts" line="207" assertions="3" />
+      <testcase name="should expose getColumnsByZone function" classname="CLI Support" time="0.000012" file=".claude/matrix/test-matrix-90.test.ts" line="214" assertions="2" />
     </testsuite>
     <testsuite name="Bun Native Support" file=".claude/matrix/test-matrix-90.test.ts" line="225" tests="4" assertions="6" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
       <testcase name="should run with Bun runtime" classname="Bun Native Support" time="0" file=".claude/matrix/test-matrix-90.test.ts" line="226" assertions="2" />
-      <testcase name="should support Bun.nanoseconds() for timing" classname="Bun Native Support" time="0.000095" file=".claude/matrix/test-matrix-90.test.ts" line="231" assertions="1" />
+      <testcase name="should support Bun.nanoseconds() for timing" classname="Bun Native Support" time="0" file=".claude/matrix/test-matrix-90.test.ts" line="231" assertions="1" />
       <testcase name="should support native TypeScript execution" classname="Bun Native Support" time="0" file=".claude/matrix/test-matrix-90.test.ts" line="239" assertions="1" />
-      <testcase name="should support Bun.inspect for debugging" classname="Bun Native Support" time="0.000194" file=".claude/matrix/test-matrix-90.test.ts" line="245" assertions="2" />
+      <testcase name="should support Bun.inspect for debugging" classname="Bun Native Support" time="0.000081" file=".claude/matrix/test-matrix-90.test.ts" line="245" assertions="2" />
     </testsuite>
   </testsuite>
   <testsuite name=".claude/matrix/column-standards.test.ts" file=".claude/matrix/column-standards.test.ts" tests="30" assertions="81" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-    <testsuite name="CLI Basics" file=".claude/matrix/column-standards.test.ts" line="31" tests="3" assertions="9" failures="0" skipped="0" time="0.052" hostname="Mac.attlocal.net">
-      <testcase name="should show help" classname="CLI Basics" time="0.018224" file=".claude/matrix/column-standards.test.ts" line="32" assertions="3" />
-      <testcase name="should show version" classname="CLI Basics" time="0.018254" file=".claude/matrix/column-standards.test.ts" line="39" assertions="3" />
-      <testcase name="should list all columns" classname="CLI Basics" time="0.016578" file=".claude/matrix/column-standards.test.ts" line="46" assertions="3" />
+    <testsuite name="CLI Basics" file=".claude/matrix/column-standards.test.ts" line="31" tests="3" assertions="9" failures="0" skipped="0" time="0.047" hostname="Mac.attlocal.net">
+      <testcase name="should show help" classname="CLI Basics" time="0.015164" file=".claude/matrix/column-standards.test.ts" line="32" assertions="3" />
+      <testcase name="should show version" classname="CLI Basics" time="0.016608" file=".claude/matrix/column-standards.test.ts" line="39" assertions="3" />
+      <testcase name="should list all columns" classname="CLI Basics" time="0.016775" file=".claude/matrix/column-standards.test.ts" line="46" assertions="3" />
     </testsuite>
-    <testsuite name="Get Command" file=".claude/matrix/column-standards.test.ts" line="54" tests="4" assertions="10" failures="0" skipped="0" time="0.061" hostname="Mac.attlocal.net">
-      <testcase name="should get column 45" classname="Get Command" time="0.014468" file=".claude/matrix/column-standards.test.ts" line="55" assertions="4" />
-      <testcase name="should get column 0" classname="Get Command" time="0.016103" file=".claude/matrix/column-standards.test.ts" line="63" assertions="2" />
-      <testcase name="should fail on invalid column" classname="Get Command" time="0.014521" file=".claude/matrix/column-standards.test.ts" line="69" assertions="2" />
-      <testcase name="should output JSON" classname="Get Command" time="0.017379" file=".claude/matrix/column-standards.test.ts" line="75" assertions="2" />
+    <testsuite name="Get Command" file=".claude/matrix/column-standards.test.ts" line="54" tests="4" assertions="10" failures="0" skipped="0" time="0.067" hostname="Mac.attlocal.net">
+      <testcase name="should get column 45" classname="Get Command" time="0.016132" file=".claude/matrix/column-standards.test.ts" line="55" assertions="4" />
+      <testcase name="should get column 0" classname="Get Command" time="0.016848" file=".claude/matrix/column-standards.test.ts" line="63" assertions="2" />
+      <testcase name="should fail on invalid column" classname="Get Command" time="0.018774" file=".claude/matrix/column-standards.test.ts" line="69" assertions="2" />
+      <testcase name="should output JSON" classname="Get Command" time="0.017808" file=".claude/matrix/column-standards.test.ts" line="75" assertions="2" />
     </testsuite>
-    <testsuite name="Search Command" file=".claude/matrix/column-standards.test.ts" line="83" tests="2" assertions="5" failures="0" skipped="0" time="0.037" hostname="Mac.attlocal.net">
-      <testcase name="should search for tension" classname="Search Command" time="0.020429" file=".claude/matrix/column-standards.test.ts" line="84" assertions="3" />
-      <testcase name="should handle no results" classname="Search Command" time="0.017792" file=".claude/matrix/column-standards.test.ts" line="91" assertions="2" />
+    <testsuite name="Search Command" file=".claude/matrix/column-standards.test.ts" line="83" tests="2" assertions="5" failures="0" skipped="0" time="0.033" hostname="Mac.attlocal.net">
+      <testcase name="should search for tension" classname="Search Command" time="0.018061" file=".claude/matrix/column-standards.test.ts" line="84" assertions="3" />
+      <testcase name="should handle no results" classname="Search Command" time="0.015642" file=".claude/matrix/column-standards.test.ts" line="91" assertions="2" />
     </testsuite>
-    <testsuite name="Zone Shortcuts" file=".claude/matrix/column-standards.test.ts" line="98" tests="3" assertions="9" failures="0" skipped="0" time="0.043" hostname="Mac.attlocal.net">
-      <testcase name="should show tension zone" classname="Zone Shortcuts" time="0.015043" file=".claude/matrix/column-standards.test.ts" line="99" assertions="3" />
-      <testcase name="should show cloudflare zone" classname="Zone Shortcuts" time="0.014898" file=".claude/matrix/column-standards.test.ts" line="106" assertions="3" />
-      <testcase name="should show chrome zone" classname="Zone Shortcuts" time="0.01431" file=".claude/matrix/column-standards.test.ts" line="113" assertions="3" />
+    <testsuite name="Zone Shortcuts" file=".claude/matrix/column-standards.test.ts" line="98" tests="3" assertions="9" failures="0" skipped="0" time="0.044" hostname="Mac.attlocal.net">
+      <testcase name="should show tension zone" classname="Zone Shortcuts" time="0.01566" file=".claude/matrix/column-standards.test.ts" line="99" assertions="3" />
+      <testcase name="should show cloudflare zone" classname="Zone Shortcuts" time="0.014528" file=".claude/matrix/column-standards.test.ts" line="106" assertions="3" />
+      <testcase name="should show chrome zone" classname="Zone Shortcuts" time="0.015218" file=".claude/matrix/column-standards.test.ts" line="113" assertions="3" />
     </testsuite>
-    <testsuite name="Find Command" file=".claude/matrix/column-standards.test.ts" line="121" tests="4" assertions="10" failures="0" skipped="0" time="0.053" hostname="Mac.attlocal.net">
-      <testcase name="should find by zone" classname="Find Command" time="0.013683" file=".claude/matrix/column-standards.test.ts" line="122" assertions="3" />
-      <testcase name="should find by type" classname="Find Command" time="0.013546" file=".claude/matrix/column-standards.test.ts" line="129" assertions="2" />
-      <testcase name="should find required columns" classname="Find Command" time="0.013681" file=".claude/matrix/column-standards.test.ts" line="135" assertions="2" />
-      <testcase name="should find by multiple criteria" classname="Find Command" time="0.014244" file=".claude/matrix/column-standards.test.ts" line="141" assertions="3" />
+    <testsuite name="Find Command" file=".claude/matrix/column-standards.test.ts" line="121" tests="4" assertions="10" failures="0" skipped="0" time="0.058" hostname="Mac.attlocal.net">
+      <testcase name="should find by zone" classname="Find Command" time="0.013991" file=".claude/matrix/column-standards.test.ts" line="122" assertions="3" />
+      <testcase name="should find by type" classname="Find Command" time="0.014002" file=".claude/matrix/column-standards.test.ts" line="129" assertions="2" />
+      <testcase name="should find required columns" classname="Find Command" time="0.014948" file=".claude/matrix/column-standards.test.ts" line="135" assertions="2" />
+      <testcase name="should find by multiple criteria" classname="Find Command" time="0.017331" file=".claude/matrix/column-standards.test.ts" line="141" assertions="3" />
     </testsuite>
-    <testsuite name="Pipe Formats" file=".claude/matrix/column-standards.test.ts" line="149" tests="5" assertions="12" failures="0" skipped="0" time="0.071" hostname="Mac.attlocal.net">
-      <testcase name="should output TSV" classname="Pipe Formats" time="0.017097" file=".claude/matrix/column-standards.test.ts" line="150" assertions="3" />
-      <testcase name="should output CSV" classname="Pipe Formats" time="0.013728" file=".claude/matrix/column-standards.test.ts" line="157" assertions="2" />
-      <testcase name="should output names" classname="Pipe Formats" time="0.014299" file=".claude/matrix/column-standards.test.ts" line="163" assertions="3" />
-      <testcase name="should output grep-tags" classname="Pipe Formats" time="0.013618" file=".claude/matrix/column-standards.test.ts" line="170" assertions="2" />
-      <testcase name="should output env" classname="Pipe Formats" time="0.01425" file=".claude/matrix/column-standards.test.ts" line="176" assertions="2" />
+    <testsuite name="Pipe Formats" file=".claude/matrix/column-standards.test.ts" line="149" tests="5" assertions="12" failures="0" skipped="0" time="0.076" hostname="Mac.attlocal.net">
+      <testcase name="should output TSV" classname="Pipe Formats" time="0.018112" file=".claude/matrix/column-standards.test.ts" line="150" assertions="3" />
+      <testcase name="should output CSV" classname="Pipe Formats" time="0.014656" file=".claude/matrix/column-standards.test.ts" line="157" assertions="2" />
+      <testcase name="should output names" classname="Pipe Formats" time="0.016136" file=".claude/matrix/column-standards.test.ts" line="163" assertions="3" />
+      <testcase name="should output grep-tags" classname="Pipe Formats" time="0.014764" file=".claude/matrix/column-standards.test.ts" line="170" assertions="2" />
+      <testcase name="should output env" classname="Pipe Formats" time="0.014387" file=".claude/matrix/column-standards.test.ts" line="176" assertions="2" />
     </testsuite>
-    <testsuite name="Stats Command" file=".claude/matrix/column-standards.test.ts" line="183" tests="2" assertions="6" failures="0" skipped="0" time="0.029" hostname="Mac.attlocal.net">
-      <testcase name="should show statistics" classname="Stats Command" time="0.015991" file=".claude/matrix/column-standards.test.ts" line="184" assertions="4" />
-      <testcase name="should output JSON stats" classname="Stats Command" time="0.014389" file=".claude/matrix/column-standards.test.ts" line="192" assertions="2" />
+    <testsuite name="Stats Command" file=".claude/matrix/column-standards.test.ts" line="183" tests="2" assertions="6" failures="0" skipped="0" time="0.032" hostname="Mac.attlocal.net">
+      <testcase name="should show statistics" classname="Stats Command" time="0.015353" file=".claude/matrix/column-standards.test.ts" line="184" assertions="4" />
+      <testcase name="should output JSON stats" classname="Stats Command" time="0.017401" file=".claude/matrix/column-standards.test.ts" line="192" assertions="2" />
     </testsuite>
-    <testsuite name="Validation" file=".claude/matrix/column-standards.test.ts" line="199" tests="1" assertions="1" failures="0" skipped="0" time="0.013" hostname="Mac.attlocal.net">
-      <testcase name="should validate schema" classname="Validation" time="0.013687" file=".claude/matrix/column-standards.test.ts" line="200" assertions="1" />
+    <testsuite name="Validation" file=".claude/matrix/column-standards.test.ts" line="199" tests="1" assertions="1" failures="0" skipped="0" time="0.02" hostname="Mac.attlocal.net">
+      <testcase name="should validate schema" classname="Validation" time="0.020386" file=".claude/matrix/column-standards.test.ts" line="200" assertions="1" />
     </testsuite>
-    <testsuite name="Doctor Command" file=".claude/matrix/column-standards.test.ts" line="208" tests="1" assertions="4" failures="0" skipped="0" time="0.015" hostname="Mac.attlocal.net">
-      <testcase name="should check environment" classname="Doctor Command" time="0.015709" file=".claude/matrix/column-standards.test.ts" line="209" assertions="4" />
+    <testsuite name="Doctor Command" file=".claude/matrix/column-standards.test.ts" line="208" tests="1" assertions="4" failures="0" skipped="0" time="0.014" hostname="Mac.attlocal.net">
+      <testcase name="should check environment" classname="Doctor Command" time="0.014287" file=".claude/matrix/column-standards.test.ts" line="209" assertions="4" />
     </testsuite>
-    <testsuite name="Shortcuts Command" file=".claude/matrix/column-standards.test.ts" line="218" tests="1" assertions="4" failures="0" skipped="0" time="0.014" hostname="Mac.attlocal.net">
-      <testcase name="should show shortcuts" classname="Shortcuts Command" time="0.014809" file=".claude/matrix/column-standards.test.ts" line="219" assertions="4" />
+    <testsuite name="Shortcuts Command" file=".claude/matrix/column-standards.test.ts" line="218" tests="1" assertions="4" failures="0" skipped="0" time="0.016" hostname="Mac.attlocal.net">
+      <testcase name="should show shortcuts" classname="Shortcuts Command" time="0.016624" file=".claude/matrix/column-standards.test.ts" line="219" assertions="4" />
     </testsuite>
-    <testsuite name="Flags Command" file=".claude/matrix/column-standards.test.ts" line="228" tests="1" assertions="4" failures="0" skipped="0" time="0.013" hostname="Mac.attlocal.net">
-      <testcase name="should show flags" classname="Flags Command" time="0.013766" file=".claude/matrix/column-standards.test.ts" line="229" assertions="4" />
+    <testsuite name="Flags Command" file=".claude/matrix/column-standards.test.ts" line="228" tests="1" assertions="4" failures="0" skipped="0" time="0.014" hostname="Mac.attlocal.net">
+      <testcase name="should show flags" classname="Flags Command" time="0.014291" file=".claude/matrix/column-standards.test.ts" line="229" assertions="4" />
     </testsuite>
     <testsuite name="Matrix Command" file=".claude/matrix/column-standards.test.ts" line="238" tests="1" assertions="3" failures="0" skipped="0" time="0.015" hostname="Mac.attlocal.net">
-      <testcase name="should show matrix grid" classname="Matrix Command" time="0.015507" file=".claude/matrix/column-standards.test.ts" line="239" assertions="3" />
+      <testcase name="should show matrix grid" classname="Matrix Command" time="0.015343" file=".claude/matrix/column-standards.test.ts" line="239" assertions="3" />
     </testsuite>
-    <testsuite name="Aliases" file=".claude/matrix/column-standards.test.ts" line="247" tests="2" assertions="4" failures="0" skipped="0" time="0.029" hostname="Mac.attlocal.net">
-      <testcase name="should resolve get 45 as tension-profile-link" classname="Aliases" time="0.014223" file=".claude/matrix/column-standards.test.ts" line="248" assertions="2" />
-      <testcase name="should show error for unknown alias" classname="Aliases" time="0.015141" file=".claude/matrix/column-standards.test.ts" line="254" assertions="2" />
+    <testsuite name="Aliases" file=".claude/matrix/column-standards.test.ts" line="247" tests="2" assertions="4" failures="0" skipped="0" time="0.035" hostname="Mac.attlocal.net">
+      <testcase name="should resolve get 45 as tension-profile-link" classname="Aliases" time="0.0189" file=".claude/matrix/column-standards.test.ts" line="248" assertions="2" />
+      <testcase name="should show error for unknown alias" classname="Aliases" time="0.017613" file=".claude/matrix/column-standards.test.ts" line="254" assertions="2" />
     </testsuite>
   </testsuite>
   <testsuite name=".claude/core/analysis/analysis.test.ts" file=".claude/core/analysis/analysis.test.ts" tests="26" assertions="33" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
@@ -155,83 +155,83 @@
         <testcase name="should strip multiple ANSI sequences" classname="stripAnsi &amp;gt; output.ts" time="0" file=".claude/core/analysis/analysis.test.ts" line="32" assertions="1" />
       </testsuite>
       <testsuite name="textWidth" file=".claude/core/analysis/analysis.test.ts" line="38" tests="4" assertions="4" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-        <testcase name="should return visual width of plain text" classname="textWidth &amp;gt; output.ts" time="0.000128" file=".claude/core/analysis/analysis.test.ts" line="39" assertions="1" />
+        <testcase name="should return visual width of plain text" classname="textWidth &amp;gt; output.ts" time="0" file=".claude/core/analysis/analysis.test.ts" line="39" assertions="1" />
         <testcase name="should ignore ANSI escape codes in width" classname="textWidth &amp;gt; output.ts" time="0" file=".claude/core/analysis/analysis.test.ts" line="43" assertions="1" />
         <testcase name="should handle empty strings" classname="textWidth &amp;gt; output.ts" time="0" file=".claude/core/analysis/analysis.test.ts" line="48" assertions="1" />
-        <testcase name="should handle emoji width correctly" classname="textWidth &amp;gt; output.ts" time="0.000035" file=".claude/core/analysis/analysis.test.ts" line="52" assertions="1" />
+        <testcase name="should handle emoji width correctly" classname="textWidth &amp;gt; output.ts" time="0" file=".claude/core/analysis/analysis.test.ts" line="52" assertions="1" />
       </testsuite>
       <testsuite name="renderBox" file=".claude/core/analysis/analysis.test.ts" line="59" tests="2" assertions="4" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-        <testcase name="should cap box width at 89 (Col-89)" classname="renderBox &amp;gt; output.ts" time="0.000107" file=".claude/core/analysis/analysis.test.ts" line="60" assertions="1" />
-        <testcase name="should render title and content" classname="renderBox &amp;gt; output.ts" time="0.00003" file=".claude/core/analysis/analysis.test.ts" line="69" assertions="3" />
+        <testcase name="should cap box width at 89 (Col-89)" classname="renderBox &amp;gt; output.ts" time="0.000321" file=".claude/core/analysis/analysis.test.ts" line="60" assertions="1" />
+        <testcase name="should render title and content" classname="renderBox &amp;gt; output.ts" time="0.000025" file=".claude/core/analysis/analysis.test.ts" line="69" assertions="3" />
       </testsuite>
     </testsuite>
-    <testsuite name="SymbolRenamer" file=".claude/core/analysis/analysis.test.ts" line="83" tests="6" assertions="8" failures="0" skipped="0" time="0.004" hostname="Mac.attlocal.net">
-      <testcase name="should find references with whole-word matching" classname="SymbolRenamer" time="0.000656" file=".claude/core/analysis/analysis.test.ts" line="119" assertions="1" />
-      <testcase name="should not match partial words" classname="SymbolRenamer" time="0.000133" file=".claude/core/analysis/analysis.test.ts" line="124" assertions="1" />
-      <testcase name="should classify definitions correctly" classname="SymbolRenamer" time="0.000101" file=".claude/core/analysis/analysis.test.ts" line="130" assertions="1" />
-      <testcase name="should classify imports correctly" classname="SymbolRenamer" time="0.000124" file=".claude/core/analysis/analysis.test.ts" line="136" assertions="1" />
-      <testcase name="should classify calls correctly" classname="SymbolRenamer" time="0.000139" file=".claude/core/analysis/analysis.test.ts" line="142" assertions="1" />
-      <testcase name="should apply rename when not dry-run" classname="SymbolRenamer" time="0.004295" file=".claude/core/analysis/analysis.test.ts" line="148" assertions="3" />
+    <testsuite name="SymbolRenamer" file=".claude/core/analysis/analysis.test.ts" line="83" tests="6" assertions="8" failures="0" skipped="0" time="0.003" hostname="Mac.attlocal.net">
+      <testcase name="should find references with whole-word matching" classname="SymbolRenamer" time="0.000639" file=".claude/core/analysis/analysis.test.ts" line="119" assertions="1" />
+      <testcase name="should not match partial words" classname="SymbolRenamer" time="0.000116" file=".claude/core/analysis/analysis.test.ts" line="124" assertions="1" />
+      <testcase name="should classify definitions correctly" classname="SymbolRenamer" time="0.000098" file=".claude/core/analysis/analysis.test.ts" line="130" assertions="1" />
+      <testcase name="should classify imports correctly" classname="SymbolRenamer" time="0.000117" file=".claude/core/analysis/analysis.test.ts" line="136" assertions="1" />
+      <testcase name="should classify calls correctly" classname="SymbolRenamer" time="0.000081" file=".claude/core/analysis/analysis.test.ts" line="142" assertions="1" />
+      <testcase name="should apply rename when not dry-run" classname="SymbolRenamer" time="0.003533" file=".claude/core/analysis/analysis.test.ts" line="148" assertions="3" />
     </testsuite>
     <testsuite name="CodePolisher" file=".claude/core/analysis/analysis.test.ts" line="178" tests="10" assertions="13" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
       <testsuite name="checkNaming" file=".claude/core/analysis/analysis.test.ts" line="228" tests="4" assertions="4" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-        <testcase name="should flag non-camelCase function names" classname="checkNaming &amp;gt; CodePolisher" time="0.000214" file=".claude/core/analysis/analysis.test.ts" line="229" assertions="1" />
-        <testcase name="should flag non-PascalCase class names" classname="checkNaming &amp;gt; CodePolisher" time="0.000035" file=".claude/core/analysis/analysis.test.ts" line="238" assertions="1" />
-        <testcase name="should not flag valid camelCase functions" classname="checkNaming &amp;gt; CodePolisher" time="0.000009" file=".claude/core/analysis/analysis.test.ts" line="247" assertions="1" />
-        <testcase name="should not flag valid PascalCase classes" classname="checkNaming &amp;gt; CodePolisher" time="0.000006" file=".claude/core/analysis/analysis.test.ts" line="253" assertions="1" />
+        <testcase name="should flag non-camelCase function names" classname="checkNaming &amp;gt; CodePolisher" time="0.00011" file=".claude/core/analysis/analysis.test.ts" line="229" assertions="1" />
+        <testcase name="should flag non-PascalCase class names" classname="checkNaming &amp;gt; CodePolisher" time="0.000145" file=".claude/core/analysis/analysis.test.ts" line="238" assertions="1" />
+        <testcase name="should not flag valid camelCase functions" classname="checkNaming &amp;gt; CodePolisher" time="0" file=".claude/core/analysis/analysis.test.ts" line="247" assertions="1" />
+        <testcase name="should not flag valid PascalCase classes" classname="checkNaming &amp;gt; CodePolisher" time="0" file=".claude/core/analysis/analysis.test.ts" line="253" assertions="1" />
       </testsuite>
       <testsuite name="checkUnusedImports" file=".claude/core/analysis/analysis.test.ts" line="260" tests="2" assertions="3" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-        <testcase name="should flag unused imports" classname="checkUnusedImports &amp;gt; CodePolisher" time="0.00035" file=".claude/core/analysis/analysis.test.ts" line="261" assertions="2" />
+        <testcase name="should flag unused imports" classname="checkUnusedImports &amp;gt; CodePolisher" time="0.000226" file=".claude/core/analysis/analysis.test.ts" line="261" assertions="2" />
         <testcase name="should not flag used imports" classname="checkUnusedImports &amp;gt; CodePolisher" time="0" file=".claude/core/analysis/analysis.test.ts" line="271" assertions="1" />
       </testsuite>
       <testsuite name="checkMissingTypes" file=".claude/core/analysis/analysis.test.ts" line="281" tests="3" assertions="3" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-        <testcase name="should flag untyped parameters in .ts files" classname="checkMissingTypes &amp;gt; CodePolisher" time="0.000266" file=".claude/core/analysis/analysis.test.ts" line="282" assertions="1" />
-        <testcase name="should not flag typed parameters" classname="checkMissingTypes &amp;gt; CodePolisher" time="0" file=".claude/core/analysis/analysis.test.ts" line="289" assertions="1" />
-        <testcase name="should skip .js files" classname="checkMissingTypes &amp;gt; CodePolisher" time="0" file=".claude/core/analysis/analysis.test.ts" line="296" assertions="1" />
+        <testcase name="should flag untyped parameters in .ts files" classname="checkMissingTypes &amp;gt; CodePolisher" time="0.000454" file=".claude/core/analysis/analysis.test.ts" line="282" assertions="1" />
+        <testcase name="should not flag typed parameters" classname="checkMissingTypes &amp;gt; CodePolisher" time="0.000019" file=".claude/core/analysis/analysis.test.ts" line="289" assertions="1" />
+        <testcase name="should skip .js files" classname="checkMissingTypes &amp;gt; CodePolisher" time="0.000009" file=".claude/core/analysis/analysis.test.ts" line="296" assertions="1" />
       </testsuite>
       <testsuite name="analyzeDirectory" file=".claude/core/analysis/analysis.test.ts" line="303" tests="1" assertions="3" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-        <testcase name="should return a complete report" classname="analyzeDirectory &amp;gt; CodePolisher" time="0.000598" file=".claude/core/analysis/analysis.test.ts" line="304" assertions="3" />
+        <testcase name="should return a complete report" classname="analyzeDirectory &amp;gt; CodePolisher" time="0.000569" file=".claude/core/analysis/analysis.test.ts" line="304" assertions="3" />
       </testsuite>
     </testsuite>
   </testsuite>
   <testsuite name=".claude/core/team/TeamRegistry.test.ts" file=".claude/core/team/TeamRegistry.test.ts" tests="28" assertions="149" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
     <testsuite name="types" file=".claude/core/team/TeamRegistry.test.ts" line="42" tests="7" assertions="70" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-      <testcase name="should map all roles to tiers" classname="types" time="0" file=".claude/core/team/TeamRegistry.test.ts" line="43" assertions="4" />
-      <testcase name="should return PermissionFlags objects, not arrays" classname="types" time="0.000043" file=".claude/core/team/TeamRegistry.test.ts" line="50" assertions="3" />
-      <testcase name="should set correct flags per role" classname="types" time="0.000028" file=".claude/core/team/TeamRegistry.test.ts" line="57" assertions="17" />
-      <testcase name="should promote roles correctly" classname="types" time="0.000025" file=".claude/core/team/TeamRegistry.test.ts" line="84" assertions="4" />
-      <testcase name="should demote roles correctly" classname="types" time="0.000019" file=".claude/core/team/TeamRegistry.test.ts" line="91" assertions="4" />
+      <testcase name="should map all roles to tiers" classname="types" time="0.000085" file=".claude/core/team/TeamRegistry.test.ts" line="43" assertions="4" />
+      <testcase name="should return PermissionFlags objects, not arrays" classname="types" time="0" file=".claude/core/team/TeamRegistry.test.ts" line="50" assertions="3" />
+      <testcase name="should set correct flags per role" classname="types" time="0.000059" file=".claude/core/team/TeamRegistry.test.ts" line="57" assertions="17" />
+      <testcase name="should promote roles correctly" classname="types" time="0" file=".claude/core/team/TeamRegistry.test.ts" line="84" assertions="4" />
+      <testcase name="should demote roles correctly" classname="types" time="0" file=".claude/core/team/TeamRegistry.test.ts" line="91" assertions="4" />
       <testcase name="should have 4 roles in correct order" classname="types" time="0" file=".claude/core/team/TeamRegistry.test.ts" line="98" assertions="2" />
       <testcase name="should have flags for every tier" classname="types" time="0" file=".claude/core/team/TeamRegistry.test.ts" line="103" assertions="36" />
     </testsuite>
     <testsuite name="hasPermission" file=".claude/core/team/TeamRegistry.test.ts" line="119" tests="3" assertions="8" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-      <testcase name="should return true for enabled flags" classname="hasPermission" time="0" file=".claude/core/team/TeamRegistry.test.ts" line="120" assertions="3" />
-      <testcase name="should return false for disabled flags" classname="hasPermission" time="0.000084" file=".claude/core/team/TeamRegistry.test.ts" line="134" assertions="3" />
-      <testcase name="should return false for null/undefined team" classname="hasPermission" time="0.000008" file=".claude/core/team/TeamRegistry.test.ts" line="148" assertions="2" />
+      <testcase name="should return true for enabled flags" classname="hasPermission" time="0.000098" file=".claude/core/team/TeamRegistry.test.ts" line="120" assertions="3" />
+      <testcase name="should return false for disabled flags" classname="hasPermission" time="0.000013" file=".claude/core/team/TeamRegistry.test.ts" line="134" assertions="3" />
+      <testcase name="should return false for null/undefined team" classname="hasPermission" time="0" file=".claude/core/team/TeamRegistry.test.ts" line="148" assertions="2" />
     </testsuite>
     <testsuite name="enabledFlags" file=".claude/core/team/TeamRegistry.test.ts" line="158" tests="3" assertions="8" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-      <testcase name="should return only enabled flag names" classname="enabledFlags" time="0.000012" file=".claude/core/team/TeamRegistry.test.ts" line="159" assertions="1" />
-      <testcase name="should return all flags for lead" classname="enabledFlags" time="0.00001" file=".claude/core/team/TeamRegistry.test.ts" line="165" assertions="1" />
-      <testcase name="should return subset for developer" classname="enabledFlags" time="0.000019" file=".claude/core/team/TeamRegistry.test.ts" line="171" assertions="6" />
+      <testcase name="should return only enabled flag names" classname="enabledFlags" time="0" file=".claude/core/team/TeamRegistry.test.ts" line="159" assertions="1" />
+      <testcase name="should return all flags for lead" classname="enabledFlags" time="0" file=".claude/core/team/TeamRegistry.test.ts" line="165" assertions="1" />
+      <testcase name="should return subset for developer" classname="enabledFlags" time="0" file=".claude/core/team/TeamRegistry.test.ts" line="171" assertions="6" />
     </testsuite>
     <testsuite name="generateMemberEmail" file=".claude/core/team/TeamRegistry.test.ts" line="187" tests="2" assertions="4" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-      <testcase name="should generate email from profile name" classname="generateMemberEmail" time="0.000009" file=".claude/core/team/TeamRegistry.test.ts" line="188" assertions="3" />
-      <testcase name="should use the EMAIL_DOMAIN constant" classname="generateMemberEmail" time="0" file=".claude/core/team/TeamRegistry.test.ts" line="194" assertions="1" />
+      <testcase name="should generate email from profile name" classname="generateMemberEmail" time="0" file=".claude/core/team/TeamRegistry.test.ts" line="188" assertions="3" />
+      <testcase name="should use the EMAIL_DOMAIN constant" classname="generateMemberEmail" time="0.000071" file=".claude/core/team/TeamRegistry.test.ts" line="194" assertions="1" />
     </testsuite>
     <testsuite name="TeamRegistry" file=".claude/core/team/TeamRegistry.test.ts" line="207" tests="13" assertions="59" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-      <testcase name="should add a team member with flag-based permissions" classname="TeamRegistry" time="0.000437" file=".claude/core/team/TeamRegistry.test.ts" line="242" assertions="12" />
-      <testcase name="should return null for non-existent profile" classname="TeamRegistry" time="0.000067" file=".claude/core/team/TeamRegistry.test.ts" line="261" assertions="1" />
-      <testcase name="should update role and recalculate flags" classname="TeamRegistry" time="0.000281" file=".claude/core/team/TeamRegistry.test.ts" line="266" assertions="6" />
-      <testcase name="should promote a member and upgrade flags" classname="TeamRegistry" time="0.000321" file=".claude/core/team/TeamRegistry.test.ts" line="277" assertions="5" />
-      <testcase name="should not promote past lead" classname="TeamRegistry" time="0.000142" file=".claude/core/team/TeamRegistry.test.ts" line="288" assertions="1" />
-      <testcase name="should demote a member and downgrade flags" classname="TeamRegistry" time="0.00021" file=".claude/core/team/TeamRegistry.test.ts" line="294" assertions="5" />
-      <testcase name="should not demote past contributor" classname="TeamRegistry" time="0.000135" file=".claude/core/team/TeamRegistry.test.ts" line="305" assertions="1" />
-      <testcase name="should remove team membership" classname="TeamRegistry" time="0.000215" file=".claude/core/team/TeamRegistry.test.ts" line="311" assertions="3" />
-      <testcase name="should get hierarchy grouped by role" classname="TeamRegistry" time="0.000388" file=".claude/core/team/TeamRegistry.test.ts" line="321" assertions="5" />
-      <testcase name="should list only members with team data" classname="TeamRegistry" time="0.000199" file=".claude/core/team/TeamRegistry.test.ts" line="334" assertions="2" />
-      <testcase name="should persist flag-based permissions and email to disk" classname="TeamRegistry" time="0.000161" file=".claude/core/team/TeamRegistry.test.ts" line="341" assertions="9" />
-      <testcase name="should preserve email across role changes" classname="TeamRegistry" time="0.000366" file=".claude/core/team/TeamRegistry.test.ts" line="359" assertions="3" />
-      <testcase name="should support hasPermission() guard on loaded profiles" classname="TeamRegistry" time="0.00017" file=".claude/core/team/TeamRegistry.test.ts" line="376" assertions="6" />
+      <testcase name="should add a team member with flag-based permissions" classname="TeamRegistry" time="0.000696" file=".claude/core/team/TeamRegistry.test.ts" line="236" assertions="12" />
+      <testcase name="should return null for non-existent profile" classname="TeamRegistry" time="0.00003" file=".claude/core/team/TeamRegistry.test.ts" line="255" assertions="1" />
+      <testcase name="should update role and recalculate flags" classname="TeamRegistry" time="0.000328" file=".claude/core/team/TeamRegistry.test.ts" line="260" assertions="6" />
+      <testcase name="should promote a member and upgrade flags" classname="TeamRegistry" time="0.000319" file=".claude/core/team/TeamRegistry.test.ts" line="271" assertions="5" />
+      <testcase name="should not promote past lead" classname="TeamRegistry" time="0.000142" file=".claude/core/team/TeamRegistry.test.ts" line="282" assertions="1" />
+      <testcase name="should demote a member and downgrade flags" classname="TeamRegistry" time="0.000213" file=".claude/core/team/TeamRegistry.test.ts" line="288" assertions="5" />
+      <testcase name="should not demote past contributor" classname="TeamRegistry" time="0.000129" file=".claude/core/team/TeamRegistry.test.ts" line="299" assertions="1" />
+      <testcase name="should remove team membership" classname="TeamRegistry" time="0.000233" file=".claude/core/team/TeamRegistry.test.ts" line="305" assertions="3" />
+      <testcase name="should get hierarchy grouped by role" classname="TeamRegistry" time="0.00042" file=".claude/core/team/TeamRegistry.test.ts" line="315" assertions="5" />
+      <testcase name="should list only members with team data" classname="TeamRegistry" time="0.000197" file=".claude/core/team/TeamRegistry.test.ts" line="328" assertions="2" />
+      <testcase name="should persist flag-based permissions and email to disk" classname="TeamRegistry" time="0.000152" file=".claude/core/team/TeamRegistry.test.ts" line="335" assertions="9" />
+      <testcase name="should preserve email across role changes" classname="TeamRegistry" time="0.000362" file=".claude/core/team/TeamRegistry.test.ts" line="353" assertions="3" />
+      <testcase name="should support hasPermission() guard on loaded profiles" classname="TeamRegistry" time="0.000157" file=".claude/core/team/TeamRegistry.test.ts" line="370" assertions="6" />
     </testsuite>
   </testsuite>
 </testsuites>
