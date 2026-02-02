@@ -9,7 +9,7 @@ import {
   close,
   tableExists,
   tables,
-} from "../db.ts";
+} from "../src/core/db.ts";
 import { rmSync } from "node:fs";
 import { join } from "node:path";
 

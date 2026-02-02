@@ -148,6 +148,86 @@ export interface TypewriterOptions {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Color Processing Types (Enterprise Integration)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface ColorInfo {
+  r: number;
+  g: number;
+  b: number;
+  a?: number;
+  format: "hex" | "rgb" | "rgba" | "hsl" | "hsla" | "named";
+  aiConfidence: number; // 0-1, AI confidence score
+  processingTime: number; // milliseconds
+}
+
+export interface ColorSecurity {
+  hmacSha512: string; // Bundle integrity signature
+  aesGcmEncrypted: boolean; // Whether sensitive data is encrypted
+  securityLevel: "public" | "internal" | "confidential" | "restricted";
+}
+
+export interface ColorDeployment {
+  platform: "bun" | "cloudflare" | "node" | "browser";
+  bundleSize: number; // bytes
+  bytecodeOptimized: boolean;
+  zeroDiskKV: boolean;
+  durableObjects: boolean;
+}
+
+export interface ColorArtifact {
+  path: string;
+  size: number;
+  kind: string;
+  hash: string | null;
+  loader: string;
+  colorInfo: ColorInfo;
+  security: ColorSecurity;
+  deployment: ColorDeployment;
+}
+
+export interface ColorBuildConfig {
+  color: {
+    aiAdaptive: boolean;
+    performanceTarget: number; // 8-500x multiplier
+    security: {
+      enableHmacSha512: boolean;
+      enableAesGcm: boolean;
+      secretService: string;
+      secretName: string;
+    };
+    deployment: {
+      platforms: ("bun" | "cloudflare" | "node" | "browser")[];
+      zeroDiskKV: boolean;
+      durableObjects: boolean;
+    };
+    monitoring: {
+      enableP99Latency: boolean;
+      goldenMatrixTarget: number; // 7.2ms default
+      performanceThresholds: {
+        warning: number;
+        critical: number;
+      };
+    };
+  };
+}
+
+export interface ColorBuildResult {
+  success: boolean;
+  outputs: ColorArtifact[];
+  logs: string[];
+  metafile: any | null;
+  artifacts: ColorArtifact[];
+  metrics: {
+    totalTime: number;
+    averageProcessingTime: number;
+    performanceMultiplier: number;
+    aiConfidenceDistribution: { min: number; max: number; avg: number };
+    p99Latency?: number;
+  };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // System Configuration
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -173,6 +253,14 @@ export interface PolishConfig {
   };
   easterEggs: {
     enabled: boolean;
+  };
+  color?: {
+    aiAdaptive: boolean;
+    performanceTarget: number;
+    security: {
+      enableHmacSha512: boolean;
+      enableAesGcm: boolean;
+    };
   };
 }
 

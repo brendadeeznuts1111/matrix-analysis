@@ -16,7 +16,7 @@ import {
   minBy,
   maxBy,
   sortBy,
-} from "../array.ts";
+} from "../src/core/array.ts";
 
 describe("array", () => {
   describe("BN-075: chunk & windows", () => {

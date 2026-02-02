@@ -1,6 +1,6 @@
 import { describe, it, expect } from "bun:test";
-import { build, bundleToString } from "../build.ts";
-import type { BuildPlugin } from "../build.ts";
+import { build, bundleToString } from "../src/core/build.ts";
+import type { BuildPlugin } from "../src/core/build.ts";
 
 const ENTRY = "/tmp/test-build-entry.ts";
 const ENTRY_SRC = 'export const x = 42;\nconsole.log(x);\n';

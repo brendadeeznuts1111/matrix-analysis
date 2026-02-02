@@ -12,7 +12,7 @@ import {
   enforceCol89,
   escapeHtml,
   indexOfLine,
-} from "../str.ts";
+} from "../src/core/str.ts";
 
 describe("str", () => {
   describe("BN-025: strip/wrap/width", () => {

@@ -20,7 +20,7 @@ import {
   inflate,
   concatBuffers,
   toFormData,
-} from "../stream.ts";
+} from "../src/core/stream.ts";
 
 const makeStream = (text: string): ReadableStream =>
   new ReadableStream({

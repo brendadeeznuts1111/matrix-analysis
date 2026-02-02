@@ -1,6 +1,6 @@
 import { describe, it, expect } from "bun:test";
-import { run, sh, shQuiet, lines, jsonOut, which, spawn, spawnAndWait } from "../shell.ts";
-import type { RunResult } from "../shell.ts";
+import { run, sh, shQuiet, lines, jsonOut, which, spawn, spawnAndWait } from "../src/core/shell.ts";
+import type { RunResult } from "../src/core/shell.ts";
 
 describe("shell", () => {
   describe("BN-020: run", () => {

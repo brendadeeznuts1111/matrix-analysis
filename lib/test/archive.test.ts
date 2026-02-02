@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll } from "bun:test";
-import { read, list, extract, extractBytes, toBlob } from "../archive.ts";
+import { read, list, extract, extractBytes, toBlob } from "../src/core/archive.ts";
 import { $ } from "bun";
 
 let tarData: Uint8Array;

@@ -15,8 +15,8 @@ import {
   uuidv5,
   UUID_NAMESPACES,
   deepMatch,
-} from "../crypto.ts";
-import type { HashLevel, Algorithm, BcryptOptions } from "../crypto.ts";
+} from "../src/core/crypto.ts";
+import type { HashLevel, Algorithm, BcryptOptions } from "../src/core/crypto.ts";
 
 describe("crypto", () => {
   describe("BN-035: ARGON2_CONFIGS", () => {

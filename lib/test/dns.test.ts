@@ -1,6 +1,6 @@
 import { describe, it, expect } from "bun:test";
-import { lookup, prefetch, getCacheStats } from "../dns.ts";
-import type { DNSCacheStats } from "../dns.ts";
+import { lookup, prefetch, getCacheStats } from "../src/core/dns.ts";
+import type { DNSCacheStats } from "../src/core/dns.ts";
 
 describe("dns", () => {
   describe("BN-096: DNS Lookup", () => {

@@ -11,6 +11,23 @@ import { MicroInteractions, microInteractions } from "../micro-interactions/inde
 import { CLITour, createCLITour } from "../onboarding/cli-tour.ts";
 import { progressTracker } from "../onboarding/progress-tracker.ts";
 import { loadConfig, getConfig, updateConfig, applyPreset, type ConfigPreset } from "./config.ts";
+import {
+  ColorProcessor,
+  ColorSecurityManager,
+  ColorDeploymentManager,
+  ColorPerformanceMonitor,
+  createEnterpriseColorProcessor,
+  extractColorChannels,
+  calculateColorSimilarity,
+  findClosestNamedColorAdvanced,
+  validateTier1380Compliance,
+  generateSecurityComplianceReport,
+  validateDeploymentCompatibility,
+  generateDeploymentManifest,
+  validateTier1380Performance,
+  type ColorInfo,
+  type ColorArtifact,
+} from "../../src/color/index.ts";
 import type { PolishConfig, TourConfig } from "../types.ts";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -214,6 +231,221 @@ export class SystemPolish {
     name?: string
   ): Promise<T> {
     return this.errors.handleAsync(operation, fallback, name);
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Color Processing (Enterprise Integration)
+  // ─────────────────────────────────────────────────────────────────────────
+
+  private colorProcessor?: ColorProcessor;
+  private colorSecurity?: ColorSecurityManager;
+  private colorDeployment?: ColorDeploymentManager;
+  private colorPerformance?: ColorPerformanceMonitor;
+
+  /**
+   * Initialize color processing capabilities
+   */
+  async initColorProcessing(config?: {
+    aiAdaptive?: boolean;
+    performanceTarget?: number;
+    security?: {
+      enableHmacSha512?: boolean;
+      enableAesGcm?: boolean;
+    };
+    deployment?: {
+      platforms?: ("bun" | "cloudflare" | "node" | "browser")[];
+      zeroDiskKV?: boolean;
+      durableObjects?: boolean;
+    };
+    monitoring?: {
+      enableP99Latency?: boolean;
+      goldenMatrixTarget?: number;
+    };
+  }): Promise<void> {
+    if (!this.config.color) {
+      this.config.color = {
+        aiAdaptive: true,
+        performanceTarget: 100,
+        security: {
+          enableHmacSha512: true,
+          enableAesGcm: false,
+        },
+      };
+    }
+
+    // Create enterprise color processor
+    const processor = createEnterpriseColorProcessor({
+      aiAdaptive: config?.aiAdaptive ?? this.config.color.aiAdaptive,
+      performanceTarget: config?.performanceTarget ?? this.config.color.performanceTarget,
+      security: {
+        enableHmacSha512: config?.security?.enableHmacSha512 ?? this.config.color.security.enableHmacSha512,
+        enableAesGcm: config?.security?.enableAesGcm ?? this.config.color.security.enableAesGcm,
+        secretService: 'color-processing',
+        secretName: 'hmac-key',
+      },
+      deployment: {
+        platforms: config?.deployment?.platforms ?? ['bun'],
+        zeroDiskKV: config?.deployment?.zeroDiskKV ?? false,
+        durableObjects: config?.deployment?.durableObjects ?? false,
+      },
+      monitoring: {
+        enableP99Latency: config?.monitoring?.enableP99Latency ?? true,
+        goldenMatrixTarget: config?.monitoring?.goldenMatrixTarget ?? 7.2,
+      },
+    });
+
+    this.colorProcessor = processor.processor;
+    this.colorSecurity = processor.security;
+    this.colorDeployment = processor.deployment;
+    this.colorPerformance = processor.performance;
+
+    this.logger.info('Color processing capabilities initialized');
+  }
+
+  /**
+   * Extract color channels from various sources
+   */
+  async extractColorChannels(input: string | number[] | { r: number; g: number; b: number; a?: number }): Promise<ColorInfo | null> {
+    if (!this.colorProcessor) {
+      await this.initColorProcessing();
+    }
+
+    try {
+      const result = await this.colorProcessor!.processColor(typeof input === 'string' ? input : JSON.stringify(input));
+
+      if (result.success && result.colorInfo) {
+        // Record performance measurement
+        this.colorPerformance?.recordMeasurement({
+          processingTime: result.colorInfo.processingTime,
+          aiConfidence: result.colorInfo.aiConfidence,
+          input: typeof input === 'string' ? input : JSON.stringify(input),
+          success: true,
+        });
+
+        return result.colorInfo;
+      }
+
+      return null;
+    } catch (error) {
+      this.logger.error(`Color extraction failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      return null;
+    }
+  }
+
+  /**
+   * Process a batch of colors with performance monitoring
+   */
+  async processColorBatch(inputs: string[]): Promise<{
+    results: Array<{ success: boolean; colorInfo?: ColorInfo; error?: string }>;
+    metrics: any;
+  }> {
+    if (!this.colorProcessor) {
+      await this.initColorProcessing();
+    }
+
+    const startTime = performance.now();
+    const results = await this.colorProcessor!.processBatch(inputs);
+    const totalTime = performance.now() - startTime;
+
+    // Collect metrics
+    const metrics = this.colorPerformance?.collectMetrics(results, totalTime);
+
+    // Record measurements
+    results.forEach((result, i) => {
+      if (result.success && result.colorInfo) {
+        this.colorPerformance?.recordMeasurement({
+          processingTime: result.colorInfo.processingTime,
+          aiConfidence: result.colorInfo.aiConfidence,
+          input: inputs[i],
+          success: true,
+        });
+      }
+    });
+
+    return {
+      results: results.map(r => ({
+        success: r.success,
+        colorInfo: r.colorInfo,
+        error: r.error,
+      })),
+      metrics,
+    };
+  }
+
+  /**
+   * Deploy color matrix across multiple platforms
+   */
+  async deployColorMatrix(artifacts: ColorArtifact[]): Promise<{
+    deployments: any[];
+    summary: any;
+  }> {
+    if (!this.colorDeployment) {
+      await this.initColorProcessing();
+    }
+
+    const deploymentArtifacts = artifacts.map(artifact => ({
+      path: artifact.path,
+      deployment: artifact.deployment,
+      bundleData: JSON.stringify(artifact),
+    }));
+
+    const result = await this.colorDeployment!.deployArtifacts(deploymentArtifacts);
+
+    this.logger.info(`Color matrix deployed: ${result.summary.successful}/${result.summary.total} successful`);
+
+    return result;
+  }
+
+  /**
+   * Calculate color similarity
+   */
+  calculateColorSimilarity(color1: ColorInfo, color2: ColorInfo): number {
+    return calculateColorSimilarity(color1, color2);
+  }
+
+  /**
+   * Find closest named color
+   */
+  findClosestNamedColor(color: ColorInfo): { name: string; rgb: [number, number, number]; similarity: number } | null {
+    return findClosestNamedColorAdvanced(color);
+  }
+
+  /**
+   * Generate security compliance report
+   */
+  generateSecurityComplianceReport(artifacts: ColorArtifact[]): {
+    compliance: any;
+    recommendations: string[];
+  } {
+    return generateSecurityComplianceReport(artifacts);
+  }
+
+  /**
+   * Validate TIER-1380 compliance
+   */
+  validateTier1380Compliance(security: any): {
+    compliant: boolean;
+    violations: string[];
+  } {
+    return validateTier1380Compliance(security);
+  }
+
+  /**
+   * Get color processing performance report
+   */
+  getColorPerformanceReport(): any {
+    return this.colorPerformance?.generatePerformanceReport();
+  }
+
+  /**
+   * Run color processing benchmark
+   */
+  async runColorBenchmark(testCases: string[], iterations: number = 100): Promise<any> {
+    if (!this.colorPerformance) {
+      await this.initColorProcessing();
+    }
+
+    return await this.colorPerformance!.runBenchmark(testCases, iterations);
   }
 
   // ─────────────────────────────────────────────────────────────────────────

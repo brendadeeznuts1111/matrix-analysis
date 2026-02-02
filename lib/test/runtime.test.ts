@@ -13,7 +13,7 @@ import {
   fileURLToPath,
   openInEditor,
   which,
-} from "../runtime.ts";
+} from "../src/core/runtime.ts";
 
 describe("runtime", () => {
   describe("BN-090: Runtime Info", () => {

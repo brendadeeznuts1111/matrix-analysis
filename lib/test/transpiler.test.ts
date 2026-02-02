@@ -4,7 +4,7 @@ import {
   transpileAsync,
   scanImports,
   scanExports,
-} from "../transpiler.ts";
+} from "../src/core/transpiler.ts";
 
 describe("transpiler", () => {
   describe("BN-106: Transpile", () => {

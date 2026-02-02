@@ -13,7 +13,7 @@ import {
   fetchProxy,
   fetchUnixSocket,
   preconnect,
-} from "../http.ts";
+} from "../src/core/http.ts";
 
 let server: ReturnType<typeof Bun.serve>;
 let baseUrl: string;

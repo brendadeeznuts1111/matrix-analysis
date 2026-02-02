@@ -9,7 +9,7 @@ import {
   deferred,
   withTimeout,
   withTimeoutSafe,
-} from "../async.ts";
+} from "../src/core/async.ts";
 
 describe("async", () => {
   describe("BN-070: retry", () => {

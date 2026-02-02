@@ -8,7 +8,7 @@ import {
   gte,
   lte,
   requireVersion,
-} from "../semver.ts";
+} from "../src/core/semver.ts";
 
 describe("semver", () => {
   describe("BN-104: Semver Comparison", () => {

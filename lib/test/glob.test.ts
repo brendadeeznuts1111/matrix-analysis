@@ -1,5 +1,5 @@
 import { describe, it, expect } from "bun:test";
-import { match, filter, some, matcher } from "../glob.ts";
+import { match, filter, some, matcher } from "../src/core/glob.ts";
 
 describe("glob", () => {
   describe("BN-109: Pattern Matching", () => {

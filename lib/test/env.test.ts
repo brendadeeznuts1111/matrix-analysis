@@ -17,7 +17,7 @@ import {
   isBun,
   bunVersion,
   requireBunVersion,
-} from "../env.ts";
+} from "../src/core/env.ts";
 
 describe("env", () => {
   const saved: Record<string, string | undefined> = {};

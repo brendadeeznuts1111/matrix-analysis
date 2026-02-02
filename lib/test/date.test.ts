@@ -24,7 +24,7 @@ import {
   isSameDay,
   now,
   today,
-} from "../date.ts";
+} from "../src/core/date.ts";
 
 describe("date", () => {
   const fixed = new Date("2025-06-15T14:30:45.123Z");

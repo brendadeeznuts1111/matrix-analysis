@@ -21,7 +21,7 @@ import {
   sliceBytes,
   readAll,
   readAllJson,
-} from "../file.ts";
+} from "../src/core/file.ts";
 import { mkdirSync, rmSync } from "node:fs";
 import { join } from "node:path";
 

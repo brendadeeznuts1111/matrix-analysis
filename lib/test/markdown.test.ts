@@ -1,6 +1,6 @@
 import { describe, it, expect } from "bun:test";
-import { html, render } from "../markdown.ts";
-import type { MarkdownOptions } from "../markdown.ts";
+import { html, render } from "../src/core/markdown.ts";
+import type { MarkdownOptions } from "../src/core/markdown.ts";
 
 describe("markdown", () => {
   describe("BN-103: Markdown to HTML", () => {

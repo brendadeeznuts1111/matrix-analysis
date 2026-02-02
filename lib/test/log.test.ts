@@ -10,7 +10,7 @@ import {
   measureSafe,
   type Logger,
   type LogLevel,
-} from "../log.ts";
+} from "../src/core/log.ts";
 
 describe("log", () => {
   describe("BN-087: Logger Instance", () => {

@@ -1,33 +1,52 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuites name="bun test" tests="16" assertions="34" failures="0" skipped="0" time="0.028644">
-  <testsuite name="tools/typescript-type-fixes.test.ts" file="tools/typescript-type-fixes.test.ts" tests="16" assertions="34" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-    <testsuite name="TypeScript Type Fixes - Bun v1.3.6" file="tools/typescript-type-fixes.test.ts" line="9" tests="12" assertions="27" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-      <testsuite name="1. Bun.build() autoload options" file="tools/typescript-type-fixes.test.ts" line="10" tests="3" assertions="6" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-        <testcase name="should accept autoloadTsconfig option" classname="1. Bun.build() autoload options &amp;gt; TypeScript Type Fixes - Bun v1.3.6" time="0.000181" file="tools/typescript-type-fixes.test.ts" line="11" assertions="2" />
-        <testcase name="should accept autoloadPackageJson option" classname="1. Bun.build() autoload options &amp;gt; TypeScript Type Fixes - Bun v1.3.6" time="0.000077" file="tools/typescript-type-fixes.test.ts" line="25" assertions="2" />
-        <testcase name="should accept both options together" classname="1. Bun.build() autoload options &amp;gt; TypeScript Type Fixes - Bun v1.3.6" time="0.000047" file="tools/typescript-type-fixes.test.ts" line="37" assertions="2" />
+<testsuites name="bun test" tests="31" assertions="63" failures="0" skipped="0" time="0.030653">
+  <testsuite name="lib/test/color.test.ts" file="lib/test/color.test.ts" tests="31" assertions="63" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+    <testsuite name="color" file="lib/test/color.test.ts" line="25" tests="31" assertions="63" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+      <testsuite name="BN-060: NO_COLOR Detection" file="lib/test/color.test.ts" line="26" tests="1" assertions="1" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+        <testcase name="should return a boolean" classname="BN-060: NO_COLOR Detection &amp;gt; color" time="0.000132" file="lib/test/color.test.ts" line="27" assertions="1" />
       </testsuite>
-      <testsuite name="2. bun:sqlite .run() return type" file="tools/typescript-type-fixes.test.ts" line="51" tests="5" assertions="14" failures="0" skipped="0" time="0.002" hostname="Mac.attlocal.net">
-        <testcase name="should return Changes object with correct types" classname="2. bun:sqlite .run() return type &amp;gt; TypeScript Type Fixes - Bun v1.3.6" time="0.002478" file="tools/typescript-type-fixes.test.ts" line="54" assertions="4" />
-        <testcase name="should return number for changes property" classname="2. bun:sqlite .run() return type &amp;gt; TypeScript Type Fixes - Bun v1.3.6" time="0.000129" file="tools/typescript-type-fixes.test.ts" line="67" assertions="2" />
-        <testcase name="should return number for lastInsertRowid property" classname="2. bun:sqlite .run() return type &amp;gt; TypeScript Type Fixes - Bun v1.3.6" time="0.000214" file="tools/typescript-type-fixes.test.ts" line="78" assertions="2" />
-        <testcase name="should track multiple insertions correctly" classname="2. bun:sqlite .run() return type &amp;gt; TypeScript Type Fixes - Bun v1.3.6" time="0.000173" file="tools/typescript-type-fixes.test.ts" line="89" assertions="3" />
-        <testcase name="should handle prepared statements with .run()" classname="2. bun:sqlite .run() return type &amp;gt; TypeScript Type Fixes - Bun v1.3.6" time="0.000476" file="tools/typescript-type-fixes.test.ts" line="102" assertions="3" />
+      <testsuite name="BN-061: Colorize" file="lib/test/color.test.ts" line="32" tests="3" assertions="3" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+        <testcase name="should return string containing the text" classname="BN-061: Colorize &amp;gt; color" time="0.000106" file="lib/test/color.test.ts" line="33" assertions="1" />
+        <testcase name="should return string for bold" classname="BN-061: Colorize &amp;gt; color" time="0.000033" file="lib/test/color.test.ts" line="38" assertions="1" />
+        <testcase name="should return string for dim" classname="BN-061: Colorize &amp;gt; color" time="0.00003" file="lib/test/color.test.ts" line="43" assertions="1" />
       </testsuite>
-      <testsuite name="3. FileSink.write() return type" file="tools/typescript-type-fixes.test.ts" line="116" tests="4" assertions="7" failures="0" skipped="0" time="0.001" hostname="Mac.attlocal.net">
-        <testcase name="should return number for synchronous writes" classname="3. FileSink.write() return type &amp;gt; TypeScript Type Fixes - Bun v1.3.6" time="0.001236" file="tools/typescript-type-fixes.test.ts" line="117" assertions="2" />
-        <testcase name="should return Promise&lt;number&gt; for async writes" classname="3. FileSink.write() return type &amp;gt; TypeScript Type Fixes - Bun v1.3.6" time="0.000871" file="tools/typescript-type-fixes.test.ts" line="130" assertions="1" />
-        <testcase name="should properly type union return (number | Promise&lt;number&gt;)" classname="3. FileSink.write() return type &amp;gt; TypeScript Type Fixes - Bun v1.3.6" time="0.000636" file="tools/typescript-type-fixes.test.ts" line="150" assertions="1" />
-        <testcase name="should handle multiple writes" classname="3. FileSink.write() return type &amp;gt; TypeScript Type Fixes - Bun v1.3.6" time="0.000674" file="tools/typescript-type-fixes.test.ts" line="167" assertions="3" />
+      <testsuite name="BN-062: Semantic Presets" file="lib/test/color.test.ts" line="49" tests="2" assertions="10" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+        <testcase name="should have correct palette values" classname="BN-062: Semantic Presets &amp;gt; color" time="0.00006" file="lib/test/color.test.ts" line="50" assertions="5" />
+        <testcase name="should wrap text with semantic colors" classname="BN-062: Semantic Presets &amp;gt; color" time="0.000081" file="lib/test/color.test.ts" line="58" assertions="5" />
       </testsuite>
-    </testsuite>
-    <testsuite name="TypeScript Type Fix Examples" file="tools/typescript-type-fixes.test.ts" line="192" tests="3" assertions="7" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-      <testcase name="demonstrates Bun.build() autoload types" classname="TypeScript Type Fix Examples" time="0.000047" file="tools/typescript-type-fixes.test.ts" line="193" assertions="2" />
-      <testcase name="demonstrates bun:sqlite Changes type" classname="TypeScript Type Fix Examples" time="0.000264" file="tools/typescript-type-fixes.test.ts" line="207" assertions="4" />
-      <testcase name="demonstrates FileSink.write() return type" classname="TypeScript Type Fix Examples" time="0.000179" file="tools/typescript-type-fixes.test.ts" line="224" assertions="1" />
-    </testsuite>
-    <testsuite name="Cleanup" file="tools/typescript-type-fixes.test.ts" line="243" tests="1" assertions="0" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
-      <testcase name="should cleanup test files" classname="Cleanup" time="0.000057" file="tools/typescript-type-fixes.test.ts" line="244" assertions="0" />
+      <testsuite name="BN-063: Hex Conversion" file="lib/test/color.test.ts" line="67" tests="12" assertions="16" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+        <testcase name="should convert named color to hex" classname="BN-063: Hex Conversion &amp;gt; color" time="0.000046" file="lib/test/color.test.ts" line="68" assertions="1" />
+        <testcase name="should convert number to hex" classname="BN-063: Hex Conversion &amp;gt; color" time="0.000002" file="lib/test/color.test.ts" line="72" assertions="1" />
+        <testcase name="should convert array to hex" classname="BN-063: Hex Conversion &amp;gt; color" time="0" file="lib/test/color.test.ts" line="76" assertions="1" />
+        <testcase name="should convert hex to rgb" classname="BN-063: Hex Conversion &amp;gt; color" time="0.000261" file="lib/test/color.test.ts" line="80" assertions="2" />
+        <testcase name="should convert hex to hsl" classname="BN-063: Hex Conversion &amp;gt; color" time="0.000027" file="lib/test/color.test.ts" line="86" assertions="1" />
+        <testcase name="should return null for invalid input" classname="BN-063: Hex Conversion &amp;gt; color" time="0" file="lib/test/color.test.ts" line="91" assertions="1" />
+        <testcase name="should return null for convert with invalid input" classname="BN-063: Hex Conversion &amp;gt; color" time="0" file="lib/test/color.test.ts" line="95" assertions="1" />
+        <testcase name="should return null for convert that throws" classname="BN-063: Hex Conversion &amp;gt; color" time="0.000064" file="lib/test/color.test.ts" line="99" assertions="1" />
+        <testcase name="should colorize with an invalid hex gracefully" classname="BN-063: Hex Conversion &amp;gt; color" time="0.00001" file="lib/test/color.test.ts" line="104" assertions="1" />
+        <testcase name="should support explicit format" classname="BN-063: Hex Conversion &amp;gt; color" time="0.000007" file="lib/test/color.test.ts" line="110" assertions="1" />
+        <testcase name="should convert to hex8 with full alpha" classname="BN-063: Hex Conversion &amp;gt; color" time="0.000071" file="lib/test/color.test.ts" line="115" assertions="4" />
+        <testcase name="should return null for invalid hex8 input" classname="BN-063: Hex Conversion &amp;gt; color" time="0" file="lib/test/color.test.ts" line="123" assertions="1" />
+      </testsuite>
+      <testsuite name="BN-064b: ANSI Constants" file="lib/test/color.test.ts" line="128" tests="5" assertions="16" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+        <testcase name="should export ANSI reset code" classname="BN-064b: ANSI Constants &amp;gt; color" time="0" file="lib/test/color.test.ts" line="129" assertions="1" />
+        <testcase name="should export ANSI bold code" classname="BN-064b: ANSI Constants &amp;gt; color" time="0" file="lib/test/color.test.ts" line="133" assertions="1" />
+        <testcase name="should export ANSI dim code" classname="BN-064b: ANSI Constants &amp;gt; color" time="0" file="lib/test/color.test.ts" line="137" assertions="1" />
+        <testcase name="should export foreground colors" classname="BN-064b: ANSI Constants &amp;gt; color" time="0.00002" file="lib/test/color.test.ts" line="141" assertions="9" />
+        <testcase name="should export background colors" classname="BN-064b: ANSI Constants &amp;gt; color" time="0.00001" file="lib/test/color.test.ts" line="153" assertions="4" />
+      </testsuite>
+      <testsuite name="BN-064: Status Symbols" file="lib/test/color.test.ts" line="161" tests="4" assertions="8" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+        <testcase name="should prefix with check mark" classname="BN-064: Status Symbols &amp;gt; color" time="0.000019" file="lib/test/color.test.ts" line="162" assertions="2" />
+        <testcase name="should prefix with X mark" classname="BN-064: Status Symbols &amp;gt; color" time="0.000004" file="lib/test/color.test.ts" line="167" assertions="2" />
+        <testcase name="should prefix with warning symbol" classname="BN-064: Status Symbols &amp;gt; color" time="0" file="lib/test/color.test.ts" line="172" assertions="2" />
+        <testcase name="should prefix with info symbol" classname="BN-064: Status Symbols &amp;gt; color" time="0.000037" file="lib/test/color.test.ts" line="177" assertions="2" />
+      </testsuite>
+      <testsuite name="BN-063b: convert format correctness" file="lib/test/color.test.ts" line="183" tests="4" assertions="9" failures="0" skipped="0" time="0" hostname="Mac.attlocal.net">
+        <testcase name="should convert to rgb format (not hex)" classname="BN-063b: convert format correctness &amp;gt; color" time="0" file="lib/test/color.test.ts" line="184" assertions="3" />
+        <testcase name="should convert to hsl format (not hex)" classname="BN-063b: convert format correctness &amp;gt; color" time="0.000027" file="lib/test/color.test.ts" line="191" assertions="2" />
+        <testcase name="should return null for invalid input" classname="BN-063b: convert format correctness &amp;gt; color" time="0" file="lib/test/color.test.ts" line="197" assertions="1" />
+        <testcase name="toHex8 should produce 9-char hex with alpha" classname="BN-063b: convert format correctness &amp;gt; color" time="0" file="lib/test/color.test.ts" line="201" assertions="3" />
+      </testsuite>
     </testsuite>
   </testsuite>
 </testsuites>

@@ -143,6 +143,11 @@ const COMMANDS = {
     script: "../scripts/lib/color.ts",
     subcommands: ["convert", "rgba", "ansi", "contrast", "lighten", "darken", "topics"],
   },
+  test: {
+    description: "Run integration test suite",
+    script: "../scripts/test-integration.ts",
+    subcommands: [],
+  },
 };
 
 const COLORS = {

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "bun:test";
-import { get, set, remove } from "../secrets.ts";
+import { get, set, remove } from "../src/core/secrets.ts";
 
 const SERVICE = "com.bun-native-lib.test";
 

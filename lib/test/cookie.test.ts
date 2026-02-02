@@ -1,5 +1,5 @@
 import { describe, it, expect } from "bun:test";
-import { create, toString, parse, get, getAll } from "../cookie.ts";
+import { create, toString, parse, get, getAll } from "../src/core/cookie.ts";
 
 describe("cookie", () => {
   describe("BN-101: Cookie Creation", () => {

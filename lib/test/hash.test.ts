@@ -13,7 +13,7 @@ import {
   sha,
   shaHex,
   shaBase64,
-} from "../hash.ts";
+} from "../src/core/hash.ts";
 
 describe("hash", () => {
   describe("BN-094: Hash Algorithms", () => {

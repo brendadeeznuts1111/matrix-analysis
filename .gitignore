@@ -108,6 +108,8 @@ bunfig.toml
 !.claude/api/**
 !.claude/commands/
 !.claude/commands/**
+!.claude/matrix/
+!.claude/matrix/**
 .claude.json*
 .cline/
 .cloudflared/

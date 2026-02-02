@@ -19,7 +19,7 @@ import {
   digitProduct,
   reverseNumber,
   generateUUIDv7WithTimestamp,
-} from "../utils.ts";
+} from "../src/core/utils.ts";
 
 describe("utils", () => {
   describe("BN-001: Memoized Fibonacci", () => {

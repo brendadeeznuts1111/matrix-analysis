@@ -22,7 +22,7 @@ import {
   nanoTimer,
   type BenchResult,
   type RuntimeMetrics,
-} from "../perf.ts";
+} from "../src/core/perf.ts";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // BN-010: Benchmark Harness

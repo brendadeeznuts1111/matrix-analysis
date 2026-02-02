@@ -1,5 +1,5 @@
 import { describe, it, expect } from "bun:test";
-import { createSink, buildBuffer, buildString } from "../sink.ts";
+import { createSink, buildBuffer, buildString } from "../src/core/sink.ts";
 
 describe("sink", () => {
   describe("BN-110: ArrayBufferSink", () => {

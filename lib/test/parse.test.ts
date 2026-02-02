@@ -1,5 +1,5 @@
 import { describe, it, expect } from "bun:test";
-import { json, json5, toml, jsonl, jsonlChunk, loadFile, toJsonl, yaml, jsonc, loadFileV2 } from "../parse.ts";
+import { json, json5, toml, jsonl, jsonlChunk, loadFile, toJsonl, yaml, jsonc, loadFileV2 } from "../src/core/parse.ts";
 
 describe("parse", () => {
   describe("BN-030: json", () => {

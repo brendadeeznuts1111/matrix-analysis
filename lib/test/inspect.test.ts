@@ -7,7 +7,7 @@ import {
   table,
   safeInspect,
   CUSTOM,
-} from "../inspect.ts";
+} from "../src/core/inspect.ts";
 
 describe("inspect", () => {
   describe("BN-102: Inspect", () => {
