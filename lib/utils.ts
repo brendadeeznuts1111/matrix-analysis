@@ -153,6 +153,7 @@ export const generateUUIDv7WithTimestamp = (): { uuid: string; timestamp: string
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Polish System Re-export
+// Module Re-exports
 // ─────────────────────────────────────────────────────────────────────────────
 export * as polish from "./polish/index.ts";
+export * as perf from "./perf.ts";
