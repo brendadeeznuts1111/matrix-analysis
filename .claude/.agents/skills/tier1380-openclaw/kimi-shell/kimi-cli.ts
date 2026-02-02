@@ -138,6 +138,11 @@ const COMMANDS = {
     script: "../scripts/lib/jsc-monitor.ts",
     subcommands: ["memory", "gc", "profile", "monitor", "timezone", "describe", "snapshot", "drain"],
   },
+  color: {
+    description: "Color utility (Bun.color API)",
+    script: "../scripts/lib/color.ts",
+    subcommands: ["convert", "rgba", "ansi", "contrast", "lighten", "darken", "topics"],
+  },
 };
 
 const COLORS = {
