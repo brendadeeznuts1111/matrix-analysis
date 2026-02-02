@@ -48,6 +48,12 @@ Complete integration system connecting Telegram topics, local projects, Git repo
 
 ## 🚀 Quick Start
 
+### Setup
+
+```bash
+kimi setup                    # Run quick setup wizard
+```
+
 ### View Integration Status
 
 ```bash
